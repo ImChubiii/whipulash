@@ -7,7 +7,16 @@ enum State { IDLE, CHASE, ATTACK }
 @export var detection_range: float = 20
 @export var attack_range: float = 5
 @export var attack_cooldown: float = 0
-@export var gravity: float = 20.0
+
+# NEU: gravity hat jetzt einen Setter, damit jump_velocity automatisch
+# neu berechnet wird, falls gravity zur Laufzeit (Inspector-Live-Edit,
+# Debug-Tools etc.) verändert wird — sonst bliebe die Sprungkraft auf
+# Basis der ALTEN gravity "eingefroren".
+@export var gravity: float = 20.0:
+	set(value):
+		gravity = value
+		_recalculate_jump_velocity()
+
 @export var attack_windup_time: float = 1
 @export var pre_attack_delay: float = 0.8
 
@@ -73,23 +82,13 @@ func get_display_name() -> String:
 @export var telegraph_ground_raycast_range: float = 20.0
 
 # --- Sprung- & Kanten-Verhalten ---
-# Gegner können jetzt über kleine Hindernisse/Stufen springen (Raycast
-# unten = blockiert, Raycast oben = frei -> Hindernis ist niedrig genug,
-# springen). An echten Abgründen (kein Boden mehr in Bewegungsrichtung
-# erkennbar) bleiben sie STEHEN und warten, statt blind runterzulaufen —
-# außer can_jump_across_ledges ist an UND die Lücke ist klein genug
-# (jump_across_max_gap), dann wird stattdessen rübergesprungen.
 @export var can_jump: bool = true
 
-# Feste maximale Sprunghöhe in Metern für DIESEN Gegner — direkt hier
-# einstellen, z.B. 2.0. Das ist eine OBERGRENZE — der tatsächliche Sprung
-# misst die reale Hindernishöhe per Raycast ab und springt nur so hoch wie
-# nötig (plus kleine Marge), nie automatisch bis zur vollen jump_height.
-# Nur bei einem Hindernis, das GENAU jump_height hoch ist, wird die volle
-# Höhe genutzt.
-@export var jump_height: float = 2.0
-# Kleiner Sicherheitsaufschlag über der gemessenen Hindernishöhe, damit
-# der Sprung nicht exakt an der Kante kratzt.
+@export var jump_height: float = 2.0:
+	set(value):
+		jump_height = value
+		_recalculate_jump_velocity()
+
 @export var obstacle_jump_margin: float = 0.3
 var jump_velocity: float = 0.0
 
@@ -102,25 +101,44 @@ var jump_velocity: float = 0.0
 @export var jump_across_max_gap: float = 4.0
 @export var ground_raycast_mask: int = 1
 
-# NEU: Statt die Geschwindigkeit jeden Frame SOFORT auf den Zielwert zu
-# springen (fühlt sich besonders bei schnellen Gegnern wie dem Stinger
-# ruckartig/roboterhaft an, "0 Delay"), rampt sich velocity.x/z jetzt
-# über movement_acceleration hoch bzw. runter — move_toward statt
-# direkter Zuweisung. Kleinere Werte = trägere, "schwerere" Beschleunigung
-# (natürlicher wirkendes Anlaufen/Abbremsen), größere Werte = fast wie
-# vorher (fast instant). Für den Stinger z.B. 30-40 statt eines riesigen
-# Werts probieren.
+# Kanten-Check skaliert dynamisch mit der tatsächlichen Kapselgröße
+# (Radius) dieses Gegners, damit große Gegner (Fighter, Colossus) nicht
+# schon über den eigenen Körper fälschlich "Abgrund" erkennen.
+@export var ledge_check_scale_with_radius: bool = true
+@export var ledge_check_radius_margin: float = 0.5
+
+# Zusätzlich zum mittleren Raycast werden zwei seitlich versetzte
+# Raycasts geprüft — eine Kante wird nur erkannt, wenn ALLE drei
+# Raycasts keinen Boden finden (verhindert False-Positives durch
+# Unebenheiten im Collision-Mesh).
+@export var ledge_check_lateral_samples: bool = true
+
 @export var movement_acceleration: float = 40.0
+
+# --- Abrutsch-Logik, wenn der Gegner auf dem Player-Kopf steht ---
+#
+# ÜBERARBEITET (Fix "Gegner bewegen sich gar nicht mehr"):
+# Der reine Normalen-Check (normal.dot(UP) > threshold) reagierte bei
+# GROSSEN Kapsel-Kollisionsformen (Colossus, Fighter) schon auf ganz
+# normalen SEITLICHEN Kontakt mit der gerundeten Kapsel-Kappe des
+# Players als "steht oben drauf" — das feuerte JEDEN Physik-Frame,
+# setzte einen Weg-Impuls, der aber im ATTACK-State sofort im nächsten
+# Frame wieder auf 0 gesetzt wurde (State-Handler setzt velocity.x/z
+# explizit zurück), BEVOR er sich auswirken konnte. Ergebnis: eine
+# Endlosschleife aus "fälschlich erkannt -> Impuls -> sofort gelöscht",
+# die die eigentliche Bewegung komplett blockiert hat.
+#
+# Fix: Zusätzlich zur Normalen wird jetzt geprüft, ob die FÜSSE des
+# Gegners auch WIRKLICH spürbar über der Player-Ursprungsposition
+# liegen (echte vertikale Stapelung). Reiner Seitenkontakt kann diese
+# Bedingung nicht erfüllen, egal wie die Kollisionsnormale aussieht.
+@export var player_head_slide_impulse: float = 6.0
+@export_range(0.0, 1.0) var player_head_slide_normal_threshold: float = 0.9
+@export var player_head_slide_min_height_above_player: float = 0.8
 
 var _waiting_at_ledge: bool = false
 
 # --- Status-Effekt-System (Poison, Slow, Fear, ...) ---
-# Läuft über einen generischen StatusEffectManager-Kind-Node, der sich
-# selbst erstellt, falls er nicht schon in der Szene liegt — kein
-# manuelles Scene-Editing nötig. "slow" reduziert move_speed anteilig,
-# "poison" tickt Schaden über Health. Weitere Effekte (z.B. "fear") sind
-# über has_status_effect()/get_status_effect_magnitude() abfragbar, auch
-# wenn hier noch keine konkrete Fear-Verhaltenslogik verdrahtet ist.
 var status_effects: StatusEffectManager
 
 func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, source: Node = null, tick_interval: float = 0.0) -> void:
@@ -137,10 +155,6 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 		health.take_damage(magnitude, source)
 
 # --- Debug ---
-# Schaltet die "EnemyAI DEBUG:"-Konsolen-Ausgaben für DIESEN Gegner an/aus.
-# Praktisch um gezielt nur den Gegnertyp zu debuggen, den man gerade testet,
-# ohne dass die Konsole von allen anderen gleichzeitig aktiven Gegnern
-# zugespammt wird.
 @export var debug_logging: bool = false
 
 @onready var attack_hitbox: Hitbox = get_node_or_null("AttackHitbox")
@@ -159,9 +173,19 @@ var _last_known_health: float = -1.0
 var _alpha_tween: Tween
 var _flash_tween: Tween
 
+# NEU: gecachte, robust gesuchte CollisionShape3D (siehe
+# _get_collision_shape_node()) + Merker, damit die Warnung bei fehlender
+# Shape nur EINMAL pro Gegner geloggt wird statt jeden Frame.
+var _collision_shape_cache: CollisionShape3D
+var _warned_missing_collision_shape: bool = false
+
 func _debug(msg: String) -> void:
 	if debug_logging:
 		print("EnemyAI DEBUG [%s]: %s" % [display_name, msg])
+
+func _recalculate_jump_velocity() -> void:
+	jump_velocity = sqrt(2.0 * gravity * jump_height)
+	_debug("Sprungkraft neu berechnet: jump_height=%.2f, gravity=%.2f -> jump_velocity=%.2f" % [jump_height, gravity, jump_velocity])
 
 func _ready() -> void:
 	add_to_group("enemies")
@@ -171,16 +195,21 @@ func _ready() -> void:
 
 	_debug("_ready() aufgerufen. attack_hitbox gefunden: %s | telegraph_inner: %s | telegraph_outer: %s" % [attack_hitbox, telegraph_inner, telegraph_outer])
 
-	# StatusEffectManager holen oder automatisch erstellen (gemeinsamer
-	# Helper statt dupliziertem Code — siehe status_effect_manager.gd).
+	# Collision-Shape einmalig auflösen und Ergebnis gleich loggen — damit
+	# man SOFORT im Log sieht, ob bei diesem Gegnertyp (Colossus/Fighter)
+	# überhaupt die richtige Shape gefunden wird, statt später stumm auf
+	# ungenaue Fallback-Werte zu laufen.
+	var shape_node := _get_collision_shape_node()
+	if shape_node:
+		_debug("CollisionShape3D gefunden: %s (Pfad: %s)" % [shape_node.shape, shape_node.get_path()])
+		_debug("-> berechneter Körperradius: %.2f | Fuß-Y: %.2f (eigene global_position.y: %.2f)" % [_get_body_radius(), _get_feet_y(), global_position.y])
+	else:
+		push_warning("EnemyAI (%s): Keine CollisionShape3D gefunden! Kanten-/Hindernis-Checks laufen mit Fallback-Werten und sind unzuverlässig." % display_name)
+
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
 
-	# Sprungkraft aus der festen jump_height berechnen (Sprungphysik:
-	# v = sqrt(2 * g * h)), damit der Sprung physikalisch auch wirklich
-	# so hoch kommt wie im Inspector eingestellt.
-	jump_velocity = sqrt(2.0 * gravity * jump_height)
-	_debug("Sprungkraft berechnet: jump_height=%.1f -> jump_velocity=%.2f" % [jump_height, jump_velocity])
+	_recalculate_jump_velocity()
 
 	if telegraph_inner:
 		telegraph_inner.visible = false
@@ -188,19 +217,11 @@ func _ready() -> void:
 	if telegraph_outer:
 		telegraph_outer.visible = false
 
-	# Das ShaderMaterial des Meshes holen und DUPLIZIEREN — sonst würden
-	# sich mehrere gleichzeitig existierende Gegner (Spawner!) alle
-	# dasselbe Material teilen, und die Transparenz eines Gegners würde
-	# versehentlich auch alle anderen mitverändern.
 	if mesh:
 		var mat := mesh.get_surface_override_material(0)
 		if mat is ShaderMaterial:
 			_mesh_material = mat.duplicate()
 			mesh.set_surface_override_material(0, _mesh_material)
-			# Sicherheitshalber explizit zurücksetzen, falls im Basis-Material
-			# irgendwann mal ein Flash-Wert manuell im Inspector getestet und
-			# gespeichert wurde — sonst könnte der als "eingefroren" bestehen
-			# bleiben, unabhängig vom Script.
 			_mesh_material.set_shader_parameter("flash_strength", 0.0)
 		else:
 			push_warning("EnemyAI: Mesh hat kein ShaderMaterial mit alpha_multiplier — Transparenz-Effekt wird nicht funktionieren.")
@@ -208,7 +229,6 @@ func _ready() -> void:
 	if health:
 		health.died.connect(_on_died)
 		health.health_changed.connect(_on_health_changed)
-		# Direkt beim Start einmal die korrekte Basis-Transparenz setzen
 		_on_health_changed(health.current_health, health.max_health)
 
 func _physics_process(delta: float) -> void:
@@ -261,18 +281,61 @@ func _physics_process(delta: float) -> void:
 		elif _state != State.ATTACK and telegraph_outer and not _is_attacking:
 			telegraph_outer.visible = false
 
-	# Sanfte Separation von anderen Gegnern draufaddieren — verhindert,
-	# dass sie sich stapeln/überlappen, OHNE die harten Physik-Pops zu
-	# verursachen, die bei echter CharacterBody3D-vs-CharacterBody3D-
-	# Kollision zwischen vielen Gegnern gleichzeitig auftreten können.
 	velocity += _get_separation_velocity()
 
 	move_and_slide()
 
-	# Telegraph-Ringe NACH move_and_slide() auf den echten Boden pinnen —
-	# so hängen sie nie im Boden fest und schweben nicht mit, falls der
-	# Gegner selbst gerade in der Luft ist (Sprung, Fall, Knockback etc.).
+	_handle_standing_on_player()
+
 	_update_telegraph_ground_position()
+
+# Erkennt, ob der Gegner WIRKLICH auf dem Player steht (nicht nur seitlich
+# an ihm anliegt), und verpasst ihm in diesem Fall einen horizontalen
+# Impuls weg vom Player-Zentrum.
+func _handle_standing_on_player() -> void:
+	if _player == null or not is_instance_valid(_player):
+		return
+
+	for i in range(get_slide_collision_count()):
+		var collision := get_slide_collision(i)
+		var collider: Object = collision.get_collider()
+		if collider == null:
+			continue
+
+		var is_player_collision: bool = collider == _player
+		if not is_player_collision and collider is Node:
+			is_player_collision = (collider as Node).is_in_group("player")
+		if not is_player_collision:
+			continue
+
+		var normal: Vector3 = collision.get_normal()
+		if normal.dot(Vector3.UP) < player_head_slide_normal_threshold:
+			# Normale nicht steil genug -> normaler Seitenkontakt, keine
+			# Aktion nötig.
+			continue
+
+		# Zusätzliche Höhen-Prüfung: nur als "steht oben drauf" werten,
+		# wenn die Füße des Gegners auch tatsächlich spürbar ÜBER der
+		# Player-Ursprungsposition liegen. Das verhindert False-Positives
+		# durch die gerundete Kapsel-Kappe des Players bei reinem
+		# Seitenkontakt (siehe Kommentar oben bei den @export-Variablen).
+		var feet_y: float = _get_feet_y()
+		var player_y: float = _player.global_position.y
+		if feet_y < player_y + player_head_slide_min_height_above_player:
+			continue
+
+		_debug("Steht WIRKLICH auf dem Player (feet_y=%.2f > player_y=%.2f + %.2f, normal.y=%.2f) -> rutscht seitlich ab." % [feet_y, player_y, player_head_slide_min_height_above_player, normal.y])
+
+		var away: Vector3 = global_position - _player.global_position
+		away.y = 0
+		if away.length() < 0.01:
+			away = Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0))
+		away = away.normalized()
+
+		velocity.x = away.x * player_head_slide_impulse
+		velocity.z = away.z * player_head_slide_impulse
+		velocity.y = min(velocity.y, 0.0)
+		break
 
 func _update_telegraph_ground_position() -> void:
 	if not telegraph_ground_snap:
@@ -280,9 +343,6 @@ func _update_telegraph_ground_position() -> void:
 	if telegraph_outer == null and telegraph_inner == null:
 		return
 
-	# Nur raycasten, wenn mindestens ein Ring gerade sichtbar ist —
-	# spart Performance bei vielen gleichzeitig aktiven Gegnern, die
-	# gerade nicht im Angriffszustand sind.
 	var outer_visible: bool = telegraph_outer != null and telegraph_outer.visible
 	var inner_visible: bool = telegraph_inner != null and telegraph_inner.visible
 	if not outer_visible and not inner_visible:
@@ -298,9 +358,6 @@ func _update_telegraph_ground_position() -> void:
 
 	var result := space_state.intersect_ray(query)
 
-	# Fallback, falls kein Boden gefunden wird (z.B. Gegner über einem
-	# Abgrund): einfach die aktuelle Gegner-Y-Position nehmen, damit die
-	# Ringe nicht komplett verschwinden oder ins Leere schießen.
 	var ground_y: float = global_position.y
 	if result:
 		ground_y = result.position.y
@@ -326,7 +383,6 @@ func _get_separation_velocity() -> Vector3:
 		offset.y = 0
 		var dist: float = offset.length()
 		if dist > 0.001 and dist < separation_radius:
-			# Je näher, desto stärker die Abstoßung (linear abfallend mit Distanz)
 			var strength: float = (1.0 - dist / separation_radius) * separation_strength
 			push += offset.normalized() * strength
 	return push
@@ -341,63 +397,73 @@ func _move_towards_player(delta: float) -> void:
 		var jumped_across: bool = can_jump_across_ledges and is_on_floor() and _try_jump_across_ledge(dir)
 		if not jumped_across:
 			if ledge_wait_enabled:
-				# An der Kante stehen bleiben und warten statt blind
-				# runterzulaufen — nur zum Spieler drehen, nicht bewegen.
+				_debug("WARTE AN KANTE — keine Bewegung diesen Frame (dir=%s)." % dir)
 				_waiting_at_ledge = true
 				velocity.x = 0
 				velocity.z = 0
 				_face_player(delta)
 				return
-			# ledge_wait_enabled = false -> altes Verhalten: einfach weiterlaufen
 	_waiting_at_ledge = false
 
-	# --- Hindernis-Check: kleine Stufe/Kante springen statt stehenbleiben,
-	# und zwar nur SO HOCH wie das Hindernis tatsächlich ist, nicht immer
-	# volle jump_height. ---
+	# --- Hindernis-Check ---
 	if can_jump and is_on_floor() and dir.length() > 0.01:
 		var required_height: float = _get_required_jump_height(dir)
 		if required_height > 0.0:
 			velocity.y = sqrt(2.0 * gravity * required_height)
 			_debug("Springe auf Zielhöhe %.2f (Obergrenze %.2f) über Hindernis." % [required_height, jump_height])
 
-	# "slow"-Status-Effekt reduziert die Bewegungsgeschwindigkeit anteilig
-	# (magnitude 0.5 = 50% langsamer). Kommt z.B. von einer Slow-Waffe
-	# oder einem Hazard, per apply_status_effect("slow", dauer, staerke).
 	var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
 	var effective_speed: float = move_speed * slow_factor
 
-	# Sanft auf die Zielgeschwindigkeit hin beschleunigen statt sofort
-	# draufzuspringen — macht die Bewegung spürbar natürlicher, besonders
-	# bei schnellen Gegnern wie dem Stinger, die sonst bei jedem
-	# Richtungswechsel wie teleportiert wirken.
 	var target_velocity_x: float = dir.x * effective_speed
 	var target_velocity_z: float = dir.z * effective_speed
 	velocity.x = move_toward(velocity.x, target_velocity_x, movement_acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
 
-# Berechnet die TATSÄCHLICHE Weltraum-Y-Höhe der FÜSSE dieses Gegners,
-# über die eigene CollisionShape3D — nicht einfach global_position.y (die
-# Root!), die je nach Gegnertyp Fußhöhe ODER Körpermitte sein kann (Fighter
-# z.B. sitzt die Kapsel-Mitte ~4.5 Einheiten über dem Boden). OHNE diesen
-# Fix reichten die Abwärts-Raycasts bei großen Gegnern nie bis zum echten
-# Boden -> die dachten JEDEN Frame "Abgrund voraus" und blieben komplett
-# stehen, obwohl gar keine Kante da war.
+func _get_collision_shape_node() -> CollisionShape3D:
+	if _collision_shape_cache and is_instance_valid(_collision_shape_cache):
+		return _collision_shape_cache
+
+	var direct := get_node_or_null("CollisionShape3D")
+	if direct and direct is CollisionShape3D:
+		_collision_shape_cache = direct
+		return _collision_shape_cache
+
+	for child in get_children():
+		if child is CollisionShape3D:
+			if not _warned_missing_collision_shape:
+				_debug("WARNUNG: Kein Kind namens 'CollisionShape3D' — nutze stattdessen direktes Kind '%s'." % child.get_path())
+				_warned_missing_collision_shape = true
+			_collision_shape_cache = child
+			return _collision_shape_cache
+
+	if not _warned_missing_collision_shape:
+		push_warning("EnemyAI (%s): Konnte KEINE CollisionShape3D unter den direkten Kindern finden. Kanten-/Hindernis-Checks laufen mit unzuverlässigen Fallback-Werten." % display_name)
+		_warned_missing_collision_shape = true
+	return null
+
 func _get_feet_y() -> float:
-	var collision_shape: CollisionShape3D = get_node_or_null("CollisionShape3D")
+	var collision_shape := _get_collision_shape_node()
 	if collision_shape and collision_shape.shape:
 		var shape := collision_shape.shape
-		# WICHTIG: die Shape-Ressource kennt nur ihre EIGENEN Rohwerte
-		# (radius/height). Falls die CollisionShape3D-Node selbst noch
-		# eine Transform-Skalierung trägt (wie beim Colossus, dessen
-		# Body-Kollision nie auf Identity-Scale umgestellt wurde), muss
-		# das hier mit eingerechnet werden — sonst landen wir bei großen,
-		# noch skalierten Gegnern bei einer viel zu hohen "Fußposition"
-		# und der Kanten-Check denkt fälschlich, es sei ein Abgrund da.
 		var y_scale: float = collision_shape.global_transform.basis.y.length()
 		var half_height: float = 0.0
 		if shape is CapsuleShape3D:
-			half_height = (shape.radius + shape.height * 0.5) * y_scale
+			# WICHTIG (Fix): shape.height ist in Godot bereits die GESAMTE
+			# Kapselhöhe INKLUSIVE der beiden halbrunden Kappen (nicht nur
+			# die zylindrische Mitte). Der halbe Abstand von der Mitte bis
+			# zur Spitze ist daher schlicht height * 0.5 — NICHT
+			# radius + height * 0.5. Die alte Formel hat den Radius
+			# fälschlich ein zweites Mal addiert, wodurch half_height bei
+			# jedem Gegner um genau seinen Radius zu groß berechnet wurde.
+			# Bei großen Gegnern (Colossus: Radius 3.0, Fighter: 1.5)
+			# landete die berechnete "Fußposition" dadurch deutlich UNTER
+			# dem echten Boden -> die Boden-Raycasts liefen permanent ins
+			# Leere -> _is_ledge_ahead() erkannte ständig eine Kante, obwohl
+			# gar keine da war. Das war die eigentliche Ursache des
+			# Einfrierens, unabhängig von allen anderen Fixes.
+			half_height = shape.height * 0.5 * y_scale
 		elif shape is BoxShape3D:
 			half_height = shape.size.y * 0.5 * y_scale
 		elif shape is SphereShape3D:
@@ -405,14 +471,19 @@ func _get_feet_y() -> float:
 		return collision_shape.global_position.y - half_height
 	return global_position.y
 
-# Misst per gestuften Raycasts die TATSÄCHLICHE Höhe des Hindernisses vor
-# dem Gegner, statt einfach binär "springbar ja/nein" zu prüfen. Gibt -1.0
-# zurück, wenn kein Sprung nötig ist ODER das Hindernis selbst bei voller
-# jump_height noch blockiert (dann lieber gar nicht erst springen, statt
-# mit dem Kopf dagegen zu laufen). Sonst: die Zielhöhe, auf die gesprungen
-# werden soll (gemessene Hindernishöhe + kleine Marge, gedeckelt bei
-# jump_height als Obergrenze) — DAS behebt das "springt immer 4 Meter über
-# eine 1-Meter-Kiste"-Problem.
+func _get_body_radius() -> float:
+	var collision_shape := _get_collision_shape_node()
+	if collision_shape and collision_shape.shape:
+		var shape := collision_shape.shape
+		var xz_scale: float = collision_shape.global_transform.basis.x.length()
+		if shape is CapsuleShape3D:
+			return shape.radius * xz_scale
+		elif shape is BoxShape3D:
+			return max(shape.size.x, shape.size.z) * 0.5 * xz_scale
+		elif shape is SphereShape3D:
+			return shape.radius * xz_scale
+	return 0.5
+
 func _get_required_jump_height(dir: Vector3) -> float:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -424,7 +495,7 @@ func _get_required_jump_height(dir: Vector3) -> float:
 	query_low.collision_mask = ground_raycast_mask
 	var result_low := space_state.intersect_ray(query_low)
 	if result_low.is_empty():
-		return -1.0  # unten nichts im Weg, kein Sprung nötig
+		return -1.0
 
 	var obstacle_clear_height: float = jump_height
 	var found_clear_height: bool = false
@@ -443,29 +514,42 @@ func _get_required_jump_height(dir: Vector3) -> float:
 			break
 
 	if not found_clear_height:
-		# Selbst auf voller jump_height noch blockiert -> zu hoch, gar
-		# nicht erst versuchen zu springen.
+		_debug("Hindernis auch bei voller jump_height (%.2f) noch blockiert -> springe NICHT." % jump_height)
 		return -1.0
 
 	return min(obstacle_clear_height + obstacle_jump_margin, jump_height)
 
-# Prüft per Downward-Raycast, ob in Bewegungsrichtung (etwas vor dem
-# Gegner) noch Boden vorhanden ist. Kein Treffer = Abgrund/Lücke.
 func _is_ledge_ahead(dir: Vector3) -> bool:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
-	var check_pos: Vector3 = Vector3(global_position.x, feet_y, global_position.z) + dir * ledge_check_forward_distance + Vector3(0, 0.5, 0)
-	var ray_end: Vector3 = check_pos - Vector3(0, ledge_check_drop_distance, 0)
 
-	var query := PhysicsRayQueryParameters3D.create(check_pos, ray_end)
-	query.exclude = [self]
-	query.collision_mask = ground_raycast_mask
+	var effective_forward_distance: float = ledge_check_forward_distance
+	if ledge_check_scale_with_radius:
+		var body_radius: float = _get_body_radius()
+		effective_forward_distance = max(ledge_check_forward_distance, body_radius + ledge_check_radius_margin)
 
-	var result := space_state.intersect_ray(query)
-	return result.is_empty()
+	var offsets: Array[Vector3] = [Vector3.ZERO]
+	if ledge_check_lateral_samples:
+		var lateral_dir: Vector3 = Vector3(-dir.z, 0.0, dir.x)
+		var lateral_offset: float = max(_get_body_radius() * 0.5, 0.3)
+		offsets.append(lateral_dir * lateral_offset)
+		offsets.append(-lateral_dir * lateral_offset)
 
-# Tastet sich in mehreren Schritten über die Lücke vor; findet sich
-# innerhalb von jump_across_max_gap wieder Boden, wird gesprungen.
+	for offset in offsets:
+		var check_pos: Vector3 = Vector3(global_position.x, feet_y, global_position.z) + dir * effective_forward_distance + offset + Vector3(0, 0.5, 0)
+		var ray_end: Vector3 = check_pos - Vector3(0, ledge_check_drop_distance, 0)
+
+		var query := PhysicsRayQueryParameters3D.create(check_pos, ray_end)
+		query.exclude = [self]
+		query.collision_mask = ground_raycast_mask
+
+		var result := space_state.intersect_ray(query)
+		if not result.is_empty():
+			return false
+
+	_debug("Kante erkannt: feet_y=%.2f, effective_forward_distance=%.2f (Basis ledge_check_forward_distance=%.2f, Körperradius=%.2f)" % [feet_y, effective_forward_distance, ledge_check_forward_distance, _get_body_radius()])
+	return true
+
 func _try_jump_across_ledge(dir: Vector3) -> bool:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -536,9 +620,6 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 	_base_alpha = lerp(min_alpha_at_zero_hp, 1.0, percent)
 	_set_mesh_alpha(_base_alpha)
 
-	# NUR bei echtem Treffer flashen (HP gesunken), nicht bei Regeneration/
-	# Heilung — sonst feuert der Flash bei jedem Regen-Tick jeden Frame
-	# neu und wirkt wie ein Dauer-Leuchten.
 	if _last_known_health >= 0.0 and current < _last_known_health:
 		_play_hit_flash()
 	_last_known_health = current
@@ -551,10 +632,6 @@ func _play_hit_flash() -> void:
 	if not _mesh_material:
 		return
 
-	# WICHTIG: alten Tween killen, bevor ein neuer startet — sonst
-	# stapeln sich bei schnellem Dauerfeuer viele gleichzeitig laufende
-	# Tweens übereinander, die sich gegenseitig überschreiben und zu
-	# chaotischem Geflacker statt einem sauberen Effekt führen.
 	if _alpha_tween and _alpha_tween.is_valid():
 		_alpha_tween.kill()
 	_alpha_tween = create_tween()
