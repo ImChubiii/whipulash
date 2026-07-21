@@ -66,36 +66,6 @@ shader_parameter/flash_strength = 0.0
 
 [node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_t0ybu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
-speed = null
-jump_velocity = null
-mouse_sensitivity = null
-gravity = null
-zoom_min = null
-zoom_max = null
-zoom_step = null
-large_enemy_zoom_hold_time = null
-large_enemy_zoom_speed = null
-large_enemy_return_duration = null
-stun_camera_shake = null
-own_damage_shake_strength = null
-use_ragdoll = null
-death_fall_rotation_degrees = null
-death_fall_duration = null
-ragdoll_mass = null
-ragdoll_impulse_strength = null
-ragdoll_upward_impulse = null
-ragdoll_torque_strength = null
-camera_soft_lock_strength = null
-model_lock_turn_speed = null
-max_lock_range = null
-trauma_decay = null
-max_shake_offset = null
-max_shake_roll_degrees = null
-dash_fov_boost = null
-dash_fov_ramp_up_time = null
-dash_fov_ramp_down_time = null
-buoyancy_accel = null
-buoyancy_swim_boost = null
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
 
@@ -517,9 +487,8 @@ spawn_points = [NodePath(".")]
 
 [node name="Lemonade" parent="." unique_id=1115630498 instance=ExtResource("7_t0ybu")]
 transform = Transform3D(12.467179, 0, 0, 0, 23.249767, 0, 0, 0, 17.047106, 87.59367, -15.120653, -31.06929)
-damage_per_tick = 20.0
-buoyancy_rise_speed = 5.0
-entry_dampening = 0.35
+damage_per_tick = 6.0
+buoyancy_rise_speed = 10.0
 
 [node name="KillGate" parent="." unique_id=668922089 instance=ExtResource("13_2ucnx")]
 transform = Transform3D(0.108382404, -1.4140126e-07, -3.3415587, 5.6077823e-07, 3.2349994, -1.4483543e-07, 12.82911, -1.4021172e-07, 0.02823003, 151.07774, 3.440979, -51.404606)
