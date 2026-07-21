@@ -148,12 +148,56 @@ var _base_fov: float = 75.0
 # Auftrieb-Schwimmen wie in Minecraft-Wasser/Lava, statt nur gedämpftem Fallen.
 @export var buoyancy_accel: float = 6.0
 @export var buoyancy_swim_boost: float = 1.8  # Multiplikator beim Halten von Space
+
+# NEU: Wie viel Anteil der eigenen Körperhöhe passiv (OHNE Space gedrückt
+# zu halten) über die Lava-Oberfläche ragen darf, bevor der Auftrieb
+# abgebremst wird — 0.33 = "Kopf/Oberkörper bleibt ca. 1/3 draußen, der
+# Rest bleibt eingetaucht". Das ist der eigentliche Fix für den "schießt
+# komplett aus der Lava"-Bug: OHNE dieses Cap zieht buoyancy_rise_speed
+# die Y-Velocity IMMER weiter Richtung oben, unabhängig davon, wie hoch
+# man schon ist — bis man komplett über der Oberfläche schwebt und der
+# Lava-Trigger einen als "nicht mehr drin" erkennt (Tick-Schaden UND
+# Auftrieb stoppen dann sofort, siehe lemonade.gd _on_body_exited).
+@export_range(0.0, 1.0) var submersion_body_ratio: float = 0.33
+
+# Fallback-Körperhöhe, falls own_collision keine CapsuleShape3D hat
+# (sollte im Normalfall nie greifen, ist nur Absicherung).
+@export var fallback_body_height: float = 1.8
+
+# NEU: leichtes Auf-und-Ab-Wippen ("Bobbing"), sobald die Ziel-
+# Eintauchtiefe erreicht ist — rein kosmetisch, macht das Schweben
+# lebendiger statt wie ein starr eingefrorenes Stehen im Wasser.
+# amplitude = wie viele Meter rauf/runter, frequency = wie schnell
+# (Wellen pro Sekunde), response = wie "straff" die Bewegung dem
+# Wellen-Ziel folgt (höher = giftiger/schneller, niedriger = träger/weicher).
+@export var bob_amplitude: float = 0.12
+@export var bob_frequency: float = 0.55
+@export var bob_response: float = 3.0
+
 var _buoyancy_active: bool = false
 var _buoyancy_rise_speed: float = 2.5
+# Die Weltraum-Y-Höhe der Lava-/Wasser-Oberfläche, übergeben von
+# lemonade.gd — Grundlage für die Berechnung der Ziel-Eintauchtiefe.
+var _buoyancy_surface_y: float = 0.0
+var _bob_time: float = 0.0
 
-func set_buoyancy(active: bool, rise_speed: float = 2.5) -> void:
+func set_buoyancy(active: bool, rise_speed: float = 2.5, surface_y: float = 0.0) -> void:
+	# Bob-Welle bei jedem NEUEN Eintauchen (false -> true) zurücksetzen,
+	# damit man immer sauber bei Phase 0 (Wellenmitte) startet, statt
+	# mitten in einer alten Wippbewegung "einzusteigen".
+	if active and not _buoyancy_active:
+		_bob_time = 0.0
 	_buoyancy_active = active
 	_buoyancy_rise_speed = rise_speed
+	_buoyancy_surface_y = surface_y
+
+# Ermittelt die tatsächliche Körperhöhe über die eigene CapsuleShape3D —
+# height ist in Godot 4 bereits die GESAMTE Kapselhöhe (inkl. beider
+# Halbkugel-Kappen), muss also nicht zusätzlich um radius*2 erweitert werden.
+func _get_body_height() -> float:
+	if own_collision and own_collision.shape is CapsuleShape3D:
+		return (own_collision.shape as CapsuleShape3D).height
+	return fallback_body_height
 
 func _ready() -> void:
 	# Maus einfangen (unsichtbar, für freie Kamera-Steuerung)
@@ -373,14 +417,42 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Buoyancy (Auftrieb): falls aktiv (z.B. in Lava/Wasser), wird die
-	# Y-Geschwindigkeit aktiv Richtung "nach oben" gezogen — echtes
-	# Schwimm-Gefühl statt nur gedämpftem Fallen. Space gedrückt halten
-	# = schneller nach oben schwimmen (wie in Minecraft).
+	# Y-Geschwindigkeit Richtung "nach oben" gezogen — echtes Schwimm-
+	# Gefühl statt nur gedämpftem Fallen. WICHTIG (Fix für den "schießt
+	# komplett aus der Lava"-Bug): der Auftrieb ist gedeckelt auf eine
+	# Ziel-Eintauchtiefe (submersion_body_ratio), bei der nur ein kleiner
+	# Teil des Körpers oben rausschaut. Erst wenn Space AKTIV gehalten
+	# wird, darf man über dieses Cap hinaus weiter nach oben/raus schwimmen.
 	if _buoyancy_active:
-		var target_rise: float = _buoyancy_rise_speed
-		if Input.is_action_pressed("ui_accept"):
-			target_rise *= buoyancy_swim_boost
-		velocity.y = move_toward(velocity.y, target_rise, buoyancy_accel * delta)
+		var exiting: bool = Input.is_action_pressed("ui_accept")
+
+		if exiting:
+			# Aktiv rausschwimmen/hochspringen — normales, geboostetes
+			# Auftriebs-Tempo, ohne Tiefen-Deckel.
+			var target_rise: float = _buoyancy_rise_speed * buoyancy_swim_boost
+			velocity.y = move_toward(velocity.y, target_rise, buoyancy_accel * delta)
+		else:
+			var body_height: float = _get_body_height()
+			# Ziel-Y für die Körpermitte (= global_position.y): so, dass
+			# nur submersion_body_ratio der Körperhöhe über der Oberfläche
+			# rausragt (Kopf/Oberkörper), der Rest bleibt eingetaucht.
+			var float_target_y: float = _buoyancy_surface_y - body_height * (0.5 - submersion_body_ratio)
+
+			if global_position.y < float_target_y - bob_amplitude:
+				# Noch klar unterhalb der Ziel-Eintauchtiefe: normal weiter
+				# hochtreiben lassen. (Der bob_amplitude-Puffer verhindert,
+				# dass diese Bedingung mit dem Bobbing unten flackert.)
+				velocity.y = move_toward(velocity.y, _buoyancy_rise_speed, buoyancy_accel * delta)
+			else:
+				# Ziel-Eintauchtiefe erreicht: statt hart auf 0 zu clampen
+				# (fühlt sich wie eingefroren an), sanft um float_target_y
+				# herum auf/ab wippen lassen — kleiner Feder-Effekt statt
+				# starrer Fixierung, macht das Schweben realistischer.
+				_bob_time += delta
+				var bob_offset: float = sin(_bob_time * bob_frequency * TAU) * bob_amplitude
+				var bob_target_y: float = float_target_y + bob_offset
+				var to_target: float = (bob_target_y - global_position.y) * bob_response
+				velocity.y = move_toward(velocity.y, to_target, buoyancy_accel * delta)
 	else:
 		# Schwerkraft anwenden, solange man nicht am Boden ist — der
 		# Gravitations-Multiplikator kommt aus combat.gd (Hit Lock).

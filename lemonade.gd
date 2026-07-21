@@ -201,7 +201,11 @@ func _start_submersion_effects(body: Node3D) -> void:
 		body.velocity.y *= entry_dampening
 
 	if body.has_method("set_buoyancy"):
-		body.set_buoyancy(true, buoyancy_rise_speed)
+		# NEU: übergibt zusätzlich die tatsächliche Oberflächen-Y-Höhe —
+		# der Body (z.B. player.gd) nutzt das, um seinen Auftrieb auf eine
+		# Ziel-Eintauchtiefe zu deckeln, statt endlos weiter nach oben zu
+		# beschleunigen (das war der Grund für das "aus der Lava schießen").
+		body.set_buoyancy(true, buoyancy_rise_speed, _get_surface_top_world_y())
 
 	if _is_player(body):
 		var overlay := get_tree().get_root().find_child("SubmersionOverlay", true, false)
