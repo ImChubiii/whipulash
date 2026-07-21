@@ -1,0 +1,351 @@
+﻿==================================================
+PROJEKT-DATEIUEBERSICHT: whiplash
+Gesamtanzahl Dateien: 115
+==================================================
+
+â€¢ Name: .editorconfig
+  Art:  Datei (.editorconfig)
+
+â€¢ Name: .gitattributes
+  Art:  Datei (.gitattributes)
+
+â€¢ Name: .gitignore
+  Art:  Datei (.gitignore)
+
+â€¢ Name: assets\blossom_the_powerpuff_girls.glb
+  Art:  3D-Modell (GLTF/GLB)
+
+â€¢ Name: assets\blossom_the_powerpuff_girls.glb.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\blossom_the_powerpuff_girls_0.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\blossom_the_powerpuff_girls_0.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\image-removebg-preview (10).png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\image-removebg-preview (10).png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\image-removebg-preview (11).png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\image-removebg-preview (11).png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\image-removebg-preview (9).png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\image-removebg-preview (9).png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: export_file_tree.ps1
+  Art:  Datei (.ps1)
+
+â€¢ Name: export_full_project.ps1
+  Art:  Datei (.ps1)
+
+â€¢ Name: export_presets.cfg
+  Art:  Konfiguration
+
+â€¢ Name: export_single_file.ps1
+  Art:  Datei (.ps1)
+
+â€¢ Name: icon.svg
+  Art:  Vektorgrafik (SVG)
+
+â€¢ Name: icon.svg.import
+  Art:  Import-Metadaten
+
+â€¢ Name: index.apple-touch-icon.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: index.apple-touch-icon.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: index.audio.position.worklet.js
+  Art:  Datei (.js)
+
+â€¢ Name: index.audio.worklet.js
+  Art:  Datei (.js)
+
+â€¢ Name: index.icon.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: index.icon.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: index.js
+  Art:  Datei (.js)
+
+â€¢ Name: index.pck
+  Art:  Godot Package (Binaerdatei)
+
+â€¢ Name: index.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: index.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: index.wasm
+  Art:  WebAssembly (Binaerdatei)
+
+â€¢ Name: Lemonade.apple-touch-icon.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: Lemonade.apple-touch-icon.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: Lemonade.audio.position.worklet.js
+  Art:  Datei (.js)
+
+â€¢ Name: Lemonade.audio.worklet.js
+  Art:  Datei (.js)
+
+â€¢ Name: lemonade.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: lemonade.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: Lemonade.icon.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: Lemonade.icon.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: Lemonade.js
+  Art:  Datei (.js)
+
+â€¢ Name: Lemonade.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: Lemonade.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: lemonade.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: Lemonade.wasm
+  Art:  WebAssembly (Binaerdatei)
+
+â€¢ Name: materials\psx_material.tres
+  Art:  Godot-Ressource/Material
+
+â€¢ Name: project.godot
+  Art:  Datei (.godot)
+
+â€¢ Name: README.md
+  Art:  Markdown-Dokument
+
+â€¢ Name: scenes\combo_label.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\combo_label.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\damage_number.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\damage_number.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\damage_number.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\damage_number.tscn93348690.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\dummy.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\dummy.tscn1377007248.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\dummy.tscn1468920426.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\dummy.tscn1530016981.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\dummy.tscn1548872057.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\dummy.tscn1552883146.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\enemy_ai.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\enemy_ai.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\enemy_spawner.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\enemy_spawner.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\floor.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\goal_zone.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\goal_zone.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\health_bar_3d.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\health_bar_3d.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\kill_gate.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\kill_gate.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\kill_gate.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\lemonade.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\level.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\level.tscn3422273591.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\level_01.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\level_02.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\level_02.tscn2952030391.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\level_02.tscn3048653398.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\level_02.tscn825877323.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\level_02test.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\player.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\player.tscn30575603.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\player.tscn8606880042.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\player.tscn8621304898.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\scout_dummy.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\submersion_overlay.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\submersion_overlay.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\tank_dummy.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\target_reticle.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\target_reticle.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\win_screen.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\win_screen.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\combat.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\combat.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\death_screen.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\death_screen.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\health.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\health.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\health_bar_3d.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\health_bar_3d.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\hud.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\hud.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\pause_menu.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\pause_menu.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\player.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\player.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\primary_hitbox.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\primary_hitbox.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\status_effect_manager.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\status_effect_manager.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: shaders\crt_effect.gdshader
+  Art:  Shader
+
+â€¢ Name: shaders\crt_effect.gdshader.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: shaders\psx.gdshader
+  Art:  Shader
+
+â€¢ Name: shaders\psx.gdshader.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: textures\sidewalk-texture.jpg
+  Art:  Textur/Bild (JPG)
+
+â€¢ Name: textures\sidewalk-texture.jpg.import
+  Art:  Import-Metadaten
+
+
