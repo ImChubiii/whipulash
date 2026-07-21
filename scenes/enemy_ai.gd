@@ -3,7 +3,7 @@ class_name EnemyAI
 
 enum State { IDLE, CHASE, ATTACK }
 
-@export var move_speed: float = 8
+@export var move_speed: float = 7
 @export var detection_range: float = 20
 @export var attack_range: float = 5
 @export var attack_cooldown: float = 0
