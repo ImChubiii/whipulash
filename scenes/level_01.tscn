@@ -480,7 +480,7 @@ max_concurrent = 1
 spawn_interval = 5.0
 
 [node name="Fighter spawn" type="Node3D" parent="." unique_id=933972465 node_paths=PackedStringArray("spawn_points")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 146.02388, -0.40393448, -30.495728)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 138.81819, 7.5054283, -30.495728)
 script = ExtResource("5_e6mo4")
 dummy_scene = ExtResource("6_px6rj")
 spawn_points = [NodePath(".")]
