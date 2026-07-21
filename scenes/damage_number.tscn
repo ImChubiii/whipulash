@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://jlssmdypv6ce"]
+
+[ext_resource type="Script" uid="uid://cbfrvo7uo702v" path="res://scenes/damage_number.gd" id="1_aie4f"]
+
+[node name="Label3D" type="Label3D" unique_id=2133304845]
+modulate = Color(0.6664385, 0.00033277602, 0.666434, 1)
+outline_modulate = Color(0, 0.91764706, 0.88235295, 1)
+outline_size = 32
+script = ExtResource("1_aie4f")

@@ -1,0 +1,535 @@
+[gd_scene format=3 uid="uid://bujv4m8kc3b6b"]
+
+[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_t0ybu"]
+[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_1b6n0"]
+[ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_llcge"]
+[ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_lwi15"]
+[ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_0tv6x"]
+[ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="5_1b6n0"]
+[ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="5_e6mo4"]
+[ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="6_px6rj"]
+[ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="6_qgxqk"]
+[ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="7_2ucnx"]
+[ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="7_px6rj"]
+[ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="7_t0ybu"]
+[ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="10_cy6r3"]
+[ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="11_0tv6x"]
+[ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="11_e6mo4"]
+[ext_resource type="PackedScene" uid="uid://d00w77tyt3r10" path="res://scenes/kill_gate.tscn" id="13_2ucnx"]
+[ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="14_d46x6"]
+[ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="14_s61md"]
+[ext_resource type="Script" uid="uid://cw2plpk5i6wia" path="res://scenes/goal_zone.gd" id="17_42ncp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cr2eh"]
+bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cy6r3"]
+bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0tv6x"]
+shader = ExtResource("7_2ucnx")
+shader_parameter/scanline_count = 320.0
+shader_parameter/scanline_intensity = 0.15
+shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
+shader_parameter/scroll_speed = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_llcge"]
+size = Vector3(1.1834717, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lwi15"]
+material = ExtResource("6_qgxqk")
+size = Vector3(1.182373, 1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qgxqk"]
+size = Vector3(1.1834717, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t0ybu"]
+material = ExtResource("6_qgxqk")
+size = Vector3(1.182373, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_42ncp"]
+render_priority = 0
+shader = ExtResource("10_cy6r3")
+shader_parameter/albedo_texture = ExtResource("11_0tv6x")
+shader_parameter/albedo_color = Color(0.2558171, 0.3893672, 0.50245136, 1)
+shader_parameter/snap_resolution = 4.0
+shader_parameter/vertex_jitter_strength = 0.0
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qr0ht"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_6f8o3"]
+
+[node name="level_01" type="Node3D" unique_id=1608724818]
+
+[node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_t0ybu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
+speed = null
+jump_velocity = null
+mouse_sensitivity = null
+gravity = null
+zoom_min = null
+zoom_max = null
+zoom_step = null
+large_enemy_zoom_hold_time = null
+large_enemy_zoom_speed = null
+large_enemy_return_duration = null
+stun_camera_shake = null
+own_damage_shake_strength = null
+use_ragdoll = null
+death_fall_rotation_degrees = null
+death_fall_duration = null
+ragdoll_mass = null
+ragdoll_impulse_strength = null
+ragdoll_upward_impulse = null
+ragdoll_torque_strength = null
+camera_soft_lock_strength = null
+model_lock_turn_speed = null
+max_lock_range = null
+trauma_decay = null
+max_shake_offset = null
+max_shake_roll_degrees = null
+dash_fov_boost = null
+dash_fov_ramp_up_time = null
+dash_fov_ramp_down_time = null
+buoyancy_accel = null
+buoyancy_swim_boost = null
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
+
+[node name="HUD" type="Control" parent="CanvasLayer" unique_id=1622840272]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -177.0
+offset_top = -81.0
+offset_right = 178.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("2_1b6n0")
+
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=222611370]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -92.5
+offset_top = -30.0
+offset_right = 92.5
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_cr2eh")
+theme_override_styles/fill = SubResource("StyleBoxFlat_cy6r3")
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=2020234932]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -39.5
+offset_top = -29.0
+offset_right = 40.5
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=1384290920]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.16900001
+anchor_top = -3.7560003
+anchor_right = -0.16900001
+anchor_bottom = -3.7560003
+offset_left = -55.709995
+offset_top = -29.493988
+offset_right = 164.845
+offset_bottom = 83.50601
+
+[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1528514089]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "x5"
+
+[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1761267995]
+layout_mode = 2
+text = "COMBO!"
+
+[node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1478100258]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_llcge")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/PauseMenu" unique_id=1344432630]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -3.0
+offset_right = 1.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PauseMenu/Panel" unique_id=1422702341]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -178.38
+offset_right = 300.0
+offset_bottom = 181.62
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_auto_translate_mode = 1
+
+[node name="ResumeButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=998992905]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1324223812]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=925581170]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=1480429303]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_lwi15")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/DeathScreen" unique_id=573890384]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 11.0
+offset_top = -10.0
+offset_right = 11.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/DeathScreen/Panel" unique_id=1366865238]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.68200004
+anchor_right = 0.5
+anchor_bottom = 0.68200004
+offset_left = -300.0
+offset_top = -316.93604
+offset_right = 300.0
+offset_bottom = 224.31396
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SkillIssueLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=2094192907]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "        SKILL ISSUE
+"
+
+[node name="KilledByLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=1274677845]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+
+[node name="ItemsBox" type="PanelContainer" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=1805518122]
+layout_mode = 2
+
+[node name="ItemsLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer/ItemsBox" unique_id=559395413]
+layout_mode = 2
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=131945652]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=2145800512]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="WinScreen" type="Control" parent="CanvasLayer" unique_id=1047530491]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_0tv6x")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/WinScreen" unique_id=925826744]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/WinScreen/Panel" unique_id=945622863]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -252.0
+offset_top = -60.0
+offset_right = 248.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=1453295413]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "LEVEL GESCHAFFT!"
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=1544556491]
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=1334668019]
+layout_mode = 2
+text = "Quit"
+
+[node name="PostProcessLayer" type="CanvasLayer" parent="CanvasLayer" unique_id=1677253943]
+layer = 100
+
+[node name="CRTOverlay" type="ColorRect" parent="CanvasLayer/PostProcessLayer" unique_id=1471628108]
+material = SubResource("ShaderMaterial_0tv6x")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08627451)
+
+[node name="SubmersionOverlay" type="ColorRect" parent="CanvasLayer" unique_id=1643804787]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_1b6n0")
+
+[node name="TargetReticle" type="Sprite3D" parent="." unique_id=13919749]
+transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 90, 1.524353, 0)
+texture = ExtResource("7_px6rj")
+script = ExtResource("11_e6mo4")
+spin_speed = 0.0
+pulse_amount = 0.0
+
+[node name="Boden" type="StaticBody3D" parent="." unique_id=758789040]
+transform = Transform3D(98.10242, 0, 0, 0, 1, 0, 0, 0, 69.490425, 0, -1.9940467, -30.79337)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boden" unique_id=536546121]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09173585, 0, 0)
+shape = SubResource("BoxShape3D_llcge")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Boden" unique_id=1746936668]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.091212645, 0.019165039, -3.33786e-05)
+mesh = SubResource("BoxMesh_lwi15")
+
+[node name="Boden2" type="StaticBody3D" parent="." unique_id=2007119080]
+transform = Transform3D(98.10242, 0, 0, 0, 1, 0, 0, 0, 69.490425, 161.89539, -1.9940467, -30.79337)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boden2" unique_id=504027445]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09173585, 0, 0)
+shape = SubResource("BoxShape3D_qgxqk")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Boden2" unique_id=407733807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.091186516, 0, 0)
+mesh = SubResource("BoxMesh_t0ybu")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="." unique_id=1348550401]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 151.70964, 24.842789, -31.355375)
+use_collision = true
+size = Vector3(1.9956172, 51.30591, 68.80493)
+material = SubResource("ShaderMaterial_42ncp")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="CSGBox3D2" unique_id=1976164819]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 3.965935, -1.1374359, -21.433973, -7.1777096)
+operation = 2
+size = Vector3(29.44893, 9.662796, 6.483963)
+material = ExtResource("6_qgxqk")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=1728985306]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.0205, 23.596016, -30.84771)
+use_collision = true
+size = Vector3(1.9956172, 51.30591, 68.80493)
+material = ExtResource("6_qgxqk")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="CSGBox3D" unique_id=1778074539]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7835236, -17.398357, -0.68561554)
+operation = 2
+size = Vector3(9.690079, 16.584106, 24.192017)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour" type="CSGBox3D" parent="." unique_id=1674995873]
+transform = Transform3D(1.942021, 0, 0, 0, 1, 0, 0, 0, 1.4632967, 92.884834, -12.431757, -19.386068)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour2" type="CSGBox3D" parent="." unique_id=2130627593]
+transform = Transform3D(1.6040313, 0, 0, 0, 1, 0, 0, 0, 1.3587997, 99.156235, -14.274492, -28.805822)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour3" type="CSGBox3D" parent="." unique_id=1530881442]
+transform = Transform3D(2.6842551, 0, 0, 0, 1, 0, 0, 0, 2.4810295, 74.78232, -20.658304, -11.037136)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour4" type="CSGBox3D" parent="." unique_id=1411753614]
+transform = Transform3D(2.449534, 0, 0, 0, 1, 0, 0, 0, 3.293149, 91.197014, -21.190641, -8.470503)
+use_collision = true
+size = Vector3(2.5457764, 39.444214, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour5" type="CSGBox3D" parent="." unique_id=1131928751]
+transform = Transform3D(2.017847, 0, 0, 0, 0.99980485, 0, 0, 0, 1.3437271, 87.22033, -16.69451, -28.708574)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour6" type="CSGBox3D" parent="." unique_id=1292943646]
+transform = Transform3D(1.6705525, 0, 0, 0, 1, 0, 0, 0, 1.6582305, 80.94891, -14.851774, -19.288824)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour7" type="CSGBox3D" parent="." unique_id=1738378989]
+transform = Transform3D(1.735178, 0, 0, 0, 1, 0, 0, 0, 1.513974, 103.13293, -18.175592, -10.164516)
+use_collision = true
+size = Vector3(2.5457764, 40.634277, 4.776367)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour8" type="CSGBox3D" parent="." unique_id=99256122]
+transform = Transform3D(1.942021, 0, 0, 0, 1, 0, 0, 0, 1.4632967, 92.884834, -12.431757, -49.892555)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour9" type="CSGBox3D" parent="." unique_id=724920995]
+transform = Transform3D(1.6040313, 0, 0, 0, 1, 0, 0, 0, 1.3587997, 99.156235, -14.274492, -59.31231)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour10" type="CSGBox3D" parent="." unique_id=1094881344]
+transform = Transform3D(2.6842551, 0, 0, 0, 1, 0, 0, 0, 2.4810295, 74.78232, -20.658304, -41.543625)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour11" type="CSGBox3D" parent="." unique_id=25593978]
+transform = Transform3D(2.449534, 0, 0, 0, 1, 0, 0, 0, 3.293149, 91.197014, -21.190641, -38.97699)
+use_collision = true
+size = Vector3(2.5457764, 39.444214, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour12" type="CSGBox3D" parent="." unique_id=2096917563]
+transform = Transform3D(2.017847, 0, 0, 0, 0.99980485, 0, 0, 0, 1.3437271, 87.22033, -16.69451, -59.21506)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour13" type="CSGBox3D" parent="." unique_id=983862163]
+transform = Transform3D(1.6705525, 0, 0, 0, 1, 0, 0, 0, 1.6582305, 80.94891, -14.851774, -49.79531)
+use_collision = true
+size = Vector3(2.5457764, 39.085938, 2.6669922)
+material = ExtResource("6_qgxqk")
+
+[node name="pakour14" type="CSGBox3D" parent="." unique_id=23746156]
+transform = Transform3D(1.735178, 0, 0, 0, 1, 0, 0, 0, 1.513974, 103.13293, -18.175592, -40.671005)
+use_collision = true
+size = Vector3(2.5457764, 40.634277, 4.776367)
+material = ExtResource("6_qgxqk")
+
+[node name="Wallboy" type="CSGBox3D" parent="." unique_id=830684973]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 87.34515, -13.369057, -30.717503)
+use_collision = true
+size = Vector3(55.85032, 23.425827, 70.00348)
+material = ExtResource("6_qgxqk")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="Wallboy" unique_id=2082755467]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9057693, 0.38241768, 0.18122864)
+operation = 2
+size = Vector3(43.26763, 22.74754, 67.36321)
+material = ExtResource("6_qgxqk")
+
+[node name="Stingerspawn" type="Node3D" parent="." unique_id=1902634095 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.30484, 2.4237823, -49.416443)
+script = ExtResource("5_e6mo4")
+dummy_scene = ExtResource("14_d46x6")
+spawn_points = [NodePath(".")]
+max_concurrent = 4
+spawn_interval = 3.0
+
+[node name="Colossus spawn" type="Node3D" parent="." unique_id=1391130454 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 173.22171, 1.2118912, -24.708221)
+script = ExtResource("5_e6mo4")
+dummy_scene = ExtResource("14_s61md")
+spawn_points = [NodePath(".")]
+max_concurrent = 1
+spawn_interval = 5.0
+
+[node name="Fighter spawn" type="Node3D" parent="." unique_id=933972465 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 146.02388, -0.40393448, -30.495728)
+script = ExtResource("5_e6mo4")
+dummy_scene = ExtResource("6_px6rj")
+spawn_points = [NodePath(".")]
+
+[node name="Lemonade" parent="." unique_id=1115630498 instance=ExtResource("7_t0ybu")]
+transform = Transform3D(12.467179, 0, 0, 0, 23.249767, 0, 0, 0, 17.047106, 87.59367, -15.120653, -31.06929)
+damage_per_tick = 20.0
+buoyancy_rise_speed = 5.0
+entry_dampening = 0.35
+
+[node name="KillGate" parent="." unique_id=668922089 instance=ExtResource("13_2ucnx")]
+transform = Transform3D(0.108382404, -1.4140126e-07, -3.3415587, 5.6077823e-07, 3.2349994, -1.4483543e-07, 12.82911, -1.4021172e-07, 0.02823003, 151.07774, 3.440979, -51.404606)
+
+[node name="GoalZone" type="Area3D" parent="." unique_id=821577288]
+transform = Transform3D(3.858909, 0, 0, 0, 6.826513, 0, 0, 0, 17.455, 206.21829, 2.20504, -32.347584)
+script = ExtResource("17_42ncp")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GoalZone" unique_id=378244067]
+shape = SubResource("BoxShape3D_qr0ht")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GoalZone" unique_id=1992783367]
+mesh = SubResource("BoxMesh_6f8o3")

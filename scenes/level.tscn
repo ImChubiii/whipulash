@@ -1,0 +1,227 @@
+[gd_scene format=3 uid="uid://lr5uahfanci4"]
+
+[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_04hsl"]
+[ext_resource type="PackedScene" uid="uid://d0fs0qbmya5ye" path="res://scenes/floor.tscn" id="2_o3n3m"]
+[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="3_phjcq"]
+[ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="4_kf42o"]
+[ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="4_phjcq"]
+[ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="6_8c41q"]
+[ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="6_kf42o"]
+[ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="7_klq6b"]
+[ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="8_b121j"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8c41q"]
+bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_olg7q"]
+bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_t1rx8"]
+shader = ExtResource("8_b121j")
+shader_parameter/scanline_count = 320.0
+shader_parameter/scanline_intensity = 0.15
+shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
+shader_parameter/scroll_speed = 0.0
+
+[node name="Level" type="Node3D" unique_id=61825429]
+
+[node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_04hsl")]
+collision_mask = 5
+
+[node name="floor" parent="." unique_id=1562715279 instance=ExtResource("2_o3n3m")]
+transform = Transform3D(168.44647, 0, 0, 0, 1, 0, 0, 0, 145.76561, -0.071914196, -1.6819923, -0.82225466)
+
+[node name="EnemySpawner2" type="Node3D" parent="." unique_id=1791091998 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 21.934193)
+script = ExtResource("7_klq6b")
+dummy_scene = ExtResource("4_kf42o")
+spawn_points = [NodePath("."), NodePath("../EnemySpawner")]
+
+[node name="EnemySpawner" type="Node3D" parent="." unique_id=152483357 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10.967096)
+script = ExtResource("7_klq6b")
+dummy_scene = ExtResource("4_kf42o")
+spawn_points = [NodePath("."), NodePath("../EnemySpawner2")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1370016348]
+
+[node name="HUD" type="Control" parent="CanvasLayer" unique_id=492761346]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -177.0
+offset_top = -81.0
+offset_right = 178.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("3_phjcq")
+
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=2078837428]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -92.5
+offset_top = -30.0
+offset_right = 92.5
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_8c41q")
+theme_override_styles/fill = SubResource("StyleBoxFlat_olg7q")
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=270335426]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -39.5
+offset_top = -29.0
+offset_right = 40.5
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=1498956277]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.16900001
+anchor_top = -3.7560003
+anchor_right = -0.16900001
+anchor_bottom = -3.7560003
+offset_left = -55.709995
+offset_top = -29.493988
+offset_right = 164.845
+offset_bottom = 83.50601
+
+[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=639299276]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "x5"
+
+[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=931605861]
+layout_mode = 2
+text = "COMBO!"
+
+[node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=579260471]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_phjcq")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/PauseMenu" unique_id=1103044357]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -3.0
+offset_right = 1.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PauseMenu/Panel" unique_id=123460294]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -178.38
+offset_right = 300.0
+offset_bottom = 181.62
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_auto_translate_mode = 1
+
+[node name="ResumeButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=315239176]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=257169199]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1361225886]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=1768327445]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6_kf42o")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/DeathScreen" unique_id=48968963]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/DeathScreen/Panel" unique_id=1177070300]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = 80.0
+offset_right = 300.0
+offset_bottom = 291.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=409084476]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=1697526390]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="PostProcessLayer" type="CanvasLayer" parent="CanvasLayer" unique_id=2038957089]
+layer = 100
+
+[node name="CRTOverlay" type="ColorRect" parent="CanvasLayer/PostProcessLayer" unique_id=485610571]
+material = SubResource("ShaderMaterial_t1rx8")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08627451)
+
+[node name="SubmersionOverlay" type="ColorRect" parent="CanvasLayer" unique_id=312144590]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6_8c41q")

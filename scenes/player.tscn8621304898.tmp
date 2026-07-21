@@ -1,0 +1,99 @@
+[gd_scene format=3 uid="uid://i1hdv5qqmw21"]
+
+[ext_resource type="Script" uid="uid://bpp7utu2mp6m1" path="res://scenes/player.gd" id="1_3vyb7"]
+[ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="2_g2els"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scenes/health.gd" id="3_qhqgy"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scenes/primary_hitbox.gd" id="4_tuyoq"]
+[ext_resource type="Script" uid="uid://by2rus5v4mrye" path="res://scenes/combat.gd" id="5_qlg0r"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_qhqgy"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dqkch"]
+render_priority = 0
+shader = ExtResource("2_g2els")
+shader_parameter/albedo_color = Color(1, 1, 1, 1)
+shader_parameter/snap_resolution = 85.4450038686375
+shader_parameter/vertex_jitter_strength = 0.6790000322525
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4eyt2"]
+size = Vector3(1, 1, 4.548828)
+
+[sub_resource type="GDScript" id="GDScript_qlg0r"]
+script/source = "extends Area3D
+class_name Hitbox
+
+@export var damage: float = 10.0
+@export var knockback_force: float = 5.0
+
+# Verhindert, dass derselbe Gegner mehrfach in derselben Aktivierung
+# getroffen wird (z.B. wenn er 3 Frames lang in der Hitbox steht).
+var _already_hit: Array[Node] = []
+
+func _ready() -> void:
+	# monitoring = false heißt: die Hitbox erkennt erstmal NICHTS,
+	# bis wir sie über activate() bewusst einschalten.
+	monitoring = false
+	body_entered.connect(_on_body_entered)
+
+func activate() -> void:
+	_already_hit.clear()
+	monitoring = true
+
+func deactivate() -> void:
+	monitoring = false
+
+func _on_body_entered(body: Node3D) -> void:
+	if body in _already_hit:
+		return
+
+	# Sucht eine Health-Komponente als Kind-Node des getroffenen Objekts
+	var health := body.find_child(\"Health\", true, false)
+	if health == null or not (health is Health):
+		return  # getroffenes Objekt hat keine Health-Komponente (z.B. Wand)
+
+	_already_hit.append(body)
+	health.take_damage(damage)
+
+	# Einfacher Knockback: Richtung von der Hitbox weg zum getroffenen Objekt
+	if body is CharacterBody3D:
+		var push_dir := (body.global_position - global_position).normalized()
+		body.velocity += push_dir * knockback_force
+"
+
+[node name="Player" type="CharacterBody3D" unique_id=1005944688]
+script = ExtResource("1_3vyb7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=246789424]
+shape = SubResource("CapsuleShape3D_6igkw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1855819061]
+mesh = SubResource("CapsuleMesh_qhqgy")
+surface_material_override/0 = SubResource("ShaderMaterial_dqkch")
+
+[node name="CameraPivot" type="Node3D" parent="." unique_id=603617731]
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=1432573058]
+spring_length = 8.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=45866038]
+
+[node name="Health" type="Node" parent="." unique_id=692363199]
+script = ExtResource("3_qhqgy")
+
+[node name="Combat" type="Node" parent="." unique_id=1214410704]
+script = ExtResource("5_qlg0r")
+
+[node name="PrimaryHitbox" type="Area3D" parent="." unique_id=1944457994]
+script = ExtResource("4_tuyoq")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PrimaryHitbox" unique_id=779664953]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.709116)
+shape = SubResource("BoxShape3D_4eyt2")
+
+[node name="SecondaryHitbox" type="Area3D" parent="." unique_id=429496167]
+script = SubResource("GDScript_qlg0r")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SecondaryHitbox" unique_id=996971260]
+script = ExtResource("4_tuyoq")

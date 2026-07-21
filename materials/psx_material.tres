@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dq7ypxvjbo36p"]
+
+[ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="1_hgpdb"]
+[ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="2_mkv5x"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_hgpdb")
+shader_parameter/albedo_texture = ExtResource("2_mkv5x")
+shader_parameter/albedo_color = Color(0.2558171, 0.3893672, 0.50245136, 1)
+shader_parameter/snap_resolution = 4.0
+shader_parameter/vertex_jitter_strength = 0.0

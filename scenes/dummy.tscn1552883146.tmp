@@ -1,0 +1,119 @@
+[gd_scene format=3 uid="uid://dt3tk05ggmgk0"]
+
+[ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="1_k5f3b"]
+[ext_resource type="Script" uid="uid://bqsncuqrnam0r" path="res://scenes/enemy_ai.gd" id="1_w4gkx"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="2_k5f3b"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_fva3d"]
+[ext_resource type="Script" uid="uid://ujktpasxhylt" path="res://scripts/health_bar_3d.gd" id="5_fva3d"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_qbaa6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_k5f3b"]
+render_priority = 0
+shader = ExtResource("1_k5f3b")
+shader_parameter/albedo_color = Color(1, 1, 1, 1)
+shader_parameter/snap_resolution = 86.386003913335
+shader_parameter/vertex_jitter_strength = 0.6400000304
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
+height = 1.9799805
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4eyt2"]
+render_priority = 0
+shader = ExtResource("1_k5f3b")
+shader_parameter/albedo_color = Color(0.7316159, 0, 0.20945221, 1)
+shader_parameter/snap_resolution = 24.102000954845
+shader_parameter/vertex_jitter_strength = 0.7290000346275
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_sl5qy"]
+material = SubResource("ShaderMaterial_4eyt2")
+radius = 0.815
+height = 5.0261035
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6igkw"]
+shading_mode = 0
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="TorusMesh" id="TorusMesh_6igkw"]
+material = SubResource("StandardMaterial3D_6igkw")
+inner_radius = 5.9
+outer_radius = 6.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fva3d"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.8207237, 0.44140512, 0.13513017, 1)
+
+[sub_resource type="TorusMesh" id="TorusMesh_w4gkx"]
+material = SubResource("StandardMaterial3D_fva3d")
+inner_radius = 5.9
+outer_radius = 6.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qbaa6"]
+transparency = 1
+albedo_color = Color(0.33660764, 0.3366076, 0.3366076, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_6igkw"]
+material = SubResource("StandardMaterial3D_qbaa6")
+size = Vector2(1, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rn2lo"]
+transparency = 1
+shading_mode = 0
+diffuse_mode = 3
+albedo_color = Color(1, 0.16862746, 0, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_sl5qy"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector2(1, 0.15)
+
+[node name="Dummy" type="CharacterBody3D" unique_id=786565251]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5643892, 0)
+collision_layer = 4
+script = ExtResource("1_w4gkx")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_6igkw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=662295708]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_qbaa6")
+surface_material_override/0 = SubResource("ShaderMaterial_k5f3b")
+
+[node name="Health" type="Node" parent="." unique_id=496713544]
+script = ExtResource("2_k5f3b")
+
+[node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.216951)
+script = ExtResource("4_fva3d")
+damage = 30.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
+transform = Transform3D(3.244687, 0, 0, 0, 2.5016992, 0, 0, 0, 4.1519127, 0, -0.025041422, -4.4091864)
+shape = SubResource("CapsuleShape3D_sl5qy")
+
+[node name="Visual" type="MeshInstance3D" parent="AttackHitbox" unique_id=1173160389]
+transform = Transform3D(1.8915654, 0, 0, 0, 1, 0, 0, 0, 2.3874803, 0, -0.2227881, -4.004089)
+mesh = SubResource("CapsuleMesh_sl5qy")
+
+[node name="TelegraphOuterRing" type="MeshInstance3D" parent="AttackHitbox" unique_id=1368129936]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.7269564, -8.249018)
+mesh = SubResource("TorusMesh_6igkw")
+
+[node name="TelegraphInner" type="MeshInstance3D" parent="AttackHitbox" unique_id=1874015288]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.7175288, -8.234204)
+mesh = SubResource("TorusMesh_w4gkx")
+
+[node name="HealthBarPivot" type="Node3D" parent="." unique_id=282856171]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.867279, 0)
+script = ExtResource("5_fva3d")
+
+[node name="Background" type="MeshInstance3D" parent="HealthBarPivot" unique_id=2038081739]
+mesh = SubResource("QuadMesh_6igkw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="HealthBarPivot" unique_id=1888477748]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.01)
+mesh = SubResource("QuadMesh_sl5qy")
