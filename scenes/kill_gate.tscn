@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://d00w77tyt3r10"]
+
+[ext_resource type="Script" uid="uid://dnm4yiw3tssrs" path="res://scenes/kill_gate.gd" id="1_tgqrh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tgqrh"]
+size = Vector3(2, 2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_riqys"]
+size = Vector3(2, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bhunq"]
+size = Vector3(2, 3, 0.2)
+
+[node name="KillGate" type="Node3D" unique_id=668922089]
+script = ExtResource("1_tgqrh")
+
+[node name="InteractZone" type="Area3D" parent="." unique_id=1941126774]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.17785645)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractZone" unique_id=1873001001]
+shape = SubResource("BoxShape3D_tgqrh")
+
+[node name="GateVisual" type="Node3D" parent="." unique_id=987753881]
+
+[node name="TorBlatt" type="StaticBody3D" parent="GateVisual" unique_id=619851939]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GateVisual/TorBlatt" unique_id=679117422]
+mesh = SubResource("BoxMesh_riqys")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateVisual/TorBlatt" unique_id=1839982490]
+shape = SubResource("BoxShape3D_bhunq")
+
+[node name="StatusLabel" type="Label3D" parent="." unique_id=205475682]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.293)
+billboard = 1
+font_size = 64

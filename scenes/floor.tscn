@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://d0fs0qbmya5ye"]
+
+[ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="1_ukw5w"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6igkw"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_qbaa6"]
+
+[node name="floor" type="StaticBody3D" unique_id=1562715279]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=389112555]
+shape = SubResource("BoxShape3D_6igkw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=328191686]
+mesh = SubResource("BoxMesh_qbaa6")
+surface_material_override/0 = ExtResource("1_ukw5w")

@@ -1,0 +1,133 @@
+[gd_scene format=3 uid="uid://cwmv27hs3y0ng"]
+
+[ext_resource type="Script" uid="uid://bqsncuqrnam0r" path="res://scenes/enemy_ai.gd" id="1_p4blw"]
+[ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="2_dtsht"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_m4cp6"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_r5myi"]
+[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="5_dmgnum"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
+radius = 0.4
+height = 1.2
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_qbaa6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_k5f3b"]
+render_priority = 0
+shader = ExtResource("2_dtsht")
+shader_parameter/albedo_color = Color(1, 1, 1, 1)
+shader_parameter/snap_resolution = 77.730003502175
+shader_parameter/vertex_jitter_strength = 0.6400000304
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.486000023085
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
+height = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4eyt2"]
+render_priority = 0
+shader = ExtResource("2_dtsht")
+shader_parameter/albedo_color = Color(0.7316159, 0, 0.20945221, 1)
+shader_parameter/snap_resolution = 24.102000954845
+shader_parameter/vertex_jitter_strength = 0.7290000346275
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_sl5qy"]
+material = SubResource("ShaderMaterial_4eyt2")
+height = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_w4gkx"]
+render_priority = 0
+shader = ExtResource("2_dtsht")
+shader_parameter/albedo_color = Color(1, 0, 0, 1)
+shader_parameter/snap_resolution = 32.0
+shader_parameter/vertex_jitter_strength = 0.5
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_6igkw"]
+material = SubResource("ShaderMaterial_w4gkx")
+inner_radius = 1.7
+outer_radius = 1.75
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_v72lb"]
+render_priority = 0
+shader = ExtResource("2_dtsht")
+shader_parameter/albedo_color = Color(1, 0.15686275, 0.1254902, 1)
+shader_parameter/snap_resolution = 32.0
+shader_parameter/vertex_jitter_strength = 0.5
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_fva3d"]
+material = SubResource("ShaderMaterial_v72lb")
+top_radius = 1.7
+bottom_radius = 1.7
+height = 0.001
+
+[node name="ScoutDummy" type="CharacterBody3D" unique_id=786565251]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5643892, 0)
+collision_layer = 4
+floor_snap_length = 0.29
+script = ExtResource("1_p4blw")
+move_speed = 16.0
+detection_range = 40.0
+attack_range = 2.5
+attack_cooldown = 1.4
+attack_windup_time = 0.35
+pre_attack_delay = 0.25
+display_name = "Stinger"
+reticle_height_offset = 3.0
+reticle_forward_offset = 1.5
+reticle_scale = 0.3
+camera_lock_multiplier = 0.3
+separation_radius = 1.0
+separation_strength = 3.0
+hit_flash_duration = 0.3
+hit_color_flash_strength = 0.8
+hit_color_flash_duration = 0.5
+debug_logging = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_6igkw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=662295708]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_qbaa6")
+surface_material_override/0 = SubResource("ShaderMaterial_k5f3b")
+
+[node name="Health" type="Node" parent="." unique_id=496713544]
+script = ExtResource("3_m4cp6")
+max_health = 25.0
+regen_enabled = false
+
+[node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.8)
+script = ExtResource("4_r5myi")
+damage = 6.0
+knockback_force = 3.0
+stun_duration = 0.7
+damage_number_scene = ExtResource("5_dmgnum")
+debug_logging = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
+shape = SubResource("CapsuleShape3D_sl5qy")
+
+[node name="Visual" type="MeshInstance3D" parent="AttackHitbox" unique_id=1173160389]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
+mesh = SubResource("CapsuleMesh_sl5qy")
+
+[node name="TelegraphOuterRing" type="MeshInstance3D" parent="AttackHitbox" unique_id=1368129936]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6418824, -1.8)
+mesh = SubResource("TorusMesh_6igkw")
+
+[node name="TelegraphInner" type="MeshInstance3D" parent="AttackHitbox" unique_id=1874015288]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6418824, -1.8)
+mesh = SubResource("CylinderMesh_fva3d")
