@@ -7987,6 +7987,8 @@ script = ExtResource("6_8c41q")
 
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_t0ybu"]
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_1b6n0"]
+[ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="2_wqkcq"]
+[ext_resource type="Script" uid="uid://qbdli0sp1ndu" path="res://scenes/settings_menu.gd" id="3_jg26c"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_llcge"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_lwi15"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_0tv6x"]
@@ -8048,6 +8050,9 @@ shader_parameter/flash_strength = 0.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
+
+[node name="SettingsMenu" parent="CanvasLayer" unique_id=1233549317 instance=ExtResource("2_wqkcq")]
+script = ExtResource("3_jg26c")
 
 [node name="HUD" type="Control" parent="CanvasLayer" unique_id=1622840272]
 visible = false
@@ -8124,6 +8129,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3_llcge")
+settings_menu_path = NodePath("../SettingsMenu")
 
 [node name="Panel" type="Panel" parent="CanvasLayer/PauseMenu" unique_id=1344432630]
 layout_mode = 1
@@ -8145,9 +8151,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -301.0
-offset_top = -121.0
+offset_top = -219.0
 offset_right = 300.0
-offset_bottom = 291.0
+offset_bottom = 240.0
 grow_horizontal = 2
 grow_vertical = 2
 tooltip_auto_translate_mode = 1
@@ -10762,20 +10768,17 @@ func _input(event: InputEvent) -> void:
 
 ===== FILE: scenes\settings_menu.tscn =====
 
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://by0b1jhagnufc"]
 
-[ext_resource type="Script" path="res://scripts/settings_menu.gd" id="1_settings"]
-
-[node name="SettingsMenu" type="Control"]
+[node name="SettingsMenu" type="Control" unique_id=1233549317]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_settings")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=1542886804]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -10787,7 +10790,7 @@ offset_bottom = -3.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1597223482]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -10795,115 +10798,114 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -320.0
-offset_top = -320.0
+offset_top = -218.0
 offset_right = 320.0
 offset_bottom = 320.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=867913794]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-horizontal_alignment = 1
 text = "SETTINGS"
+horizontal_alignment = 1
 
-[node name="HSeparator1" type="HSeparator" parent="Panel/VBoxContainer"]
+[node name="HSeparator1" type="HSeparator" parent="Panel/VBoxContainer" unique_id=1953585757]
 layout_mode = 2
 
-[node name="SensitivityRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="SensitivityRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=489528011]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/SensitivityRow"]
-layout_mode = 2
+[node name="Label" type="Label" parent="Panel/VBoxContainer/SensitivityRow" unique_id=2038953310]
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 text = "Maus-Sensitivity"
 
-[node name="SensitivitySlider" type="HSlider" parent="Panel/VBoxContainer/SensitivityRow"]
+[node name="SensitivitySlider" type="HSlider" parent="Panel/VBoxContainer/SensitivityRow" unique_id=1929246401]
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(220, 0)
 
-[node name="SensitivityValueLabel" type="Label" parent="Panel/VBoxContainer/SensitivityRow"]
-layout_mode = 2
+[node name="SensitivityValueLabel" type="Label" parent="Panel/VBoxContainer/SensitivityRow" unique_id=2056218434]
 custom_minimum_size = Vector2(70, 0)
-horizontal_alignment = 2
+layout_mode = 2
 text = "0.0030"
+horizontal_alignment = 2
 
-[node name="MasterVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="MasterVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=289149442]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/MasterVolumeRow"]
-layout_mode = 2
+[node name="Label" type="Label" parent="Panel/VBoxContainer/MasterVolumeRow" unique_id=380125948]
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 text = "Master-Lautstärke"
 
-[node name="MasterVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/MasterVolumeRow"]
+[node name="MasterVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/MasterVolumeRow" unique_id=38437945]
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(220, 0)
 
-[node name="MusicVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="MusicVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=2051565465]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/MusicVolumeRow"]
-layout_mode = 2
+[node name="Label" type="Label" parent="Panel/VBoxContainer/MusicVolumeRow" unique_id=1167015304]
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 text = "Musik-Lautstärke"
 
-[node name="MusicVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/MusicVolumeRow"]
+[node name="MusicVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/MusicVolumeRow" unique_id=1690924114]
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(220, 0)
 
-[node name="SFXVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="SFXVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=2048618864]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/SFXVolumeRow"]
-layout_mode = 2
+[node name="Label" type="Label" parent="Panel/VBoxContainer/SFXVolumeRow" unique_id=37482752]
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 text = "Effekte-Lautstärke"
 
-[node name="SFXVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/SFXVolumeRow"]
+[node name="SFXVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/SFXVolumeRow" unique_id=744818801]
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(220, 0)
 
-[node name="FullscreenRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="FullscreenRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=480221202]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/FullscreenRow"]
-layout_mode = 2
+[node name="Label" type="Label" parent="Panel/VBoxContainer/FullscreenRow" unique_id=1200199103]
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 text = "Vollbild"
 
-[node name="FullscreenCheckButton" type="CheckButton" parent="Panel/VBoxContainer/FullscreenRow"]
+[node name="FullscreenCheckButton" type="CheckButton" parent="Panel/VBoxContainer/FullscreenRow" unique_id=468572427]
 layout_mode = 2
 
-[node name="ConflictLabel" type="Label" parent="Panel/VBoxContainer"]
+[node name="ConflictLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1446746661]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.2, 1)
 horizontal_alignment = 1
-theme_override_colors/font_color = Color(1.0, 0.6, 0.2, 1.0)
-text = ""
 
-[node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer" unique_id=634179152]
 layout_mode = 2
 
-[node name="KeybindsTitleLabel" type="Label" parent="Panel/VBoxContainer"]
+[node name="KeybindsTitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1094800445]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Tastenbelegung"
 
-[node name="KeybindsContainer" type="VBoxContainer" parent="Panel/VBoxContainer"]
+[node name="KeybindsContainer" type="VBoxContainer" parent="Panel/VBoxContainer" unique_id=1801787788]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="HSeparator3" type="HSeparator" parent="Panel/VBoxContainer"]
+[node name="HSeparator3" type="HSeparator" parent="Panel/VBoxContainer" unique_id=787318407]
 layout_mode = 2
 
-[node name="BackButton" type="Button" parent="Panel/VBoxContainer"]
-layout_mode = 2
+[node name="BackButton" type="Button" parent="Panel/VBoxContainer" unique_id=1351527492]
 custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
 text = "Back"
 
 
@@ -13927,6 +13929,234 @@ func _spawn_damage_number(body: Node3D) -> void:
 	get_tree().current_scene.add_child(number)
 	number.global_position = body.global_position + Vector3(0, 1.8, 0)
 	number.show_damage(damage)
+
+
+===== FILE: scripts\settings_manager.gd =====
+
+extends Node
+
+# ============================================================================
+# SettingsManager — Autoload-Singleton für alle persistenten Spieleinstellungen.
+# Speichert/lädt Sensitivity, Lautstärke, Fullscreen und Tastenbelegung in
+# user://settings.cfg (ConfigFile) und wendet sie beim Spielstart automatisch
+# an (siehe _ready()). Muss unter Project Settings -> Autoload als
+# "SettingsManager" eingetragen werden.
+# ============================================================================
+
+signal sensitivity_changed(value: float)
+signal volume_changed(bus_name: String, value_linear: float)
+signal fullscreen_changed(is_fullscreen: bool)
+signal keybind_changed(action: String)
+
+const SETTINGS_PATH: String = "user://settings.cfg"
+const DEFAULT_SENSITIVITY: float = 0.003
+
+# --- Rebindbare Actions + Anzeigename fürs SettingsMenu-UI. Diese Liste ist
+# die EINZIGE Quelle der Wahrheit dafür, welche Actions im Menü auftauchen —
+# neue rebindbare Actions einfach hier ergänzen. ---
+# ACHTUNG: "interact " (mit Leerzeichen am Ende) ist ein bestehender Tippfehler
+# im InputMap-Namen selbst (project.godot), hier absichtlich 1:1 übernommen,
+# damit InputMap.action_erase_events()/action_add_event() die richtige Action
+# treffen. Empfehlung: die Action einmal sauber in "interact" umbenennen und
+# diese Zeile danach anpassen.
+const REBINDABLE_ACTIONS: Dictionary = {
+	"attack_primary": "Primärangriff",
+	"attack_secondary": "Sekundärangriff",
+	"utility": "Dash",
+	"interact ": "Interagieren",
+	"ui_accept": "Springen",
+	"ui_left": "Links",
+	"ui_right": "Rechts",
+	"ui_up": "Vorwärts",
+	"ui_down": "Rückwärts",
+}
+
+var mouse_sensitivity: float = DEFAULT_SENSITIVITY
+var master_volume: float = 1.0
+var music_volume: float = 1.0
+var sfx_volume: float = 1.0
+var is_fullscreen: bool = false
+
+# Merkt sich die InputMap-Belegung, wie sie beim allerersten Start (also
+# noch OHNE geladene user://settings.cfg-Overrides) tatsächlich aus
+# project.godot kam — Grundlage für reset_action_to_default().
+var _default_keybinds: Dictionary = {}  # action -> Array[InputEvent]
+
+func _ready() -> void:
+	load_settings()
+	_apply_all()
+
+func _apply_all() -> void:
+	_apply_volume("Master", master_volume)
+	_apply_volume("Music", music_volume)
+	_apply_volume("SFX", sfx_volume)
+	_apply_fullscreen(is_fullscreen)
+	_apply_sensitivity_to_player()
+
+# --- Sensitivity ---
+func set_sensitivity(value: float) -> void:
+	mouse_sensitivity = value
+	_apply_sensitivity_to_player()
+	sensitivity_changed.emit(mouse_sensitivity)
+	save_settings()
+
+func _apply_sensitivity_to_player() -> void:
+	# Sucht den Player robust über die Gruppe/den Namen — funktioniert auch,
+	# wenn das Settings-Menü VOR dem eigentlichen Level geöffnet wird (z.B.
+	# Hauptmenü), dann greift die Zuweisung einfach beim nächsten Level-Start
+	# über den geladenen mouse_sensitivity-Wert nicht — deshalb liest
+	# player.gd den Wert idealerweise selbst aus SettingsManager in _ready().
+	var player := get_tree().get_root().find_child("Player", true, false)
+	if player and "mouse_sensitivity" in player:
+		player.set("mouse_sensitivity", mouse_sensitivity)
+
+# --- Lautstärke ---
+func set_volume(bus_name: String, value_linear: float) -> void:
+	match bus_name:
+		"Master":
+			master_volume = value_linear
+		"Music":
+			music_volume = value_linear
+		"SFX":
+			sfx_volume = value_linear
+		_:
+			push_warning("SettingsManager: Unbekannter Audio-Bus '%s'." % bus_name)
+			return
+	_apply_volume(bus_name, value_linear)
+	volume_changed.emit(bus_name, value_linear)
+	save_settings()
+
+func _apply_volume(bus_name: String, value_linear: float) -> void:
+	var bus_index: int = AudioServer.get_bus_index(bus_name)
+	if bus_index == -1:
+		# Bus existiert nicht im Audio-Bus-Layout des Projekts (z.B. wenn
+		# "Music"/"SFX" noch nicht als eigene Busse angelegt wurden) —
+		# kein Fehler, einfach überspringen.
+		return
+	var muted: bool = value_linear <= 0.0001
+	AudioServer.set_bus_mute(bus_index, muted)
+	if not muted:
+		AudioServer.set_bus_volume_db(bus_index, linear_to_db(clamp(value_linear, 0.0001, 1.0)))
+
+func has_audio_bus(bus_name: String) -> bool:
+	return AudioServer.get_bus_index(bus_name) != -1
+
+# --- Fullscreen ---
+func set_fullscreen(enabled: bool) -> void:
+	is_fullscreen = enabled
+	_apply_fullscreen(enabled)
+	fullscreen_changed.emit(enabled)
+	save_settings()
+
+func _apply_fullscreen(enabled: bool) -> void:
+	DisplayServer.window_set_mode(
+		DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED
+	)
+
+# --- Tastenbelegung ---
+# Ersetzt nur bestehende Tastatur-/Maus-Bindings einer Action, Controller-
+# Bindings (Joypad Button/Motion) bleiben unangetastet — sonst würde jedes
+# Rebinding per Tastatur/Maus gleichzeitig die Gamepad-Belegung zerstören.
+func rebind_action(action: String, event: InputEvent) -> void:
+	if not REBINDABLE_ACTIONS.has(action):
+		push_warning("SettingsManager: '%s' ist nicht als rebindbar registriert." % action)
+		return
+
+	for existing in InputMap.action_get_events(action):
+		if existing is InputEventKey or existing is InputEventMouseButton:
+			InputMap.action_erase_event(action, existing)
+
+	InputMap.action_add_event(action, event)
+	keybind_changed.emit(action)
+	save_settings()
+
+func reset_action_to_default(action: String) -> void:
+	if not _default_keybinds.has(action):
+		return
+	InputMap.action_erase_events(action)
+	for event: InputEvent in _default_keybinds[action]:
+		InputMap.action_add_event(action, event)
+	keybind_changed.emit(action)
+	save_settings()
+
+# Liefert das erste Tastatur- oder Maus-Event einer Action fürs UI (Joypad-
+# Events werden hier bewusst übersprungen, da das Menü nur Keyboard/Maus
+# anzeigt/rebindet).
+func get_action_event(action: String) -> InputEvent:
+	var events: Array = InputMap.action_get_events(action)
+	for event in events:
+		if event is InputEventKey or event is InputEventMouseButton:
+			return event
+	return events[0] if not events.is_empty() else null
+
+# Prüft, ob das gegebene Event bereits einer ANDEREN rebindbaren Action
+# zugewiesen ist — fürs Warn-Feedback im SettingsMenu, kein automatisches
+# Vertauschen (das wäre überraschendes Verhalten für den Spieler).
+func find_conflicting_action(event: InputEvent, exclude_action: String) -> String:
+	for action in REBINDABLE_ACTIONS.keys():
+		if action == exclude_action:
+			continue
+		for existing in InputMap.action_get_events(action):
+			if _events_match(existing, event):
+				return action
+	return ""
+
+func _events_match(a: InputEvent, b: InputEvent) -> bool:
+	if a is InputEventKey and b is InputEventKey:
+		return a.physical_keycode == b.physical_keycode
+	if a is InputEventMouseButton and b is InputEventMouseButton:
+		return a.button_index == b.button_index
+	return false
+
+# --- Persistenz ---
+func save_settings() -> void:
+	var config := ConfigFile.new()
+	config.set_value("controls", "mouse_sensitivity", mouse_sensitivity)
+	config.set_value("audio", "master_volume", master_volume)
+	config.set_value("audio", "music_volume", music_volume)
+	config.set_value("audio", "sfx_volume", sfx_volume)
+	config.set_value("display", "fullscreen", is_fullscreen)
+
+	for action in REBINDABLE_ACTIONS.keys():
+		var event: InputEvent = get_action_event(action)
+		if event:
+			config.set_value("keybinds", action, var_to_str(event))
+
+	var err: Error = config.save(SETTINGS_PATH)
+	if err != OK:
+		push_warning("SettingsManager: Speichern nach '%s' fehlgeschlagen (Fehlercode %d)." % [SETTINGS_PATH, err])
+
+func load_settings() -> void:
+	# Defaults aus dem InputMap sichern, BEVOR irgendwas überschrieben wird —
+	# Grundlage für reset_action_to_default().
+	_default_keybinds.clear()
+	for action in REBINDABLE_ACTIONS.keys():
+		var dup: Array[InputEvent] = []
+		for event in InputMap.action_get_events(action):
+			dup.append(event.duplicate())
+		_default_keybinds[action] = dup
+
+	var config := ConfigFile.new()
+	var err: Error = config.load(SETTINGS_PATH)
+	if err != OK:
+		# Keine gespeicherten Settings vorhanden (erster Start) — kein
+		# Fehler, einfach bei den Defaults aus project.godot bleiben.
+		return
+
+	mouse_sensitivity = config.get_value("controls", "mouse_sensitivity", DEFAULT_SENSITIVITY)
+	master_volume = config.get_value("audio", "master_volume", 1.0)
+	music_volume = config.get_value("audio", "music_volume", 1.0)
+	sfx_volume = config.get_value("audio", "sfx_volume", 1.0)
+	is_fullscreen = config.get_value("display", "fullscreen", false)
+
+	for action in REBINDABLE_ACTIONS.keys():
+		var raw: String = config.get_value("keybinds", action, "")
+		if raw == "":
+			continue
+		var event = str_to_var(raw)
+		if event is InputEvent:
+			InputMap.action_erase_events(action)
+			InputMap.action_add_event(action, event)
 
 
 ===== FILE: scripts\status_effect_manager.gd =====

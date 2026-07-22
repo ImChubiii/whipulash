@@ -1,139 +1,303 @@
 [gd_scene format=3 uid="uid://by0b1jhagnufc"]
 
-[node name="SettingsMenu" type="Control" unique_id=1233549317]
+[ext_resource type="Script" uid="uid://qbdli0sp1ndu" path="res://scenes/settings_menu.gd" id="1_menu"]
+
+[node name="SettingsMenu" type="Control" unique_id=1215016365]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_menu")
 
-[node name="Panel" type="Panel" parent="." unique_id=1542886804]
+[node name="Panel" type="Panel" parent="." unique_id=154715308]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 1.0
-offset_top = -3.0
-offset_right = 1.0
-offset_bottom = -3.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1597223482]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1646977514]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -320.0
-offset_top = -218.0
-offset_right = 320.0
-offset_bottom = 320.0
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=867913794]
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1737801393]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "SETTINGS"
 horizontal_alignment = 1
 
-[node name="HSeparator1" type="HSeparator" parent="Panel/VBoxContainer" unique_id=1953585757]
+[node name="TabContainer" type="TabContainer" parent="Panel/VBoxContainer" unique_id=2118602598]
+custom_minimum_size = Vector2(760, 440)
+layout_mode = 2
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="General" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer" unique_id=268449065]
+layout_mode = 2
+theme_override_constants/separation = 10
+metadata/_tab_index = 0
+
+[node name="HUDVisibleRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/General" unique_id=301179475]
 layout_mode = 2
 
-[node name="SensitivityRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=489528011]
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/General/HUDVisibleRow" unique_id=1168626609]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "HUD anzeigen"
+
+[node name="HUDVisibleCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/General/HUDVisibleRow" unique_id=122610809]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/SensitivityRow" unique_id=2038953310]
-custom_minimum_size = Vector2(200, 0)
+[node name="DamageNumbersRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/General" unique_id=1621050463]
 layout_mode = 2
-text = "Maus-Sensitivity"
 
-[node name="SensitivitySlider" type="HSlider" parent="Panel/VBoxContainer/SensitivityRow" unique_id=1929246401]
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/General/DamageNumbersRow" unique_id=189056898]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Schadens-Zahlen"
+
+[node name="DamageNumbersCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/General/DamageNumbersRow" unique_id=1989671946]
+layout_mode = 2
+
+[node name="MinimapOpacityRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/General" unique_id=1427652791]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/General/MinimapOpacityRow" unique_id=516633468]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Mini-Map Deckkraft"
+
+[node name="MinimapOpacitySlider" type="HSlider" parent="Panel/VBoxContainer/TabContainer/General/MinimapOpacityRow" unique_id=1639163665]
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SensitivityValueLabel" type="Label" parent="Panel/VBoxContainer/SensitivityRow" unique_id=2056218434]
+[node name="MinimapOpacityValueLabel" type="Label" parent="Panel/VBoxContainer/TabContainer/General/MinimapOpacityRow" unique_id=1964919817]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "80%"
+horizontal_alignment = 2
+
+[node name="Video" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer" unique_id=1759526773]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+metadata/_tab_index = 1
+
+[node name="DisplayModeRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Video" unique_id=1457805631]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Video/DisplayModeRow" unique_id=679515239]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Display Mode"
+
+[node name="DisplayModeOption" type="OptionButton" parent="Panel/VBoxContainer/TabContainer/Video/DisplayModeRow" unique_id=607692986]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="VSyncRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Video" unique_id=741469691]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Video/VSyncRow" unique_id=1440477983]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "V-Sync"
+
+[node name="VSyncCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/Video/VSyncRow" unique_id=367075209]
+layout_mode = 2
+
+[node name="FPSLimitRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Video" unique_id=244148848]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Video/FPSLimitRow" unique_id=2036013297]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "FPS Limit"
+
+[node name="FPSLimitOption" type="OptionButton" parent="Panel/VBoxContainer/TabContainer/Video/FPSLimitRow" unique_id=83888575]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="FOVRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Video" unique_id=344477854]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Video/FOVRow" unique_id=1960477206]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Field of View"
+
+[node name="FOVSlider" type="HSlider" parent="Panel/VBoxContainer/TabContainer/Video/FOVRow" unique_id=958246481]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FOVValueLabel" type="Label" parent="Panel/VBoxContainer/TabContainer/Video/FOVRow" unique_id=658022718]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "75°"
+horizontal_alignment = 2
+
+[node name="Audio" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer" unique_id=1991062696]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+metadata/_tab_index = 2
+
+[node name="MasterVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Audio" unique_id=614643029]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Audio/MasterVolumeRow" unique_id=1717030471]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Master-Lautstärke"
+
+[node name="MasterVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/TabContainer/Audio/MasterVolumeRow" unique_id=1265682523]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MusicVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Audio" unique_id=673715269]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Audio/MusicVolumeRow" unique_id=1563406133]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Musik-Lautstärke"
+
+[node name="MusicVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/TabContainer/Audio/MusicVolumeRow" unique_id=739347006]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SFXVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Audio" unique_id=1370803923]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Audio/SFXVolumeRow" unique_id=1373904148]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Effekte-Lautstärke"
+
+[node name="SFXVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/TabContainer/Audio/SFXVolumeRow" unique_id=89784696]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Controls" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer" unique_id=1151373870]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+metadata/_tab_index = 3
+
+[node name="SensitivityRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Controls" unique_id=1348058969]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Controls/SensitivityRow" unique_id=93684045]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Maus-Sensitivity"
+
+[node name="SensitivitySlider" type="HSlider" parent="Panel/VBoxContainer/TabContainer/Controls/SensitivityRow" unique_id=658662043]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SensitivityValueLabel" type="Label" parent="Panel/VBoxContainer/TabContainer/Controls/SensitivityRow" unique_id=705497867]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "0.0030"
 horizontal_alignment = 2
 
-[node name="MasterVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=289149442]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Panel/VBoxContainer/MasterVolumeRow" unique_id=380125948]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-text = "Master-Lautstärke"
-
-[node name="MasterVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/MasterVolumeRow" unique_id=38437945]
-custom_minimum_size = Vector2(220, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="MusicVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=2051565465]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Panel/VBoxContainer/MusicVolumeRow" unique_id=1167015304]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-text = "Musik-Lautstärke"
-
-[node name="MusicVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/MusicVolumeRow" unique_id=1690924114]
-custom_minimum_size = Vector2(220, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="SFXVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=2048618864]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Panel/VBoxContainer/SFXVolumeRow" unique_id=37482752]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-text = "Effekte-Lautstärke"
-
-[node name="SFXVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/SFXVolumeRow" unique_id=744818801]
-custom_minimum_size = Vector2(220, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="FullscreenRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=480221202]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Panel/VBoxContainer/FullscreenRow" unique_id=1200199103]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-text = "Vollbild"
-
-[node name="FullscreenCheckButton" type="CheckButton" parent="Panel/VBoxContainer/FullscreenRow" unique_id=468572427]
-layout_mode = 2
-
-[node name="ConflictLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1446746661]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.6, 0.2, 1)
-horizontal_alignment = 1
-
-[node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer" unique_id=634179152]
-layout_mode = 2
-
-[node name="KeybindsTitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1094800445]
+[node name="KeybindsTitleLabel" type="Label" parent="Panel/VBoxContainer/TabContainer/Controls" unique_id=1757041353]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Tastenbelegung"
 
-[node name="KeybindsContainer" type="VBoxContainer" parent="Panel/VBoxContainer" unique_id=1801787788]
+[node name="KeybindsContainer" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer/Controls" unique_id=64679798]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="HSeparator3" type="HSeparator" parent="Panel/VBoxContainer" unique_id=787318407]
+[node name="Accessibility" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer" unique_id=717123337]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+metadata/_tab_index = 4
+
+[node name="CRTFilterRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Accessibility" unique_id=225673240]
 layout_mode = 2
 
-[node name="BackButton" type="Button" parent="Panel/VBoxContainer" unique_id=1351527492]
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Accessibility/CRTFilterRow" unique_id=1527927105]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "CRT-Filter"
+
+[node name="CRTFilterCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/Accessibility/CRTFilterRow" unique_id=261733685]
+layout_mode = 2
+
+[node name="ScreenShakeRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Accessibility" unique_id=139291824]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Accessibility/ScreenShakeRow" unique_id=185868825]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Screen Shake"
+
+[node name="ScreenShakeCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/Accessibility/ScreenShakeRow" unique_id=1109780087]
+layout_mode = 2
+
+[node name="AimToggleRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Accessibility" unique_id=1258116183]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Accessibility/AimToggleRow" unique_id=528815785]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Aim: Toggle statt Halten"
+
+[node name="AimToggleCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/Accessibility/AimToggleRow" unique_id=1359700771]
+layout_mode = 2
+
+[node name="ColorblindRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/Accessibility" unique_id=1657283945]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Accessibility/ColorblindRow" unique_id=573845636]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Farbenblind-Modus"
+
+[node name="ColorblindOption" type="OptionButton" parent="Panel/VBoxContainer/TabContainer/Accessibility/ColorblindRow" unique_id=890638867]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="ConflictLabel" type="Label" parent="Panel/VBoxContainer" unique_id=99973823]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.2, 1)
+horizontal_alignment = 1
+
+[node name="BottomRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=1452729488]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="ResetButton" type="Button" parent="Panel/VBoxContainer/BottomRow" unique_id=1393408706]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+text = "Reset to Defaults"
+
+[node name="BackButton" type="Button" parent="Panel/VBoxContainer/BottomRow" unique_id=524916930]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 text = "Back"
