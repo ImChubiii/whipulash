@@ -788,7 +788,11 @@ func _start_submersion_effects(body: Node3D) -> void:
 		body.velocity.y *= entry_dampening
 
 	if body.has_method("set_buoyancy"):
-		body.set_buoyancy(true, buoyancy_rise_speed)
+		# NEU: übergibt zusätzlich die tatsächliche Oberflächen-Y-Höhe —
+		# der Body (z.B. player.gd) nutzt das, um seinen Auftrieb auf eine
+		# Ziel-Eintauchtiefe zu deckeln, statt endlos weiter nach oben zu
+		# beschleunigen (das war der Grund für das "aus der Lava schießen").
+		body.set_buoyancy(true, buoyancy_rise_speed, _get_surface_top_world_y())
 
 	if _is_player(body):
 		var overlay := get_tree().get_root().find_child("SubmersionOverlay", true, false)
@@ -1241,6 +1245,8 @@ mesh = SubResource("TorusMesh_6igkw")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.7175288, -8.234204)
 mesh = SubResource("CylinderMesh_fva3d")
 
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=1336547930]
+
 
 ===== FILE: scenes\enemy_ai.gd =====
 
@@ -1253,13 +1259,22 @@ enum State { IDLE, CHASE, ATTACK }
 @export var detection_range: float = 20
 @export var attack_range: float = 5
 @export var attack_cooldown: float = 0
-@export var gravity: float = 20.0
+
+# gravity hat einen Setter, damit jump_velocity automatisch neu berechnet
+# wird, falls gravity zur Laufzeit (Inspector-Live-Edit, Debug-Tools etc.)
+# verändert wird — sonst bliebe die Sprungkraft auf Basis der ALTEN
+# gravity "eingefroren".
+@export var gravity: float = 20.0:
+	set(value):
+		gravity = value
+		_recalculate_jump_velocity()
+
 @export var attack_windup_time: float = 1
 @export var pre_attack_delay: float = 0.8
 
 # Eigener Anzeigename für UI/Death-Screen — unabhängig vom technischen
-# Godot-Node-Namen (der bei gespawnten Kopien hässlich werden kann,
-# z.B. "@CharacterBody3D@3").
+# Godot-Node-Namen (der bei gespawnten Kopien hässlich werden kann, z.B.
+# "@CharacterBody3D@3").
 @export var display_name: String = "Gegner"
 
 func get_display_name() -> String:
@@ -1269,73 +1284,45 @@ func get_display_name() -> String:
 # raus auf zoom_max, statt bei der aktuellen manuellen Zoomstufe zu bleiben.
 @export var is_large_enemy: bool = false
 
-# Höhe, auf der der Lock-On-Ring über DIESEM Gegner erscheint — beim
-# normalen Dummy passt der Standard vom TargetReticle, bei größeren
-# Varianten (Tank etc.) hier einfach hochstellen.
+# Höhe, auf der der Lock-On-Ring über DIESEM Gegner erscheint.
 @export var reticle_height_offset: float = 1.2
 
-# Wie weit der Ring Richtung Kamera vor DIESEM Gegner schwebt — bei
-# größeren Modellen (Tank etc.) höher stellen, sonst steckt der Ring
-# im Modell fest und wird von der Geometrie verdeckt.
+# Wie weit der Ring Richtung Kamera vor DIESEM Gegner schwebt.
 @export var reticle_forward_offset: float = 1.0
 
-# NEU: Skaliert die GRÖSSE des Lock-On-Rings selbst passend zur
-# Gegnergröße — 1.0 = TargetReticle-Standardgröße, größer bei großen
-# Gegnern (Tank/Koloss), kleiner bei winzigen/schnellen Gegnern (Scout).
+# Skaliert die GRÖSSE des Lock-On-Rings passend zur Gegnergröße.
 @export var reticle_scale: float = 1.0
 
-# Multiplikator für die Stärke des Kamera-Soft-Locks, WENN dieser Gegner
-# gerade als Ziel gelockt ist. 1.0 = normale Stärke. Kleinere Werte
-# (z.B. 0.3) für kleine, schnelle Gegner, die viel um den Spieler
-# herumlaufen — sonst reißt die Kamera bei jedem Positionswechsel
-# ruckartig hinterher.
+# Multiplikator für die Stärke des Kamera-Soft-Locks, wenn dieser Gegner
+# gerade als Ziel gelockt ist.
 @export var camera_lock_multiplier: float = 1.0
 
-# --- Sanfte Separation von anderen Gegnern (statt harter Physik-Kollision, ---
-# --- die zu Katapult-artigem Wegschubsen führen kann). ---
+# --- Sanfte Separation von anderen Gegnern ---
 @export var separation_radius: float = 6
 @export var separation_strength: float = 5
 
 # --- Transparenz nach HP + Hit-Flash ---
-# Bei voller HP komplett sichtbar, bei 0 HP auf diesen Wert runter.
 @export_range(0.0, 1.0) var min_alpha_at_zero_hp: float = 0.15
-# Wie stark/kurz die Transparenz beim TREFFER zusätzlich kurz einbricht.
 @export_range(0.0, 1.0) var hit_flash_alpha: float = 0.2
 @export var hit_flash_duration: float = 0.15
 
-# NEU: Roter Farb-Blitz beim Treffer, dezent (niedrige Stärke = wenig
-# Rot-Anteil, kein komplett rot eingefärbter Gegner).
 @export_range(0.0, 1.0) var hit_color_flash_strength: float = 0.25
 @export var hit_color_flash_duration: float = 0.15
 
 # --- Telegraph-Ring Boden-Snapping ---
-# Die Telegraph-Ringe (TelegraphOuterRing/TelegraphInner) werden jeden
-# Physik-Frame per Downward-Raycast auf den echten Boden gepinnt (X/Z
-# folgen weiterhin normal dem Gegner) — funktioniert automatisch für
-# jeden Gegnertyp, ohne dass man pro Modell manuell Offsets tunen muss.
 @export var telegraph_ground_snap: bool = true
 @export var telegraph_ground_clearance: float = 0.02
 @export var telegraph_ground_raycast_mask: int = 1
 @export var telegraph_ground_raycast_range: float = 20.0
 
 # --- Sprung- & Kanten-Verhalten ---
-# Gegner können jetzt über kleine Hindernisse/Stufen springen (Raycast
-# unten = blockiert, Raycast oben = frei -> Hindernis ist niedrig genug,
-# springen). An echten Abgründen (kein Boden mehr in Bewegungsrichtung
-# erkennbar) bleiben sie STEHEN und warten, statt blind runterzulaufen —
-# außer can_jump_across_ledges ist an UND die Lücke ist klein genug
-# (jump_across_max_gap), dann wird stattdessen rübergesprungen.
 @export var can_jump: bool = true
 
-# Feste maximale Sprunghöhe in Metern für DIESEN Gegner — direkt hier
-# einstellen, z.B. 2.0. Das ist eine OBERGRENZE — der tatsächliche Sprung
-# misst die reale Hindernishöhe per Raycast ab und springt nur so hoch wie
-# nötig (plus kleine Marge), nie automatisch bis zur vollen jump_height.
-# Nur bei einem Hindernis, das GENAU jump_height hoch ist, wird die volle
-# Höhe genutzt.
-@export var jump_height: float = 2.0
-# Kleiner Sicherheitsaufschlag über der gemessenen Hindernishöhe, damit
-# der Sprung nicht exakt an der Kante kratzt.
+@export var jump_height: float = 2.0:
+	set(value):
+		jump_height = value
+		_recalculate_jump_velocity()
+
 @export var obstacle_jump_margin: float = 0.3
 var jump_velocity: float = 0.0
 
@@ -1348,25 +1335,47 @@ var jump_velocity: float = 0.0
 @export var jump_across_max_gap: float = 4.0
 @export var ground_raycast_mask: int = 1
 
-# NEU: Statt die Geschwindigkeit jeden Frame SOFORT auf den Zielwert zu
-# springen (fühlt sich besonders bei schnellen Gegnern wie dem Stinger
-# ruckartig/roboterhaft an, "0 Delay"), rampt sich velocity.x/z jetzt
-# über movement_acceleration hoch bzw. runter — move_toward statt
-# direkter Zuweisung. Kleinere Werte = trägere, "schwerere" Beschleunigung
-# (natürlicher wirkendes Anlaufen/Abbremsen), größere Werte = fast wie
-# vorher (fast instant). Für den Stinger z.B. 30-40 statt eines riesigen
-# Werts probieren.
+# Kanten-Check skaliert dynamisch mit der tatsächlichen Kapselgröße
+# (Radius) dieses Gegners, damit große Gegner (Fighter, Colossus) nicht
+# schon über den eigenen Körper fälschlich "Abgrund" erkennen.
+@export var ledge_check_scale_with_radius: bool = true
+@export var ledge_check_radius_margin: float = 0.5
+
+# Zusätzlich zum mittleren Raycast werden zwei seitlich versetzte
+# Raycasts geprüft — eine Kante wird nur erkannt, wenn ALLE drei
+# Raycasts keinen Boden finden.
+@export var ledge_check_lateral_samples: bool = true
+
 @export var movement_acceleration: float = 40.0
+
+# --- NEU: NavMesh-Pfadverfolgung ---
+# Wie oft (in Sekunden) das Ziel des NavigationAgent3D neu gesetzt wird.
+@export var nav_target_update_interval: float = 0.2
+
+# --- NEU: Ledge-Drop-Verhalten (greift NUR, wenn KEIN gültiger NavMesh-
+# Pfad zum Spieler existiert) ---
+# Ob ein Gegner ohne NavMesh-Verbindung aktiv über eine sichere Kante
+# läuft/fällt, statt an ihr zu warten — vorausgesetzt der Spieler
+# befindet sich unterhalb UND die gemessene Falltiefe ist sicher.
+@export var ledge_drop_enabled: bool = true
+# Maximale Falltiefe in Metern, die OHNE NavMesh-Pfad als "sicher zum
+# Runterlaufen" gilt.
+@export var max_safe_drop_height: float = 4.0
+# Wie weit der Downward-Raycast zur TATSÄCHLICHEN Tiefenmessung reicht.
+# Muss größer als max_safe_drop_height sein.
+@export var ledge_drop_probe_distance: float = 15.0
+# Wie viele Meter der Spieler mindestens unter den eigenen Füßen stehen
+# muss, damit "Spieler ist unten" als erfüllt gilt.
+@export var ledge_drop_player_below_margin: float = 1.0
+
+# --- Abrutsch-Logik, wenn der Gegner auf dem Player-Kopf steht ---
+@export var player_head_slide_impulse: float = 6.0
+@export_range(0.0, 1.0) var player_head_slide_normal_threshold: float = 0.9
+@export var player_head_slide_min_height_above_player: float = 0.8
 
 var _waiting_at_ledge: bool = false
 
 # --- Status-Effekt-System (Poison, Slow, Fear, ...) ---
-# Läuft über einen generischen StatusEffectManager-Kind-Node, der sich
-# selbst erstellt, falls er nicht schon in der Szene liegt — kein
-# manuelles Scene-Editing nötig. "slow" reduziert move_speed anteilig,
-# "poison" tickt Schaden über Health. Weitere Effekte (z.B. "fear") sind
-# über has_status_effect()/get_status_effect_magnitude() abfragbar, auch
-# wenn hier noch keine konkrete Fear-Verhaltenslogik verdrahtet ist.
 var status_effects: StatusEffectManager
 
 func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, source: Node = null, tick_interval: float = 0.0) -> void:
@@ -1383,10 +1392,6 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 		health.take_damage(magnitude, source)
 
 # --- Debug ---
-# Schaltet die "EnemyAI DEBUG:"-Konsolen-Ausgaben für DIESEN Gegner an/aus.
-# Praktisch um gezielt nur den Gegnertyp zu debuggen, den man gerade testet,
-# ohne dass die Konsole von allen anderen gleichzeitig aktiven Gegnern
-# zugespammt wird.
 @export var debug_logging: bool = false
 
 @onready var attack_hitbox: Hitbox = get_node_or_null("AttackHitbox")
@@ -1394,6 +1399,10 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 @onready var telegraph_outer: MeshInstance3D = get_node_or_null("AttackHitbox/TelegraphOuterRing")
 @onready var health: Health = get_node_or_null("Health")
 @onready var mesh: MeshInstance3D = get_node_or_null("MeshInstance3D")
+# NEU: optionaler NavigationAgent3D. get_node_or_null sorgt dafür, dass
+# Gegner-Szenen OHNE diesen Node (z.B. alte Dummies) sauber auf null
+# fallen und automatisch auf die Luftlinien-Logik zurückfallen.
+@onready var nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
 
 var _state: State = State.IDLE
 var _player: Node3D
@@ -1405,9 +1414,22 @@ var _last_known_health: float = -1.0
 var _alpha_tween: Tween
 var _flash_tween: Tween
 
+# Gecachte, robust gesuchte CollisionShape3D (siehe
+# _get_collision_shape_node()) + Merker, damit die Warnung bei fehlender
+# Shape nur EINMAL pro Gegner geloggt wird statt jeden Frame.
+var _collision_shape_cache: CollisionShape3D
+var _warned_missing_collision_shape: bool = false
+
+# NEU: Timer für die periodische NavigationAgent3D-Zielaktualisierung.
+var _nav_update_timer: float = 0.0
+
 func _debug(msg: String) -> void:
 	if debug_logging:
 		print("EnemyAI DEBUG [%s]: %s" % [display_name, msg])
+
+func _recalculate_jump_velocity() -> void:
+	jump_velocity = sqrt(2.0 * gravity * jump_height)
+	_debug("Sprungkraft neu berechnet: jump_height=%.2f, gravity=%.2f -> jump_velocity=%.2f" % [jump_height, gravity, jump_velocity])
 
 func _ready() -> void:
 	add_to_group("enemies")
@@ -1415,18 +1437,19 @@ func _ready() -> void:
 	if _player == null:
 		push_warning("EnemyAI: Konnte keinen Node namens 'Player' finden.")
 
-	_debug("_ready() aufgerufen. attack_hitbox gefunden: %s | telegraph_inner: %s | telegraph_outer: %s" % [attack_hitbox, telegraph_inner, telegraph_outer])
+	_debug("_ready() aufgerufen. attack_hitbox gefunden: %s | telegraph_inner: %s | telegraph_outer: %s | nav_agent: %s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
 
-	# StatusEffectManager holen oder automatisch erstellen (gemeinsamer
-	# Helper statt dupliziertem Code — siehe status_effect_manager.gd).
+	var shape_node := _get_collision_shape_node()
+	if shape_node:
+		_debug("CollisionShape3D gefunden: %s (Pfad: %s)" % [shape_node.shape, shape_node.get_path()])
+		_debug("-> berechneter Körperradius: %.2f | Fuß-Y: %.2f (eigene global_position.y: %.2f)" % [_get_body_radius(), _get_feet_y(), global_position.y])
+	else:
+		push_warning("EnemyAI (%s): Keine CollisionShape3D gefunden! Kanten-/Hindernis-Checks laufen mit Fallback-Werten und sind unzuverlässig." % display_name)
+
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
 
-	# Sprungkraft aus der festen jump_height berechnen (Sprungphysik:
-	# v = sqrt(2 * g * h)), damit der Sprung physikalisch auch wirklich
-	# so hoch kommt wie im Inspector eingestellt.
-	jump_velocity = sqrt(2.0 * gravity * jump_height)
-	_debug("Sprungkraft berechnet: jump_height=%.1f -> jump_velocity=%.2f" % [jump_height, jump_velocity])
+	_recalculate_jump_velocity()
 
 	if telegraph_inner:
 		telegraph_inner.visible = false
@@ -1434,19 +1457,11 @@ func _ready() -> void:
 	if telegraph_outer:
 		telegraph_outer.visible = false
 
-	# Das ShaderMaterial des Meshes holen und DUPLIZIEREN — sonst würden
-	# sich mehrere gleichzeitig existierende Gegner (Spawner!) alle
-	# dasselbe Material teilen, und die Transparenz eines Gegners würde
-	# versehentlich auch alle anderen mitverändern.
 	if mesh:
 		var mat := mesh.get_surface_override_material(0)
 		if mat is ShaderMaterial:
 			_mesh_material = mat.duplicate()
 			mesh.set_surface_override_material(0, _mesh_material)
-			# Sicherheitshalber explizit zurücksetzen, falls im Basis-Material
-			# irgendwann mal ein Flash-Wert manuell im Inspector getestet und
-			# gespeichert wurde — sonst könnte der als "eingefroren" bestehen
-			# bleiben, unabhängig vom Script.
 			_mesh_material.set_shader_parameter("flash_strength", 0.0)
 		else:
 			push_warning("EnemyAI: Mesh hat kein ShaderMaterial mit alpha_multiplier — Transparenz-Effekt wird nicht funktionieren.")
@@ -1454,7 +1469,6 @@ func _ready() -> void:
 	if health:
 		health.died.connect(_on_died)
 		health.health_changed.connect(_on_health_changed)
-		# Direkt beim Start einmal die korrekte Basis-Transparenz setzen
 		_on_health_changed(health.current_health, health.max_health)
 
 func _physics_process(delta: float) -> void:
@@ -1508,17 +1522,56 @@ func _physics_process(delta: float) -> void:
 			telegraph_outer.visible = false
 
 	# Sanfte Separation von anderen Gegnern draufaddieren — verhindert,
-	# dass sie sich stapeln/überlappen, OHNE die harten Physik-Pops zu
-	# verursachen, die bei echter CharacterBody3D-vs-CharacterBody3D-
-	# Kollision zwischen vielen Gegnern gleichzeitig auftreten können.
+	# dass sie sich stapeln/überlappen, ohne harte Physik-Pops.
 	velocity += _get_separation_velocity()
 
 	move_and_slide()
 
-	# Telegraph-Ringe NACH move_and_slide() auf den echten Boden pinnen —
-	# so hängen sie nie im Boden fest und schweben nicht mit, falls der
-	# Gegner selbst gerade in der Luft ist (Sprung, Fall, Knockback etc.).
+	_handle_standing_on_player()
+
+	# Telegraph-Ringe NACH move_and_slide() auf den echten Boden pinnen.
 	_update_telegraph_ground_position()
+
+# Erkennt, ob der Gegner WIRKLICH auf dem Player steht (nicht nur seitlich
+# an ihm anliegt), und verpasst ihm in diesem Fall einen horizontalen
+# Impuls weg vom Player-Zentrum.
+func _handle_standing_on_player() -> void:
+	if _player == null or not is_instance_valid(_player):
+		return
+
+	for i in range(get_slide_collision_count()):
+		var collision := get_slide_collision(i)
+		var collider: Object = collision.get_collider()
+		if collider == null:
+			continue
+
+		var is_player_collision: bool = collider == _player
+		if not is_player_collision and collider is Node:
+			is_player_collision = (collider as Node).is_in_group("player")
+		if not is_player_collision:
+			continue
+
+		var normal: Vector3 = collision.get_normal()
+		if normal.dot(Vector3.UP) < player_head_slide_normal_threshold:
+			continue
+
+		var feet_y: float = _get_feet_y()
+		var player_y: float = _player.global_position.y
+		if feet_y < player_y + player_head_slide_min_height_above_player:
+			continue
+
+		_debug("Steht WIRKLICH auf dem Player (feet_y=%.2f > player_y=%.2f + %.2f, normal.y=%.2f) -> rutscht seitlich ab." % [feet_y, player_y, player_head_slide_min_height_above_player, normal.y])
+
+		var away: Vector3 = global_position - _player.global_position
+		away.y = 0
+		if away.length() < 0.01:
+			away = Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0))
+		away = away.normalized()
+
+		velocity.x = away.x * player_head_slide_impulse
+		velocity.z = away.z * player_head_slide_impulse
+		velocity.y = min(velocity.y, 0.0)
+		break
 
 func _update_telegraph_ground_position() -> void:
 	if not telegraph_ground_snap:
@@ -1526,9 +1579,6 @@ func _update_telegraph_ground_position() -> void:
 	if telegraph_outer == null and telegraph_inner == null:
 		return
 
-	# Nur raycasten, wenn mindestens ein Ring gerade sichtbar ist —
-	# spart Performance bei vielen gleichzeitig aktiven Gegnern, die
-	# gerade nicht im Angriffszustand sind.
 	var outer_visible: bool = telegraph_outer != null and telegraph_outer.visible
 	var inner_visible: bool = telegraph_inner != null and telegraph_inner.visible
 	if not outer_visible and not inner_visible:
@@ -1545,8 +1595,7 @@ func _update_telegraph_ground_position() -> void:
 	var result := space_state.intersect_ray(query)
 
 	# Fallback, falls kein Boden gefunden wird (z.B. Gegner über einem
-	# Abgrund): einfach die aktuelle Gegner-Y-Position nehmen, damit die
-	# Ringe nicht komplett verschwinden oder ins Leere schießen.
+	# Abgrund): einfach die aktuelle Gegner-Y-Position nehmen.
 	var ground_y: float = global_position.y
 	if result:
 		ground_y = result.position.y
@@ -1572,78 +1621,164 @@ func _get_separation_velocity() -> Vector3:
 		offset.y = 0
 		var dist: float = offset.length()
 		if dist > 0.001 and dist < separation_radius:
-			# Je näher, desto stärker die Abstoßung (linear abfallend mit Distanz)
 			var strength: float = (1.0 - dist / separation_radius) * separation_strength
 			push += offset.normalized() * strength
 	return push
 
+# ÜBERARBEITET: unterscheidet jetzt sauber zwischen "gültiger NavMesh-Pfad
+# vorhanden -> strikt folgen" und "kein Pfad, aber Ziel liegt unten -> über
+# die Kante droppen" statt bei jeder Kante blind einzufrieren.
 func _move_towards_player(delta: float) -> void:
-	var dir: Vector3 = (_player.global_position - global_position)
-	dir.y = 0
-	dir = dir.normalized()
+	var dir: Vector3 = Vector3.ZERO
+	var following_nav_path: bool = false
 
-	# --- Kanten-Check: droht hier ein Abgrund? ---
-	if dir.length() > 0.01 and _is_ledge_ahead(dir):
-		var jumped_across: bool = can_jump_across_ledges and is_on_floor() and _try_jump_across_ledge(dir)
-		if not jumped_across:
-			if ledge_wait_enabled:
-				# An der Kante stehen bleiben und warten statt blind
-				# runterzulaufen — nur zum Spieler drehen, nicht bewegen.
-				_waiting_at_ledge = true
-				velocity.x = 0
-				velocity.z = 0
-				_face_player(delta)
-				return
-			# ledge_wait_enabled = false -> altes Verhalten: einfach weiterlaufen
+	# --- NavMesh-Pfadverfolgung, FALLS ein gültiger Pfad existiert ---
+	if nav_agent != null:
+		_nav_update_timer -= delta
+		if _nav_update_timer <= 0.0:
+			_nav_update_timer = nav_target_update_interval
+			nav_agent.target_position = _player.global_position
+
+		if _has_valid_nav_path_to_player():
+			following_nav_path = true
+			var next_point: Vector3 = nav_agent.get_next_path_position()
+			var to_next: Vector3 = next_point - global_position
+			to_next.y = 0.0
+			if to_next.length() > 0.01:
+				dir = to_next.normalized()
+
+	if not following_nav_path:
+		dir = (_player.global_position - global_position)
+		dir.y = 0
+		dir = dir.normalized()
+
 	_waiting_at_ledge = false
 
-	# --- Hindernis-Check: kleine Stufe/Kante springen statt stehenbleiben,
-	# und zwar nur SO HOCH wie das Hindernis tatsächlich ist, nicht immer
-	# volle jump_height. ---
+	# --- Ledge-Logik: NUR relevant, wenn wir die Richtung selbst wählen
+	# (kein gültiger NavMesh-Pfad vorhanden) ---
+	if not following_nav_path and dir.length() > 0.01 and _is_ledge_ahead(dir):
+		var jumped_across: bool = can_jump_across_ledges and is_on_floor() and _try_jump_across_ledge(dir)
+
+		if not jumped_across:
+			var effective_forward_distance: float = ledge_check_forward_distance
+			if ledge_check_scale_with_radius:
+				effective_forward_distance = max(ledge_check_forward_distance, _get_body_radius() + ledge_check_radius_margin)
+
+			var drop_depth: float = _measure_drop_depth(dir, effective_forward_distance)
+			var feet_y: float = _get_feet_y()
+			var player_is_below: bool = _player.global_position.y <= feet_y - ledge_drop_player_below_margin
+
+			var may_drop: bool = ledge_drop_enabled and player_is_below and drop_depth <= max_safe_drop_height
+
+			if may_drop:
+				# Sicherer Drop: kein NavMesh-Pfad, Spieler ist unten UND
+				# die Falltiefe liegt im erlaubten Rahmen -> über die
+				# Kante weiterlaufen statt einzufrieren. Die Schwerkraft
+				# übernimmt den Rest, sobald is_on_floor() false wird.
+				_debug("Sicherer Drop erkannt (Tiefe %.2f <= max_safe_drop_height %.2f, player_is_below=%s) -> laufe über die Kante." % [drop_depth, max_safe_drop_height, player_is_below])
+			else:
+				if ledge_wait_enabled:
+					_debug("WARTE AN KANTE — kein NavMesh-Pfad, Drop nicht sicher/erlaubt (Tiefe %.2f, player_is_below=%s, ledge_drop_enabled=%s)." % [drop_depth, player_is_below, ledge_drop_enabled])
+					_waiting_at_ledge = true
+					velocity.x = 0
+					velocity.z = 0
+					_face_player(delta)
+					return
+				# ledge_wait_enabled = false -> altes Verhalten: einfach weiterlaufen
+
+	# --- Hindernis-Check: kleine Stufe/Kante hochspringen statt stehenbleiben ---
 	if can_jump and is_on_floor() and dir.length() > 0.01:
 		var required_height: float = _get_required_jump_height(dir)
 		if required_height > 0.0:
 			velocity.y = sqrt(2.0 * gravity * required_height)
 			_debug("Springe auf Zielhöhe %.2f (Obergrenze %.2f) über Hindernis." % [required_height, jump_height])
 
-	# "slow"-Status-Effekt reduziert die Bewegungsgeschwindigkeit anteilig
-	# (magnitude 0.5 = 50% langsamer). Kommt z.B. von einer Slow-Waffe
-	# oder einem Hazard, per apply_status_effect("slow", dauer, staerke).
 	var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
 	var effective_speed: float = move_speed * slow_factor
 
-	# Sanft auf die Zielgeschwindigkeit hin beschleunigen statt sofort
-	# draufzuspringen — macht die Bewegung spürbar natürlicher, besonders
-	# bei schnellen Gegnern wie dem Stinger, die sonst bei jedem
-	# Richtungswechsel wie teleportiert wirken.
 	var target_velocity_x: float = dir.x * effective_speed
 	var target_velocity_z: float = dir.z * effective_speed
 	velocity.x = move_toward(velocity.x, target_velocity_x, movement_acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
 
-# Berechnet die TATSÄCHLICHE Weltraum-Y-Höhe der FÜSSE dieses Gegners,
-# über die eigene CollisionShape3D — nicht einfach global_position.y (die
-# Root!), die je nach Gegnertyp Fußhöhe ODER Körpermitte sein kann (Fighter
-# z.B. sitzt die Kapsel-Mitte ~4.5 Einheiten über dem Boden). OHNE diesen
-# Fix reichten die Abwärts-Raycasts bei großen Gegnern nie bis zum echten
-# Boden -> die dachten JEDEN Frame "Abgrund voraus" und blieben komplett
-# stehen, obwohl gar keine Kante da war.
+# NEU: Misst die TATSÄCHLICHE Falltiefe in Metern an einer erkannten Kante,
+# über eine GRÖSSERE Downward-Raycast-Distanz (ledge_drop_probe_distance)
+# als der reine Ja/Nein-Check in _is_ledge_ahead(). Trifft der Ray
+# innerhalb dieser Distanz keinen Boden, gilt der Abgrund als "zu tief zum
+# sicheren Messen" (INF) -> wird automatisch als unsicher behandelt.
+func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:
+	var space_state := get_world_3d().direct_space_state
+	var feet_y: float = _get_feet_y()
+	var check_pos: Vector3 = Vector3(global_position.x, feet_y, global_position.z) + dir * effective_forward_distance + Vector3(0, 0.5, 0)
+	var ray_end: Vector3 = check_pos - Vector3(0, ledge_drop_probe_distance, 0)
+
+	var query := PhysicsRayQueryParameters3D.create(check_pos, ray_end)
+	query.exclude = [self]
+	query.collision_mask = ground_raycast_mask
+
+	var result := space_state.intersect_ray(query)
+	if result.is_empty():
+		return INF
+
+	var drop_y: float = result.position.y
+	return feet_y - drop_y
+
+# NEU: Unterscheidet "NavMesh hat eine durchgehende Verbindung zum
+# Spieler" von "NavigationAgent3D hat aufgegeben, weil Start und Ziel auf
+# getrennten NavMesh-Inseln liegen". Godot meldet in BEIDEN Fällen
+# irgendwann is_navigation_finished() = true — der einzig verlässliche
+# Unterschied ist, ob der zuletzt tatsächlich erreichbare Punkt
+# (get_final_position()) nah am echten Ziel liegt oder weit entfernt
+# "hängen geblieben" ist.
+func _has_valid_nav_path_to_player() -> bool:
+	if nav_agent == null or _player == null:
+		return false
+
+	if not nav_agent.is_navigation_finished():
+		return true
+
+	var final_pos: Vector3 = nav_agent.get_final_position()
+	var reachable_target_dist: float = final_pos.distance_to(_player.global_position)
+	return reachable_target_dist <= nav_agent.target_desired_distance * 2.0
+
+func _get_collision_shape_node() -> CollisionShape3D:
+	if _collision_shape_cache and is_instance_valid(_collision_shape_cache):
+		return _collision_shape_cache
+
+	var direct := get_node_or_null("CollisionShape3D")
+	if direct and direct is CollisionShape3D:
+		_collision_shape_cache = direct
+		return _collision_shape_cache
+
+	for child in get_children():
+		if child is CollisionShape3D:
+			if not _warned_missing_collision_shape:
+				_debug("WARNUNG: Kein Kind namens 'CollisionShape3D' — nutze stattdessen direktes Kind '%s'." % child.get_path())
+				_warned_missing_collision_shape = true
+			_collision_shape_cache = child
+			return _collision_shape_cache
+
+	if not _warned_missing_collision_shape:
+		push_warning("EnemyAI (%s): Konnte KEINE CollisionShape3D unter den direkten Kindern finden. Kanten-/Hindernis-Checks laufen mit unzuverlässigen Fallback-Werten." % display_name)
+		_warned_missing_collision_shape = true
+	return null
+
+# Berechnet die TATSÄCHLICHE Weltraum-Y-Höhe der FÜSSE dieses Gegners über
+# die eigene CollisionShape3D — nicht einfach global_position.y (die
+# Root!), die je nach Gegnertyp Fußhöhe ODER Körpermitte sein kann.
+# WICHTIG: shape.height bei CapsuleShape3D ist in Godot 4 bereits die
+# GESAMTE Kapselhöhe inklusive beider halbrunder Kappen — der halbe
+# Abstand von der Mitte zur Spitze ist daher schlicht height * 0.5, NICHT
+# radius + height * 0.5.
 func _get_feet_y() -> float:
-	var collision_shape: CollisionShape3D = get_node_or_null("CollisionShape3D")
+	var collision_shape := _get_collision_shape_node()
 	if collision_shape and collision_shape.shape:
 		var shape := collision_shape.shape
-		# WICHTIG: die Shape-Ressource kennt nur ihre EIGENEN Rohwerte
-		# (radius/height). Falls die CollisionShape3D-Node selbst noch
-		# eine Transform-Skalierung trägt (wie beim Colossus, dessen
-		# Body-Kollision nie auf Identity-Scale umgestellt wurde), muss
-		# das hier mit eingerechnet werden — sonst landen wir bei großen,
-		# noch skalierten Gegnern bei einer viel zu hohen "Fußposition"
-		# und der Kanten-Check denkt fälschlich, es sei ein Abgrund da.
 		var y_scale: float = collision_shape.global_transform.basis.y.length()
 		var half_height: float = 0.0
 		if shape is CapsuleShape3D:
-			half_height = (shape.radius + shape.height * 0.5) * y_scale
+			half_height = shape.height * 0.5 * y_scale
 		elif shape is BoxShape3D:
 			half_height = shape.size.y * 0.5 * y_scale
 		elif shape is SphereShape3D:
@@ -1651,14 +1786,23 @@ func _get_feet_y() -> float:
 		return collision_shape.global_position.y - half_height
 	return global_position.y
 
-# Misst per gestuften Raycasts die TATSÄCHLICHE Höhe des Hindernisses vor
-# dem Gegner, statt einfach binär "springbar ja/nein" zu prüfen. Gibt -1.0
-# zurück, wenn kein Sprung nötig ist ODER das Hindernis selbst bei voller
-# jump_height noch blockiert (dann lieber gar nicht erst springen, statt
-# mit dem Kopf dagegen zu laufen). Sonst: die Zielhöhe, auf die gesprungen
-# werden soll (gemessene Hindernishöhe + kleine Marge, gedeckelt bei
-# jump_height als Obergrenze) — DAS behebt das "springt immer 4 Meter über
-# eine 1-Meter-Kiste"-Problem.
+func _get_body_radius() -> float:
+	var collision_shape := _get_collision_shape_node()
+	if collision_shape and collision_shape.shape:
+		var shape := collision_shape.shape
+		var xz_scale: float = collision_shape.global_transform.basis.x.length()
+		if shape is CapsuleShape3D:
+			return shape.radius * xz_scale
+		elif shape is BoxShape3D:
+			return max(shape.size.x, shape.size.z) * 0.5 * xz_scale
+		elif shape is SphereShape3D:
+			return shape.radius * xz_scale
+	return 0.5
+
+# Gibt -1.0 zurück, wenn kein Sprung nötig ist ODER das Hindernis selbst
+# bei voller jump_height noch blockiert. Sonst: die Zielhöhe, auf die
+# gesprungen werden soll (gemessene Hindernishöhe + kleine Marge,
+# gedeckelt bei jump_height als Obergrenze).
 func _get_required_jump_height(dir: Vector3) -> float:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -1670,7 +1814,7 @@ func _get_required_jump_height(dir: Vector3) -> float:
 	query_low.collision_mask = ground_raycast_mask
 	var result_low := space_state.intersect_ray(query_low)
 	if result_low.is_empty():
-		return -1.0  # unten nichts im Weg, kein Sprung nötig
+		return -1.0
 
 	var obstacle_clear_height: float = jump_height
 	var found_clear_height: bool = false
@@ -1689,26 +1833,44 @@ func _get_required_jump_height(dir: Vector3) -> float:
 			break
 
 	if not found_clear_height:
-		# Selbst auf voller jump_height noch blockiert -> zu hoch, gar
-		# nicht erst versuchen zu springen.
 		return -1.0
 
 	return min(obstacle_clear_height + obstacle_jump_margin, jump_height)
 
-# Prüft per Downward-Raycast, ob in Bewegungsrichtung (etwas vor dem
-# Gegner) noch Boden vorhanden ist. Kein Treffer = Abgrund/Lücke.
+# Prüft per Downward-Raycast, ob in Bewegungsrichtung noch Boden vorhanden
+# ist. Zusätzlich zum mittleren Raycast werden zwei seitlich versetzte
+# geprüft — eine Kante wird nur erkannt, wenn ALLE Raycasts keinen Boden
+# finden (verhindert False-Positives durch Unebenheiten im Collision-Mesh).
 func _is_ledge_ahead(dir: Vector3) -> bool:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
-	var check_pos: Vector3 = Vector3(global_position.x, feet_y, global_position.z) + dir * ledge_check_forward_distance + Vector3(0, 0.5, 0)
-	var ray_end: Vector3 = check_pos - Vector3(0, ledge_check_drop_distance, 0)
 
-	var query := PhysicsRayQueryParameters3D.create(check_pos, ray_end)
-	query.exclude = [self]
-	query.collision_mask = ground_raycast_mask
+	var effective_forward_distance: float = ledge_check_forward_distance
+	if ledge_check_scale_with_radius:
+		var body_radius: float = _get_body_radius()
+		effective_forward_distance = max(ledge_check_forward_distance, body_radius + ledge_check_radius_margin)
 
-	var result := space_state.intersect_ray(query)
-	return result.is_empty()
+	var offsets: Array[Vector3] = [Vector3.ZERO]
+	if ledge_check_lateral_samples:
+		var lateral_dir: Vector3 = Vector3(-dir.z, 0.0, dir.x)
+		var lateral_offset: float = max(_get_body_radius() * 0.5, 0.3)
+		offsets.append(lateral_dir * lateral_offset)
+		offsets.append(-lateral_dir * lateral_offset)
+
+	for offset in offsets:
+		var check_pos: Vector3 = Vector3(global_position.x, feet_y, global_position.z) + dir * effective_forward_distance + offset + Vector3(0, 0.5, 0)
+		var ray_end: Vector3 = check_pos - Vector3(0, ledge_check_drop_distance, 0)
+
+		var query := PhysicsRayQueryParameters3D.create(check_pos, ray_end)
+		query.exclude = [self]
+		query.collision_mask = ground_raycast_mask
+
+		var result := space_state.intersect_ray(query)
+		if not result.is_empty():
+			return false
+
+	_debug("Kante erkannt: feet_y=%.2f, effective_forward_distance=%.2f (Basis ledge_check_forward_distance=%.2f, Körperradius=%.2f)" % [feet_y, effective_forward_distance, ledge_check_forward_distance, _get_body_radius()])
+	return true
 
 # Tastet sich in mehreren Schritten über die Lücke vor; findet sich
 # innerhalb von jump_across_max_gap wieder Boden, wird gesprungen.
@@ -1782,9 +1944,6 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 	_base_alpha = lerp(min_alpha_at_zero_hp, 1.0, percent)
 	_set_mesh_alpha(_base_alpha)
 
-	# NUR bei echtem Treffer flashen (HP gesunken), nicht bei Regeneration/
-	# Heilung — sonst feuert der Flash bei jedem Regen-Tick jeden Frame
-	# neu und wirkt wie ein Dauer-Leuchten.
 	if _last_known_health >= 0.0 and current < _last_known_health:
 		_play_hit_flash()
 	_last_known_health = current
@@ -1797,10 +1956,6 @@ func _play_hit_flash() -> void:
 	if not _mesh_material:
 		return
 
-	# WICHTIG: alten Tween killen, bevor ein neuer startet — sonst
-	# stapeln sich bei schnellem Dauerfeuer viele gleichzeitig laufende
-	# Tweens übereinander, die sich gegenseitig überschreiben und zu
-	# chaotischem Geflacker statt einem sauberen Effekt führen.
 	if _alpha_tween and _alpha_tween.is_valid():
 		_alpha_tween.kill()
 	_alpha_tween = create_tween()
@@ -2537,36 +2692,6 @@ shader_parameter/flash_strength = 0.0
 
 [node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_t0ybu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
-speed = null
-jump_velocity = null
-mouse_sensitivity = null
-gravity = null
-zoom_min = null
-zoom_max = null
-zoom_step = null
-large_enemy_zoom_hold_time = null
-large_enemy_zoom_speed = null
-large_enemy_return_duration = null
-stun_camera_shake = null
-own_damage_shake_strength = null
-use_ragdoll = null
-death_fall_rotation_degrees = null
-death_fall_duration = null
-ragdoll_mass = null
-ragdoll_impulse_strength = null
-ragdoll_upward_impulse = null
-ragdoll_torque_strength = null
-camera_soft_lock_strength = null
-model_lock_turn_speed = null
-max_lock_range = null
-trauma_decay = null
-max_shake_offset = null
-max_shake_roll_degrees = null
-dash_fov_boost = null
-dash_fov_ramp_up_time = null
-dash_fov_ramp_down_time = null
-buoyancy_accel = null
-buoyancy_swim_boost = null
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
 
@@ -2981,16 +3106,15 @@ max_concurrent = 1
 spawn_interval = 5.0
 
 [node name="Fighter spawn" type="Node3D" parent="." unique_id=933972465 node_paths=PackedStringArray("spawn_points")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 146.02388, -0.40393448, -30.495728)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 138.81819, 7.5054283, -30.495728)
 script = ExtResource("5_e6mo4")
 dummy_scene = ExtResource("6_px6rj")
 spawn_points = [NodePath(".")]
 
 [node name="Lemonade" parent="." unique_id=1115630498 instance=ExtResource("7_t0ybu")]
 transform = Transform3D(12.467179, 0, 0, 0, 23.249767, 0, 0, 0, 17.047106, 87.59367, -15.120653, -31.06929)
-damage_per_tick = 20.0
-buoyancy_rise_speed = 5.0
-entry_dampening = 0.35
+damage_per_tick = 6.0
+buoyancy_rise_speed = 10.0
 
 [node name="KillGate" parent="." unique_id=668922089 instance=ExtResource("13_2ucnx")]
 transform = Transform3D(0.108382404, -1.4140126e-07, -3.3415587, 5.6077823e-07, 3.2349994, -1.4483543e-07, 12.82911, -1.4021172e-07, 0.02823003, 151.07774, 3.440979, -51.404606)
@@ -3048,36 +3172,6 @@ size = Vector3(10, 6, 30)
 
 [node name="Player" parent="." unique_id=900002 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 5.7365723, 0)
-speed = null
-jump_velocity = null
-mouse_sensitivity = null
-gravity = null
-zoom_min = null
-zoom_max = null
-zoom_step = null
-large_enemy_zoom_hold_time = null
-large_enemy_zoom_speed = null
-large_enemy_return_duration = null
-stun_camera_shake = null
-own_damage_shake_strength = null
-use_ragdoll = null
-death_fall_rotation_degrees = null
-death_fall_duration = null
-ragdoll_mass = null
-ragdoll_impulse_strength = null
-ragdoll_upward_impulse = null
-ragdoll_torque_strength = null
-camera_soft_lock_strength = null
-model_lock_turn_speed = null
-max_lock_range = null
-trauma_decay = null
-max_shake_offset = null
-max_shake_roll_degrees = null
-dash_fov_boost = null
-dash_fov_ramp_up_time = null
-dash_fov_ramp_down_time = null
-buoyancy_accel = null
-buoyancy_swim_boost = null
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=900003]
 
@@ -3334,86 +3428,89 @@ use_collision = true
 size = Vector3(20, 2, 40)
 material = ExtResource("11_psxmat")
 
-[node name="Wall0_Zplus" type="CSGBox3D" parent="." unique_id=900042]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 5, 20)
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=987172830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 0)
+
+[node name="Wall0_Zplus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08178711, 5.1782227, 20.039917)
 use_collision = true
 size = Vector3(20, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Wall0_Zminus" type="CSGBox3D" parent="." unique_id=900043]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 5, -20)
+[node name="Wall0_Zminus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900043]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08178711, 5.1782227, -19.960083)
 use_collision = true
 size = Vector3(20, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Floor" type="CSGBox3D" parent="." unique_id=900050]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 0)
+[node name="Stage1_Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900050]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.081787, 0.17822266, 0.039916992)
 use_collision = true
 size = Vector3(60, 2, 40)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Wall_Zplus" type="CSGBox3D" parent="." unique_id=900051]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 5, 20)
+[node name="Stage1_Wall_Zplus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900051]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.081787, 5.1782227, 20.039917)
 use_collision = true
 size = Vector3(60, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Wall_Zminus" type="CSGBox3D" parent="." unique_id=900052]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 5, -20)
+[node name="Stage1_Wall_Zminus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900052]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.081787, 5.1782227, -19.960083)
 use_collision = true
 size = Vector3(60, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_LemonadePool" parent="." unique_id=900053 instance=ExtResource("15_lemonade")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 2.9940064, 30.039917, 3.0948439, 0.044433594)
+[node name="Stage1_LemonadePool" parent="NavigationRegion3D" unique_id=900053 instance=ExtResource("15_lemonade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 2.9940064, 50.121704, 3.2730665, 0.084350586)
 size = Vector3(20, 1, 14)
 damage_per_tick = 10.0
 buoyancy_rise_speed = 0.5
-entry_dampening = 0.3
 
-[node name="Stage1_Step1" type="CSGBox3D" parent="." unique_id=900054]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1.8, 6)
+[node name="Stage1_Step1" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900054]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.081787, 1.9782226, 6.039917)
 use_collision = true
 size = Vector3(4, 1.6, 4)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Step3" type="CSGBox3D" parent="." unique_id=985519158]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.700684, 3.6, -12)
+[node name="Stage1_Step3" type="CSGBox3D" parent="NavigationRegion3D" unique_id=985519158]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.78247, 3.7782226, -11.960083)
 use_collision = true
 size = Vector3(4, 1.6, 4)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Step4" type="CSGBox3D" parent="." unique_id=942893545]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.55188, 3.6, -4.697548)
+[node name="Stage1_Step4" type="CSGBox3D" parent="NavigationRegion3D" unique_id=942893545]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.633667, 3.7782226, -4.657631)
 use_collision = true
 size = Vector3(4, 1.6, 4)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Step5" type="CSGBox3D" parent="." unique_id=1054733931]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.081665, 0.93203163, 3.9300003)
+[node name="Stage1_Step5" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1054733931]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.163452, 1.1102543, 3.9699173)
 use_collision = true
 size = Vector3(4, 1.6, 4)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Step2" type="CSGBox3D" parent="." unique_id=900055]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 1.8, -6)
+[node name="Stage1_Step2" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.081787, 1.9782226, -5.960083)
 use_collision = true
 size = Vector3(4, 1.6, 4)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_SpawnA" type="Node3D" parent="." unique_id=900060]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, -15)
+[node name="Stage1_SpawnA" type="Node3D" parent="NavigationRegion3D" unique_id=900060]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.081787, 1.1782227, -14.960083)
 
-[node name="Stage1_SpawnB" type="Node3D" parent="." unique_id=900061]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 1, 15)
+[node name="Stage1_SpawnB" type="Node3D" parent="NavigationRegion3D" unique_id=900061]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.08179, 1.1782227, 15.039917)
 
-[node name="Stage1_SpawnC" type="Node3D" parent="." unique_id=900062]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 1, -15)
+[node name="Stage1_SpawnC" type="Node3D" parent="NavigationRegion3D" unique_id=900062]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.08179, 1.1782227, -14.960083)
 
-[node name="Stage1_SpawnD" type="Node3D" parent="." unique_id=900063]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 15)
+[node name="Stage1_SpawnD" type="Node3D" parent="NavigationRegion3D" unique_id=900063]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.081787, 1.1782227, 15.039917)
 
-[node name="Stage1_Spawner" type="Node3D" parent="." unique_id=900064 node_paths=PackedStringArray("spawn_points")]
+[node name="Stage1_Spawner" type="Node3D" parent="NavigationRegion3D" unique_id=900064 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.081787, 0.17822266, 0.039916992)
 script = ExtResource("7_spawner")
 dummy_scene = ExtResource("13_stinger")
 spawn_points = [NodePath("../Stage1_SpawnA"), NodePath("../Stage1_SpawnB"), NodePath("../Stage1_SpawnC"), NodePath("../Stage1_SpawnD")]
@@ -3421,140 +3518,140 @@ max_concurrent = 4
 spawn_interval = 3.0
 extra_group = "stage1_spawners"
 
-[node name="Stage1_Corridor" type="CSGBox3D" parent="." unique_id=900065]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.55902, -0.09112549, 0)
+[node name="Stage1_Corridor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900065]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90.64081, 0.08709717, 0.039916992)
 use_collision = true
 size = Vector3(21.118042, 2, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Corridor" type="CSGBox3D" parent="Stage1_Corridor" unique_id=1930996561]
+[node name="Stage1_Corridor" type="CSGBox3D" parent="NavigationRegion3D/Stage1_Corridor" unique_id=1930996561]
 transform = Transform3D(0.43525326, 0, 0, 0, 1, 0, 0, 0, 1, -75.95267, -0.30895996, 0)
 use_collision = true
 size = Vector3(25.05246, 2, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage1_Gate" parent="." unique_id=900066 instance=ExtResource("16_gate")]
-transform = Transform3D(-2.1855695e-07, 0, 1, 0, 1.7, 0, -5, 0, -4.371139e-08, 70, 3, 5.2424774)
+[node name="Stage1_Gate" parent="NavigationRegion3D" unique_id=900066 instance=ExtResource("16_gate")]
+transform = Transform3D(-2.1855695e-07, 0, 1, 0, 1.7, 0, -5, 0, -4.371139e-08, 90.08179, 3.1782227, 5.2823944)
 required_kills = 6
 spawner_group_override = "stage1_spawners"
 
-[node name="Stage2_Floor" type="CSGBox3D" parent="." unique_id=900070]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 115, 0, 0)
+[node name="Stage2_Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900070]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 135.08179, 0.17822266, 0.039916992)
 use_collision = true
 size = Vector3(70, 2, 40)
 material = ExtResource("11_psxmat")
 
-[node name="Stage2_Wall_Zplus" type="CSGBox3D" parent="." unique_id=900071]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 115, 5, 20)
+[node name="Stage2_Wall_Zplus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900071]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 135.08179, 5.1782227, 20.039917)
 use_collision = true
 size = Vector3(70, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage2_Wall_Zminus" type="CSGBox3D" parent="." unique_id=900072]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 115, 5, -20)
+[node name="Stage2_Wall_Zminus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900072]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 135.08179, 5.1782227, -19.960083)
 use_collision = true
 size = Vector3(70, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage2_LemonadePool" parent="." unique_id=900073 instance=ExtResource("15_lemonade")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 2.1567788, 115, 0.505, 0)
+[node name="Stage2_LemonadePool" parent="NavigationRegion3D" unique_id=900073 instance=ExtResource("15_lemonade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 2.1567788, 135.08179, 0.68322265, 0.039916992)
 size = Vector3(18, 1, 12)
 damage_per_tick = 10.0
 buoyancy_rise_speed = 0.5
-entry_dampening = 0.3
 
-[node name="Stage2_Step1" type="CSGBox3D" parent="." unique_id=900074]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 105, 1.8, 8)
+[node name="Stage2_Step1" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900074]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 125.08179, 1.9782226, 8.039917)
 use_collision = true
 size = Vector3(4, 1.6, 4)
 material = ExtResource("11_psxmat")
 
-[node name="Stage2_Step2" type="CSGBox3D" parent="." unique_id=900075]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 125, 1.8, -8)
+[node name="Stage2_Step2" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900075]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 145.08179, 1.9782226, -7.960083)
 use_collision = true
 size = Vector3(4, 1.6, 4)
 material = ExtResource("11_psxmat")
 
-[node name="Stage2_SpawnA" type="Node3D" parent="." unique_id=900080]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 2.2191467, -15)
+[node name="Stage2_SpawnA" type="Node3D" parent="NavigationRegion3D" unique_id=900080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110.08179, 2.3973694, -14.960083)
 
-[node name="Stage2_SpawnB" type="Node3D" parent="." unique_id=900081]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 140, 2.2191467, 15)
+[node name="Stage2_SpawnB" type="Node3D" parent="NavigationRegion3D" unique_id=900081]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 160.08179, 2.3973694, 15.039917)
 
-[node name="Stage2_SpawnC" type="Node3D" parent="." unique_id=900082]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 140, 2.2191467, -15)
+[node name="Stage2_SpawnC" type="Node3D" parent="NavigationRegion3D" unique_id=900082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 160.08179, 2.3973694, -14.960083)
 
-[node name="Stage2_SpawnD" type="Node3D" parent="." unique_id=900083]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 2.2191467, 15)
+[node name="Stage2_SpawnD" type="Node3D" parent="NavigationRegion3D" unique_id=900083]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110.08179, 2.3973694, 15.039917)
 
-[node name="Stage2_Spawner" type="Node3D" parent="." unique_id=900084 node_paths=PackedStringArray("spawn_points")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.07684, 6.3289795, 0)
+[node name="Stage2_Spawner" type="Node3D" parent="NavigationRegion3D" unique_id=900084 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120.15863, 6.507202, 0.039916992)
 script = ExtResource("7_spawner")
 dummy_scene = ExtResource("12_fighter")
 spawn_points = [NodePath("../Stage2_SpawnA"), NodePath("../Stage2_SpawnB"), NodePath("../Stage2_SpawnC"), NodePath("../Stage2_SpawnD")]
 extra_group = "stage2_spawners"
 
-[node name="Stage2_Corridor" type="CSGBox3D" parent="." unique_id=900085]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 160.14215, -0.22406006, 0)
+[node name="Stage2_Corridor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900085]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 180.22394, -0.045837402, 0.039916992)
 use_collision = true
 size = Vector3(20.284302, 2, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage2_Gate" parent="." unique_id=900086 instance=ExtResource("16_gate")]
-transform = Transform3D(-0.0038363733, 0, -0.9999997, 0, 1.7000003, 0, 4.9999986, 0, -0.00076727464, 159.63269, 3, -4.968501)
+[node name="Stage2_Gate" parent="NavigationRegion3D" unique_id=900086 instance=ExtResource("16_gate")]
+transform = Transform3D(-0.0038363733, 0, -0.9999997, 0, 1.7000003, 0, 4.9999986, 0, -0.00076727464, 179.71448, 3.1782227, -4.928584)
 required_kills = 4
 spawner_group_override = "stage2_spawners"
 
-[node name="Stage3_Floor" type="CSGBox3D" parent="." unique_id=900090]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 215, 0, 0)
+[node name="Stage3_Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 235.08179, 0.17822266, 0.039916992)
 use_collision = true
 size = Vector3(90, 2, 60)
 material = ExtResource("11_psxmat")
 
-[node name="Stage3_Wall_Zplus" type="CSGBox3D" parent="." unique_id=900091]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 215, 5, 30)
+[node name="Stage3_Wall_Zplus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900091]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 235.08179, 5.1782227, 30.039917)
 use_collision = true
 size = Vector3(90, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage3_Wall_Zminus" type="CSGBox3D" parent="." unique_id=900092]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 215, 5, -30)
+[node name="Stage3_Wall_Zminus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900092]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 235.08179, 5.1782227, -29.960083)
 use_collision = true
 size = Vector3(90, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage3_LemonadeLake" parent="." unique_id=900093 instance=ExtResource("15_lemonade")]
-transform = Transform3D(1.4500911, 0, 0, 0, 1, 0, 0, 0, 1.5899198, 215, 0.505, 0)
+[node name="Stage3_LemonadeLake" parent="NavigationRegion3D" unique_id=900093 instance=ExtResource("15_lemonade")]
+transform = Transform3D(1.4500911, 0, 0, 0, 1, 0, 0, 0, 1.5899198, 235.08179, 0.68322265, 0.039916992)
 size = Vector3(30, 1, 20)
 damage_per_tick = 10.0
 buoyancy_rise_speed = 0.5
 entry_dampening = 0.25
 
-[node name="Stage3_Step1" type="CSGBox3D" parent="." unique_id=900094]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 195, 1.8, 12)
+[node name="Stage3_Step1" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900094]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 215.08179, 1.9782226, 12.039917)
 use_collision = true
 size = Vector3(5, 1.6, 5)
 material = ExtResource("11_psxmat")
 
-[node name="Stage3_Step2" type="CSGBox3D" parent="." unique_id=900095]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 235, 1.8, -12)
+[node name="Stage3_Step2" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900095]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.08179, 1.9782226, -11.960083)
 use_collision = true
 size = Vector3(5, 1.6, 5)
 material = ExtResource("11_psxmat")
 
-[node name="Stage3_Step3" type="CSGBox3D" parent="." unique_id=900096]
-transform = Transform3D(7.955191, 0, 0, 0, 1, 0, 0, 0, 4.8144627, 215, 1.8, 0)
+[node name="Stage3_Step3" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900096]
+transform = Transform3D(7.955191, 0, 0, 0, 1, 0, 0, 0, 4.8144627, 235.08179, 1.9782226, 0.039916992)
 use_collision = true
 size = Vector3(5, 1.6, 5)
 material = ExtResource("11_psxmat")
 
-[node name="Stage3_SpawnA" type="Node3D" parent="." unique_id=900100]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 185, 1, -25)
+[node name="Stage3_SpawnA" type="Node3D" parent="NavigationRegion3D" unique_id=900100]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 205.08179, 1.1782227, -24.960083)
 
-[node name="Stage3_SpawnB" type="Node3D" parent="." unique_id=900101]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 245, 1, 25)
+[node name="Stage3_SpawnB" type="Node3D" parent="NavigationRegion3D" unique_id=900101]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 265.0818, 1.1782227, 25.039917)
 
-[node name="Stage3_Spawner" type="Node3D" parent="." unique_id=900102 node_paths=PackedStringArray("spawn_points")]
+[node name="Stage3_Spawner" type="Node3D" parent="NavigationRegion3D" unique_id=900102 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.081787, 0.17822266, 0.039916992)
 script = ExtResource("7_spawner")
 dummy_scene = ExtResource("14_colossus")
 spawn_points = [NodePath("../Stage3_SpawnA"), NodePath("../Stage3_SpawnB")]
@@ -3562,81 +3659,82 @@ max_concurrent = 2
 spawn_interval = 8.0
 extra_group = "stage3_spawners"
 
-[node name="Stage3_Corridor" type="CSGBox3D" parent="." unique_id=900103]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 270.002, 0.044921875, 0)
+[node name="Stage3_Corridor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 290.0838, 0.22314453, 0.039916992)
 use_collision = true
 size = Vector3(20.004028, 2, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage3_Gate" parent="." unique_id=900104 instance=ExtResource("16_gate")]
-transform = Transform3D(-2.1855695e-07, 0, 1, 0, 1.7, 0, -5, 0, -4.371139e-08, 270, 3, 5.113531)
+[node name="Stage3_Gate" parent="NavigationRegion3D" unique_id=900104 instance=ExtResource("16_gate")]
+transform = Transform3D(-2.1855695e-07, 0, 1, 0, 1.7, 0, -5, 0, -4.371139e-08, 290.0818, 3.1782227, 5.153448)
 required_kills = 2
 spawner_group_override = "stage3_spawners"
 
-[node name="Stage4_Floor" type="CSGBox3D" parent="." unique_id=900110]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 340, 0, 0)
+[node name="Stage4_Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900110]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360.0818, 0.17822266, 0.039916992)
 use_collision = true
 size = Vector3(120, 2, 80)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Wall_Zplus" type="CSGBox3D" parent="." unique_id=900111]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 340, 5, 40)
+[node name="Stage4_Wall_Zplus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900111]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360.0818, 5.1782227, 40.039917)
 use_collision = true
 size = Vector3(120, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Wall_Zminus" type="CSGBox3D" parent="." unique_id=900112]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 340, 5, -40)
+[node name="Stage4_Wall_Zminus" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900112]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360.0818, 5.1782227, -39.960083)
 use_collision = true
 size = Vector3(120, 10, 2)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_LemonadePoolA" parent="." unique_id=900113 instance=ExtResource("15_lemonade")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 310, 0.505, -20)
+[node name="Stage4_LemonadePoolA" parent="NavigationRegion3D" unique_id=900113 instance=ExtResource("15_lemonade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 330.0818, 0.68322265, -19.960083)
 size = Vector3(16, 1, 16)
 damage_per_tick = 10.0
 buoyancy_rise_speed = 0.5
 entry_dampening = 0.25
 
-[node name="Stage4_LemonadePoolB" parent="." unique_id=900114 instance=ExtResource("15_lemonade")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 370, 0.505, 20)
+[node name="Stage4_LemonadePoolB" parent="NavigationRegion3D" unique_id=900114 instance=ExtResource("15_lemonade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 390.0818, 0.68322265, 20.039917)
 size = Vector3(16, 1, 16)
 damage_per_tick = 10.0
 buoyancy_rise_speed = 0.5
 entry_dampening = 0.25
 
-[node name="Stage4_LemonadePoolC" parent="." unique_id=900115 instance=ExtResource("15_lemonade")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 340, 0.505, 0)
+[node name="Stage4_LemonadePoolC" parent="NavigationRegion3D" unique_id=900115 instance=ExtResource("15_lemonade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360.0818, 0.68322265, 0.039916992)
 size = Vector3(20, 1, 12)
 damage_per_tick = 10.0
 buoyancy_rise_speed = 0.5
 entry_dampening = 0.2
 
-[node name="Stage4_Step1" type="CSGBox3D" parent="." unique_id=900116]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 310, 1.8, 5)
+[node name="Stage4_Step1" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900116]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 330.0818, 1.9782226, 5.039917)
 use_collision = true
 size = Vector3(5, 1.6, 5)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Step2" type="CSGBox3D" parent="." unique_id=900117]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 370, 1.8, -5)
+[node name="Stage4_Step2" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900117]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 390.0818, 1.9782226, -4.960083)
 use_collision = true
 size = Vector3(5, 1.6, 5)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Step3" type="CSGBox3D" parent="." unique_id=900118]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 340, 1.8, 15)
+[node name="Stage4_Step3" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900118]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360.0818, 1.9782226, 15.039917)
 use_collision = true
 size = Vector3(5, 1.6, 5)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_ColossusSpawnA" type="Node3D" parent="." unique_id=900130]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 300, 1, 35)
+[node name="Stage4_ColossusSpawnA" type="Node3D" parent="NavigationRegion3D" unique_id=900130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 320.0818, 1.1782227, 35.039917)
 
-[node name="Stage4_ColossusSpawnB" type="Node3D" parent="." unique_id=900131]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 380, 1, -35)
+[node name="Stage4_ColossusSpawnB" type="Node3D" parent="NavigationRegion3D" unique_id=900131]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 400.0818, 1.1782227, -34.960083)
 
-[node name="Stage4_ColossusSpawner" type="Node3D" parent="." unique_id=900132 node_paths=PackedStringArray("spawn_points")]
+[node name="Stage4_ColossusSpawner" type="Node3D" parent="NavigationRegion3D" unique_id=900132 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.081787, 0.17822266, 0.039916992)
 script = ExtResource("7_spawner")
 dummy_scene = ExtResource("14_colossus")
 spawn_points = [NodePath("../Stage4_ColossusSpawnA"), NodePath("../Stage4_ColossusSpawnB")]
@@ -3644,35 +3742,37 @@ max_concurrent = 2
 spawn_interval = 10.0
 extra_group = "stage4_spawners"
 
-[node name="Stage4_FighterSpawnA" type="Node3D" parent="." unique_id=900133]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 295, 1, 0)
+[node name="Stage4_FighterSpawnA" type="Node3D" parent="NavigationRegion3D" unique_id=900133]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 315.0818, 1.1782227, 0.039916992)
 
-[node name="Stage4_FighterSpawnB" type="Node3D" parent="." unique_id=900134]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 385, 1, 0)
+[node name="Stage4_FighterSpawnB" type="Node3D" parent="NavigationRegion3D" unique_id=900134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 405.0818, 1.1782227, 0.039916992)
 
-[node name="Stage4_FighterSpawnC" type="Node3D" parent="." unique_id=900135]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 340, 1, 35)
+[node name="Stage4_FighterSpawnC" type="Node3D" parent="NavigationRegion3D" unique_id=900135]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360.0818, 1.1782227, 35.039917)
 
-[node name="Stage4_FighterSpawner" type="Node3D" parent="." unique_id=900136 node_paths=PackedStringArray("spawn_points")]
+[node name="Stage4_FighterSpawner" type="Node3D" parent="NavigationRegion3D" unique_id=900136 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.081787, 0.17822266, 0.039916992)
 script = ExtResource("7_spawner")
 dummy_scene = ExtResource("12_fighter")
 spawn_points = [NodePath("../Stage4_FighterSpawnA"), NodePath("../Stage4_FighterSpawnB"), NodePath("../Stage4_FighterSpawnC")]
 spawn_interval = 5.0
 extra_group = "stage4_spawners"
 
-[node name="Stage4_StingerSpawnA" type="Node3D" parent="." unique_id=900137]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 300, 1, -35)
+[node name="Stage4_StingerSpawnA" type="Node3D" parent="NavigationRegion3D" unique_id=900137]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 320.0818, 1.1782227, -34.960083)
 
-[node name="Stage4_StingerSpawnB" type="Node3D" parent="." unique_id=900138]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 380, 1, 35)
+[node name="Stage4_StingerSpawnB" type="Node3D" parent="NavigationRegion3D" unique_id=900138]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 400.0818, 1.1782227, 35.039917)
 
-[node name="Stage4_StingerSpawnC" type="Node3D" parent="." unique_id=900139]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 340, 1, -35)
+[node name="Stage4_StingerSpawnC" type="Node3D" parent="NavigationRegion3D" unique_id=900139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360.0818, 1.1782227, -34.960083)
 
-[node name="Stage4_StingerSpawnD" type="Node3D" parent="." unique_id=900140]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360, 1, 10)
+[node name="Stage4_StingerSpawnD" type="Node3D" parent="NavigationRegion3D" unique_id=900140]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 380.0818, 1.1782227, 10.039917)
 
-[node name="Stage4_StingerSpawner" type="Node3D" parent="." unique_id=900141 node_paths=PackedStringArray("spawn_points")]
+[node name="Stage4_StingerSpawner" type="Node3D" parent="NavigationRegion3D" unique_id=900141 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.081787, 0.17822266, 0.039916992)
 script = ExtResource("7_spawner")
 dummy_scene = ExtResource("13_stinger")
 spawn_points = [NodePath("../Stage4_StingerSpawnA"), NodePath("../Stage4_StingerSpawnB"), NodePath("../Stage4_StingerSpawnC"), NodePath("../Stage4_StingerSpawnD")]
@@ -3680,52 +3780,52 @@ max_concurrent = 4
 spawn_interval = 3.0
 extra_group = "stage4_spawners"
 
-[node name="Stage4_Corridor5" type="CSGBox3D" parent="." unique_id=553340175]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7421875, 3.9097953, 14.337845)
+[node name="Stage4_Corridor5" type="CSGBox3D" parent="NavigationRegion3D" unique_id=553340175]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.3396, 4.088018, 14.377762)
 use_collision = true
 size = Vector3(12.387756, 1.7871056, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Corridor4" type="CSGBox3D" parent="." unique_id=522316746]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2972412, 5.105967, 14.325617)
+[node name="Stage4_Corridor4" type="CSGBox3D" parent="NavigationRegion3D" unique_id=522316746]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.379028, 5.2841897, 14.365534)
 use_collision = true
 size = Vector3(12.387756, 1.4003754, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Corridor3" type="CSGBox3D" parent="." unique_id=317462038]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.43042, 2.6642303, 14.273294)
+[node name="Stage4_Corridor3" type="CSGBox3D" parent="NavigationRegion3D" unique_id=317462038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.651367, 2.842453, 14.313211)
 use_collision = true
 size = Vector3(12.387756, 1.3857269, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Corridor2" type="CSGBox3D" parent="." unique_id=1657352995]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.469849, 1.4183273, 14.285522)
+[node name="Stage4_Corridor2" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1657352995]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6119385, 1.59655, 14.325439)
 use_collision = true
 size = Vector3(12.387756, 1.4672699, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Corridor" type="CSGBox3D" parent="." unique_id=900142]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 405.23386, -0.5467529, 0)
+[node name="Stage4_Corridor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 425.31564, -0.36853027, 0.039916992)
 use_collision = true
 size = Vector3(12.387756, 2, 10)
 material = ExtResource("11_psxmat")
 
-[node name="Stage4_Gate" parent="." unique_id=900143 instance=ExtResource("16_gate")]
-transform = Transform3D(-2.1855695e-07, 0, 1, 0, 1.7, 0, -5, 0, -4.371139e-08, 410, 3, 5.1136017)
+[node name="Stage4_Gate" parent="NavigationRegion3D" unique_id=900143 instance=ExtResource("16_gate")]
+transform = Transform3D(-2.1855695e-07, 0, 1, 0, 1.7, 0, -5, 0, -4.371139e-08, 430.0818, 3.1782227, 5.1535187)
 required_kills = 9
 spawner_group_override = "stage4_spawners"
 
-[node name="Goal_Floor" type="CSGBox3D" parent="." unique_id=900150]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 435.3457, 0, 0)
+[node name="Goal_Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=900150]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 455.4275, 0.17822266, 0.039916992)
 use_collision = true
 size = Vector3(49.308594, 2, 60)
 material = ExtResource("11_psxmat")
 
-[node name="GoalZone" type="Area3D" parent="." unique_id=900151]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 445, 3, 0)
+[node name="GoalZone" type="Area3D" parent="NavigationRegion3D" unique_id=900151]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 465.0818, 3.1782227, 0.039916992)
 script = ExtResource("17_goal")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="GoalZone" unique_id=900152]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/GoalZone" unique_id=900152]
 shape = SubResource("BoxShape3D_goal")
 
 
@@ -4704,6 +4804,8 @@ mesh = SubResource("TorusMesh_6igkw")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6418824, -1.8)
 mesh = SubResource("CylinderMesh_fva3d")
 
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=2082225921]
+
 
 ===== FILE: scenes\submersion_overlay.gd =====
 
@@ -4864,6 +4966,8 @@ mesh = SubResource("TorusMesh_6igkw")
 [node name="TelegraphInner" type="MeshInstance3D" parent="AttackHitbox" unique_id=1874015288]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.684444, -8.234204)
 mesh = SubResource("CylinderMesh_fva3d")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=974135199]
 
 
 ===== FILE: scenes\target_reticle.gd =====
@@ -5747,12 +5851,56 @@ var _base_fov: float = 75.0
 # Auftrieb-Schwimmen wie in Minecraft-Wasser/Lava, statt nur gedämpftem Fallen.
 @export var buoyancy_accel: float = 6.0
 @export var buoyancy_swim_boost: float = 1.8  # Multiplikator beim Halten von Space
+
+# NEU: Wie viel Anteil der eigenen Körperhöhe passiv (OHNE Space gedrückt
+# zu halten) über die Lava-Oberfläche ragen darf, bevor der Auftrieb
+# abgebremst wird — 0.33 = "Kopf/Oberkörper bleibt ca. 1/3 draußen, der
+# Rest bleibt eingetaucht". Das ist der eigentliche Fix für den "schießt
+# komplett aus der Lava"-Bug: OHNE dieses Cap zieht buoyancy_rise_speed
+# die Y-Velocity IMMER weiter Richtung oben, unabhängig davon, wie hoch
+# man schon ist — bis man komplett über der Oberfläche schwebt und der
+# Lava-Trigger einen als "nicht mehr drin" erkennt (Tick-Schaden UND
+# Auftrieb stoppen dann sofort, siehe lemonade.gd _on_body_exited).
+@export_range(0.0, 1.0) var submersion_body_ratio: float = 0.33
+
+# Fallback-Körperhöhe, falls own_collision keine CapsuleShape3D hat
+# (sollte im Normalfall nie greifen, ist nur Absicherung).
+@export var fallback_body_height: float = 1.8
+
+# NEU: leichtes Auf-und-Ab-Wippen ("Bobbing"), sobald die Ziel-
+# Eintauchtiefe erreicht ist — rein kosmetisch, macht das Schweben
+# lebendiger statt wie ein starr eingefrorenes Stehen im Wasser.
+# amplitude = wie viele Meter rauf/runter, frequency = wie schnell
+# (Wellen pro Sekunde), response = wie "straff" die Bewegung dem
+# Wellen-Ziel folgt (höher = giftiger/schneller, niedriger = träger/weicher).
+@export var bob_amplitude: float = 0.12
+@export var bob_frequency: float = 0.55
+@export var bob_response: float = 3.0
+
 var _buoyancy_active: bool = false
 var _buoyancy_rise_speed: float = 2.5
+# Die Weltraum-Y-Höhe der Lava-/Wasser-Oberfläche, übergeben von
+# lemonade.gd — Grundlage für die Berechnung der Ziel-Eintauchtiefe.
+var _buoyancy_surface_y: float = 0.0
+var _bob_time: float = 0.0
 
-func set_buoyancy(active: bool, rise_speed: float = 2.5) -> void:
+func set_buoyancy(active: bool, rise_speed: float = 2.5, surface_y: float = 0.0) -> void:
+	# Bob-Welle bei jedem NEUEN Eintauchen (false -> true) zurücksetzen,
+	# damit man immer sauber bei Phase 0 (Wellenmitte) startet, statt
+	# mitten in einer alten Wippbewegung "einzusteigen".
+	if active and not _buoyancy_active:
+		_bob_time = 0.0
 	_buoyancy_active = active
 	_buoyancy_rise_speed = rise_speed
+	_buoyancy_surface_y = surface_y
+
+# Ermittelt die tatsächliche Körperhöhe über die eigene CapsuleShape3D —
+# height ist in Godot 4 bereits die GESAMTE Kapselhöhe (inkl. beider
+# Halbkugel-Kappen), muss also nicht zusätzlich um radius*2 erweitert werden.
+func _get_body_height() -> float:
+	if own_collision and own_collision.shape is CapsuleShape3D:
+		return (own_collision.shape as CapsuleShape3D).height
+	return fallback_body_height
 
 func _ready() -> void:
 	# Maus einfangen (unsichtbar, für freie Kamera-Steuerung)
@@ -5972,14 +6120,42 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Buoyancy (Auftrieb): falls aktiv (z.B. in Lava/Wasser), wird die
-	# Y-Geschwindigkeit aktiv Richtung "nach oben" gezogen — echtes
-	# Schwimm-Gefühl statt nur gedämpftem Fallen. Space gedrückt halten
-	# = schneller nach oben schwimmen (wie in Minecraft).
+	# Y-Geschwindigkeit Richtung "nach oben" gezogen — echtes Schwimm-
+	# Gefühl statt nur gedämpftem Fallen. WICHTIG (Fix für den "schießt
+	# komplett aus der Lava"-Bug): der Auftrieb ist gedeckelt auf eine
+	# Ziel-Eintauchtiefe (submersion_body_ratio), bei der nur ein kleiner
+	# Teil des Körpers oben rausschaut. Erst wenn Space AKTIV gehalten
+	# wird, darf man über dieses Cap hinaus weiter nach oben/raus schwimmen.
 	if _buoyancy_active:
-		var target_rise: float = _buoyancy_rise_speed
-		if Input.is_action_pressed("ui_accept"):
-			target_rise *= buoyancy_swim_boost
-		velocity.y = move_toward(velocity.y, target_rise, buoyancy_accel * delta)
+		var exiting: bool = Input.is_action_pressed("ui_accept")
+
+		if exiting:
+			# Aktiv rausschwimmen/hochspringen — normales, geboostetes
+			# Auftriebs-Tempo, ohne Tiefen-Deckel.
+			var target_rise: float = _buoyancy_rise_speed * buoyancy_swim_boost
+			velocity.y = move_toward(velocity.y, target_rise, buoyancy_accel * delta)
+		else:
+			var body_height: float = _get_body_height()
+			# Ziel-Y für die Körpermitte (= global_position.y): so, dass
+			# nur submersion_body_ratio der Körperhöhe über der Oberfläche
+			# rausragt (Kopf/Oberkörper), der Rest bleibt eingetaucht.
+			var float_target_y: float = _buoyancy_surface_y - body_height * (0.5 - submersion_body_ratio)
+
+			if global_position.y < float_target_y - bob_amplitude:
+				# Noch klar unterhalb der Ziel-Eintauchtiefe: normal weiter
+				# hochtreiben lassen. (Der bob_amplitude-Puffer verhindert,
+				# dass diese Bedingung mit dem Bobbing unten flackert.)
+				velocity.y = move_toward(velocity.y, _buoyancy_rise_speed, buoyancy_accel * delta)
+			else:
+				# Ziel-Eintauchtiefe erreicht: statt hart auf 0 zu clampen
+				# (fühlt sich wie eingefroren an), sanft um float_target_y
+				# herum auf/ab wippen lassen — kleiner Feder-Effekt statt
+				# starrer Fixierung, macht das Schweben realistischer.
+				_bob_time += delta
+				var bob_offset: float = sin(_bob_time * bob_frequency * TAU) * bob_amplitude
+				var bob_target_y: float = float_target_y + bob_offset
+				var to_target: float = (bob_target_y - global_position.y) * bob_response
+				velocity.y = move_toward(velocity.y, to_target, buoyancy_accel * delta)
 	else:
 		# Schwerkraft anwenden, solange man nicht am Boden ist — der
 		# Gravitations-Multiplikator kommt aus combat.gd (Hit Lock).

@@ -1,0 +1,346 @@
+[gd_scene format=3 uid="uid://bnlevdvxc4nnq"]
+
+[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_g0wwu"]
+[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_1cllw"]
+[ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_iy4sn"]
+[ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_21bqe"]
+[ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_mew1s"]
+[ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="6_kjoxb"]
+[ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="7_2xqp6"]
+[ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="8_mio06"]
+[ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="9_wxbki"]
+[ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="10_frsmd"]
+[ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="11_6ci1b"]
+[ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="12_cgcdo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cr2eh"]
+bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cy6r3"]
+bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0tv6x"]
+shader = ExtResource("6_kjoxb")
+shader_parameter/scanline_count = 320.0
+shader_parameter/scanline_intensity = 0.15
+shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
+shader_parameter/scroll_speed = 0.0
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_bhunq"]
+vertices = PackedVector3Array(-48.55121, 46.30194, -64.24521, -48.55121, 46.30194, 4.2547913, 48.44879, 46.30194, 4.2547913, 48.44879, 46.30194, -64.24521, -22.551208, -0.19806099, 6.0047913, 20.198792, -0.19806099, 6.0047913, 20.448792, -0.19806099, 4.0047913, -22.801208, -0.19806099, 4.0047913, 44.69879, -0.19806099, -64.24521, -44.80121, -0.19806099, -64.24521, -44.80121, -0.19806099, 4.0047913, 44.69879, -0.19806099, 4.0047913, -22.551208, -0.19806099, 26.754791, 20.198792, -0.19806099, 26.754791, 20.448792, -0.19806099, 28.754791, -22.801208, -0.19806099, 28.754791, -44.80121, -0.19806099, 97.00479, 44.69879, -0.19806099, 97.00479, -44.80121, -0.19806099, 28.754791, 44.69879, -0.19806099, 28.754791, -48.55121, 46.30194, 28.754791, -48.55121, 46.30194, 97.25479, 48.44879, 46.30194, 97.25479, 48.44879, 46.30194, 28.754791)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1), PackedInt32Array(4, 7, 5), PackedInt32Array(5, 7, 6), PackedInt32Array(7, 9, 6), PackedInt32Array(6, 9, 8), PackedInt32Array(7, 10, 9), PackedInt32Array(8, 11, 6), PackedInt32Array(4, 5, 12), PackedInt32Array(12, 5, 13), PackedInt32Array(13, 14, 12), PackedInt32Array(12, 14, 15), PackedInt32Array(15, 14, 16), PackedInt32Array(16, 14, 17), PackedInt32Array(16, 18, 15), PackedInt32Array(14, 19, 17), PackedInt32Array(23, 22, 20), PackedInt32Array(20, 22, 21)]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6klec"]
+render_priority = 0
+shader = ExtResource("11_6ci1b")
+shader_parameter/albedo_texture = ExtResource("12_cgcdo")
+shader_parameter/albedo_color = Color(0.2558171, 0.3893672, 0.50245136, 1)
+shader_parameter/snap_resolution = 4.0
+shader_parameter/vertex_jitter_strength = 0.0
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
+
+[node name="Node3D" type="Node3D" unique_id=1848213784]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=516340564]
+
+[node name="Player" parent="CanvasLayer" unique_id=1005944688 instance=ExtResource("1_g0wwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7768364, 1, -30.211166)
+
+[node name="HUD" type="Control" parent="CanvasLayer" unique_id=804877872]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -177.0
+offset_top = -81.0
+offset_right = 178.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("2_1cllw")
+
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=613048961]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -92.5
+offset_top = -30.0
+offset_right = 92.5
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_cr2eh")
+theme_override_styles/fill = SubResource("StyleBoxFlat_cy6r3")
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=525707145]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -39.5
+offset_top = -29.0
+offset_right = 40.5
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=1779257113]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.16900001
+anchor_top = -3.7560003
+anchor_right = -0.16900001
+anchor_bottom = -3.7560003
+offset_left = -55.709995
+offset_top = -29.493988
+offset_right = 164.845
+offset_bottom = 83.50601
+
+[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=807320614]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "x5"
+
+[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1937637713]
+layout_mode = 2
+text = "COMBO!"
+
+[node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1702809052]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_iy4sn")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/PauseMenu" unique_id=1118223362]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -3.0
+offset_right = 1.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PauseMenu/Panel" unique_id=590028072]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -178.38
+offset_right = 300.0
+offset_bottom = 181.62
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_auto_translate_mode = 1
+
+[node name="ResumeButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1091083043]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=541008614]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1494158771]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=110206658]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_21bqe")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/DeathScreen" unique_id=773860657]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 11.0
+offset_top = -10.0
+offset_right = 11.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/DeathScreen/Panel" unique_id=1718275830]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.68200004
+anchor_right = 0.5
+anchor_bottom = 0.68200004
+offset_left = -300.0
+offset_top = -316.93604
+offset_right = 300.0
+offset_bottom = 224.31396
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SkillIssueLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=374640014]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "        SKILL ISSUE
+"
+
+[node name="KilledByLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=1756021977]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+
+[node name="ItemsBox" type="PanelContainer" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=1700301417]
+layout_mode = 2
+
+[node name="ItemsLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer/ItemsBox" unique_id=1385414783]
+layout_mode = 2
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=1902658184]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=96302100]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="WinScreen" type="Control" parent="CanvasLayer" unique_id=1883248399]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_mew1s")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/WinScreen" unique_id=690007776]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/WinScreen/Panel" unique_id=1573126388]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -252.0
+offset_top = -60.0
+offset_right = 248.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=873029469]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "LEVEL GESCHAFFT!"
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=987772089]
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=1812219421]
+layout_mode = 2
+text = "Quit"
+
+[node name="PostProcessLayer" type="CanvasLayer" parent="CanvasLayer" unique_id=1820053153]
+layer = 100
+
+[node name="CRTOverlay" type="ColorRect" parent="CanvasLayer/PostProcessLayer" unique_id=16764552]
+material = SubResource("ShaderMaterial_0tv6x")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08627451)
+
+[node name="SubmersionOverlay" type="ColorRect" parent="CanvasLayer" unique_id=1551920885]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7_2xqp6")
+
+[node name="Stingerspawn" type="Node3D" parent="." unique_id=1890598471 node_paths=PackedStringArray("spawn_points")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8152657, 3.6324558, -11.489873)
+script = ExtResource("8_mio06")
+dummy_scene = ExtResource("9_wxbki")
+spawn_points = [NodePath(".")]
+max_concurrent = 4
+spawn_interval = 3.0
+
+[node name="NavigationRegion3D2" type="NavigationRegion3D" parent="." unique_id=1520483897]
+navigation_mesh = SubResource("NavigationMesh_bhunq")
+
+[node name="Boden" type="CSGBox3D" parent="NavigationRegion3D2" unique_id=317011109]
+transform = Transform3D(98.10242, 0, 1.1607502e-20, 0, 1, 0, 1.6386776e-20, 0, 69.490425, 0, 21.524351, -29.999992)
+use_collision = true
+size = Vector3(1, 48.944824, 1)
+material = ExtResource("10_frsmd")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D2/Boden" unique_id=116604709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5.788254, 0)
+operation = 2
+size = Vector3(0.923584, 55, 1.0231209)
+material = ExtResource("10_frsmd")
+
+[node name="Boden2" type="CSGBox3D" parent="NavigationRegion3D2" unique_id=1510010810]
+transform = Transform3D(98.10242, 0, 1.1607502e-20, 0, 1, 0, 1.6386776e-20, 0, 69.490425, 7.6293945e-06, 21.524355, 63.000008)
+use_collision = true
+size = Vector3(1, 48.944824, 1)
+material = SubResource("ShaderMaterial_6klec")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D2/Boden2" unique_id=1130872548]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
+operation = 2
+size = Vector3(0.923584, 51, 1.0231209)
+material = ExtResource("10_frsmd")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D2" unique_id=1989643705]
+transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 0, -1.4756463, 16.50001)
+use_collision = true
+size = Vector3(91, 162, 2)
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="NavigationRegion3D2/CSGBox3D" unique_id=1265843550]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, -2.2888184e-05, -1.9999974)
+operation = 2
+use_collision = true
+size = Vector3(26, 24, 9)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="NavigationRegion3D2/CSGBox3D" unique_id=120035534]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, -2.4795532e-05, 1.5000012)
+operation = 2
+use_collision = true
+size = Vector3(29, 24, 9)
