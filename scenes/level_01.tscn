@@ -33,12 +33,7 @@ shader_parameter/scanline_intensity = 0.15
 shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
 shader_parameter/scroll_speed = 0.0
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_llcge"]
-size = Vector3(1.1834717, 1, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_lwi15"]
-material = ExtResource("6_qgxqk")
-size = Vector3(1.182373, 1, 1)
+[sub_resource type="NavigationMesh" id="NavigationMesh_riqys"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_qgxqk"]
 size = Vector3(1.1834717, 1, 1)
@@ -314,23 +309,27 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("5_1b6n0")
 
+[node name="Boden" type="CSGBox3D" parent="CanvasLayer" unique_id=1059912180]
+transform = Transform3D(98.10242, 0, 1.1607502e-20, 0, 1, 0, 1.6386776e-20, 0, 69.490425, 0, -1.9940467, -30.79337)
+use_collision = true
+material = ExtResource("6_qgxqk")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="CanvasLayer/Boden" unique_id=1932724860]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.025878895, 2.1049194, -0.014469653)
+operation = 2
+size = Vector3(0.2919922, 16.167114, 0.5091858)
+material = ExtResource("6_qgxqk")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=431866886]
+transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 90, 1.524353, 0)
+navigation_mesh = SubResource("NavigationMesh_riqys")
+
 [node name="TargetReticle" type="Sprite3D" parent="." unique_id=13919749]
 transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 90, 1.524353, 0)
 texture = ExtResource("7_px6rj")
 script = ExtResource("11_e6mo4")
 spin_speed = 0.0
 pulse_amount = 0.0
-
-[node name="Boden" type="StaticBody3D" parent="." unique_id=758789040]
-transform = Transform3D(98.10242, 0, 0, 0, 1, 0, 0, 0, 69.490425, 0, -1.9940467, -30.79337)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Boden" unique_id=536546121]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09173585, 0, 0)
-shape = SubResource("BoxShape3D_llcge")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Boden" unique_id=1746936668]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.091212645, 0.019165039, -3.33786e-05)
-mesh = SubResource("BoxMesh_lwi15")
 
 [node name="Boden2" type="StaticBody3D" parent="." unique_id=2007119080]
 transform = Transform3D(98.10242, 0, 0, 0, 1, 0, 0, 0, 69.490425, 161.89539, -1.9940467, -30.79337)

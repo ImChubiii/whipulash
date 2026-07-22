@@ -8,10 +8,10 @@ enum State { IDLE, CHASE, ATTACK }
 @export var attack_range: float = 5
 @export var attack_cooldown: float = 0
 
-# NEU: gravity hat jetzt einen Setter, damit jump_velocity automatisch
-# neu berechnet wird, falls gravity zur Laufzeit (Inspector-Live-Edit,
-# Debug-Tools etc.) verändert wird — sonst bliebe die Sprungkraft auf
-# Basis der ALTEN gravity "eingefroren".
+# gravity hat einen Setter, damit jump_velocity automatisch neu berechnet
+# wird, falls gravity zur Laufzeit (Inspector-Live-Edit, Debug-Tools etc.)
+# verändert wird — sonst bliebe die Sprungkraft auf Basis der ALTEN
+# gravity "eingefroren".
 @export var gravity: float = 20.0:
 	set(value):
 		gravity = value
@@ -21,8 +21,8 @@ enum State { IDLE, CHASE, ATTACK }
 @export var pre_attack_delay: float = 0.8
 
 # Eigener Anzeigename für UI/Death-Screen — unabhängig vom technischen
-# Godot-Node-Namen (der bei gespawnten Kopien hässlich werden kann,
-# z.B. "@CharacterBody3D@3").
+# Godot-Node-Namen (der bei gespawnten Kopien hässlich werden kann, z.B.
+# "@CharacterBody3D@3").
 @export var display_name: String = "Gegner"
 
 func get_display_name() -> String:
@@ -32,50 +32,32 @@ func get_display_name() -> String:
 # raus auf zoom_max, statt bei der aktuellen manuellen Zoomstufe zu bleiben.
 @export var is_large_enemy: bool = false
 
-# Höhe, auf der der Lock-On-Ring über DIESEM Gegner erscheint — beim
-# normalen Dummy passt der Standard vom TargetReticle, bei größeren
-# Varianten (Tank etc.) hier einfach hochstellen.
+# Höhe, auf der der Lock-On-Ring über DIESEM Gegner erscheint.
 @export var reticle_height_offset: float = 1.2
 
-# Wie weit der Ring Richtung Kamera vor DIESEM Gegner schwebt — bei
-# größeren Modellen (Tank etc.) höher stellen, sonst steckt der Ring
-# im Modell fest und wird von der Geometrie verdeckt.
+# Wie weit der Ring Richtung Kamera vor DIESEM Gegner schwebt.
 @export var reticle_forward_offset: float = 1.0
 
-# NEU: Skaliert die GRÖSSE des Lock-On-Rings selbst passend zur
-# Gegnergröße — 1.0 = TargetReticle-Standardgröße, größer bei großen
-# Gegnern (Tank/Koloss), kleiner bei winzigen/schnellen Gegnern (Scout).
+# Skaliert die GRÖSSE des Lock-On-Rings passend zur Gegnergröße.
 @export var reticle_scale: float = 1.0
 
-# Multiplikator für die Stärke des Kamera-Soft-Locks, WENN dieser Gegner
-# gerade als Ziel gelockt ist. 1.0 = normale Stärke. Kleinere Werte
-# (z.B. 0.3) für kleine, schnelle Gegner, die viel um den Spieler
-# herumlaufen — sonst reißt die Kamera bei jedem Positionswechsel
-# ruckartig hinterher.
+# Multiplikator für die Stärke des Kamera-Soft-Locks, wenn dieser Gegner
+# gerade als Ziel gelockt ist.
 @export var camera_lock_multiplier: float = 1.0
 
-# --- Sanfte Separation von anderen Gegnern (statt harter Physik-Kollision, ---
-# --- die zu Katapult-artigem Wegschubsen führen kann). ---
+# --- Sanfte Separation von anderen Gegnern ---
 @export var separation_radius: float = 6
 @export var separation_strength: float = 5
 
 # --- Transparenz nach HP + Hit-Flash ---
-# Bei voller HP komplett sichtbar, bei 0 HP auf diesen Wert runter.
 @export_range(0.0, 1.0) var min_alpha_at_zero_hp: float = 0.15
-# Wie stark/kurz die Transparenz beim TREFFER zusätzlich kurz einbricht.
 @export_range(0.0, 1.0) var hit_flash_alpha: float = 0.2
 @export var hit_flash_duration: float = 0.15
 
-# NEU: Roter Farb-Blitz beim Treffer, dezent (niedrige Stärke = wenig
-# Rot-Anteil, kein komplett rot eingefärbter Gegner).
 @export_range(0.0, 1.0) var hit_color_flash_strength: float = 0.25
 @export var hit_color_flash_duration: float = 0.15
 
 # --- Telegraph-Ring Boden-Snapping ---
-# Die Telegraph-Ringe (TelegraphOuterRing/TelegraphInner) werden jeden
-# Physik-Frame per Downward-Raycast auf den echten Boden gepinnt (X/Z
-# folgen weiterhin normal dem Gegner) — funktioniert automatisch für
-# jeden Gegnertyp, ohne dass man pro Modell manuell Offsets tunen muss.
 @export var telegraph_ground_snap: bool = true
 @export var telegraph_ground_clearance: float = 0.02
 @export var telegraph_ground_raycast_mask: int = 1
@@ -109,29 +91,32 @@ var jump_velocity: float = 0.0
 
 # Zusätzlich zum mittleren Raycast werden zwei seitlich versetzte
 # Raycasts geprüft — eine Kante wird nur erkannt, wenn ALLE drei
-# Raycasts keinen Boden finden (verhindert False-Positives durch
-# Unebenheiten im Collision-Mesh).
+# Raycasts keinen Boden finden.
 @export var ledge_check_lateral_samples: bool = true
 
 @export var movement_acceleration: float = 40.0
 
+# --- NEU: NavMesh-Pfadverfolgung ---
+# Wie oft (in Sekunden) das Ziel des NavigationAgent3D neu gesetzt wird.
+@export var nav_target_update_interval: float = 0.2
+
+# --- NEU: Ledge-Drop-Verhalten (greift NUR, wenn KEIN gültiger NavMesh-
+# Pfad zum Spieler existiert) ---
+# Ob ein Gegner ohne NavMesh-Verbindung aktiv über eine sichere Kante
+# läuft/fällt, statt an ihr zu warten — vorausgesetzt der Spieler
+# befindet sich unterhalb UND die gemessene Falltiefe ist sicher.
+@export var ledge_drop_enabled: bool = true
+# Maximale Falltiefe in Metern, die OHNE NavMesh-Pfad als "sicher zum
+# Runterlaufen" gilt.
+@export var max_safe_drop_height: float = 4.0
+# Wie weit der Downward-Raycast zur TATSÄCHLICHEN Tiefenmessung reicht.
+# Muss größer als max_safe_drop_height sein.
+@export var ledge_drop_probe_distance: float = 15.0
+# Wie viele Meter der Spieler mindestens unter den eigenen Füßen stehen
+# muss, damit "Spieler ist unten" als erfüllt gilt.
+@export var ledge_drop_player_below_margin: float = 1.0
+
 # --- Abrutsch-Logik, wenn der Gegner auf dem Player-Kopf steht ---
-#
-# ÜBERARBEITET (Fix "Gegner bewegen sich gar nicht mehr"):
-# Der reine Normalen-Check (normal.dot(UP) > threshold) reagierte bei
-# GROSSEN Kapsel-Kollisionsformen (Colossus, Fighter) schon auf ganz
-# normalen SEITLICHEN Kontakt mit der gerundeten Kapsel-Kappe des
-# Players als "steht oben drauf" — das feuerte JEDEN Physik-Frame,
-# setzte einen Weg-Impuls, der aber im ATTACK-State sofort im nächsten
-# Frame wieder auf 0 gesetzt wurde (State-Handler setzt velocity.x/z
-# explizit zurück), BEVOR er sich auswirken konnte. Ergebnis: eine
-# Endlosschleife aus "fälschlich erkannt -> Impuls -> sofort gelöscht",
-# die die eigentliche Bewegung komplett blockiert hat.
-#
-# Fix: Zusätzlich zur Normalen wird jetzt geprüft, ob die FÜSSE des
-# Gegners auch WIRKLICH spürbar über der Player-Ursprungsposition
-# liegen (echte vertikale Stapelung). Reiner Seitenkontakt kann diese
-# Bedingung nicht erfüllen, egal wie die Kollisionsnormale aussieht.
 @export var player_head_slide_impulse: float = 6.0
 @export_range(0.0, 1.0) var player_head_slide_normal_threshold: float = 0.9
 @export var player_head_slide_min_height_above_player: float = 0.8
@@ -162,6 +147,10 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 @onready var telegraph_outer: MeshInstance3D = get_node_or_null("AttackHitbox/TelegraphOuterRing")
 @onready var health: Health = get_node_or_null("Health")
 @onready var mesh: MeshInstance3D = get_node_or_null("MeshInstance3D")
+# NEU: optionaler NavigationAgent3D. get_node_or_null sorgt dafür, dass
+# Gegner-Szenen OHNE diesen Node (z.B. alte Dummies) sauber auf null
+# fallen und automatisch auf die Luftlinien-Logik zurückfallen.
+@onready var nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
 
 var _state: State = State.IDLE
 var _player: Node3D
@@ -173,11 +162,14 @@ var _last_known_health: float = -1.0
 var _alpha_tween: Tween
 var _flash_tween: Tween
 
-# NEU: gecachte, robust gesuchte CollisionShape3D (siehe
+# Gecachte, robust gesuchte CollisionShape3D (siehe
 # _get_collision_shape_node()) + Merker, damit die Warnung bei fehlender
 # Shape nur EINMAL pro Gegner geloggt wird statt jeden Frame.
 var _collision_shape_cache: CollisionShape3D
 var _warned_missing_collision_shape: bool = false
+
+# NEU: Timer für die periodische NavigationAgent3D-Zielaktualisierung.
+var _nav_update_timer: float = 0.0
 
 func _debug(msg: String) -> void:
 	if debug_logging:
@@ -193,12 +185,8 @@ func _ready() -> void:
 	if _player == null:
 		push_warning("EnemyAI: Konnte keinen Node namens 'Player' finden.")
 
-	_debug("_ready() aufgerufen. attack_hitbox gefunden: %s | telegraph_inner: %s | telegraph_outer: %s" % [attack_hitbox, telegraph_inner, telegraph_outer])
+	_debug("_ready() aufgerufen. attack_hitbox gefunden: %s | telegraph_inner: %s | telegraph_outer: %s | nav_agent: %s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
 
-	# Collision-Shape einmalig auflösen und Ergebnis gleich loggen — damit
-	# man SOFORT im Log sieht, ob bei diesem Gegnertyp (Colossus/Fighter)
-	# überhaupt die richtige Shape gefunden wird, statt später stumm auf
-	# ungenaue Fallback-Werte zu laufen.
 	var shape_node := _get_collision_shape_node()
 	if shape_node:
 		_debug("CollisionShape3D gefunden: %s (Pfad: %s)" % [shape_node.shape, shape_node.get_path()])
@@ -281,12 +269,15 @@ func _physics_process(delta: float) -> void:
 		elif _state != State.ATTACK and telegraph_outer and not _is_attacking:
 			telegraph_outer.visible = false
 
+	# Sanfte Separation von anderen Gegnern draufaddieren — verhindert,
+	# dass sie sich stapeln/überlappen, ohne harte Physik-Pops.
 	velocity += _get_separation_velocity()
 
 	move_and_slide()
 
 	_handle_standing_on_player()
 
+	# Telegraph-Ringe NACH move_and_slide() auf den echten Boden pinnen.
 	_update_telegraph_ground_position()
 
 # Erkennt, ob der Gegner WIRKLICH auf dem Player steht (nicht nur seitlich
@@ -310,15 +301,8 @@ func _handle_standing_on_player() -> void:
 
 		var normal: Vector3 = collision.get_normal()
 		if normal.dot(Vector3.UP) < player_head_slide_normal_threshold:
-			# Normale nicht steil genug -> normaler Seitenkontakt, keine
-			# Aktion nötig.
 			continue
 
-		# Zusätzliche Höhen-Prüfung: nur als "steht oben drauf" werten,
-		# wenn die Füße des Gegners auch tatsächlich spürbar ÜBER der
-		# Player-Ursprungsposition liegen. Das verhindert False-Positives
-		# durch die gerundete Kapsel-Kappe des Players bei reinem
-		# Seitenkontakt (siehe Kommentar oben bei den @export-Variablen).
 		var feet_y: float = _get_feet_y()
 		var player_y: float = _player.global_position.y
 		if feet_y < player_y + player_head_slide_min_height_above_player:
@@ -358,6 +342,8 @@ func _update_telegraph_ground_position() -> void:
 
 	var result := space_state.intersect_ray(query)
 
+	# Fallback, falls kein Boden gefunden wird (z.B. Gegner über einem
+	# Abgrund): einfach die aktuelle Gegner-Y-Position nehmen.
 	var ground_y: float = global_position.y
 	if result:
 		ground_y = result.position.y
@@ -387,25 +373,76 @@ func _get_separation_velocity() -> Vector3:
 			push += offset.normalized() * strength
 	return push
 
+# ÜBERARBEITET: unterscheidet jetzt sauber zwischen "gültiger NavMesh-Pfad
+# vorhanden -> strikt folgen" und "kein Pfad, aber Ziel liegt unten -> über
+# die Kante droppen" statt bei jeder Kante blind einzufrieren.
 func _move_towards_player(delta: float) -> void:
-	var dir: Vector3 = (_player.global_position - global_position)
-	dir.y = 0
-	dir = dir.normalized()
+	var dir: Vector3 = Vector3.ZERO
+	var following_nav_path: bool = false
 
-	# --- Kanten-Check: droht hier ein Abgrund? ---
-	if dir.length() > 0.01 and _is_ledge_ahead(dir):
-		var jumped_across: bool = can_jump_across_ledges and is_on_floor() and _try_jump_across_ledge(dir)
-		if not jumped_across:
-			if ledge_wait_enabled:
-				_debug("WARTE AN KANTE — keine Bewegung diesen Frame (dir=%s)." % dir)
-				_waiting_at_ledge = true
-				velocity.x = 0
-				velocity.z = 0
-				_face_player(delta)
-				return
+	# --- NavMesh-Pfadverfolgung, FALLS ein gültiger Pfad existiert ---
+	if nav_agent != null:
+		_nav_update_timer -= delta
+		if _nav_update_timer <= 0.0:
+			_nav_update_timer = nav_target_update_interval
+			nav_agent.target_position = _player.global_position
+
+		if _has_valid_nav_path_to_player():
+			var next_point: Vector3 = nav_agent.get_next_path_position()
+			var to_next: Vector3 = next_point - global_position
+			to_next.y = 0.0
+			# WICHTIG: nur WIRKLICH als "folge dem Pfad" zählen, wenn die
+			# berechnete Richtung auch spürbar von der eigenen Position
+			# wegzeigt. Bei fehlendem/leerem NavMesh (kein
+			# NavigationRegion3D im Level, z.B. level_02test.tscn) kann
+			# get_next_path_position() praktisch die eigene Position
+			# zurückgeben -> dir bliebe Vector3.ZERO und der Gegner würde
+			# komplett einfrieren, OHNE dass die Ledge-Logik unten je
+			# zum Zug kommt. Dieses Sicherheitsnetz verhindert genau das.
+			if to_next.length() > 0.01:
+				following_nav_path = true
+				dir = to_next.normalized()
+
+	if not following_nav_path:
+		dir = (_player.global_position - global_position)
+		dir.y = 0
+		dir = dir.normalized()
+
 	_waiting_at_ledge = false
 
-	# --- Hindernis-Check ---
+	# --- Ledge-Logik: NUR relevant, wenn wir die Richtung selbst wählen
+	# (kein gültiger NavMesh-Pfad vorhanden) ---
+	if not following_nav_path and dir.length() > 0.01 and _is_ledge_ahead(dir):
+		var jumped_across: bool = can_jump_across_ledges and is_on_floor() and _try_jump_across_ledge(dir)
+
+		if not jumped_across:
+			var effective_forward_distance: float = ledge_check_forward_distance
+			if ledge_check_scale_with_radius:
+				effective_forward_distance = max(ledge_check_forward_distance, _get_body_radius() + ledge_check_radius_margin)
+
+			var drop_depth: float = _measure_drop_depth(dir, effective_forward_distance)
+			var feet_y: float = _get_feet_y()
+			var player_is_below: bool = _player.global_position.y <= feet_y - ledge_drop_player_below_margin
+
+			var may_drop: bool = ledge_drop_enabled and player_is_below and drop_depth <= max_safe_drop_height
+
+			if may_drop:
+				# Sicherer Drop: kein NavMesh-Pfad, Spieler ist unten UND
+				# die Falltiefe liegt im erlaubten Rahmen -> über die
+				# Kante weiterlaufen statt einzufrieren. Die Schwerkraft
+				# übernimmt den Rest, sobald is_on_floor() false wird.
+				_debug("Sicherer Drop erkannt (Tiefe %.2f <= max_safe_drop_height %.2f, player_is_below=%s) -> laufe über die Kante." % [drop_depth, max_safe_drop_height, player_is_below])
+			else:
+				if ledge_wait_enabled:
+					_debug("WARTE AN KANTE — kein NavMesh-Pfad, Drop nicht sicher/erlaubt (Tiefe %.2f, player_is_below=%s, ledge_drop_enabled=%s)." % [drop_depth, player_is_below, ledge_drop_enabled])
+					_waiting_at_ledge = true
+					velocity.x = 0
+					velocity.z = 0
+					_face_player(delta)
+					return
+				# ledge_wait_enabled = false -> altes Verhalten: einfach weiterlaufen
+
+	# --- Hindernis-Check: kleine Stufe/Kante hochspringen statt stehenbleiben ---
 	if can_jump and is_on_floor() and dir.length() > 0.01:
 		var required_height: float = _get_required_jump_height(dir)
 		if required_height > 0.0:
@@ -420,6 +457,44 @@ func _move_towards_player(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, target_velocity_x, movement_acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
+
+# NEU: Misst die TATSÄCHLICHE Falltiefe in Metern an einer erkannten Kante,
+# über eine GRÖSSERE Downward-Raycast-Distanz (ledge_drop_probe_distance)
+# als der reine Ja/Nein-Check in _is_ledge_ahead(). Trifft der Ray
+# innerhalb dieser Distanz keinen Boden, gilt der Abgrund als "zu tief zum
+# sicheren Messen" (INF) -> wird automatisch als unsicher behandelt.
+func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:
+	var space_state := get_world_3d().direct_space_state
+	var feet_y: float = _get_feet_y()
+	var check_pos: Vector3 = Vector3(global_position.x, feet_y, global_position.z) + dir * effective_forward_distance + Vector3(0, 0.5, 0)
+	var ray_end: Vector3 = check_pos - Vector3(0, ledge_drop_probe_distance, 0)
+
+	var query := PhysicsRayQueryParameters3D.create(check_pos, ray_end)
+	query.exclude = [self]
+	query.collision_mask = ground_raycast_mask
+
+	var result := space_state.intersect_ray(query)
+	if result.is_empty():
+		return INF
+
+	var drop_y: float = result.position.y
+	return feet_y - drop_y
+
+# Nutzt Godots eingebaute is_target_reachable(), um zuverlässig zwischen
+# "NavMesh hat eine durchgehende Verbindung zum Spieler" und "kein
+# gültiger Pfad" zu unterscheiden — deckt sowohl den Fall aus deiner
+# Ursachen-Analyse ab (Start/Ziel auf getrennten NavMesh-Inseln) als auch
+# den Fall "gar kein NavigationRegion3D im Level vorhanden" (z.B.
+# level_02test.tscn). Eine eigene Distanz-Heuristik über
+# get_final_position() war hier unzuverlässig: bei fehlendem NavMesh
+# gibt get_final_position() praktisch die Zielposition selbst zurück,
+# wodurch die Prüfung fälschlich "gültiger Pfad" meldete und Gegner
+# komplett einfroren (dir blieb Vector3.ZERO, siehe _move_towards_player).
+func _has_valid_nav_path_to_player() -> bool:
+	if nav_agent == null or _player == null:
+		return false
+
+	return nav_agent.is_target_reachable()
 
 func _get_collision_shape_node() -> CollisionShape3D:
 	if _collision_shape_cache and is_instance_valid(_collision_shape_cache):
@@ -443,6 +518,13 @@ func _get_collision_shape_node() -> CollisionShape3D:
 		_warned_missing_collision_shape = true
 	return null
 
+# Berechnet die TATSÄCHLICHE Weltraum-Y-Höhe der FÜSSE dieses Gegners über
+# die eigene CollisionShape3D — nicht einfach global_position.y (die
+# Root!), die je nach Gegnertyp Fußhöhe ODER Körpermitte sein kann.
+# WICHTIG: shape.height bei CapsuleShape3D ist in Godot 4 bereits die
+# GESAMTE Kapselhöhe inklusive beider halbrunder Kappen — der halbe
+# Abstand von der Mitte zur Spitze ist daher schlicht height * 0.5, NICHT
+# radius + height * 0.5.
 func _get_feet_y() -> float:
 	var collision_shape := _get_collision_shape_node()
 	if collision_shape and collision_shape.shape:
@@ -450,19 +532,6 @@ func _get_feet_y() -> float:
 		var y_scale: float = collision_shape.global_transform.basis.y.length()
 		var half_height: float = 0.0
 		if shape is CapsuleShape3D:
-			# WICHTIG (Fix): shape.height ist in Godot bereits die GESAMTE
-			# Kapselhöhe INKLUSIVE der beiden halbrunden Kappen (nicht nur
-			# die zylindrische Mitte). Der halbe Abstand von der Mitte bis
-			# zur Spitze ist daher schlicht height * 0.5 — NICHT
-			# radius + height * 0.5. Die alte Formel hat den Radius
-			# fälschlich ein zweites Mal addiert, wodurch half_height bei
-			# jedem Gegner um genau seinen Radius zu groß berechnet wurde.
-			# Bei großen Gegnern (Colossus: Radius 3.0, Fighter: 1.5)
-			# landete die berechnete "Fußposition" dadurch deutlich UNTER
-			# dem echten Boden -> die Boden-Raycasts liefen permanent ins
-			# Leere -> _is_ledge_ahead() erkannte ständig eine Kante, obwohl
-			# gar keine da war. Das war die eigentliche Ursache des
-			# Einfrierens, unabhängig von allen anderen Fixes.
 			half_height = shape.height * 0.5 * y_scale
 		elif shape is BoxShape3D:
 			half_height = shape.size.y * 0.5 * y_scale
@@ -484,6 +553,10 @@ func _get_body_radius() -> float:
 			return shape.radius * xz_scale
 	return 0.5
 
+# Gibt -1.0 zurück, wenn kein Sprung nötig ist ODER das Hindernis selbst
+# bei voller jump_height noch blockiert. Sonst: die Zielhöhe, auf die
+# gesprungen werden soll (gemessene Hindernishöhe + kleine Marge,
+# gedeckelt bei jump_height als Obergrenze).
 func _get_required_jump_height(dir: Vector3) -> float:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -514,11 +587,14 @@ func _get_required_jump_height(dir: Vector3) -> float:
 			break
 
 	if not found_clear_height:
-		_debug("Hindernis auch bei voller jump_height (%.2f) noch blockiert -> springe NICHT." % jump_height)
 		return -1.0
 
 	return min(obstacle_clear_height + obstacle_jump_margin, jump_height)
 
+# Prüft per Downward-Raycast, ob in Bewegungsrichtung noch Boden vorhanden
+# ist. Zusätzlich zum mittleren Raycast werden zwei seitlich versetzte
+# geprüft — eine Kante wird nur erkannt, wenn ALLE Raycasts keinen Boden
+# finden (verhindert False-Positives durch Unebenheiten im Collision-Mesh).
 func _is_ledge_ahead(dir: Vector3) -> bool:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -550,6 +626,8 @@ func _is_ledge_ahead(dir: Vector3) -> bool:
 	_debug("Kante erkannt: feet_y=%.2f, effective_forward_distance=%.2f (Basis ledge_check_forward_distance=%.2f, Körperradius=%.2f)" % [feet_y, effective_forward_distance, ledge_check_forward_distance, _get_body_radius()])
 	return true
 
+# Tastet sich in mehreren Schritten über die Lücke vor; findet sich
+# innerhalb von jump_across_max_gap wieder Boden, wird gesprungen.
 func _try_jump_across_ledge(dir: Vector3) -> bool:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()

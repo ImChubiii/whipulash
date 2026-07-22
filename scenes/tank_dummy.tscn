@@ -126,3 +126,5 @@ mesh = SubResource("TorusMesh_6igkw")
 [node name="TelegraphInner" type="MeshInstance3D" parent="AttackHitbox" unique_id=1874015288]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.684444, -8.234204)
 mesh = SubResource("CylinderMesh_fva3d")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=974135199]
