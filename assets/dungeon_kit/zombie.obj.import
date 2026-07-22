@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://da7pce1ewetar"
+path="res://.godot/imported/zombie.obj-b7f87b874a756d16e9b7352783e8c51f.mesh"
+
+[deps]
+
+files=["res://.godot/imported/zombie.obj-b7f87b874a756d16e9b7352783e8c51f.mesh"]
+
+source_file="res://assets/dungeon_kit/zombie.obj"
+dest_files=["res://.godot/imported/zombie.obj-b7f87b874a756d16e9b7352783e8c51f.mesh", "res://.godot/imported/zombie.obj-b7f87b874a756d16e9b7352783e8c51f.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

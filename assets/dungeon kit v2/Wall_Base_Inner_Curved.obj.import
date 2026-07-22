@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bohnykgjejmcm"
+path="res://.godot/imported/Wall_Base_Inner_Curved.obj-5f05dca8b262e3085d1bd0faf0d1e413.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Wall_Base_Inner_Curved.obj-5f05dca8b262e3085d1bd0faf0d1e413.mesh"]
+
+source_file="res://assets/dungeon kit v2/Wall_Base_Inner_Curved.obj"
+dest_files=["res://.godot/imported/Wall_Base_Inner_Curved.obj-5f05dca8b262e3085d1bd0faf0d1e413.mesh", "res://.godot/imported/Wall_Base_Inner_Curved.obj-5f05dca8b262e3085d1bd0faf0d1e413.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

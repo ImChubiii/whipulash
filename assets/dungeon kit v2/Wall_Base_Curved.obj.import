@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cm2n280jnb7d7"
+path="res://.godot/imported/Wall_Base_Curved.obj-6fe2f905c1be2d5461d179190802663b.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Wall_Base_Curved.obj-6fe2f905c1be2d5461d179190802663b.mesh"]
+
+source_file="res://assets/dungeon kit v2/Wall_Base_Curved.obj"
+dest_files=["res://.godot/imported/Wall_Base_Curved.obj-6fe2f905c1be2d5461d179190802663b.mesh", "res://.godot/imported/Wall_Base_Curved.obj-6fe2f905c1be2d5461d179190802663b.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

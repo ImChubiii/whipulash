@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://b7xof2fwg0e32"
+path="res://.godot/imported/Pillar_Base_Side.obj-c42a1cfe8f9a17e15fa92c1a7eb1a2fb.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Pillar_Base_Side.obj-c42a1cfe8f9a17e15fa92c1a7eb1a2fb.mesh"]
+
+source_file="res://assets/dungeon kit v2/Pillar_Base_Side.obj"
+dest_files=["res://.godot/imported/Pillar_Base_Side.obj-c42a1cfe8f9a17e15fa92c1a7eb1a2fb.mesh", "res://.godot/imported/Pillar_Base_Side.obj-c42a1cfe8f9a17e15fa92c1a7eb1a2fb.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

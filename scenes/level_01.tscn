@@ -310,8 +310,9 @@ grow_vertical = 2
 script = ExtResource("5_1b6n0")
 
 [node name="Boden" type="CSGBox3D" parent="CanvasLayer" unique_id=1059912180]
-transform = Transform3D(98.10242, 0, 1.1607502e-20, 0, 1, 0, 1.6386776e-20, 0, 69.490425, 0, -1.9940467, -30.79337)
+transform = Transform3D(98.10242, 0, 1.1607502e-20, 0, 1, 0, 1.6386776e-20, 0, 69.490425, 3.2022649e-22, -1.9940467, -28.876274)
 use_collision = true
+size = Vector3(1, 1, 1.0551758)
 material = ExtResource("6_qgxqk")
 
 [node name="CSGBox3D" type="CSGBox3D" parent="CanvasLayer/Boden" unique_id=1932724860]
