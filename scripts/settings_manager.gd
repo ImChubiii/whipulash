@@ -4,11 +4,6 @@ extends Node
 # SettingsManager — Autoload-Singleton für alle persistenten Spieleinstellungen.
 # Speichert/lädt in user://settings.cfg (ConfigFile). Muss unter Project Settings
 # -> Autoload als "SettingsManager" eingetragen sein.
-#
-# ARCHITEKTUR: Werte werden hier zentral gehalten. Andere Systeme (HUD, Player,
-# CRT-Overlay, combat.gd) verbinden sich mit den passenden `*_changed`-Signalen
-# und reagieren live, ohne dass hier von SettingsManager aus in fremde Nodes
-# reingegriffen wird (Ausnahme: _apply_sensitivity_to_player als Legacy-Pfad).
 # ============================================================================
 
 signal sensitivity_changed(value: float)
@@ -17,38 +12,32 @@ signal fullscreen_changed(is_fullscreen: bool)
 signal display_mode_changed(mode: int)
 signal vsync_changed(enabled: bool)
 signal fps_limit_changed(fps: int)
-signal fov_changed(fov: float)
 signal keybind_changed(action: String)
 
 # Accessibility
 signal crt_filter_changed(enabled: bool)
 signal screen_shake_changed(enabled: bool)
-signal aim_toggle_changed(is_toggle: bool)
 signal colorblind_mode_changed(mode: int)
 
-# General / HUD
+# General
 signal hud_visible_changed(visible: bool)
-signal damage_numbers_changed(enabled: bool)
-signal minimap_opacity_changed(opacity: float)
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
-const DEFAULT_FOV: float = 75.0
+const DEFAULT_WINDOWED_SIZE: Vector2i = Vector2i(1280, 720)
 
 # Display Mode Enum
 const DISPLAY_MODE_WINDOWED: int = 0
 const DISPLAY_MODE_FULLSCREEN: int = 1
 const DISPLAY_MODE_BORDERLESS: int = 2
 
-# Colorblind Mode Enum (Filter-Implementierung folgt in Phase 4)
+# Colorblind Mode Enum
 const COLORBLIND_OFF: int = 0
 const COLORBLIND_PROTANOPIA: int = 1
 const COLORBLIND_DEUTERANOPIA: int = 2
 const COLORBLIND_TRITANOPIA: int = 3
 
-# --- Rebindbare Actions + Anzeigename fürs SettingsMenu-UI. Diese Liste ist
-# die EINZIGE Quelle der Wahrheit dafür, welche Actions im Menü auftauchen —
-# neue rebindbare Actions einfach hier ergänzen. ---
+# --- Rebindbare Actions + Anzeigename fürs SettingsMenu-UI. ---
 # ACHTUNG: "interact " (mit Leerzeichen am Ende) ist ein bestehender Tippfehler
 # im InputMap-Namen selbst (project.godot), hier absichtlich 1:1 übernommen.
 const REBINDABLE_ACTIONS: Dictionary = {
@@ -72,25 +61,26 @@ var music_volume: float = 1.0
 var sfx_volume: float = 1.0
 
 # --- Video ---
-var is_fullscreen: bool = false  # DEPRECATED, nur für Migration von alten Configs
 var display_mode: int = DISPLAY_MODE_WINDOWED
 var vsync_enabled: bool = true
 var fps_limit: int = 144  # 0 = unlimited
-var fov: float = DEFAULT_FOV
 
-# --- General / HUD ---
+# --- General ---
 var hud_visible: bool = true
-var damage_numbers_enabled: bool = true
-var minimap_opacity: float = 0.8
 
 # --- Accessibility ---
 var crt_filter_enabled: bool = true
 var screen_shake_enabled: bool = true
-var aim_is_toggle: bool = false  # false = Hold, true = Toggle
 var colorblind_mode: int = COLORBLIND_OFF
 
-# Merkt sich die InputMap-Belegung vom allerersten Start (noch ohne
-# user://settings.cfg-Overrides) — Grundlage für reset_action_to_default().
+# Merkt sich die letzte bekannte Fenstergröße/-position im Windowed-Modus,
+# damit beim Zurückwechseln von Borderless/Fullscreen die Größe wiederhergestellt
+# wird — ohne das würde "Windowed" nach einem Borderless-Trip bildschirmgroß bleiben.
+var _windowed_size: Vector2i = DEFAULT_WINDOWED_SIZE
+var _windowed_position: Vector2i = Vector2i.ZERO
+
+# Merkt sich die InputMap-Belegung vom allerersten Start — Grundlage für
+# reset_action_to_default().
 var _default_keybinds: Dictionary = {}  # action -> Array[InputEvent]
 
 func _ready() -> void:
@@ -106,6 +96,7 @@ func _apply_all() -> void:
 	_apply_fps_limit(fps_limit)
 	_apply_sensitivity_to_player()
 	_apply_crt_filter(crt_filter_enabled)
+	_apply_colorblind_mode(colorblind_mode)
 
 # ============================================================================
 # Controls
@@ -154,17 +145,18 @@ func has_audio_bus(bus_name: String) -> bool:
 # ============================================================================
 # Video
 # ============================================================================
-# Legacy-API — bleibt für alte Aufrufer erhalten, delegiert intern auf
-# das neue Display-Mode-System.
-func set_fullscreen(enabled: bool) -> void:
-	set_display_mode(DISPLAY_MODE_FULLSCREEN if enabled else DISPLAY_MODE_WINDOWED)
-
 func set_display_mode(mode: int) -> void:
+	# Aktuelle Fenstergröße/-position sichern, SOLANGE wir noch im Windowed-
+	# Modus sind — das ist die einzige zuverlässige Quelle für "wie groß war
+	# das Fenster, bevor wir in Fullscreen/Borderless gewechselt sind".
+	if display_mode == DISPLAY_MODE_WINDOWED:
+		_windowed_size = DisplayServer.window_get_size()
+		_windowed_position = DisplayServer.window_get_position()
+
 	display_mode = mode
-	is_fullscreen = (mode == DISPLAY_MODE_FULLSCREEN or mode == DISPLAY_MODE_BORDERLESS)
 	_apply_display_mode(mode)
 	display_mode_changed.emit(mode)
-	fullscreen_changed.emit(is_fullscreen)  # Legacy-Signal weiter feuern
+	fullscreen_changed.emit(mode != DISPLAY_MODE_WINDOWED)  # Legacy-Signal
 	save_settings()
 
 func _apply_display_mode(mode: int) -> void:
@@ -172,6 +164,11 @@ func _apply_display_mode(mode: int) -> void:
 		DISPLAY_MODE_WINDOWED:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			# WICHTIG: Ohne diese zwei Zeilen bleibt das Fenster nach einem
+			# Borderless-Trip bildschirmgroß — DisplayServer merkt sich die
+			# Größe nicht selbst zurück.
+			DisplayServer.window_set_size(_windowed_size)
+			DisplayServer.window_set_position(_windowed_position)
 		DISPLAY_MODE_FULLSCREEN:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
@@ -201,27 +198,12 @@ func set_fps_limit(fps: int) -> void:
 func _apply_fps_limit(fps: int) -> void:
 	Engine.max_fps = maxi(0, fps)
 
-func set_fov(value: float) -> void:
-	fov = value
-	fov_changed.emit(value)
-	save_settings()
-
 # ============================================================================
-# General / HUD
+# General
 # ============================================================================
 func set_hud_visible(is_visible: bool) -> void:
 	hud_visible = is_visible
 	hud_visible_changed.emit(is_visible)
-	save_settings()
-
-func set_damage_numbers_enabled(enabled: bool) -> void:
-	damage_numbers_enabled = enabled
-	damage_numbers_changed.emit(enabled)
-	save_settings()
-
-func set_minimap_opacity(opacity: float) -> void:
-	minimap_opacity = opacity
-	minimap_opacity_changed.emit(opacity)
 	save_settings()
 
 # ============================================================================
@@ -234,9 +216,7 @@ func set_crt_filter_enabled(enabled: bool) -> void:
 	save_settings()
 
 func _apply_crt_filter(enabled: bool) -> void:
-	# Toggelt alle Nodes in der Gruppe "crt_overlay" (siehe TODO Phase 2 —
-	# CRTOverlay-ColorRect muss dieser Gruppe hinzugefügt werden).
-	for node in get_tree().get_nodes_in_group("crt_overlay"):
+	for node in _find_nodes_by_name(get_tree().root, "CRTOverlay"):
 		if node is CanvasItem:
 			node.visible = enabled
 
@@ -245,15 +225,30 @@ func set_screen_shake_enabled(enabled: bool) -> void:
 	screen_shake_changed.emit(enabled)
 	save_settings()
 
-func set_aim_toggle(is_toggle: bool) -> void:
-	aim_is_toggle = is_toggle
-	aim_toggle_changed.emit(is_toggle)
-	save_settings()
-
 func set_colorblind_mode(mode: int) -> void:
 	colorblind_mode = mode
+	_apply_colorblind_mode(mode)
 	colorblind_mode_changed.emit(mode)
 	save_settings()
+
+func _apply_colorblind_mode(mode: int) -> void:
+	for node in _find_nodes_by_name(get_tree().root, "ColorblindOverlay"):
+		if node is CanvasItem and node.material is ShaderMaterial:
+			node.material.set_shader_parameter("colorblind_mode", mode)
+
+# Rekursive Namenssuche im ganzen Szenenbaum — bewusst NICHT über Gruppen
+# gelöst, damit du im Editor an den bestehenden CRTOverlay-Nodes NICHTS
+# manuell nachpflegen musst (funktioniert einfach über den exakten Node-Namen).
+func _find_nodes_by_name(root: Node, target_name: String) -> Array:
+	var results: Array = []
+	_find_nodes_by_name_recursive(root, target_name, results)
+	return results
+
+func _find_nodes_by_name_recursive(node: Node, target_name: String, results: Array) -> void:
+	if node.name == target_name:
+		results.append(node)
+	for child in node.get_children():
+		_find_nodes_by_name_recursive(child, target_name, results)
 
 # ============================================================================
 # Tastenbelegung
@@ -269,7 +264,27 @@ func rebind_action(action: String, event: InputEvent) -> void:
 	keybind_changed.emit(action)
 	save_settings()
 
+# Setzt eine Action auf ihren Ausgangszustand zurück.
+#
+# SONDERFALL ui_accept: Die project.godot-Defaults sind hier historisch
+# uneinheitlich (mal nur Enter, mal Enter+Space in wechselnder Reihenfolge)
+# — für "Springen" wollen wir aber IMMER verlässlich Space als Ergebnis,
+# unabhängig davon was ursprünglich in project.godot stand. Deshalb wird
+# hier nicht aus _default_keybinds wiederhergestellt, sondern die
+# Tastatur-Belegung hart auf Space gesetzt (Joypad-Bindings bleiben wie
+# gehabt unangetastet).
 func reset_action_to_default(action: String) -> void:
+	if action == "ui_accept":
+		for existing in InputMap.action_get_events(action):
+			if existing is InputEventKey or existing is InputEventMouseButton:
+				InputMap.action_erase_event(action, existing)
+		var space_event := InputEventKey.new()
+		space_event.physical_keycode = KEY_SPACE
+		InputMap.action_add_event(action, space_event)
+		keybind_changed.emit(action)
+		save_settings()
+		return
+
 	if not _default_keybinds.has(action):
 		return
 	InputMap.action_erase_events(action)
@@ -278,11 +293,37 @@ func reset_action_to_default(action: String) -> void:
 	keybind_changed.emit(action)
 	save_settings()
 
+# Liefert das "beste" Tastatur-/Maus-Event einer Action fürs UI. Manche
+# Actions (ui_up/down/left/right) haben in project.godot ZWEI Keyboard-
+# Events: Pfeiltasten (nur "keycode" gesetzt, physical_keycode = 0) UND
+# WASD (physical_keycode gesetzt) — davon wird die physical_keycode-Variante
+# bevorzugt gezeigt.
+#
+# SONDERFALL ui_accept: Godots Default-Belegung enthält hier standardmäßig
+# SOWOHL Enter ALS AUCH Leertaste (beides mit physical_keycode gesetzt).
+# Ohne Sonderbehandlung würde einfach das erste gefundene Event gewinnen,
+# was zufällig Enter statt Space sein kann. Deshalb wird für ui_accept
+# explizit KEY_SPACE gesucht und bevorzugt, falls vorhanden.
 func get_action_event(action: String) -> InputEvent:
 	var events: Array = InputMap.action_get_events(action)
+
+	if action == "ui_accept":
+		for event in events:
+			if event is InputEventKey and event.physical_keycode == KEY_SPACE:
+				return event
+
+	var fallback: InputEvent = null
 	for event in events:
-		if event is InputEventKey or event is InputEventMouseButton:
-			return event
+		if event is InputEventKey:
+			if event.physical_keycode != 0:
+				return event
+			elif fallback == null:
+				fallback = event
+		elif event is InputEventMouseButton and fallback == null:
+			fallback = event
+
+	if fallback != null:
+		return fallback
 	return events[0] if not events.is_empty() else null
 
 func find_conflicting_action(event: InputEvent, exclude_action: String) -> String:
@@ -310,23 +351,17 @@ func reset_all_to_defaults() -> void:
 	music_volume = 1.0
 	sfx_volume = 1.0
 	display_mode = DISPLAY_MODE_WINDOWED
-	is_fullscreen = false
 	vsync_enabled = true
 	fps_limit = 144
-	fov = DEFAULT_FOV
 	hud_visible = true
-	damage_numbers_enabled = true
-	minimap_opacity = 0.8
 	crt_filter_enabled = true
 	screen_shake_enabled = true
-	aim_is_toggle = false
 	colorblind_mode = COLORBLIND_OFF
 
 	for action in REBINDABLE_ACTIONS.keys():
 		reset_action_to_default(action)
 
 	_apply_all()
-	# Alle Change-Signals feuern, damit UI + gebundene Systeme sich neu syncen
 	sensitivity_changed.emit(mouse_sensitivity)
 	volume_changed.emit("Master", master_volume)
 	volume_changed.emit("Music", music_volume)
@@ -334,13 +369,9 @@ func reset_all_to_defaults() -> void:
 	display_mode_changed.emit(display_mode)
 	vsync_changed.emit(vsync_enabled)
 	fps_limit_changed.emit(fps_limit)
-	fov_changed.emit(fov)
 	hud_visible_changed.emit(hud_visible)
-	damage_numbers_changed.emit(damage_numbers_enabled)
-	minimap_opacity_changed.emit(minimap_opacity)
 	crt_filter_changed.emit(crt_filter_enabled)
 	screen_shake_changed.emit(screen_shake_enabled)
-	aim_toggle_changed.emit(aim_is_toggle)
 	colorblind_mode_changed.emit(colorblind_mode)
 	save_settings()
 
@@ -358,15 +389,11 @@ func save_settings() -> void:
 	config.set_value("display", "display_mode", display_mode)
 	config.set_value("display", "vsync", vsync_enabled)
 	config.set_value("display", "fps_limit", fps_limit)
-	config.set_value("display", "fov", fov)
 
 	config.set_value("general", "hud_visible", hud_visible)
-	config.set_value("general", "damage_numbers", damage_numbers_enabled)
-	config.set_value("general", "minimap_opacity", minimap_opacity)
 
 	config.set_value("accessibility", "crt_filter", crt_filter_enabled)
 	config.set_value("accessibility", "screen_shake", screen_shake_enabled)
-	config.set_value("accessibility", "aim_toggle", aim_is_toggle)
 	config.set_value("accessibility", "colorblind_mode", colorblind_mode)
 
 	for action in REBINDABLE_ACTIONS.keys():
@@ -379,7 +406,6 @@ func save_settings() -> void:
 		push_warning("SettingsManager: Speichern nach '%s' fehlgeschlagen (Fehlercode %d)." % [SETTINGS_PATH, err])
 
 func load_settings() -> void:
-	# Defaults aus InputMap sichern, BEVOR irgendwas überschrieben wird
 	_default_keybinds.clear()
 	for action in REBINDABLE_ACTIONS.keys():
 		var dup: Array[InputEvent] = []
@@ -398,25 +424,19 @@ func load_settings() -> void:
 	music_volume = config.get_value("audio", "music_volume", 1.0)
 	sfx_volume = config.get_value("audio", "sfx_volume", 1.0)
 
-	# Migration: alte Configs hatten nur "fullscreen: bool", neue haben display_mode.
-	# Wenn display_mode fehlt, aus fullscreen ableiten.
+	# Migration: alte Configs hatten nur "fullscreen: bool".
 	if config.has_section_key("display", "display_mode"):
 		display_mode = config.get_value("display", "display_mode", DISPLAY_MODE_WINDOWED)
 	else:
 		var legacy_fs: bool = config.get_value("display", "fullscreen", false)
 		display_mode = DISPLAY_MODE_FULLSCREEN if legacy_fs else DISPLAY_MODE_WINDOWED
-	is_fullscreen = (display_mode == DISPLAY_MODE_FULLSCREEN or display_mode == DISPLAY_MODE_BORDERLESS)
 	vsync_enabled = config.get_value("display", "vsync", true)
 	fps_limit = config.get_value("display", "fps_limit", 144)
-	fov = config.get_value("display", "fov", DEFAULT_FOV)
 
 	hud_visible = config.get_value("general", "hud_visible", true)
-	damage_numbers_enabled = config.get_value("general", "damage_numbers", true)
-	minimap_opacity = config.get_value("general", "minimap_opacity", 0.8)
 
 	crt_filter_enabled = config.get_value("accessibility", "crt_filter", true)
 	screen_shake_enabled = config.get_value("accessibility", "screen_shake", true)
-	aim_is_toggle = config.get_value("accessibility", "aim_toggle", false)
 	colorblind_mode = config.get_value("accessibility", "colorblind_mode", COLORBLIND_OFF)
 
 	for action in REBINDABLE_ACTIONS.keys():

@@ -338,6 +338,8 @@ func _process(delta: float) -> void:
 # Trauma summiert sich auf (gedeckelt bei 1.0), statt nur zu überschreiben —
 # mehrere Combo-Treffer hintereinander fühlen sich dadurch spürbar wilder an.
 func shake_camera(amount: float) -> void:
+	if not SettingsManager.screen_shake_enabled:
+		return
 	_trauma = clamp(_trauma + amount, 0.0, 1.0)
 
 # Wird von combat.gd bei jedem Combo-Treffer aufgerufen. Kippt die Kamera
