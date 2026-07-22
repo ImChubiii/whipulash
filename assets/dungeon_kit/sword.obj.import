@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://drm2x1cfqj0ib"
+path="res://.godot/imported/sword.obj-91f6b7eb67063c65015c7929675b4ad5.mesh"
+
+[deps]
+
+files=["res://.godot/imported/sword.obj-91f6b7eb67063c65015c7929675b4ad5.mesh"]
+
+source_file="res://assets/dungeon_kit/sword.obj"
+dest_files=["res://.godot/imported/sword.obj-91f6b7eb67063c65015c7929675b4ad5.mesh", "res://.godot/imported/sword.obj-91f6b7eb67063c65015c7929675b4ad5.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

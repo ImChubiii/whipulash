@@ -334,10 +334,10 @@ use_collision = true
 size = Vector3(91, 162, 2)
 
 [node name="CSGBox3D3" type="CSGBox3D" parent="NavigationRegion3D2/CSGBox3D" unique_id=1265843550]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, -2.2888184e-05, -1.9999974)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.5, -1.9073486e-05, -1.9999974)
 operation = 2
 use_collision = true
-size = Vector3(26, 24, 9)
+size = Vector3(31, 24, 9)
 
 [node name="CSGBox3D2" type="CSGBox3D" parent="NavigationRegion3D2/CSGBox3D" unique_id=120035534]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, -2.4795532e-05, 1.5000012)

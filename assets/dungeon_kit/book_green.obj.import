@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c761a3m56vg7a"
+path="res://.godot/imported/book_green.obj-fb8db61884f5886d57f49f86e9889a59.mesh"
+
+[deps]
+
+files=["res://.godot/imported/book_green.obj-fb8db61884f5886d57f49f86e9889a59.mesh"]
+
+source_file="res://assets/dungeon_kit/book_green.obj"
+dest_files=["res://.godot/imported/book_green.obj-fb8db61884f5886d57f49f86e9889a59.mesh", "res://.godot/imported/book_green.obj-fb8db61884f5886d57f49f86e9889a59.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

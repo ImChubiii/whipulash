@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://dag1wx2ff4qq0"
+path="res://.godot/imported/Wall_Cell_Doorframe.obj-b7bb3ede116a8763204c3e9650670943.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Wall_Cell_Doorframe.obj-b7bb3ede116a8763204c3e9650670943.mesh"]
+
+source_file="res://assets/dungeon kit v2/Wall_Cell_Doorframe.obj"
+dest_files=["res://.godot/imported/Wall_Cell_Doorframe.obj-b7bb3ede116a8763204c3e9650670943.mesh", "res://.godot/imported/Wall_Cell_Doorframe.obj-b7bb3ede116a8763204c3e9650670943.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false
