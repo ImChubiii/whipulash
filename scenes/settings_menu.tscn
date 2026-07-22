@@ -1,0 +1,139 @@
+[gd_scene format=3 uid="uid://by0b1jhagnufc"]
+
+[node name="SettingsMenu" type="Control" unique_id=1233549317]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="." unique_id=1542886804]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -3.0
+offset_right = 1.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1597223482]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -218.0
+offset_right = 320.0
+offset_bottom = 320.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=867913794]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="HSeparator1" type="HSeparator" parent="Panel/VBoxContainer" unique_id=1953585757]
+layout_mode = 2
+
+[node name="SensitivityRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=489528011]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/SensitivityRow" unique_id=2038953310]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Maus-Sensitivity"
+
+[node name="SensitivitySlider" type="HSlider" parent="Panel/VBoxContainer/SensitivityRow" unique_id=1929246401]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SensitivityValueLabel" type="Label" parent="Panel/VBoxContainer/SensitivityRow" unique_id=2056218434]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "0.0030"
+horizontal_alignment = 2
+
+[node name="MasterVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=289149442]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/MasterVolumeRow" unique_id=380125948]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Master-Lautstärke"
+
+[node name="MasterVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/MasterVolumeRow" unique_id=38437945]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MusicVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=2051565465]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/MusicVolumeRow" unique_id=1167015304]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Musik-Lautstärke"
+
+[node name="MusicVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/MusicVolumeRow" unique_id=1690924114]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SFXVolumeRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=2048618864]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/SFXVolumeRow" unique_id=37482752]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Effekte-Lautstärke"
+
+[node name="SFXVolumeSlider" type="HSlider" parent="Panel/VBoxContainer/SFXVolumeRow" unique_id=744818801]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FullscreenRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=480221202]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/FullscreenRow" unique_id=1200199103]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Vollbild"
+
+[node name="FullscreenCheckButton" type="CheckButton" parent="Panel/VBoxContainer/FullscreenRow" unique_id=468572427]
+layout_mode = 2
+
+[node name="ConflictLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1446746661]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.2, 1)
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer" unique_id=634179152]
+layout_mode = 2
+
+[node name="KeybindsTitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1094800445]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Tastenbelegung"
+
+[node name="KeybindsContainer" type="VBoxContainer" parent="Panel/VBoxContainer" unique_id=1801787788]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HSeparator3" type="HSeparator" parent="Panel/VBoxContainer" unique_id=787318407]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="Panel/VBoxContainer" unique_id=1351527492]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+text = "Back"
