@@ -3,7 +3,6 @@
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_t0ybu"]
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_1b6n0"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="2_wqkcq"]
-[ext_resource type="Script" uid="uid://qbdli0sp1ndu" path="res://scenes/settings_menu.gd" id="3_jg26c"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_llcge"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_lwi15"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_0tv6x"]
@@ -67,10 +66,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
 
 [node name="SettingsMenu" parent="CanvasLayer" unique_id=1233549317 instance=ExtResource("2_wqkcq")]
-script = ExtResource("3_jg26c")
 
 [node name="HUD" type="Control" parent="CanvasLayer" unique_id=1622840272]
-visible = false
 layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
@@ -195,7 +192,6 @@ layout_mode = 2
 text = "Quit"
 
 [node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=1480429303]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -257,7 +253,6 @@ layout_mode = 2
 text = "Quit"
 
 [node name="WinScreen" type="Control" parent="CanvasLayer" unique_id=1047530491]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -303,7 +298,6 @@ text = "Quit"
 
 [node name="PostProcessLayer" type="CanvasLayer" parent="CanvasLayer" unique_id=1677253943]
 layer = 100
-visible = false
 
 [node name="CRTOverlay" type="ColorRect" parent="CanvasLayer/PostProcessLayer" unique_id=1471628108]
 material = SubResource("ShaderMaterial_0tv6x")
@@ -318,7 +312,6 @@ mouse_filter = 2
 color = Color(1, 1, 1, 0.08627451)
 
 [node name="SubmersionOverlay" type="ColorRect" parent="CanvasLayer" unique_id=1643804787]
-visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
