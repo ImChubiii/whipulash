@@ -74,11 +74,13 @@ height = 0.001
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5643892, 0)
 collision_layer = 4
 script = ExtResource("1_w4gkx")
-detection_range = 40.0
+detection_range = 100.0
 display_name = "Fighter"
+is_heavy = true
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
+can_jump_across_ledges = true
 debug_logging = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]

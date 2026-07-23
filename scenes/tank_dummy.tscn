@@ -76,12 +76,12 @@ height = 0.001
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5643892, 0)
 collision_layer = 4
 script = ExtResource("1_p7a36")
-move_speed = 3.0
-detection_range = 40.0
-attack_cooldown = 2.0
+detection_range = 100.0
+attack_cooldown = 1.5
 attack_windup_time = 2.0
 display_name = "Colossus"
 is_large_enemy = true
+is_heavy = true
 reticle_height_offset = 6.0
 reticle_forward_offset = 5.0
 reticle_scale = 2.5
@@ -89,14 +89,17 @@ separation_radius = 8.0
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
+can_jump_across_ledges = true
+player_head_slide_impulse = 25.0
+player_head_slide_min_height_above_player = 0.5
 debug_logging = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
-transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 3.9598083, 0)
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 3.0100098, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=662295708]
-transform = Transform3D(6.5, 0, 0, 0, 6.5, 0, 0, 0, 6.5, 0, 3.9598083, 0)
+transform = Transform3D(6.5, 0, 0, 0, 6.5, 0, 0, 0, 6.5, 0, 3.0100098, 0)
 mesh = SubResource("CapsuleMesh_qbaa6")
 surface_material_override/0 = SubResource("ShaderMaterial_k5f3b")
 
@@ -107,7 +110,7 @@ max_health = 400.0
 [node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.216951)
 script = ExtResource("4_1v3u1")
-damage = 40.0
+damage = 70.0
 knockback_force = 50.0
 damage_number_scene = ExtResource("5_dmgnum")
 
