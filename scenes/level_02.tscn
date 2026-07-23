@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="6_submersion"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="7_spawner"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="8_crt"]
+[ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="8_to87m"]
 [ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="9_reticle_tex"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="10_reticle"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="11_psxmat"]
@@ -110,56 +111,6 @@ text = "x5"
 [node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=900009]
 layout_mode = 2
 text = "COMBO!"
-
-[node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=900010]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("3_pause")
-
-[node name="Panel" type="Panel" parent="CanvasLayer/PauseMenu" unique_id=900011]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 1.0
-offset_top = -3.0
-offset_right = 1.0
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PauseMenu/Panel" unique_id=900012]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -178.38
-offset_right = 300.0
-offset_bottom = 181.62
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="ResumeButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=900013]
-custom_minimum_size = Vector2(200, 100)
-layout_mode = 2
-text = "Resume"
-
-[node name="RestartButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=900014]
-custom_minimum_size = Vector2(200, 100)
-layout_mode = 2
-text = "Restart"
-
-[node name="QuitButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=900015]
-custom_minimum_size = Vector2(200, 100)
-layout_mode = 2
-text = "Quit"
 
 [node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=900016]
 layout_mode = 3
@@ -284,6 +235,66 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("6_submersion")
+
+[node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=680678227]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_pause")
+settings_menu_path = NodePath("../SettingsMenu")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/PauseMenu" unique_id=767810713]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -3.0
+offset_right = 1.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PauseMenu/Panel" unique_id=2074906626]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -301.0
+offset_top = -219.0
+offset_right = 300.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_auto_translate_mode = 1
+
+[node name="ResumeButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1339809398]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1255453054]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="SettingsButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1913243318]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Settings
+"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1980385102]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="SettingsMenu" parent="CanvasLayer" unique_id=264605518 instance=ExtResource("8_to87m")]
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=987172830]
 transform = Transform3D(1, 0, 1.6703743e-22, 0, 1, 0, 1.6703743e-22, 0, 1, -20, 0, -1.4210855e-14)

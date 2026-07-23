@@ -4,17 +4,12 @@ class_name Hitbox
 signal hit_landed(target: Node)
 
 @export var damage: float = 10.0
-# Auf 0.0 gesetzt — Primary Attack soll keinen Knockback auslösen.
-# Für Angriffe MIT Knockback (z.B. Heavy Attack) im Inspector erhöhen.
 @export var knockback_force: float = 0.0
-
 @export var stun_duration: float = 0.0
-
 @export var status_effect_id: String = ""
 @export var status_effect_duration: float = 0.0
 @export var status_effect_magnitude: float = 1.0
 @export var status_effect_tick_interval: float = 0.0
-
 @export var damage_number_scene: PackedScene
 @export var debug_logging: bool = false
 
@@ -71,7 +66,6 @@ func _on_body_entered(body: Node3D) -> void:
 	_already_hit.append(body)
 	health.take_damage(damage, owner)
 	hit_landed.emit(body)
-	_spawn_damage_number(body)
 
 	if stun_duration > 0.0 and body.has_method("apply_stun"):
 		body.apply_stun(stun_duration)
@@ -81,11 +75,17 @@ func _on_body_entered(body: Node3D) -> void:
 		body.apply_status_effect(status_effect_id, status_effect_duration, status_effect_magnitude, owner, status_effect_tick_interval)
 		_debug("  -> apply_status_effect('%s', duration=%.2f, magnitude=%.2f, tick=%.2f) auf '%s' aufgerufen" % [status_effect_id, status_effect_duration, status_effect_magnitude, status_effect_tick_interval, body.name])
 
-	# Knockback: nur wenn knockback_force > 0.0 (Primary Attack = 0, kein Knockback)
+	# Knockback: nur wenn knockback_force > 0.0 und Ziel kein schwerer Gegner.
 	if knockback_force > 0.0 and body is CharacterBody3D:
-		var push_dir := (body.global_position - global_position).normalized()
-		body.velocity += push_dir * knockback_force
-		_debug("  -> Knockback %.1f auf '%s' angewendet" % [knockback_force, body.name])
+		var is_heavy_target: bool = body.get("is_heavy") == true
+		if is_heavy_target:
+			_debug("  -> Knockback IGNORIERT: '%s' ist ein schwerer Gegner (is_heavy=true)" % body.name)
+		else:
+			var push_dir := (body.global_position - global_position).normalized()
+			body.velocity += push_dir * knockback_force
+			_debug("  -> Knockback %.1f auf '%s' angewendet" % [knockback_force, body.name])
+
+	_spawn_damage_number(body)
 
 
 func _spawn_damage_number(body: Node3D) -> void:

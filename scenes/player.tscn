@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://bpp7utu2mp6m1" path="res://scripts/player.gd" id="1_3vyb7"]
 [ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
-[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="4_tuyoq"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
 [ext_resource type="Script" uid="uid://by2rus5v4mrye" path="res://scripts/combat.gd" id="5_qlg0r"]
 
@@ -44,8 +43,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-damage = 30.0
-damage_number_scene = ExtResource("4_tuyoq")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=996971260]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
@@ -59,8 +56,6 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-knockback_force = 10.0
-damage_number_scene = ExtResource("4_tuyoq")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=779664953]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)

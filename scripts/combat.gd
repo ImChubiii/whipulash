@@ -4,7 +4,7 @@ class_name Combat
 # --- Cooldown-Werte, im Inspector einstellbar ---
 @export var primary_cooldown: float = 0.4
 @export var secondary_cooldown: float = 3.0
-@export var utility_cooldown: float = 1.5
+@export var utility_cooldown: float = 0.8
 
 @export var dash_speed: float = 30.0
 @export var dash_duration: float = 0.4

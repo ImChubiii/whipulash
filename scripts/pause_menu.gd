@@ -1,3 +1,4 @@
+# scripts/pause_menu.gd
 extends Control
 class_name PauseMenu
 
@@ -33,15 +34,12 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit_pressed)
 
 
-# Panel ist Full-Rect mit opakem Hintergrund → versteckt den Blur dahinter.
-# Wir überschreiben den Style auf halbtransparentes Dunkelgrau, damit der
-# Blur sichtbar bleibt und gleichzeitig das Menü gut lesbar ist.
 func _fix_panel_background() -> void:
 	var panel := get_node_or_null("Panel") as Panel
 	if panel == null:
 		return
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.05, 0.08, 0.82)  # Dunkel + leicht transparent
+	style.bg_color = Color(0.05, 0.05, 0.08, 0.82)
 	style.corner_radius_top_left = 0
 	style.corner_radius_top_right = 0
 	style.corner_radius_bottom_left = 0
@@ -49,10 +47,6 @@ func _fix_panel_background() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 
 
-# Erstellt den BlurOverlay-Node einmalig im Parent-CanvasLayer (oder gibt
-# den bereits existierenden zurück). WICHTIG: add_child() VOR
-# set_anchors_and_offsets_preset() — sonst kennt der Node seinen Parent
-# nicht und berechnet die Größe zu 0.
 func _get_or_create_shared_blur() -> ColorRect:
 	var parent := get_parent()
 
@@ -75,7 +69,6 @@ func _get_or_create_shared_blur() -> ColorRect:
 	blur.material = mat
 	blur.visible = false
 
-	# Reihenfolge ist entscheidend: erst in den Tree, DANN Anchors setzen
 	parent.add_child(blur)
 	parent.move_child(blur, 0)
 	blur.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -83,15 +76,36 @@ func _get_or_create_shared_blur() -> ColorRect:
 	return blur
 
 
+func _is_endscreen_active() -> bool:
+	var parent := get_parent()
+
+	var death_screen := parent.get_node_or_null("DeathScreen") as Control
+	if death_screen != null and is_instance_valid(death_screen) and death_screen.visible:
+		return true
+
+	var win_screen := parent.get_node_or_null("WinScreen") as Control
+	if win_screen != null and is_instance_valid(win_screen) and win_screen.visible:
+		return true
+
+	return false
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		if settings_menu and settings_menu.visible:
-			_on_settings_back()
-		elif visible:
-			_resume()
-		else:
-			_open_pause()
+	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+		return
+
+	if _is_endscreen_active():
 		get_viewport().set_input_as_handled()
+		return
+
+	if settings_menu != null and is_instance_valid(settings_menu) and settings_menu.visible:
+		_on_settings_back()
+	elif visible:
+		_resume()
+	else:
+		_open_pause()
+
+	get_viewport().set_input_as_handled()
 
 
 func _open_pause() -> void:
@@ -115,16 +129,15 @@ func _on_resume_pressed() -> void:
 
 
 func _on_settings_pressed() -> void:
-	# SharedBlur deaktivieren — SettingsMenu hat seinen eigenen BackgroundBlur
 	if _blur_overlay:
 		_blur_overlay.visible = false
 	visible = false
-	if settings_menu:
+	if settings_menu != null and is_instance_valid(settings_menu):
 		settings_menu.open()
 
 
 func _on_settings_back() -> void:
-	if settings_menu:
+	if settings_menu != null and is_instance_valid(settings_menu):
 		settings_menu.close()
 	if _blur_overlay:
 		_blur_overlay.visible = true
