@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bujv4m8kc3b6b"]
 
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_t0ybu"]
+[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_1b6n0"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="2_wqkcq"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_llcge"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_lwi15"]
@@ -12,20 +13,19 @@
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="7_2ucnx"]
 [ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="7_px6rj"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="7_t0ybu"]
-[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="9_4ldtp"]
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="10_cy6r3"]
-[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="10_w4cok"]
 [ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="11_0tv6x"]
-[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="11_3kr23"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="11_e6mo4"]
-[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="12_oy082"]
 [ext_resource type="PackedScene" uid="uid://d00w77tyt3r10" path="res://scenes/kill_gate.tscn" id="13_2ucnx"]
-[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="13_a577o"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="14_d46x6"]
-[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="14_ne2m8"]
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="14_s61md"]
-[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="15_l0wem"]
 [ext_resource type="Script" uid="uid://cw2plpk5i6wia" path="res://scenes/goal_zone.gd" id="17_42ncp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cr2eh"]
+bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cy6r3"]
+bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0tv6x"]
 shader = ExtResource("7_2ucnx")
@@ -66,6 +66,72 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
 
 [node name="SettingsMenu" parent="CanvasLayer" unique_id=1233549317 instance=ExtResource("2_wqkcq")]
+
+[node name="HUD" type="Control" parent="CanvasLayer" unique_id=1622840272]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -177.0
+offset_top = -81.0
+offset_right = 178.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("2_1b6n0")
+
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=222611370]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -92.5
+offset_top = -30.0
+offset_right = 92.5
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_cr2eh")
+theme_override_styles/fill = SubResource("StyleBoxFlat_cy6r3")
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=2020234932]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -39.5
+offset_top = -29.0
+offset_right = 40.5
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=1384290920]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.16900001
+anchor_top = -3.7560003
+anchor_right = -0.16900001
+anchor_bottom = -3.7560003
+offset_left = -55.709995
+offset_top = -29.493988
+offset_right = 164.845
+offset_bottom = 83.50601
+
+[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1528514089]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "x5"
+
+[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1761267995]
+layout_mode = 2
+text = "COMBO!"
 
 [node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1478100258]
 layout_mode = 3
@@ -267,12 +333,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.025878895, 2.1049194, -0.01
 operation = 2
 size = Vector3(0.2919922, 16.167114, 0.5091858)
 material = ExtResource("6_qgxqk")
-
-[node name="HUD" parent="CanvasLayer" unique_id=1091083640 instance=ExtResource("9_4ldtp")]
-
-[node name="Node" type="Node" parent="." unique_id=506339664]
-script = ExtResource("10_w4cok")
-party_sets = Array[ExtResource("11_3kr23")]([ExtResource("12_oy082"), ExtResource("13_a577o"), ExtResource("14_ne2m8"), ExtResource("15_l0wem")])
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=431866886]
 transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 90, 1.524353, 0)
