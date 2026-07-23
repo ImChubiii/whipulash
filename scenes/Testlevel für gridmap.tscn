@@ -230,9 +230,9 @@ script = ExtResource("8_c1kxm")
 party_sets = Array[ExtResource("9_g21q3")]([ExtResource("10_bpwxd"), ExtResource("11_mv0uh"), ExtResource("12_0kovo"), ExtResource("13_lknka")])
 
 [node name="Area3D" type="Area3D" parent="." unique_id=1430905872]
+script = ExtResource("14_fr3ye")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1004127298]
-script = ExtResource("14_fr3ye")
 
 [node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_vsm81")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.98834, -44.073395, -52.662354)
