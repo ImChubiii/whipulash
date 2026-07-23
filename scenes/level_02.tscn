@@ -1,29 +1,29 @@
 [gd_scene format=3 uid="uid://c81noxov6se3n"]
 
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_player"]
-[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_hud"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_pause"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_death"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_win"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="6_submersion"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="7_spawner"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="8_crt"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="8_thh7q"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="8_to87m"]
+[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="9_7hevf"]
 [ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="9_reticle_tex"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="10_reticle"]
+[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="10_tmoxt"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="11_psxmat"]
+[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="11_r2fl4"]
 [ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="12_fighter"]
+[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="12_s1jqf"]
+[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="13_rndxe"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="13_stinger"]
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="14_colossus"]
+[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="14_rqluw"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="15_lemonade"]
 [ext_resource type="PackedScene" uid="uid://d00w77tyt3r10" path="res://scenes/kill_gate.tscn" id="16_gate"]
 [ext_resource type="Script" uid="uid://cw2plpk5i6wia" path="res://scenes/goal_zone.gd" id="17_goal"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbar_bg"]
-bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbar_fill"]
-bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
 shader = ExtResource("8_crt")
@@ -45,72 +45,6 @@ size = Vector3(10, 6, 30)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 5.7365723, 0)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=900003]
-
-[node name="HUD" type="Control" parent="CanvasLayer" unique_id=900004]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -177.0
-offset_top = -81.0
-offset_right = 178.0
-grow_horizontal = 2
-grow_vertical = 0
-script = ExtResource("2_hud")
-
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=900005]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -92.5
-offset_top = -30.0
-offset_right = 92.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_hpbar_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_hpbar_fill")
-show_percentage = false
-
-[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=900006]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -39.5
-offset_top = -29.0
-offset_right = 40.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=900007]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.16900001
-anchor_top = -3.7560003
-anchor_right = -0.16900001
-anchor_bottom = -3.7560003
-offset_left = -55.709995
-offset_top = -29.493988
-offset_right = 164.845
-offset_bottom = 83.50601
-
-[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=900008]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "x5"
-
-[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=900009]
-layout_mode = 2
-text = "COMBO!"
 
 [node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=900016]
 layout_mode = 3
@@ -295,6 +229,12 @@ layout_mode = 2
 text = "Quit"
 
 [node name="SettingsMenu" parent="CanvasLayer" unique_id=264605518 instance=ExtResource("8_to87m")]
+
+[node name="HUD" parent="CanvasLayer" unique_id=544451029 instance=ExtResource("8_thh7q")]
+
+[node name="Node" type="Node" parent="." unique_id=125253270]
+script = ExtResource("9_7hevf")
+party_sets = Array[ExtResource("10_tmoxt")]([ExtResource("11_r2fl4"), ExtResource("12_s1jqf"), ExtResource("13_rndxe"), ExtResource("14_rqluw")])
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=987172830]
 transform = Transform3D(1, 0, 1.6703743e-22, 0, 1, 0, 1.6703743e-22, 0, 1, -20, 0, -1.4210855e-14)

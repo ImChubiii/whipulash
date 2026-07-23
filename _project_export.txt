@@ -6335,6 +6335,229 @@ shader_parameter/snap_resolution = 4.0
 shader_parameter/vertex_jitter_strength = 0.0
 
 
+===== FILE: resources\char_1.tres =====
+
+[gd_resource type="Resource" script_class="AbilitySet" load_steps=2 format=3 uid="uid://bcharset001"]
+
+[ext_resource type="Script" path="res://scripts/ability_set.gd" id="1_abset"]
+
+[resource]
+script = ExtResource("1_abset")
+character_name = "Lemon"
+portrait = null
+icon_primary = null
+icon_secondary = null
+icon_utility = null
+icon_ability_q = null
+icon_ability_e = null
+primary_cooldown = 0.4
+secondary_cooldown = 3.0
+utility_cooldown = 0.8
+ability_q_cooldown = 6.0
+ability_e_cooldown = 10.0
+max_health = 100.0
+name_primary = "Slash"
+name_secondary = "Heavy"
+name_utility = "Dash"
+name_ability_q = "Zest Burst"
+name_ability_e = "Sour Storm"
+
+
+===== FILE: resources\char_2.tres =====
+
+[gd_resource type="Resource" script_class="AbilitySet" load_steps=2 format=3 uid="uid://bcharset002"]
+
+[ext_resource type="Script" path="res://scripts/ability_set.gd" id="1_abset"]
+
+[resource]
+script = ExtResource("1_abset")
+character_name = "Char 2"
+portrait = null
+icon_primary = null
+icon_secondary = null
+icon_utility = null
+icon_ability_q = null
+icon_ability_e = null
+primary_cooldown = 0.4
+secondary_cooldown = 3.0
+utility_cooldown = 0.8
+ability_q_cooldown = 6.0
+ability_e_cooldown = 10.0
+max_health = 100.0
+name_primary = "Slash"
+name_secondary = "Heavy"
+name_utility = "Dash"
+name_ability_q = "Q-Ability"
+name_ability_e = "E-Ability"
+
+
+===== FILE: resources\char_3.tres =====
+
+[gd_resource type="Resource" script_class="AbilitySet" load_steps=2 format=3 uid="uid://bcharset003"]
+
+[ext_resource type="Script" path="res://scripts/ability_set.gd" id="1_abset"]
+
+[resource]
+script = ExtResource("1_abset")
+character_name = "Char 3"
+portrait = null
+icon_primary = null
+icon_secondary = null
+icon_utility = null
+icon_ability_q = null
+icon_ability_e = null
+primary_cooldown = 0.4
+secondary_cooldown = 3.0
+utility_cooldown = 0.8
+ability_q_cooldown = 6.0
+ability_e_cooldown = 10.0
+max_health = 100.0
+name_primary = "Slash"
+name_secondary = "Heavy"
+name_utility = "Dash"
+name_ability_q = "Q-Ability"
+name_ability_e = "E-Ability"
+
+
+===== FILE: resources\char_4.tres =====
+
+[gd_resource type="Resource" script_class="AbilitySet" load_steps=2 format=3 uid="uid://bcharset004"]
+
+[ext_resource type="Script" path="res://scripts/ability_set.gd" id="1_abset"]
+
+[resource]
+script = ExtResource("1_abset")
+character_name = "Char 4"
+portrait = null
+icon_primary = null
+icon_secondary = null
+icon_utility = null
+icon_ability_q = null
+icon_ability_e = null
+primary_cooldown = 0.4
+secondary_cooldown = 3.0
+utility_cooldown = 0.8
+ability_q_cooldown = 6.0
+ability_e_cooldown = 10.0
+max_health = 100.0
+name_primary = "Slash"
+name_secondary = "Heavy"
+name_utility = "Dash"
+name_ability_q = "Q-Ability"
+name_ability_e = "E-Ability"
+
+
+===== FILE: scenes\ability_slot.tscn =====
+
+[gd_scene format=3 uid="uid://bablslot001"]
+
+[ext_resource type="Script" path="res://scripts/ability_slot.gd" id="1_abslot"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_abslot"]
+bg_color = Color(0.09, 0.09, 0.12, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.52, 0.2, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_abkey"]
+bg_color = Color(0, 0, 0, 0.7)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="AbilitySlot" type="Control"]
+custom_minimum_size = Vector2(56, 56)
+offset_right = 56.0
+offset_bottom = 56.0
+pivot_offset = Vector2(28, 28)
+mouse_filter = 2
+script = ExtResource("1_abslot")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_abslot")
+
+[node name="Icon" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CooldownOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="ReadyFlash" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.98, 0.75, 1)
+
+[node name="CooldownLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="KeyLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -30.0
+offset_top = -16.0
+offset_right = -2.0
+offset_bottom = -1.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.95, 0.92, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_abkey")
+text = "Q"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+
 ===== FILE: scenes\combo_label.gd =====
 
 extends Control
@@ -6644,8 +6867,6 @@ func get_display_name() -> String:
 # vom Player's Hitbox wird ignoriert). Im Inspector aktivieren für Fighter, Colossus etc.
 @export var is_heavy: bool = false
 
-
-
 # Höhe, auf der der Lock-On-Ring über DIESEM Gegner erscheint.
 @export var reticle_height_offset: float = 1.2
 
@@ -6710,24 +6931,15 @@ var jump_velocity: float = 0.0
 
 @export var movement_acceleration: float = 40.0
 
-# --- NEU: NavMesh-Pfadverfolgung ---
+# --- NavMesh-Pfadverfolgung ---
 # Wie oft (in Sekunden) das Ziel des NavigationAgent3D neu gesetzt wird.
 @export var nav_target_update_interval: float = 0.2
 
-# --- NEU: Ledge-Drop-Verhalten (greift NUR, wenn KEIN gültiger NavMesh-
+# --- Ledge-Drop-Verhalten (greift NUR, wenn KEIN gültiger NavMesh-
 # Pfad zum Spieler existiert) ---
-# Ob ein Gegner ohne NavMesh-Verbindung aktiv über eine sichere Kante
-# läuft/fällt, statt an ihr zu warten — vorausgesetzt der Spieler
-# befindet sich unterhalb UND die gemessene Falltiefe ist sicher.
 @export var ledge_drop_enabled: bool = true
-# Maximale Falltiefe in Metern, die OHNE NavMesh-Pfad als "sicher zum
-# Runterlaufen" gilt.
 @export var max_safe_drop_height: float = 4.0
-# Wie weit der Downward-Raycast zur TATSÄCHLICHEN Tiefenmessung reicht.
-# Muss größer als max_safe_drop_height sein.
 @export var ledge_drop_probe_distance: float = 15.0
-# Wie viele Meter der Spieler mindestens unter den eigenen Füßen stehen
-# muss, damit "Spieler ist unten" als erfüllt gilt.
 @export var ledge_drop_player_below_margin: float = 1.0
 
 # --- Abrutsch-Logik, wenn der Gegner auf dem Player-Kopf steht ---
@@ -6736,6 +6948,10 @@ var jump_velocity: float = 0.0
 @export var player_head_slide_min_height_above_player: float = 0.3
 
 var _waiting_at_ledge: bool = false
+
+# Cooldown damit der Slide-Impuls nicht jeden Frame überschrieben wird
+# und move_and_slide() ihn sofort wieder killt.
+var _slide_cooldown: float = 0.0
 
 # --- Status-Effekt-System (Poison, Slow, Fear, ...) ---
 var status_effects: StatusEffectManager
@@ -6761,9 +6977,6 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 @onready var telegraph_outer: MeshInstance3D = get_node_or_null("AttackHitbox/TelegraphOuterRing")
 @onready var health: Health = get_node_or_null("Health")
 @onready var mesh: MeshInstance3D = get_node_or_null("MeshInstance3D")
-# NEU: optionaler NavigationAgent3D. get_node_or_null sorgt dafür, dass
-# Gegner-Szenen OHNE diesen Node (z.B. alte Dummies) sauber auf null
-# fallen und automatisch auf die Luftlinien-Logik zurückfallen.
 @onready var nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
 
 var _state: State = State.IDLE
@@ -6776,13 +6989,9 @@ var _last_known_health: float = -1.0
 var _alpha_tween: Tween
 var _flash_tween: Tween
 
-# Gecachte, robust gesuchte CollisionShape3D (siehe
-# _get_collision_shape_node()) + Merker, damit die Warnung bei fehlender
-# Shape nur EINMAL pro Gegner geloggt wird statt jeden Frame.
 var _collision_shape_cache: CollisionShape3D
 var _warned_missing_collision_shape: bool = false
 
-# NEU: Timer für die periodische NavigationAgent3D-Zielaktualisierung.
 var _nav_update_timer: float = 0.0
 
 func _debug(msg: String) -> void:
@@ -6840,6 +7049,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = 0
 
 	_attack_timer = max(_attack_timer - delta, 0.0)
+	_slide_cooldown = max(_slide_cooldown - delta, 0.0)
 
 	if _player == null or not is_instance_valid(_player):
 		velocity.x = 0
@@ -6894,11 +7104,15 @@ func _physics_process(delta: float) -> void:
 	# Telegraph-Ringe NACH move_and_slide() auf den echten Boden pinnen.
 	_update_telegraph_ground_position()
 
-# Erkennt, ob der Gegner WIRKLICH auf dem Player steht (nicht nur seitlich
-# an ihm anliegt), und verpasst ihm in diesem Fall einen horizontalen
-# Impuls weg vom Player-Zentrum.
+# Erkennt, ob der Gegner auf dem Player-Kopf steht, und verpasst ihm
+# einen einmaligen Impuls weg — mit Cooldown, damit move_and_slide()
+# den Impuls nicht sofort im nächsten Frame wieder killt.
 func _handle_standing_on_player() -> void:
 	if _player == null or not is_instance_valid(_player):
+		return
+
+	# Cooldown aktiv: Impuls wurde bereits gesetzt, abwarten.
+	if _slide_cooldown > 0.0:
 		return
 
 	var to_player_xz: Vector3 = global_position - _player.global_position
@@ -6911,7 +7125,7 @@ func _handle_standing_on_player() -> void:
 	if feet_y < player_y + player_head_slide_min_height_above_player:
 		return
 
-	# Nur wenn wir wirklich direkt drüber sind — fester Threshold statt body_radius
+	# Nur wenn wir wirklich direkt drüber sind.
 	if dist_xz > 4.0:
 		return
 
@@ -6922,12 +7136,15 @@ func _handle_standing_on_player() -> void:
 
 	_debug("Auf Player-Kopf erkannt (feet_y=%.2f, dist_xz=%.2f) -> Slide-Impuls." % [feet_y, dist_xz])
 
-	# Impuls ÜBERSCHREIBT direkt — kein move_toward, kein max()
+	# Impuls direkt überschreiben — kein move_toward, kein max().
 	velocity.x = away.x * player_head_slide_impulse
 	velocity.z = away.z * player_head_slide_impulse
-	# Starker Aufwärts-Kick damit Gravity ihn nicht sofort zurückzieht
+	# Aufwärts-Kick damit Gravity den Impuls nicht sofort neutralisiert.
 	velocity.y = player_head_slide_impulse * 0.8
-	
+
+	# Für 0.4s nicht nochmal feuern — lässt den Impuls voll wirken.
+	_slide_cooldown = 0.4
+
 func _update_telegraph_ground_position() -> void:
 	if not telegraph_ground_snap:
 		return
@@ -6949,8 +7166,6 @@ func _update_telegraph_ground_position() -> void:
 
 	var result := space_state.intersect_ray(query)
 
-	# Fallback, falls kein Boden gefunden wird (z.B. Gegner über einem
-	# Abgrund): einfach die aktuelle Gegner-Y-Position nehmen.
 	var ground_y: float = global_position.y
 	if result:
 		ground_y = result.position.y
@@ -6980,9 +7195,6 @@ func _get_separation_velocity() -> Vector3:
 			push += offset.normalized() * strength
 	return push
 
-# ÜBERARBEITET: unterscheidet jetzt sauber zwischen "gültiger NavMesh-Pfad
-# vorhanden -> strikt folgen" und "kein Pfad, aber Ziel liegt unten -> über
-# die Kante droppen" statt bei jeder Kante blind einzufrieren.
 func _move_towards_player(delta: float) -> void:
 	var dir: Vector3 = Vector3.ZERO
 	var following_nav_path: bool = false
@@ -6998,14 +7210,6 @@ func _move_towards_player(delta: float) -> void:
 			var next_point: Vector3 = nav_agent.get_next_path_position()
 			var to_next: Vector3 = next_point - global_position
 			to_next.y = 0.0
-			# WICHTIG: nur WIRKLICH als "folge dem Pfad" zählen, wenn die
-			# berechnete Richtung auch spürbar von der eigenen Position
-			# wegzeigt. Bei fehlendem/leerem NavMesh (kein
-			# NavigationRegion3D im Level, z.B. level_02test.tscn) kann
-			# get_next_path_position() praktisch die eigene Position
-			# zurückgeben -> dir bliebe Vector3.ZERO und der Gegner würde
-			# komplett einfrieren, OHNE dass die Ledge-Logik unten je
-			# zum Zug kommt. Dieses Sicherheitsnetz verhindert genau das.
 			if to_next.length() > 0.01:
 				following_nav_path = true
 				dir = to_next.normalized()
@@ -7017,8 +7221,7 @@ func _move_towards_player(delta: float) -> void:
 
 	_waiting_at_ledge = false
 
-	# --- Ledge-Logik: NUR relevant, wenn wir die Richtung selbst wählen
-	# (kein gültiger NavMesh-Pfad vorhanden) ---
+	# --- Ledge-Logik: NUR relevant ohne gültigen NavMesh-Pfad ---
 	if not following_nav_path and dir.length() > 0.01 and _is_ledge_ahead(dir):
 		var jumped_across: bool = can_jump_across_ledges and is_on_floor() and _try_jump_across_ledge(dir)
 
@@ -7034,10 +7237,6 @@ func _move_towards_player(delta: float) -> void:
 			var may_drop: bool = ledge_drop_enabled and player_is_below and drop_depth <= max_safe_drop_height
 
 			if may_drop:
-				# Sicherer Drop: kein NavMesh-Pfad, Spieler ist unten UND
-				# die Falltiefe liegt im erlaubten Rahmen -> über die
-				# Kante weiterlaufen statt einzufrieren. Die Schwerkraft
-				# übernimmt den Rest, sobald is_on_floor() false wird.
 				_debug("Sicherer Drop erkannt (Tiefe %.2f <= max_safe_drop_height %.2f, player_is_below=%s) -> laufe über die Kante." % [drop_depth, max_safe_drop_height, player_is_below])
 			else:
 				if ledge_wait_enabled:
@@ -7047,9 +7246,8 @@ func _move_towards_player(delta: float) -> void:
 					velocity.z = 0
 					_face_player(delta)
 					return
-				# ledge_wait_enabled = false -> altes Verhalten: einfach weiterlaufen
 
-	# --- Hindernis-Check: kleine Stufe/Kante hochspringen statt stehenbleiben ---
+	# --- Hindernis-Check: kleine Stufe hochspringen ---
 	if can_jump and is_on_floor() and dir.length() > 0.01:
 		var required_height: float = _get_required_jump_height(dir)
 		if required_height > 0.0:
@@ -7065,11 +7263,6 @@ func _move_towards_player(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
 
-# NEU: Misst die TATSÄCHLICHE Falltiefe in Metern an einer erkannten Kante,
-# über eine GRÖSSERE Downward-Raycast-Distanz (ledge_drop_probe_distance)
-# als der reine Ja/Nein-Check in _is_ledge_ahead(). Trifft der Ray
-# innerhalb dieser Distanz keinen Boden, gilt der Abgrund als "zu tief zum
-# sicheren Messen" (INF) -> wird automatisch als unsicher behandelt.
 func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -7087,16 +7280,6 @@ func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> flo
 	var drop_y: float = result.position.y
 	return feet_y - drop_y
 
-# Nutzt Godots eingebaute is_target_reachable(), um zuverlässig zwischen
-# "NavMesh hat eine durchgehende Verbindung zum Spieler" und "kein
-# gültiger Pfad" zu unterscheiden — deckt sowohl den Fall aus deiner
-# Ursachen-Analyse ab (Start/Ziel auf getrennten NavMesh-Inseln) als auch
-# den Fall "gar kein NavigationRegion3D im Level vorhanden" (z.B.
-# level_02test.tscn). Eine eigene Distanz-Heuristik über
-# get_final_position() war hier unzuverlässig: bei fehlendem NavMesh
-# gibt get_final_position() praktisch die Zielposition selbst zurück,
-# wodurch die Prüfung fälschlich "gültiger Pfad" meldete und Gegner
-# komplett einfroren (dir blieb Vector3.ZERO, siehe _move_towards_player).
 func _has_valid_nav_path_to_player() -> bool:
 	if nav_agent == null or _player == null:
 		return false
@@ -7125,13 +7308,6 @@ func _get_collision_shape_node() -> CollisionShape3D:
 		_warned_missing_collision_shape = true
 	return null
 
-# Berechnet die TATSÄCHLICHE Weltraum-Y-Höhe der FÜSSE dieses Gegners über
-# die eigene CollisionShape3D — nicht einfach global_position.y (die
-# Root!), die je nach Gegnertyp Fußhöhe ODER Körpermitte sein kann.
-# WICHTIG: shape.height bei CapsuleShape3D ist in Godot 4 bereits die
-# GESAMTE Kapselhöhe inklusive beider halbrunder Kappen — der halbe
-# Abstand von der Mitte zur Spitze ist daher schlicht height * 0.5, NICHT
-# radius + height * 0.5.
 func _get_feet_y() -> float:
 	var collision_shape := _get_collision_shape_node()
 	if collision_shape and collision_shape.shape:
@@ -7160,10 +7336,6 @@ func _get_body_radius() -> float:
 			return shape.radius * xz_scale
 	return 0.5
 
-# Gibt -1.0 zurück, wenn kein Sprung nötig ist ODER das Hindernis selbst
-# bei voller jump_height noch blockiert. Sonst: die Zielhöhe, auf die
-# gesprungen werden soll (gemessene Hindernishöhe + kleine Marge,
-# gedeckelt bei jump_height als Obergrenze).
 func _get_required_jump_height(dir: Vector3) -> float:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -7198,10 +7370,6 @@ func _get_required_jump_height(dir: Vector3) -> float:
 
 	return min(obstacle_clear_height + obstacle_jump_margin, jump_height)
 
-# Prüft per Downward-Raycast, ob in Bewegungsrichtung noch Boden vorhanden
-# ist. Zusätzlich zum mittleren Raycast werden zwei seitlich versetzte
-# geprüft — eine Kante wird nur erkannt, wenn ALLE Raycasts keinen Boden
-# finden (verhindert False-Positives durch Unebenheiten im Collision-Mesh).
 func _is_ledge_ahead(dir: Vector3) -> bool:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -7233,8 +7401,6 @@ func _is_ledge_ahead(dir: Vector3) -> bool:
 	_debug("Kante erkannt: feet_y=%.2f, effective_forward_distance=%.2f (Basis ledge_check_forward_distance=%.2f, Körperradius=%.2f)" % [feet_y, effective_forward_distance, ledge_check_forward_distance, _get_body_radius()])
 	return true
 
-# Tastet sich in mehreren Schritten über die Lücke vor; findet sich
-# innerhalb von jump_across_max_gap wieder Boden, wird gesprungen.
 func _try_jump_across_ledge(dir: Vector3) -> bool:
 	var space_state := get_world_3d().direct_space_state
 	var feet_y: float = _get_feet_y()
@@ -7517,6 +7683,256 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 	fill.scale.x = percent
 	# Fill von links her verankern statt mittig zu schrumpfen
 	fill.position.x = -(1.0 - percent) * _fill_width * 0.5
+
+
+===== FILE: scenes\hud.tscn =====
+
+[gd_scene format=3 uid="uid://bhudmain001"]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/minimap.gd" id="2_minimap"]
+[ext_resource type="PackedScene" uid="uid://bpartyslot01" path="res://scenes/party_slot.tscn" id="3_pslot"]
+[ext_resource type="PackedScene" uid="uid://bablslot001" path="res://scenes/ability_slot.tscn" id="4_abslot"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
+bg_color = Color(0.06, 0.06, 0.09, 0.82)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.48, 0.18, 1)
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_arrow"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_arrow"]
+width = 16
+height = 16
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud")
+
+[node name="Minimap" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 240.0
+offset_bottom = 280.0
+mouse_filter = 2
+script = ExtResource("2_minimap")
+
+[node name="Frame" type="Panel" parent="Minimap"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 238.0
+offset_bottom = 278.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mapframe")
+
+[node name="ZoneLabel" type="Label" parent="Minimap/Frame"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 28.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 15
+text = "LEMONADE FIELDS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MapContainer" type="Control" parent="Minimap/Frame"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 210.0
+offset_bottom = 232.0
+mouse_filter = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Minimap/Frame/MapContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Minimap/Frame/MapContainer/SubViewportContainer"]
+own_world_3d = false
+handle_input_locally = false
+size = Vector2i(200, 200)
+render_target_update_mode = 4
+
+[node name="MapCamera" type="Camera3D" parent="Minimap/Frame/MapContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 40, 0)
+projection = 1
+current = true
+size = 30.0
+
+[node name="PlayerArrow" type="TextureRect" parent="Minimap/Frame/MapContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(8, 8)
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_arrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoordLabel" type="Label" parent="Minimap/Frame"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = -26.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "X: 0   Y: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightPanel" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -200.0
+offset_right = -14.0
+offset_bottom = 200.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PartyContainer" type="VBoxContainer" parent="RightPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="PartySlot1" parent="RightPanel/PartyContainer" instance=ExtResource("3_pslot")]
+layout_mode = 2
+
+[node name="PartySlot2" parent="RightPanel/PartyContainer" instance=ExtResource("3_pslot")]
+layout_mode = 2
+
+[node name="PartySlot3" parent="RightPanel/PartyContainer" instance=ExtResource("3_pslot")]
+layout_mode = 2
+
+[node name="PartySlot4" parent="RightPanel/PartyContainer" instance=ExtResource("3_pslot")]
+layout_mode = 2
+
+[node name="AbilityBar" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -330.0
+offset_top = -90.0
+offset_right = -14.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="AbilityContainer" type="HBoxContainer" parent="AbilityBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 2
+theme_override_constants/separation = 8
+
+[node name="AbilitySlot1" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="AbilitySlot2" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="AbilitySlot3" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="AbilitySlot4" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="AbilitySlot5" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="ComboDisplay" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 60.0
+offset_top = -60.0
+offset_right = 300.0
+offset_bottom = 60.0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ComboCount" type="Label" parent="ComboDisplay"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 48
+text = "x5"
+
+[node name="ComboText" type="Label" parent="ComboDisplay"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 20
+text = "COMBO!"
 
 
 ===== FILE: scenes\kill_gate.gd =====
@@ -7988,7 +8404,6 @@ script = ExtResource("6_8c41q")
 [gd_scene format=3 uid="uid://bujv4m8kc3b6b"]
 
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_t0ybu"]
-[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_1b6n0"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="2_wqkcq"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_llcge"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_lwi15"]
@@ -8000,19 +8415,20 @@ script = ExtResource("6_8c41q")
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="7_2ucnx"]
 [ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="7_px6rj"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="7_t0ybu"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="9_4ldtp"]
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="10_cy6r3"]
+[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="10_w4cok"]
 [ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="11_0tv6x"]
+[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="11_3kr23"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="11_e6mo4"]
+[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="12_oy082"]
 [ext_resource type="PackedScene" uid="uid://d00w77tyt3r10" path="res://scenes/kill_gate.tscn" id="13_2ucnx"]
+[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="13_a577o"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="14_d46x6"]
+[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="14_ne2m8"]
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="14_s61md"]
+[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="15_l0wem"]
 [ext_resource type="Script" uid="uid://cw2plpk5i6wia" path="res://scenes/goal_zone.gd" id="17_42ncp"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cr2eh"]
-bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cy6r3"]
-bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0tv6x"]
 shader = ExtResource("7_2ucnx")
@@ -8053,72 +8469,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
 
 [node name="SettingsMenu" parent="CanvasLayer" unique_id=1233549317 instance=ExtResource("2_wqkcq")]
-
-[node name="HUD" type="Control" parent="CanvasLayer" unique_id=1622840272]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -177.0
-offset_top = -81.0
-offset_right = 178.0
-grow_horizontal = 2
-grow_vertical = 0
-script = ExtResource("2_1b6n0")
-
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=222611370]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -92.5
-offset_top = -30.0
-offset_right = 92.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_cr2eh")
-theme_override_styles/fill = SubResource("StyleBoxFlat_cy6r3")
-show_percentage = false
-
-[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=2020234932]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -39.5
-offset_top = -29.0
-offset_right = 40.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=1384290920]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.16900001
-anchor_top = -3.7560003
-anchor_right = -0.16900001
-anchor_bottom = -3.7560003
-offset_left = -55.709995
-offset_top = -29.493988
-offset_right = 164.845
-offset_bottom = 83.50601
-
-[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1528514089]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "x5"
-
-[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1761267995]
-layout_mode = 2
-text = "COMBO!"
 
 [node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1478100258]
 layout_mode = 3
@@ -8321,6 +8671,12 @@ operation = 2
 size = Vector3(0.2919922, 16.167114, 0.5091858)
 material = ExtResource("6_qgxqk")
 
+[node name="HUD" parent="CanvasLayer" unique_id=1091083640 instance=ExtResource("9_4ldtp")]
+
+[node name="Node" type="Node" parent="." unique_id=506339664]
+script = ExtResource("10_w4cok")
+party_sets = Array[ExtResource("11_3kr23")]([ExtResource("12_oy082"), ExtResource("13_a577o"), ExtResource("14_ne2m8"), ExtResource("15_l0wem")])
+
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=431866886]
 transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 90, 1.524353, 0)
 navigation_mesh = SubResource("NavigationMesh_riqys")
@@ -8509,29 +8865,29 @@ mesh = SubResource("BoxMesh_6f8o3")
 [gd_scene format=3 uid="uid://c81noxov6se3n"]
 
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_player"]
-[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_hud"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_pause"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_death"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_win"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="6_submersion"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="7_spawner"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="8_crt"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="8_thh7q"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="8_to87m"]
+[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="9_7hevf"]
 [ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="9_reticle_tex"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="10_reticle"]
+[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="10_tmoxt"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="11_psxmat"]
+[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="11_r2fl4"]
 [ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="12_fighter"]
+[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="12_s1jqf"]
+[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="13_rndxe"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="13_stinger"]
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="14_colossus"]
+[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="14_rqluw"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="15_lemonade"]
 [ext_resource type="PackedScene" uid="uid://d00w77tyt3r10" path="res://scenes/kill_gate.tscn" id="16_gate"]
 [ext_resource type="Script" uid="uid://cw2plpk5i6wia" path="res://scenes/goal_zone.gd" id="17_goal"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbar_bg"]
-bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbar_fill"]
-bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
 shader = ExtResource("8_crt")
@@ -8553,72 +8909,6 @@ size = Vector3(10, 6, 30)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 5.7365723, 0)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=900003]
-
-[node name="HUD" type="Control" parent="CanvasLayer" unique_id=900004]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -177.0
-offset_top = -81.0
-offset_right = 178.0
-grow_horizontal = 2
-grow_vertical = 0
-script = ExtResource("2_hud")
-
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=900005]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -92.5
-offset_top = -30.0
-offset_right = 92.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_hpbar_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_hpbar_fill")
-show_percentage = false
-
-[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=900006]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -39.5
-offset_top = -29.0
-offset_right = 40.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=900007]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.16900001
-anchor_top = -3.7560003
-anchor_right = -0.16900001
-anchor_bottom = -3.7560003
-offset_left = -55.709995
-offset_top = -29.493988
-offset_right = 164.845
-offset_bottom = 83.50601
-
-[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=900008]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "x5"
-
-[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=900009]
-layout_mode = 2
-text = "COMBO!"
 
 [node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=900016]
 layout_mode = 3
@@ -8803,6 +9093,12 @@ layout_mode = 2
 text = "Quit"
 
 [node name="SettingsMenu" parent="CanvasLayer" unique_id=264605518 instance=ExtResource("8_to87m")]
+
+[node name="HUD" parent="CanvasLayer" unique_id=544451029 instance=ExtResource("8_thh7q")]
+
+[node name="Node" type="Node" parent="." unique_id=125253270]
+script = ExtResource("9_7hevf")
+party_sets = Array[ExtResource("10_tmoxt")]([ExtResource("11_r2fl4"), ExtResource("12_s1jqf"), ExtResource("13_rndxe"), ExtResource("14_rqluw")])
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=987172830]
 transform = Transform3D(1, 0, 1.6703743e-22, 0, 1, 0, 1.6703743e-22, 0, 1, -20, 0, -1.4210855e-14)
@@ -10322,6 +10618,134 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 10)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 4, 10)
 
 
+===== FILE: scenes\party_slot.tscn =====
+
+[gd_scene format=3 uid="uid://bpartyslot01"]
+
+[ext_resource type="Script" path="res://scripts/party_slot.gd" id="1_pslot"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ppanel"]
+bg_color = Color(0.08, 0.08, 0.11, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.48, 0.18, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_phpbg"]
+bg_color = Color(0.12, 0.05, 0.05, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_phpfill"]
+bg_color = Color(0.35, 0.85, 0.3, 1)
+
+[node name="PartySlot" type="Control"]
+custom_minimum_size = Vector2(210, 84)
+offset_right = 210.0
+offset_bottom = 84.0
+pivot_offset = Vector2(210, 42)
+mouse_filter = 2
+script = ExtResource("1_pslot")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ppanel")
+
+[node name="Portrait" type="TextureRect" parent="Panel"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 6.0
+offset_top = -32.0
+offset_right = 70.0
+offset_bottom = 32.0
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 76.0
+offset_top = 10.0
+offset_right = -8.0
+offset_bottom = 34.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 17
+text = "Lemon"
+vertical_alignment = 1
+
+[node name="HealthBar" type="ProgressBar" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 76.0
+offset_top = 40.0
+offset_right = -8.0
+offset_bottom = 66.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_phpbg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_phpfill")
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="HpLabel" type="Label" parent="Panel/HealthBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+text = "100 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="KeyHint" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 4.0
+offset_top = 2.0
+offset_right = 22.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.95, 0.92, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+text = "1"
+horizontal_alignment = 1
+
+[node name="DeadOverlay" type="ColorRect" parent="Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.6)
+
+
 ===== FILE: scenes\player.tscn =====
 
 [gd_scene format=3 uid="uid://i1hdv5qqmw21"]
@@ -11345,23 +11769,23 @@ func _process(delta: float) -> void:
 [gd_scene format=3 uid="uid://bnlevdvxc4nnq"]
 
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_g0wwu"]
-[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_1cllw"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_iy4sn"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_21bqe"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_mew1s"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="6_kjoxb"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="7_2xqp6"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="7_mio06"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="8_mio06"]
+[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_wxbki"]
+[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="9_frsmd"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="9_wxbki"]
+[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_6ci1b"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="10_frsmd"]
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="11_6ci1b"]
+[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="11_cgcdo"]
+[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="12_6klec"]
 [ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="12_cgcdo"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cr2eh"]
-bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cy6r3"]
-bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
+[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="13_8blc5"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0tv6x"]
 shader = ExtResource("6_kjoxb")
@@ -11391,72 +11815,6 @@ shader_parameter/flash_strength = 0.0
 
 [node name="Player" parent="CanvasLayer" unique_id=1005944688 instance=ExtResource("1_g0wwu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7768364, 1, -30.211166)
-
-[node name="HUD" type="Control" parent="CanvasLayer" unique_id=804877872]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -177.0
-offset_top = -81.0
-offset_right = 178.0
-grow_horizontal = 2
-grow_vertical = 0
-script = ExtResource("2_1cllw")
-
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=613048961]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -92.5
-offset_top = -30.0
-offset_right = 92.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_cr2eh")
-theme_override_styles/fill = SubResource("StyleBoxFlat_cy6r3")
-show_percentage = false
-
-[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=525707145]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -39.5
-offset_top = -29.0
-offset_right = 40.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=1779257113]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.16900001
-anchor_top = -3.7560003
-anchor_right = -0.16900001
-anchor_bottom = -3.7560003
-offset_left = -55.709995
-offset_top = -29.493988
-offset_right = 164.845
-offset_bottom = 83.50601
-
-[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=807320614]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "x5"
-
-[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1937637713]
-layout_mode = 2
-text = "COMBO!"
 
 [node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1702809052]
 layout_mode = 3
@@ -11637,6 +11995,12 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("7_2xqp6")
 
+[node name="HUD" parent="CanvasLayer" unique_id=2020866629 instance=ExtResource("7_mio06")]
+
+[node name="Node" type="Node" parent="." unique_id=745760395]
+script = ExtResource("8_wxbki")
+party_sets = Array[ExtResource("9_frsmd")]([ExtResource("10_6ci1b"), ExtResource("11_cgcdo"), ExtResource("12_6klec"), ExtResource("13_8blc5")])
+
 [node name="Stingerspawn" type="Node3D" parent="." unique_id=1890598471 node_paths=PackedStringArray("spawn_points")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8152657, 3.6324558, -11.489873)
 script = ExtResource("8_mio06")
@@ -11695,24 +12059,25 @@ size = Vector3(29, 24, 9)
 [gd_scene format=3 uid="uid://dlw0rj8ock3xm"]
 
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_vsm81"]
-[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_q7m6h"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_eutxe"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_efmsy"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="5_05i8t"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_qhgh5"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="6_05i8t"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="7_41vms"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="7_ll6ne"]
+[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_c1kxm"]
 [ext_resource type="MeshLibrary" uid="uid://cidkitv756718" path="res://assets/Kit.meshlib" id="8_ruyoh"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="9_eutxe"]
+[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="9_g21q3"]
+[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_bpwxd"]
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="10_efmsy"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="11_05i8t"]
+[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="11_mv0uh"]
+[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="12_0kovo"]
 [ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="12_ll6ne"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ruyoh"]
-bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bnsqe"]
-bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
+[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="13_lknka"]
+[ext_resource type="Script" uid="uid://dsy4cktqiacs" path="res://scripts/zone_marker.gd" id="14_fr3ye"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_b4nts"]
 shader = ExtResource("6_05i8t")
@@ -11726,72 +12091,6 @@ shader_parameter/scroll_speed = 0.0
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1018722565]
 
 [node name="SettingsMenu" parent="CanvasLayer" unique_id=1043967461 instance=ExtResource("5_05i8t")]
-
-[node name="HUD" type="Control" parent="CanvasLayer" unique_id=1924139102]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -177.0
-offset_top = -81.0
-offset_right = 178.0
-grow_horizontal = 2
-grow_vertical = 0
-script = ExtResource("2_q7m6h")
-
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=1761211958]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -92.5
-offset_top = -30.0
-offset_right = 92.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_ruyoh")
-theme_override_styles/fill = SubResource("StyleBoxFlat_bnsqe")
-show_percentage = false
-
-[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=328009443]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -39.5
-offset_top = -29.0
-offset_right = 40.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=967158894]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.16900001
-anchor_top = -3.7560003
-anchor_right = -0.16900001
-anchor_bottom = -3.7560003
-offset_left = -55.709995
-offset_top = -29.493988
-offset_right = 164.845
-offset_bottom = 83.50601
-
-[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=241294308]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "x5"
-
-[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1304371459]
-layout_mode = 2
-text = "COMBO!"
 
 [node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=313194059]
 layout_mode = 3
@@ -11981,6 +12280,17 @@ offset_bottom = 4.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("7_ll6ne")
+
+[node name="HUD" parent="CanvasLayer" unique_id=612308843 instance=ExtResource("7_41vms")]
+
+[node name="Node" type="Node" parent="." unique_id=1502658180]
+script = ExtResource("8_c1kxm")
+party_sets = Array[ExtResource("9_g21q3")]([ExtResource("10_bpwxd"), ExtResource("11_mv0uh"), ExtResource("12_0kovo"), ExtResource("13_lknka")])
+
+[node name="Area3D" type="Area3D" parent="." unique_id=1430905872]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1004127298]
+script = ExtResource("14_fr3ye")
 
 [node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_vsm81")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.98834, -44.073395, -52.662354)
@@ -12826,6 +13136,109 @@ func _on_quit_pressed() -> void:
 	get_tree().quit()
 
 
+===== FILE: scripts\ability_set.gd =====
+
+extends Resource
+class_name AbilitySet
+
+# Definiert das komplette Loadout EINES Charakters.
+# Als .tres im Ordner /resources ablegen, z.B. res://resources/char_1.tres
+
+@export var character_name: String = "Lemon"
+@export var portrait: Texture2D = null
+
+@export_group("Icons")
+@export var icon_primary: Texture2D = null
+@export var icon_secondary: Texture2D = null
+@export var icon_utility: Texture2D = null
+@export var icon_ability_q: Texture2D = null
+@export var icon_ability_e: Texture2D = null
+
+@export_group("Cooldowns")
+@export var primary_cooldown: float = 0.4
+@export var secondary_cooldown: float = 3.0
+@export var utility_cooldown: float = 0.8
+@export var ability_q_cooldown: float = 6.0
+@export var ability_e_cooldown: float = 10.0
+
+@export_group("Stats")
+@export var max_health: float = 100.0
+
+@export_group("Display Names")
+@export var name_primary: String = "Slash"
+@export var name_secondary: String = "Heavy"
+@export var name_utility: String = "Dash"
+@export var name_ability_q: String = "Q-Ability"
+@export var name_ability_e: String = "E-Ability"
+
+
+===== FILE: scripts\ability_slot.gd =====
+
+extends Control
+class_name AbilitySlot
+
+# Ein einzelnes Ability-Icon im HUD mit Cooldown-Verdunkelung,
+# Tastenkuerzel-Label und Ready-Blitz beim Verfuegbarwerden.
+
+@onready var icon: TextureRect = $Icon
+@onready var cooldown_overlay: ColorRect = $CooldownOverlay
+@onready var cooldown_label: Label = $CooldownLabel
+@onready var key_label: Label = $KeyLabel
+@onready var ready_flash: ColorRect = $ReadyFlash
+
+var _was_on_cooldown: bool = false
+
+func _ready() -> void:
+	pivot_offset = size * 0.5
+	cooldown_overlay.color = Color(0.0, 0.0, 0.0, 0.65)
+	cooldown_overlay.anchor_top = 0.0
+	cooldown_overlay.visible = false
+	cooldown_label.text = ""
+	ready_flash.modulate.a = 0.0
+
+func setup(texture: Texture2D, key_text: String) -> void:
+	if texture:
+		icon.texture = texture
+	key_label.text = key_text
+
+func set_icon(texture: Texture2D) -> void:
+	icon.texture = texture
+
+# percent: 1.0 = gerade gestartet, 0.0 = bereit
+func update_cooldown(percent: float, remaining: float) -> void:
+	var on_cd: bool = percent > 0.001
+
+	# Overlay schrumpft von oben nach unten weg, waehrend der CD ablaeuft
+	cooldown_overlay.visible = on_cd
+	cooldown_overlay.anchor_top = 1.0 - percent
+
+	if on_cd:
+		icon.modulate = Color(0.45, 0.45, 0.5, 1.0)
+		if remaining < 10.0:
+			cooldown_label.text = "%.1f" % remaining
+		else:
+			cooldown_label.text = "%d" % int(remaining)
+	else:
+		icon.modulate = Color.WHITE
+		cooldown_label.text = ""
+
+	if _was_on_cooldown and not on_cd:
+		_play_ready_flash()
+
+	_was_on_cooldown = on_cd
+
+func _play_ready_flash() -> void:
+	ready_flash.modulate.a = 0.85
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ready_flash, "modulate:a", 0.0, 0.35)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "scale", Vector2(1.15, 1.15), 0.08)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_property(self, "scale", Vector2.ONE, 0.18)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
 ===== FILE: scripts\combat.gd =====
 
 extends Node
@@ -12835,66 +13248,76 @@ class_name Combat
 @export var primary_cooldown: float = 0.4
 @export var secondary_cooldown: float = 3.0
 @export var utility_cooldown: float = 0.8
+@export var ability_q_cooldown: float = 6.0
+@export var ability_e_cooldown: float = 10.0
 
 @export var dash_speed: float = 30.0
 @export var dash_duration: float = 0.4
 
-# --- Signals, damit sich später ein UI-Cooldown-Icon dranhängen kann ---
+# --- Signals, damit sich das UI-Cooldown-Icon dranhaengen kann ---
 signal primary_used
 signal secondary_used
 signal utility_used
+signal ability_q_used
+signal ability_e_used
 signal combo_changed(count: int)
+# Generisches Signal fuers HUD: slot ist 0..4
+signal cooldown_started(slot: int, duration: float)
+
+enum Slot { PRIMARY, SECONDARY, UTILITY, ABILITY_Q, ABILITY_E }
 
 # --- Interne Cooldown-Timer (0 = bereit, >0 = wartet noch) ---
 var _primary_timer: float = 0.0
 var _secondary_timer: float = 0.0
 var _utility_timer: float = 0.0
+var _ability_q_timer: float = 0.0
+var _ability_e_timer: float = 0.0
 
 var _is_dashing: bool = false
 var _dash_timer: float = 0.0
 var _dash_direction: Vector3 = Vector3.ZERO
 
-# --- Hit Lock: nur aktiv, wenn ein Angriff TATSÄCHLICH trifft ---
+# --- Hit Lock: nur aktiv, wenn ein Angriff TATSAECHLICH trifft ---
 # --- (nicht bei jedem Schwung), und friert nicht komplett ein, ---
 # --- sondern erlaubt noch etwas reduzierte Bewegung. ---
 @export var hit_lock_duration: float = 0.2
 @export_range(0.0, 1.0) var hit_lock_speed_multiplier: float = 0.1
 
-# Wie viel "Trauma" ein TATSÄCHLICHER Treffer zur Kamera hinzufügt
+# Wie viel "Trauma" ein TATSAECHLICHER Treffer zur Kamera hinzufuegt
 # (summiert sich bei mehreren Treffern auf, gedeckelt bei 1.0 im Player).
 @export var hit_shake_strength: float = 0.4
 
-# --- Combo-Tilt: dramatische Kamera-Neigung, wächst mit der Combo ---
+# --- Combo-Tilt: dramatische Kamera-Neigung, waechst mit der Combo ---
 # --- "Bohrer"-Verhalten: bleibt in eine Richtung, solange derselbe ---
 # --- Gegner getroffen wird, flippt nur bei Zielwechsel. ---
 @export var combo_tilt_per_hit: float = 1.5
 @export var combo_tilt_max: float = 8.0
-# Eigener, KURZER Reset-Timer nur für den Tilt — unabhängig vom
-# combo_window (das länger läuft, für den Cooldown-Bonus).
+# Eigener, KURZER Reset-Timer nur fuer den Tilt — unabhaengig vom
+# combo_window (das laenger laeuft, fuer den Cooldown-Bonus).
 @export var combo_tilt_reset_delay: float = 0.5
 var _tilt_reset_timer: float = 0.0
 var _tilt_direction: float = 1.0
 var _last_hit_target: Node = null
 
-# 0.0 = komplett schweben (keine Schwerkraft während Hit Lock),
+# 0.0 = komplett schweben (keine Schwerkraft waehrend Hit Lock),
 # 1.0 = normale Schwerkraft (kein Unterschied), 0.2-0.3 = langsames Sinken.
 @export_range(0.0, 1.0) var hit_lock_gravity_multiplier: float = 0.0
 
-# Ob man während des Hit Locks überhaupt springen kann.
+# Ob man waehrend des Hit Locks ueberhaupt springen kann.
 @export var hit_lock_allow_jump: bool = false
 
 var _hit_lock_timer: float = 0.0
 
-# --- Combo-System: jeder Treffer über den ersten hinaus reduziert den ---
+# --- Combo-System: jeder Treffer ueber den ersten hinaus reduziert den ---
 # --- Primary-Cooldown linear, hart gedeckelt bei combo_max_reduction. ---
-@export var combo_window: float = 3.0                        # Sekunden, bis Combo verfällt
+@export var combo_window: float = 3.0                        # Sekunden, bis Combo verfaellt
 @export var combo_cooldown_reduction_per_hit: float = 0.1    # 10% Reduktion pro Combo-Stufe
 @export_range(0.0, 1.0) var combo_max_reduction: float = 0.5 # Hard Cap: max. 50% Reduktion
 var _combo_count: int = 0
 var _combo_timer: float = 0.0
 
-# --- Dash-Vertikalität: vorwärts behält volle Blickrichtungs-Neigung, ---
-# --- rückwärts bleibt bewusst flach/horizontal ("normaler" Dash). ---
+# --- Dash-Vertikalitaet: vorwaerts behaelt volle Blickrichtungs-Neigung, ---
+# --- rueckwaerts bleibt bewusst flach/horizontal ("normaler" Dash). ---
 @export_range(0.0, 1.0) var backward_dash_vertical_influence: float = 0.0
 
 # --- Node-Referenzen, die wir vom Player brauchen ---
@@ -12909,6 +13332,23 @@ func setup(owner_player: CharacterBody3D) -> void:
 	if secondary_hitbox:
 		secondary_hitbox.hit_landed.connect(_on_hit_landed)
 
+# Uebernimmt die Cooldown-Werte eines AbilitySet beim Charakterwechsel.
+# Laufende Cooldowns werden dabei zurueckgesetzt.
+func apply_ability_set(set: AbilitySet) -> void:
+	if set == null:
+		return
+	primary_cooldown = set.primary_cooldown
+	secondary_cooldown = set.secondary_cooldown
+	utility_cooldown = set.utility_cooldown
+	ability_q_cooldown = set.ability_q_cooldown
+	ability_e_cooldown = set.ability_e_cooldown
+
+	_primary_timer = 0.0
+	_secondary_timer = 0.0
+	_utility_timer = 0.0
+	_ability_q_timer = 0.0
+	_ability_e_timer = 0.0
+
 func _on_hit_landed(target: Node) -> void:
 	_hit_lock_timer = hit_lock_duration
 
@@ -12921,14 +13361,14 @@ func _on_hit_landed(target: Node) -> void:
 	if player and player.has_method("set_target") and target is Node3D:
 		player.set_target(target)
 
-	# Bestehendes AUFWÄRTS-Momentum sofort kappen (z.B. aus einem Sprung),
-	# damit man während des Hit Locks nicht einfach weiter nach oben
-	# treibt. Abwärts-Momentum (Fallen) bleibt unangetastet, das wird
-	# separat über hit_lock_gravity_multiplier gesteuert.
+	# Bestehendes AUFWAERTS-Momentum sofort kappen (z.B. aus einem Sprung),
+	# damit man waehrend des Hit Locks nicht einfach weiter nach oben
+	# treibt. Abwaerts-Momentum (Fallen) bleibt unangetastet, das wird
+	# separat ueber hit_lock_gravity_multiplier gesteuert.
 	if player and player.velocity.y > 0.0:
 		player.velocity.y = 0.0
 
-	# Combo hochzählen und Verfalls-Timer zurücksetzen
+	# Combo hochzaehlen und Verfalls-Timer zuruecksetzen
 	_combo_count += 1
 	_combo_timer = combo_window
 	combo_changed.emit(_combo_count)
@@ -12947,22 +13387,24 @@ func _on_hit_landed(target: Node) -> void:
 	_tilt_reset_timer = combo_tilt_reset_delay
 
 func _process(delta: float) -> void:
-	# NEU: Solange der Player gestunnt ist (z.B. von einem schnellen,
+	# Solange der Player gestunnt ist (z.B. von einem schnellen,
 	# nervigen Gegner getroffen), werden weder Angriffe noch Dash
-	# ausgelöst — kompletter Input-Block für Combat, bis der Stun
+	# ausgeloest — kompletter Input-Block fuer Combat, bis der Stun
 	# abgelaufen ist. Cooldown-Countdown pausiert dabei mit, das ist
-	# gewollt (kein "Cooldown-Farming" während man eh nichts tun kann).
+	# gewollt (kein "Cooldown-Farming" waehrend man eh nichts tun kann).
 	if player and player.has_method("is_stunned") and player.is_stunned():
 		return
 
-	# Cooldowns runterzählen
+	# Cooldowns runterzaehlen
 	_primary_timer = max(_primary_timer - delta, 0.0)
 	_secondary_timer = max(_secondary_timer - delta, 0.0)
 	_utility_timer = max(_utility_timer - delta, 0.0)
+	_ability_q_timer = max(_ability_q_timer - delta, 0.0)
+	_ability_e_timer = max(_ability_e_timer - delta, 0.0)
 	_hit_lock_timer = max(_hit_lock_timer - delta, 0.0)
 
-	# Combo-Verfall: läuft der Timer ab, ohne dass neu getroffen wurde,
-	# wird die Combo komplett zurückgesetzt.
+	# Combo-Verfall: laeuft der Timer ab, ohne dass neu getroffen wurde,
+	# wird die Combo komplett zurueckgesetzt.
 	if _combo_count > 0:
 		_combo_timer -= delta
 		if _combo_timer <= 0.0:
@@ -12972,8 +13414,8 @@ func _process(delta: float) -> void:
 			if player and player.has_method("reset_combo_tilt"):
 				player.reset_combo_tilt()
 
-	# Eigener, kurzer Tilt-Reset: läuft schneller ab als das ganze
-	# combo_window, damit sich die Kamera-Neigung zügig zurücksetzt,
+	# Eigener, kurzer Tilt-Reset: laeuft schneller ab als das ganze
+	# combo_window, damit sich die Kamera-Neigung zuegig zuruecksetzt,
 	# sobald kurz nicht mehr getroffen wird.
 	if _tilt_reset_timer > 0.0:
 		_tilt_reset_timer -= delta
@@ -12991,9 +13433,19 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("utility") and _utility_timer <= 0.0:
 		_do_utility()
 
+	if InputMap.has_action("ability_primary") \
+			and Input.is_action_just_pressed("ability_primary") and _ability_q_timer <= 0.0:
+		_do_ability_q()
+
+	if InputMap.has_action("ability_secondary") \
+			and Input.is_action_just_pressed("ability_secondary") and _ability_e_timer <= 0.0:
+		_do_ability_e()
+
 func _do_primary() -> void:
-	_primary_timer = _get_effective_primary_cooldown()
+	var cd: float = _get_effective_primary_cooldown()
+	_primary_timer = cd
 	primary_used.emit()
+	cooldown_started.emit(Slot.PRIMARY, cd)
 	if primary_hitbox:
 		primary_hitbox.activate()
 		# Hitbox nach kurzer Zeit wieder ausschalten (Angriffs-"Fenster")
@@ -13003,7 +13455,7 @@ func _do_primary() -> void:
 # Erst ab dem ZWEITEN Treffer (combo_count >= 2) wird der Cooldown reduziert.
 # Jeder weitere Treffer reduziert LINEAR weiter, bis zum harten Cap bei
 # combo_max_reduction (Standard: 50% — der Cooldown kann also nie mehr
-# als auf die Hälfte fallen, egal wie lang die Combo läuft).
+# als auf die Haelfte fallen, egal wie lang die Combo laeuft).
 func _get_effective_primary_cooldown() -> float:
 	var stacks: int = max(_combo_count - 1, 0)
 	var reduction: float = min(stacks * combo_cooldown_reduction_per_hit, combo_max_reduction)
@@ -13012,14 +13464,34 @@ func _get_effective_primary_cooldown() -> float:
 func _do_secondary() -> void:
 	_secondary_timer = secondary_cooldown
 	secondary_used.emit()
+	cooldown_started.emit(Slot.SECONDARY, secondary_cooldown)
 	if secondary_hitbox:
 		secondary_hitbox.activate()
 		await get_tree().create_timer(0.25).timeout
 		secondary_hitbox.deactivate()
 
+# --- Q-Ability: Platzhalter-Logik, hier deine Charakterfaehigkeit einbauen ---
+func _do_ability_q() -> void:
+	_ability_q_timer = ability_q_cooldown
+	ability_q_used.emit()
+	cooldown_started.emit(Slot.ABILITY_Q, ability_q_cooldown)
+
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.35)
+
+# --- E-Ability: Platzhalter-Logik, hier deine Charakterfaehigkeit einbauen ---
+func _do_ability_e() -> void:
+	_ability_e_timer = ability_e_cooldown
+	ability_e_used.emit()
+	cooldown_started.emit(Slot.ABILITY_E, ability_e_cooldown)
+
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.5)
+
 func _do_utility() -> void:
 	_utility_timer = utility_cooldown
 	utility_used.emit()
+	cooldown_started.emit(Slot.UTILITY, utility_cooldown)
 
 	if player and player.has_method("play_dash_fov_effect"):
 		player.play_dash_fov_effect()
@@ -13027,17 +13499,17 @@ func _do_utility() -> void:
 	var camera_pivot: Node3D = player.get_node("CameraPivot")
 	var spring_arm: SpringArm3D = player.get_node("CameraPivot/SpringArm3D")
 
-	# forward_full: mit voller vertikaler Neigung (Pitch) — für Vorwärts-Dash.
-	# forward_flat: rein horizontal, keine Neigung — für Rückwärts-Dash.
+	# forward_full: mit voller vertikaler Neigung (Pitch) — fuer Vorwaerts-Dash.
+	# forward_flat: rein horizontal, keine Neigung — fuer Rueckwaerts-Dash.
 	var forward_full: Vector3 = spring_arm.global_transform.basis.z
 	var forward_flat: Vector3 = camera_pivot.global_transform.basis.z
 	var right: Vector3 = camera_pivot.global_transform.basis.x
 
 	var input_dir: Vector2 = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 
-	# input_dir.y < 0 heißt "vorwärts" (W), > 0 heißt "rückwärts" (S).
-	# Rückwärts wird die Vertikal-Komponente gedämpft (Standard: komplett
-	# geflacht), vorwärts bleibt exakt wie zuvor mit voller Neigung.
+	# input_dir.y < 0 heisst "vorwaerts" (W), > 0 heisst "rueckwaerts" (S).
+	# Rueckwaerts wird die Vertikal-Komponente gedaempft (Standard: komplett
+	# geflacht), vorwaerts bleibt exakt wie zuvor mit voller Neigung.
 	var effective_forward: Vector3
 	if input_dir.y > 0.0:
 		effective_forward = forward_full.lerp(forward_flat, 1.0 - backward_dash_vertical_influence)
@@ -13049,14 +13521,14 @@ func _do_utility() -> void:
 	if move_direction.length() > 0.1:
 		_dash_direction = move_direction.normalized()
 	else:
-		# Keine Taste gedrückt → Fallback: exakte Blickrichtung, mit voller Neigung
+		# Keine Taste gedrueckt -> Fallback: exakte Blickrichtung, mit voller Neigung
 		_dash_direction = -forward_full.normalized()
 
 	_is_dashing = true
 	_dash_timer = dash_duration
 
 # Wird vom Player-Script in _physics_process aufgerufen, damit der Dash
-# die normale Bewegung während seiner Dauer überschreiben kann.
+# die normale Bewegung waehrend seiner Dauer ueberschreiben kann.
 func get_dash_velocity(delta: float) -> Vector3:
 	if not _is_dashing:
 		return Vector3.ZERO
@@ -13071,7 +13543,7 @@ func get_dash_velocity(delta: float) -> Vector3:
 func is_dashing() -> bool:
 	return _is_dashing
 
-# 1.0 = normale Bewegung, kleinerer Wert = verlangsamt (während Hit Lock)
+# 1.0 = normale Bewegung, kleinerer Wert = verlangsamt (waehrend Hit Lock)
 func get_movement_multiplier() -> float:
 	if _hit_lock_timer > 0.0:
 		return hit_lock_speed_multiplier
@@ -13081,7 +13553,7 @@ func is_hit_locked() -> bool:
 	return _hit_lock_timer > 0.0
 
 # 1.0 = normale Schwerkraft, 0.0 = komplett ausgesetzt (schweben),
-# dazwischen = anteiliges langsames Fallen. Nur während Hit Lock relevant.
+# dazwischen = anteiliges langsames Fallen. Nur waehrend Hit Lock relevant.
 func get_gravity_multiplier() -> float:
 	if _hit_lock_timer > 0.0:
 		return hit_lock_gravity_multiplier
@@ -13092,7 +13564,7 @@ func can_jump() -> bool:
 		return hit_lock_allow_jump
 	return true
 
-# --- Praktisch für ein späteres Cooldown-UI (0.0 bis 1.0) ---
+# --- Cooldown-Prozente fuers UI (0.0 = bereit, 1.0 = gerade gestartet) ---
 func get_primary_cooldown_percent() -> float:
 	var cd := _get_effective_primary_cooldown()
 	return _primary_timer / cd if cd > 0.0 else 0.0
@@ -13102,6 +13574,42 @@ func get_secondary_cooldown_percent() -> float:
 
 func get_utility_cooldown_percent() -> float:
 	return _utility_timer / utility_cooldown if utility_cooldown > 0.0 else 0.0
+
+func get_ability_q_cooldown_percent() -> float:
+	return _ability_q_timer / ability_q_cooldown if ability_q_cooldown > 0.0 else 0.0
+
+func get_ability_e_cooldown_percent() -> float:
+	return _ability_e_timer / ability_e_cooldown if ability_e_cooldown > 0.0 else 0.0
+
+# Sammel-Getter fuers HUD: gibt fuer Slot 0..4 den Prozentwert zurueck.
+func get_cooldown_percent(slot: int) -> float:
+	match slot:
+		Slot.PRIMARY:
+			return get_primary_cooldown_percent()
+		Slot.SECONDARY:
+			return get_secondary_cooldown_percent()
+		Slot.UTILITY:
+			return get_utility_cooldown_percent()
+		Slot.ABILITY_Q:
+			return get_ability_q_cooldown_percent()
+		Slot.ABILITY_E:
+			return get_ability_e_cooldown_percent()
+	return 0.0
+
+# Verbleibende Sekunden fuer den Cooldown-Text im HUD.
+func get_cooldown_remaining(slot: int) -> float:
+	match slot:
+		Slot.PRIMARY:
+			return _primary_timer
+		Slot.SECONDARY:
+			return _secondary_timer
+		Slot.UTILITY:
+			return _utility_timer
+		Slot.ABILITY_Q:
+			return _ability_q_timer
+		Slot.ABILITY_E:
+			return _ability_e_timer
+	return 0.0
 
 func get_combo_count() -> int:
 	return _combo_count
@@ -13317,17 +13825,31 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 
 extends Control
 
-@onready var health_bar: ProgressBar = $HealthBar
-@onready var health_label: Label = $HealthLabel
+# Zentrales HUD:
+#  - rechts: 4 Party-Slots (Portrait + HP, aktiver Char groesser + mit Name)
+#  - rechts unten: 5 Ability-Icons (Primary, Secondary, Shift, Q, E)
+#  - oben links: Minimap mit Zonenname darueber und X/Y-Koordinaten darunter
+#  - Mitte: Combo-Anzeige (bestehende Logik, unveraendert)
+
 @onready var combo_display: Control = $ComboDisplay
 @onready var combo_count_label: Label = $ComboDisplay/ComboCount
+@onready var party_container: VBoxContainer = $RightPanel/PartyContainer
+@onready var ability_container: HBoxContainer = $AbilityBar/AbilityContainer
+@onready var minimap: Control = $Minimap
+
+const SLOT_COUNT: int = 5
 
 var player_health: Health
 var player_combat: Combat
+var player: CharacterBody3D
 
+var _party_slots: Array[PartySlot] = []
+var _ability_slots: Array[AbilitySlot] = []
 var _combo_display_home_position: Vector2
 
 func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	combo_display.visible = false
 	combo_display.modulate.a = 1.0
 	_combo_display_home_position = combo_display.position
@@ -13335,17 +13857,44 @@ func _ready() -> void:
 	visible = SettingsManager.hud_visible
 	SettingsManager.hud_visible_changed.connect(_on_hud_visible_changed)
 
+	_cache_slots()
+
 	await get_tree().process_frame
+
+	_find_player()
 	_find_and_connect_player_health()
 	_find_and_connect_player_combat()
+	_connect_party_manager()
+	_refresh_party()
+	_refresh_ability_icons()
+
+	if minimap and player:
+		minimap.set_player(player)
+
+func _cache_slots() -> void:
+	_party_slots.clear()
+	for child: Node in party_container.get_children():
+		if child is PartySlot:
+			_party_slots.append(child)
+
+	_ability_slots.clear()
+	for child: Node in ability_container.get_children():
+		if child is AbilitySlot:
+			_ability_slots.append(child)
 
 func _on_hud_visible_changed(is_visible: bool) -> void:
 	visible = is_visible
 
-func _find_and_connect_player_health() -> void:
-	var player := get_tree().get_root().find_child("Player", true, false)
-	if player == null:
+func _find_player() -> void:
+	var found := get_tree().get_root().find_child("Player", true, false)
+	if found and found is CharacterBody3D:
+		player = found
+		PartyManager.register_player(player)
+	else:
 		push_warning("HUD: Konnte keinen Node namens 'Player' finden.")
+
+func _find_and_connect_player_health() -> void:
+	if player == null:
 		return
 
 	var health_node := player.find_child("Health", true, false)
@@ -13358,12 +13907,11 @@ func _find_and_connect_player_health() -> void:
 	_on_health_changed(player_health.current_health, player_health.max_health)
 
 func _on_health_changed(current: float, max_hp: float) -> void:
-	health_bar.max_value = max_hp
-	health_bar.value = current
-	health_label.text = "%d / %d" % [current, max_hp]
+	var idx: int = PartyManager.get_active_index()
+	if idx >= 0 and idx < _party_slots.size():
+		_party_slots[idx].update_health(current, max_hp)
 
 func _find_and_connect_player_combat() -> void:
-	var player := get_tree().get_root().find_child("Player", true, false)
 	if player == null:
 		return
 
@@ -13374,6 +13922,67 @@ func _find_and_connect_player_combat() -> void:
 
 	player_combat = combat_node
 	player_combat.combo_changed.connect(_on_combo_changed)
+
+func _connect_party_manager() -> void:
+	if not PartyManager.active_character_changed.is_connected(_on_active_character_changed):
+		PartyManager.active_character_changed.connect(_on_active_character_changed)
+	if not PartyManager.member_health_changed.is_connected(_on_member_health_changed):
+		PartyManager.member_health_changed.connect(_on_member_health_changed)
+	if not PartyManager.party_changed.is_connected(_refresh_party):
+		PartyManager.party_changed.connect(_refresh_party)
+
+func _refresh_party() -> void:
+	var active: int = PartyManager.get_active_index()
+
+	for i: int in range(_party_slots.size()):
+		var slot: PartySlot = _party_slots[i]
+		var set: AbilitySet = PartyManager.get_set(i)
+		slot.setup(i, set)
+
+		if set == null:
+			continue
+
+		slot.update_health(
+			PartyManager.get_member_health(i),
+			PartyManager.get_member_max_health(i)
+		)
+		slot.set_active(i == active)
+
+func _on_member_health_changed(index: int, current: float, max_hp: float) -> void:
+	if index >= 0 and index < _party_slots.size():
+		_party_slots[index].update_health(current, max_hp)
+
+func _on_active_character_changed(index: int) -> void:
+	for i: int in range(_party_slots.size()):
+		_party_slots[i].set_active(i == index)
+	_refresh_ability_icons()
+
+# Laedt die Icons des aktuell aktiven Charakters in die 5 Ability-Slots.
+func _refresh_ability_icons() -> void:
+	var set: AbilitySet = PartyManager.get_active_set()
+	if set == null or _ability_slots.size() < SLOT_COUNT:
+		return
+
+	var keys: Array[String] = ["LMB", "RMB", "SHIFT", "Q", "E"]
+	var icons: Array[Texture2D] = [
+		set.icon_primary,
+		set.icon_secondary,
+		set.icon_utility,
+		set.icon_ability_q,
+		set.icon_ability_e
+	]
+
+	for i: int in range(SLOT_COUNT):
+		_ability_slots[i].setup(icons[i], keys[i])
+
+func _process(_delta: float) -> void:
+	if player_combat == null:
+		return
+
+	for i: int in range(min(SLOT_COUNT, _ability_slots.size())):
+		var percent: float = player_combat.get_cooldown_percent(i)
+		var remaining: float = player_combat.get_cooldown_remaining(i)
+		_ability_slots[i].update_cooldown(percent, remaining)
 
 func _on_combo_changed(count: int) -> void:
 	if count <= 1:
@@ -13404,6 +14013,341 @@ func _play_combo_expire_animation() -> void:
 		combo_display.position = _combo_display_home_position
 		combo_display.modulate.a = 1.0
 	)
+
+
+===== FILE: scripts\minimap.gd =====
+
+extends Control
+
+# Minimap oben links: orthogonale Kamera in einem SubViewport, die
+# dem Player von oben folgt. Zonenname wird ueber Area3D-Nodes in der
+# Gruppe "zone" ermittelt (siehe zone_marker.gd).
+
+@onready var zone_label: Label = $Frame/ZoneLabel
+@onready var sub_viewport: SubViewport = $Frame/MapContainer/SubViewportContainer/SubViewport
+@onready var map_camera: Camera3D = $Frame/MapContainer/SubViewportContainer/SubViewport/MapCamera
+@onready var coord_label: Label = $Frame/CoordLabel
+@onready var player_arrow: TextureRect = $Frame/MapContainer/PlayerArrow
+
+@export var map_height: float = 40.0
+@export var map_size: float = 30.0
+@export var rotate_with_player: bool = false
+@export var default_zone_name: String = "UNKNOWN AREA"
+@export var zone_check_interval: float = 0.25
+
+var player: Node3D = null
+var _current_zone: String = ""
+var _zone_timer: float = 0.0
+
+func _ready() -> void:
+	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	map_camera.size = map_size
+	map_camera.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+	# SubViewport muss die Welt des Hauptlevels rendern, sonst bleibt
+	# die Karte schwarz.
+	sub_viewport.own_world_3d = false
+	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	_set_zone_text(default_zone_name)
+
+func set_player(p: Node3D) -> void:
+	player = p
+
+func _process(delta: float) -> void:
+	if player == null or not is_instance_valid(player):
+		return
+
+	var pos: Vector3 = player.global_position
+	map_camera.global_position = Vector3(pos.x, pos.y + map_height, pos.z)
+
+	var model: Node3D = player.get_node_or_null("CharacterModel")
+
+	if rotate_with_player:
+		if model:
+			map_camera.rotation.y = model.rotation.y
+		player_arrow.rotation = 0.0
+	else:
+		map_camera.rotation.y = 0.0
+		if model:
+			# Karte bleibt nordorientiert, der Pfeil dreht sich
+			player_arrow.rotation = -model.rotation.y
+
+	coord_label.text = "X: %d   Y: %d" % [int(pos.x), int(pos.z)]
+
+	# Zonen-Check gedrosselt, nicht jeden Frame
+	_zone_timer -= delta
+	if _zone_timer <= 0.0:
+		_zone_timer = zone_check_interval
+		_update_zone()
+
+# Sucht die Area3D-Zonen, in denen der Player gerade steht.
+func _update_zone() -> void:
+	var zones: Array[Node] = get_tree().get_nodes_in_group("zone")
+	var found: String = ""
+
+	for z: Node in zones:
+		if not (z is Area3D):
+			continue
+		var area: Area3D = z
+		if area.overlaps_body(player):
+			var zone_name: Variant = area.get("zone_name")
+			if zone_name != null and str(zone_name) != "":
+				found = str(zone_name)
+				break
+
+	if found == "":
+		found = default_zone_name
+
+	if found != _current_zone:
+		_set_zone_text(found)
+
+func _set_zone_text(text: String) -> void:
+	_current_zone = text
+	zone_label.text = text.to_upper()
+
+	zone_label.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_property(zone_label, "modulate:a", 1.0, 0.4)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+===== FILE: scripts\party_manager.gd =====
+
+extends Node
+
+# AUTOLOAD — Name: PartyManager
+# Projekt -> Projekteinstellungen -> Autoload -> res://scripts/party_manager.gd
+#
+# Verwaltet die 4 Party-Mitglieder, ihren HP-Stand und wer gerade aktiv ist.
+# Inaktive Charaktere haben KEINE Health-Node in der Szene — ihr HP-Stand
+# wird hier gespiegelt, damit das HUD alle 4 Bars anzeigen kann.
+
+signal party_changed
+signal active_character_changed(index: int)
+signal member_health_changed(index: int, current: float, max_hp: float)
+
+const MAX_PARTY_SIZE: int = 4
+
+var ability_sets: Array[AbilitySet] = []
+
+var _current_health: Array[float] = []
+var _max_health: Array[float] = []
+var _active_index: int = 0
+
+var player: CharacterBody3D = null
+var _player_health: Health = null
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+# Wird vom Level (oder einem Charakter-Auswahl-Menue) aufgerufen.
+func setup_party(sets: Array[AbilitySet]) -> void:
+	ability_sets.clear()
+	_current_health.clear()
+	_max_health.clear()
+
+	for i: int in range(min(sets.size(), MAX_PARTY_SIZE)):
+		var set: AbilitySet = sets[i]
+		if set == null:
+			continue
+		ability_sets.append(set)
+		_max_health.append(set.max_health)
+		_current_health.append(set.max_health)
+
+	_active_index = 0
+	party_changed.emit()
+
+# Verbindet den echten Player-Node mit dem aktiven Party-Slot.
+func register_player(p: CharacterBody3D) -> void:
+	player = p
+	var h := p.find_child("Health", true, false)
+	if h and h is Health:
+		_player_health = h
+		if not _player_health.health_changed.is_connected(_on_player_health_changed):
+			_player_health.health_changed.connect(_on_player_health_changed)
+
+	_apply_active_set_to_player()
+
+func _on_player_health_changed(current: float, max_hp: float) -> void:
+	if _active_index < 0 or _active_index >= _current_health.size():
+		return
+	_current_health[_active_index] = current
+	_max_health[_active_index] = max_hp
+	member_health_changed.emit(_active_index, current, max_hp)
+
+func switch_to(index: int) -> void:
+	if index < 0 or index >= ability_sets.size():
+		return
+	if index == _active_index:
+		return
+	if not is_member_alive(index):
+		return
+
+	_active_index = index
+	_apply_active_set_to_player()
+	active_character_changed.emit(index)
+
+# Uebertraegt AbilitySet + gespeicherten HP-Stand auf den Player-Node.
+func _apply_active_set_to_player() -> void:
+	if player == null:
+		return
+	var set: AbilitySet = get_active_set()
+	if set == null:
+		return
+
+	var combat := player.find_child("Combat", true, false)
+	if combat and combat is Combat:
+		combat.apply_ability_set(set)
+
+	if _player_health and _active_index < _max_health.size():
+		_player_health.max_health = _max_health[_active_index]
+		_player_health.current_health = _current_health[_active_index]
+		_player_health.health_changed.emit(
+			_player_health.current_health,
+			_player_health.max_health
+		)
+
+func get_active_index() -> int:
+	return _active_index
+
+func get_active_set() -> AbilitySet:
+	if _active_index >= 0 and _active_index < ability_sets.size():
+		return ability_sets[_active_index]
+	return null
+
+func get_set(index: int) -> AbilitySet:
+	if index >= 0 and index < ability_sets.size():
+		return ability_sets[index]
+	return null
+
+func get_party_size() -> int:
+	return ability_sets.size()
+
+func get_member_health(index: int) -> float:
+	if index >= 0 and index < _current_health.size():
+		return _current_health[index]
+	return 0.0
+
+func get_member_max_health(index: int) -> float:
+	if index >= 0 and index < _max_health.size():
+		return _max_health[index]
+	return 1.0
+
+func is_member_alive(index: int) -> bool:
+	return get_member_health(index) > 0.0
+
+func _unhandled_input(event: InputEvent) -> void:
+	if get_tree().paused:
+		return
+	for i: int in range(MAX_PARTY_SIZE):
+		var action: String = "switch_char_%d" % (i + 1)
+		if InputMap.has_action(action) and event.is_action_pressed(action):
+			switch_to(i)
+			return
+
+
+===== FILE: scripts\party_setup.gd =====
+
+extends Node
+class_name PartySetup
+
+# An einen leeren Node im Level haengen. Zieht die 4 AbilitySet-.tres
+# im Inspector in party_sets. Muss VOR dem HUD-Refresh laufen —
+# das HUD wartet einen Frame, daher passt die Reihenfolge.
+
+@export var party_sets: Array[AbilitySet] = []
+
+func _ready() -> void:
+	if party_sets.is_empty():
+		push_warning("PartySetup: party_sets ist leer — HUD zeigt keine Charaktere.")
+		return
+	PartyManager.setup_party(party_sets)
+
+
+===== FILE: scripts\party_slot.gd =====
+
+extends Control
+class_name PartySlot
+
+# Eine Charakterkarte rechts im HUD: Portrait, HP-Bar, Name.
+# Der aktive Charakter wird groesser skaliert und zeigt zusaetzlich
+# den Namen neben der HP-Leiste an.
+
+@onready var panel: Panel = $Panel
+@onready var portrait: TextureRect = $Panel/Portrait
+@onready var health_bar: ProgressBar = $Panel/HealthBar
+@onready var hp_label: Label = $Panel/HealthBar/HpLabel
+@onready var name_label: Label = $Panel/NameLabel
+@onready var dead_overlay: ColorRect = $Panel/DeadOverlay
+@onready var key_hint: Label = $Panel/KeyHint
+
+@export var active_scale: float = 1.0
+@export var inactive_scale: float = 0.72
+
+var _index: int = 0
+var _is_active: bool = false
+var _scale_tween: Tween
+
+func _ready() -> void:
+	# Pivot am RECHTEN Rand, damit beim Skalieren die rechte
+	# Bildschirmkante buendig bleibt und nichts flattert.
+	pivot_offset = Vector2(size.x, size.y * 0.5)
+
+func setup(index: int, set: AbilitySet) -> void:
+	_index = index
+	key_hint.text = str(index + 1)
+
+	if set == null:
+		visible = false
+		return
+
+	visible = true
+	name_label.text = set.character_name
+	if set.portrait:
+		portrait.texture = set.portrait
+
+	dead_overlay.visible = false
+
+func set_active(active: bool) -> void:
+	_is_active = active
+
+	# Nur der aktive Charakter zeigt den Namen
+	name_label.visible = active
+
+	var target: float = active_scale if active else inactive_scale
+	if _scale_tween and _scale_tween.is_valid():
+		_scale_tween.kill()
+	_scale_tween = create_tween()
+	_scale_tween.tween_property(self, "scale", Vector2(target, target), 0.22)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	if active:
+		panel.modulate = Color.WHITE
+	else:
+		panel.modulate = Color(0.6, 0.6, 0.65, 1.0)
+
+func update_health(current: float, max_hp: float) -> void:
+	health_bar.max_value = max_hp
+	health_bar.value = current
+	hp_label.text = "%d / %d" % [int(current), int(max_hp)]
+
+	# Farbverlauf: gruen -> gelb -> rot
+	var ratio: float = current / max_hp if max_hp > 0.0 else 0.0
+	var bar_color: Color
+	if ratio > 0.5:
+		bar_color = Color(0.9, 0.85, 0.2).lerp(Color(0.35, 0.85, 0.3), (ratio - 0.5) * 2.0)
+	else:
+		bar_color = Color(0.85, 0.2, 0.2).lerp(Color(0.9, 0.85, 0.2), ratio * 2.0)
+
+	var style: StyleBox = health_bar.get_theme_stylebox("fill")
+	if style is StyleBoxFlat:
+		var flat: StyleBoxFlat = (style as StyleBoxFlat).duplicate()
+		flat.bg_color = bar_color
+		health_bar.add_theme_stylebox_override("fill", flat)
+
+	dead_overlay.visible = current <= 0.0
+
+func get_party_index() -> int:
+	return _index
 
 
 ===== FILE: scripts\pause_menu.gd =====
@@ -13598,12 +14542,6 @@ var _pre_large_enemy_zoom: float = 10.0
 var _return_tween: Tween = null
 
 # --- Status-Effekt-System (Stun, Poison, Slow, Fear, ...) ---
-# Läuft über einen generischen StatusEffectManager-Kind-Node, der sich
-# selbst erstellt, falls er nicht schon in der Szene liegt (siehe
-# _ready()) — du musst also NICHTS manuell in player.tscn hinzufügen.
-# Stun bleibt als eigene apply_stun()/is_stunned()-API bestehen (combat.gd
-# und primary_hitbox.gd nutzen die weiterhin unverändert), läuft intern
-# aber jetzt über denselben generischen Effekt-Speicher wie alles andere.
 @export var stun_camera_shake: float = 0.3
 var status_effects: StatusEffectManager
 
@@ -13614,11 +14552,6 @@ func apply_stun(duration: float) -> void:
 func is_stunned() -> bool:
 	return status_effects.has_effect("stun")
 
-# Generische Schnittstelle für JEDEN Status-Effekt — nutzt z.B. eine
-# zukünftige Gift-Waffe (Handschuh o.ä.), um den Spieler zu vergiften,
-# oder ein Hazard, das ihn verlangsamt. tick_interval > 0 = Damage-over-
-# Time-artiger Effekt (z.B. Gift tickt alle 1s), tick_interval = 0 =
-# reiner Dauer-Effekt ohne eigenen Tick (z.B. Slow, Fear).
 func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, source: Node = null, tick_interval: float = 0.0) -> void:
 	status_effects.apply_effect(id, duration, magnitude, source, tick_interval)
 	if id == "stun":
@@ -13627,9 +14560,6 @@ func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, so
 func has_status_effect(id: String) -> bool:
 	return status_effects.has_effect(id)
 
-# Wird vom StatusEffectManager bei jedem Tick eines Damage-over-Time-
-# Effekts aufgerufen. Aktuell nur "poison" verdrahtet — für weitere
-# tickende Effekte hier einfach weitere elif-Zweige ergänzen.
 func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> void:
 	if id == "poison" and health:
 		health.take_damage(magnitude, source)
@@ -13648,12 +14578,8 @@ var _last_known_health: float = -1.0
 
 # --- Todes-Animation ---
 @export var use_ragdoll: bool = true
-
-# Fallback, falls use_ragdoll = false:
 @export var death_fall_rotation_degrees: float = 85.0
 @export var death_fall_duration: float = 0.6
-
-# Ragdoll-Werte
 @export var ragdoll_mass: float = 6.0
 @export var ragdoll_impulse_strength: float = 7.0
 @export var ragdoll_upward_impulse: float = 1.2
@@ -13661,10 +14587,7 @@ var _last_known_health: float = -1.0
 
 var _is_dead: bool = false
 
-# --- Target Lock: Modell schaut immer zum anvisierten Gegner, Kamera ---
-# --- wird sanft in dessen Richtung gezogen. Ziel wird gesetzt, sobald ---
-# --- ein Treffer landet (siehe combat.gd), und bleibt bis der Gegner ---
-# --- stirbt oder ein anderer getroffen wird. ---
+# --- Target Lock ---
 @export var camera_soft_lock_strength: float = 1.5
 @export var model_lock_turn_speed: float = 10.0
 @export var max_lock_range: float = 10.0
@@ -13702,7 +14625,7 @@ func _disconnect_target_death() -> void:
 @export var max_shake_roll_degrees: float = 5.0
 var _trauma: float = 0.0
 
-# --- Combo-Tilt: dramatische Kamera-Neigung bei Combo-Treffern ---
+# --- Combo-Tilt ---
 var _combo_tilt_degrees: float = 0.0
 var _tilt_tween: Tween
 
@@ -13712,74 +14635,38 @@ var _tilt_tween: Tween
 @export var dash_fov_ramp_down_time: float = 0.35
 var _base_fov: float = 75.0
 
-# Von außen (z.B. Lava-Hazard) aktivierbar: statt normaler Schwerkraft
-# wird die Geschwindigkeit aktiv Richtung "nach oben" gezogen — echtes
-# Auftrieb-Schwimmen wie in Minecraft-Wasser/Lava, statt nur gedämpftem Fallen.
+# --- Buoyancy ---
 @export var buoyancy_accel: float = 6.0
-@export var buoyancy_swim_boost: float = 1.8  # Multiplikator beim Halten von Space
-
-# NEU: Wie viel Anteil der eigenen Körperhöhe passiv (OHNE Space gedrückt
-# zu halten) über die Lava-Oberfläche ragen darf, bevor der Auftrieb
-# abgebremst wird — 0.33 = "Kopf/Oberkörper bleibt ca. 1/3 draußen, der
-# Rest bleibt eingetaucht". Das ist der eigentliche Fix für den "schießt
-# komplett aus der Lava"-Bug: OHNE dieses Cap zieht buoyancy_rise_speed
-# die Y-Velocity IMMER weiter Richtung oben, unabhängig davon, wie hoch
-# man schon ist — bis man komplett über der Oberfläche schwebt und der
-# Lava-Trigger einen als "nicht mehr drin" erkennt (Tick-Schaden UND
-# Auftrieb stoppen dann sofort, siehe lemonade.gd _on_body_exited).
+@export var buoyancy_swim_boost: float = 1.8
 @export_range(0.0, 1.0) var submersion_body_ratio: float = 0.33
-
-# Fallback-Körperhöhe, falls own_collision keine CapsuleShape3D hat
-# (sollte im Normalfall nie greifen, ist nur Absicherung).
 @export var fallback_body_height: float = 1.8
-
-# NEU: leichtes Auf-und-Ab-Wippen ("Bobbing"), sobald die Ziel-
-# Eintauchtiefe erreicht ist — rein kosmetisch, macht das Schweben
-# lebendiger statt wie ein starr eingefrorenes Stehen im Wasser.
-# amplitude = wie viele Meter rauf/runter, frequency = wie schnell
-# (Wellen pro Sekunde), response = wie "straff" die Bewegung dem
-# Wellen-Ziel folgt (höher = giftiger/schneller, niedriger = träger/weicher).
 @export var bob_amplitude: float = 0.12
 @export var bob_frequency: float = 0.55
 @export var bob_response: float = 3.0
 
 var _buoyancy_active: bool = false
 var _buoyancy_rise_speed: float = 2.5
-# Die Weltraum-Y-Höhe der Lava-/Wasser-Oberfläche, übergeben von
-# lemonade.gd — Grundlage für die Berechnung der Ziel-Eintauchtiefe.
 var _buoyancy_surface_y: float = 0.0
 var _bob_time: float = 0.0
 
 func set_buoyancy(active: bool, rise_speed: float = 2.5, surface_y: float = 0.0) -> void:
-	# Bob-Welle bei jedem NEUEN Eintauchen (false -> true) zurücksetzen,
-	# damit man immer sauber bei Phase 0 (Wellenmitte) startet, statt
-	# mitten in einer alten Wippbewegung "einzusteigen".
 	if active and not _buoyancy_active:
 		_bob_time = 0.0
 	_buoyancy_active = active
 	_buoyancy_rise_speed = rise_speed
 	_buoyancy_surface_y = surface_y
 
-# Ermittelt die tatsächliche Körperhöhe über die eigene CapsuleShape3D —
-# height ist in Godot 4 bereits die GESAMTE Kapselhöhe (inkl. beider
-# Halbkugel-Kappen), muss also nicht zusätzlich um radius*2 erweitert werden.
 func _get_body_height() -> float:
 	if own_collision and own_collision.shape is CapsuleShape3D:
 		return (own_collision.shape as CapsuleShape3D).height
 	return fallback_body_height
 
 func _ready() -> void:
-	# Maus einfangen (unsichtbar, für freie Kamera-Steuerung)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	combat.setup(self)
 	_base_fov = camera.fov
-	# Merkt sich die Zoomstufe, mit der das Level startet — falls direkt
-	# beim Start ein großer Gegner gelockt wird, kehrt die Kamera danach
-	# hierhin zurück, bis das erste Mal manuell gescrollt wurde.
 	_pre_large_enemy_zoom = spring_arm.spring_length
 
-	# StatusEffectManager holen oder automatisch erstellen (gemeinsamer
-	# Helper statt dupliziertem Code — siehe status_effect_manager.gd).
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
 
@@ -13792,9 +14679,6 @@ func _on_died() -> void:
 	if _is_dead:
 		return
 	_is_dead = true
-
-	# Steuerung komplett abschalten, damit man nicht mehr laufen/springen/
-	# angreifen kann, während man am Boden liegt.
 	set_physics_process(false)
 
 	if use_ragdoll:
@@ -13802,7 +14686,6 @@ func _on_died() -> void:
 	else:
 		_play_scripted_fall()
 
-# --- Fallback: gescriptetes Umkippen (falls use_ragdoll = false) ---
 func _play_scripted_fall() -> void:
 	if health and health.last_damage_source and is_instance_valid(health.last_damage_source) \
 			and health.last_damage_source != self:
@@ -13816,31 +14699,19 @@ func _play_scripted_fall() -> void:
 	tween.tween_property(mesh, "rotation:x", deg_to_rad(death_fall_rotation_degrees), death_fall_duration)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
-# --- Ragdoll: echtes RigidBody3D übernimmt die Leiche, Physik-Engine ---
-# --- simuliert das Umfallen/Taumeln selbst (kein gescriptetes Tween). ---
 func _spawn_ragdoll_corpse() -> void:
-	# Eigene Kollision abschalten, damit der Player-Körper nicht mehr
-	# physisch im Weg steht (Gegner/Corpse sollen durch ihn hindurchkönnen).
 	if own_collision:
 		own_collision.disabled = true
 
 	var corpse := RigidBody3D.new()
 	corpse.name = "PlayerCorpse"
 	corpse.mass = ragdoll_mass
-	# WICHTIG: Physik läuft auch nach dem Pausieren (Death-Screen) weiter,
-	# damit man das Austaumeln/Liegenbleiben noch sehen kann, statt dass
-	# alles mitten in der Bewegung einfriert.
 	corpse.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().current_scene.add_child(corpse)
 	var spawn_transform: Transform3D = mesh.global_transform
-	# Minimal anheben, damit die Kollisionsform beim Spawnen nicht leicht
-	# im Boden steckt — genau DAS verursacht das "Hochschießen" (die Physik
-	# stößt das Objekt beim Entpenetrieren gewaltsam nach oben weg, gleiches
-	# Prinzip wie beim Katapult-Bug zwischen Gegnern von früher).
 	spawn_transform.origin.y += 0.15
 	corpse.global_transform = spawn_transform
 
-	# Grobe Kollisionsform für die Leiche (Kapsel, ähnlich dem Spieler)
 	var collision := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
 	shape.radius = 0.4
@@ -13848,16 +14719,10 @@ func _spawn_ragdoll_corpse() -> void:
 	collision.shape = shape
 	corpse.add_child(collision)
 
-	# Das sichtbare Modell UMPARKEN: von Player zum neuen RigidBody3D,
-	# damit die Leiche auch optisch mitgenommen wird, nicht nur die Kollision.
-	# transform = IDENTITY heißt: Mesh sitzt exakt an corpse's Position/
-	# Rotation (die wir oben schon inkl. Anheben gesetzt haben).
 	mesh.get_parent().remove_child(mesh)
 	corpse.add_child(mesh)
 	mesh.transform = Transform3D.IDENTITY
 
-	# Impuls-Richtung: weg vom Angreifer, falls durch einen Gegner
-	# gestorben — sonst einfach "nach hinten" relativ zur Blickrichtung.
 	var impulse_dir: Vector3
 	if health and health.last_damage_source and is_instance_valid(health.last_damage_source) \
 			and health.last_damage_source != self:
@@ -13878,16 +14743,11 @@ func _spawn_ragdoll_corpse() -> void:
 	) * ragdoll_torque_strength)
 
 func _on_own_health_changed(current: float, _max_hp: float) -> void:
-	# Nur shaken wenn HP GESUNKEN sind (echter Treffer), nicht bei Regen/Heilung
 	if _last_known_health >= 0.0 and current < _last_known_health:
 		shake_camera(own_damage_shake_strength)
 	_last_known_health = current
 
 func _process(delta: float) -> void:
-	# Camera Shake über ein "Trauma"-System: quadratischer Falloff macht
-	# den Einschlag knackiger/intensiver als lineares Abklingen, und
-	# mehrere Treffer kurz hintereinander (Combo!) summieren sich auf,
-	# statt sich nur gegenseitig zu überschreiben.
 	var shake_roll_degrees: float = 0.0
 	if _trauma > 0.0:
 		var shake_amount: float = _trauma * _trauma
@@ -13899,22 +14759,13 @@ func _process(delta: float) -> void:
 			camera.h_offset = 0.0
 			camera.v_offset = 0.0
 
-	# Shake-Wackeln UND Combo-Tilt zusammen auf die Rotation anwenden,
-	# statt dass sich beide Systeme gegenseitig überschreiben.
 	camera.rotation.z = deg_to_rad(_combo_tilt_degrees + shake_roll_degrees)
 
-# Wird von combat.gd aufgerufen, sobald ein Treffer tatsächlich landet.
-# Trauma summiert sich auf (gedeckelt bei 1.0), statt nur zu überschreiben —
-# mehrere Combo-Treffer hintereinander fühlen sich dadurch spürbar wilder an.
 func shake_camera(amount: float) -> void:
 	if not SettingsManager.screen_shake_enabled:
 		return
 	_trauma = clamp(_trauma + amount, 0.0, 1.0)
 
-# Wird von combat.gd bei jedem Combo-Treffer aufgerufen. Kippt die Kamera
-# auf target_degrees und BLEIBT dort — kein automatisches Zurückpendeln,
-# damit sich mehrere Treffer wie ein "Bohrer" weiter in eine Richtung
-# reindrehen, statt nach jedem Hit zurückzuspringen.
 func play_combo_tilt(target_degrees: float) -> void:
 	if _tilt_tween and _tilt_tween.is_valid():
 		_tilt_tween.kill()
@@ -13922,8 +14773,6 @@ func play_combo_tilt(target_degrees: float) -> void:
 	_tilt_tween.tween_property(self, "_combo_tilt_degrees", target_degrees, 0.15)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
-# Wird von combat.gd aufgerufen, sobald die Combo komplett verfällt —
-# erst DANN pendelt die Kamera wieder sauber auf 0 zurück.
 func reset_combo_tilt() -> void:
 	if _tilt_tween and _tilt_tween.is_valid():
 		_tilt_tween.kill()
@@ -13931,9 +14780,6 @@ func reset_combo_tilt() -> void:
 	_tilt_tween.tween_property(self, "_combo_tilt_degrees", 0.0, 0.6)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
-# Wird von combat.gd beim Dash-Start aufgerufen: FOV schnellt kurz hoch
-# und pendelt sich dann wieder auf den Normalwert ein — klassischer
-# "Speed"-Effekt für einen krasseren Dash.
 func play_dash_fov_effect() -> void:
 	var tween := create_tween()
 	tween.tween_property(camera, "fov", _base_fov + dash_fov_boost, dash_fov_ramp_up_time)\
@@ -13945,22 +14791,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _is_dead:
 		return
 
-	# Maus-Look: Kamera-Pivot horizontal drehen, SpringArm vertikal
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		camera_pivot.rotate_y(-event.relative.x * mouse_sensitivity)
 		spring_arm.rotate_x(-event.relative.y * mouse_sensitivity)
-		# Vertikale Rotation begrenzen, damit man sich nicht überschlägt
 		spring_arm.rotation.x = clamp(spring_arm.rotation.x, deg_to_rad(-60), deg_to_rad(60))
 
-	# Klick ins Spielfenster = Maus wieder einfangen.
-	# Nötig, weil Godot die Maus automatisch freigibt, wenn das Fenster
-	# den Fokus verliert (z.B. beim Alt-Tab) — ohne das hier bleibt die
-	# Kamera nach dem Zurückwechseln "tot", bis man das manuell fixt.
-	# (ESC selbst wird jetzt zentral vom PauseMenu-Script gehandhabt.)
 	if event is InputEventMouseButton and event.pressed and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE and not get_tree().paused:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-	# Kamera-Zoom per Mausrad — begrenzt auf zoom_min/zoom_max.
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			spring_arm.spring_length = clamp(spring_arm.spring_length - zoom_step, zoom_min, zoom_max)
@@ -13969,82 +14807,43 @@ func _unhandled_input(event: InputEvent) -> void:
 			spring_arm.spring_length = clamp(spring_arm.spring_length + zoom_step, zoom_min, zoom_max)
 			_on_manual_zoom_input()
 
-# Sobald manuell gescrollt wird: eine eventuell noch laufende
-# Rücksprung-Tween (nach einem Großgegner-Kampf) sofort abbrechen —
-# sonst würde sie im nächsten Frame den gerade gesetzten Scroll-Wert
-# wieder überschreiben und genau das "Gummiband"-Gefühl erzeugen.
 func _on_manual_zoom_input() -> void:
 	if _return_tween and _return_tween.is_valid():
 		_return_tween.kill()
 
 func _physics_process(delta: float) -> void:
-	# Falls gerade ein Dash läuft, übernimmt der komplett die Bewegung
-	# (inklusive Y-Achse für vertikales Dashen) — normale Schwerkraft
-	# wird während des kurzen Dash-Fensters bewusst ausgesetzt, damit sich
-	# der Impuls klar und unverfälscht anfühlt.
 	if combat.is_dashing():
 		velocity = combat.get_dash_velocity(delta)
 		move_and_slide()
 		return
 
-	# Buoyancy (Auftrieb): falls aktiv (z.B. in Lava/Wasser), wird die
-	# Y-Geschwindigkeit Richtung "nach oben" gezogen — echtes Schwimm-
-	# Gefühl statt nur gedämpftem Fallen. WICHTIG (Fix für den "schießt
-	# komplett aus der Lava"-Bug): der Auftrieb ist gedeckelt auf eine
-	# Ziel-Eintauchtiefe (submersion_body_ratio), bei der nur ein kleiner
-	# Teil des Körpers oben rausschaut. Erst wenn Space AKTIV gehalten
-	# wird, darf man über dieses Cap hinaus weiter nach oben/raus schwimmen.
 	if _buoyancy_active:
 		var exiting: bool = Input.is_action_pressed("ui_accept")
 
 		if exiting:
-			# Aktiv rausschwimmen/hochspringen — normales, geboostetes
-			# Auftriebs-Tempo, ohne Tiefen-Deckel.
 			var target_rise: float = _buoyancy_rise_speed * buoyancy_swim_boost
 			velocity.y = move_toward(velocity.y, target_rise, buoyancy_accel * delta)
 		else:
 			var body_height: float = _get_body_height()
-			# Ziel-Y für die Körpermitte (= global_position.y): so, dass
-			# nur submersion_body_ratio der Körperhöhe über der Oberfläche
-			# rausragt (Kopf/Oberkörper), der Rest bleibt eingetaucht.
 			var float_target_y: float = _buoyancy_surface_y - body_height * (0.5 - submersion_body_ratio)
 
 			if global_position.y < float_target_y - bob_amplitude:
-				# Noch klar unterhalb der Ziel-Eintauchtiefe: normal weiter
-				# hochtreiben lassen. (Der bob_amplitude-Puffer verhindert,
-				# dass diese Bedingung mit dem Bobbing unten flackert.)
 				velocity.y = move_toward(velocity.y, _buoyancy_rise_speed, buoyancy_accel * delta)
 			else:
-				# Ziel-Eintauchtiefe erreicht: statt hart auf 0 zu clampen
-				# (fühlt sich wie eingefroren an), sanft um float_target_y
-				# herum auf/ab wippen lassen — kleiner Feder-Effekt statt
-				# starrer Fixierung, macht das Schweben realistischer.
 				_bob_time += delta
 				var bob_offset: float = sin(_bob_time * bob_frequency * TAU) * bob_amplitude
 				var bob_target_y: float = float_target_y + bob_offset
 				var to_target: float = (bob_target_y - global_position.y) * bob_response
 				velocity.y = move_toward(velocity.y, to_target, buoyancy_accel * delta)
 	else:
-		# Schwerkraft anwenden, solange man nicht am Boden ist — der
-		# Gravitations-Multiplikator kommt aus combat.gd (Hit Lock).
 		if not is_on_floor():
 			velocity.y -= gravity * combat.get_gravity_multiplier() * delta
 
-		# Springen — combat.can_jump() blockiert das während eines Hit Locks,
-		# es sei denn hit_lock_allow_jump ist im Combat-Inspector aktiviert.
-		# Während Stun ist Springen IMMER blockiert, unabhängig von
-		# hit_lock_allow_jump.
 		if Input.is_action_pressed("ui_accept") and is_on_floor() and combat.can_jump() and not is_stunned():
 			velocity.y = jump_velocity
 
-	# Bewegungs-Input lesen (WASD über die Standard-Actions ui_left/right/up/down)
 	var input_dir: Vector2 = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 
-	# Effektive Geschwindigkeit: normal, außer kurz nach einem erfolgreichen
-	# Treffer, dann stark reduziert (aber nicht komplett null). Während
-	# Stun IMMER 0 — komplettes Bewegungs-Einfrieren. Zusätzlich NEU:
-	# "slow"-Status-Effekt reduziert die Geschwindigkeit anteilig (z.B.
-	# magnitude 0.5 = 50% langsamer) — für Hazards/Gegner-Effekte.
 	var effective_speed: float = speed * combat.get_movement_multiplier()
 	if is_stunned():
 		effective_speed = 0.0
@@ -14052,8 +14851,6 @@ func _physics_process(delta: float) -> void:
 		var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
 		effective_speed *= slow_factor
 
-	# Bewegungsrichtung relativ zur Kamera-Ausrichtung berechnen,
-	# damit "vorwärts" immer dorthin zeigt, wo die Kamera hinschaut
 	var forward: Vector3 = camera_pivot.global_transform.basis.z
 	var right: Vector3 = camera_pivot.global_transform.basis.x
 	var direction: Vector3 = (right * input_dir.x + forward * input_dir.y)
@@ -14067,16 +14864,10 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0, effective_speed)
 		velocity.z = move_toward(velocity.z, 0, effective_speed)
 
-	# Zu weit weg? Dann Ziel automatisch fallen lassen, BEVOR wir es
-	# unten für Modell-/Kamera-Ausrichtung benutzen (sonst Null-Referenz-
-	# Fehler, weil clear_target() _current_target sofort auf null setzt).
 	if _current_target and is_instance_valid(_current_target):
 		if global_position.distance_to(_current_target.global_position) > max_lock_range:
 			clear_target()
 
-	# Modell-Ausrichtung: solange ein Ziel gelockt ist, schaut das Modell
-	# IMMER zum Ziel (auch beim Strafen/Rückwärtslaufen) — sonst wie
-	# bisher: dreht sich in Bewegungsrichtung.
 	if _current_target and is_instance_valid(_current_target):
 		var to_target: Vector3 = _current_target.global_position - global_position
 		to_target.y = 0
@@ -14087,27 +14878,15 @@ func _physics_process(delta: float) -> void:
 		var target_rotation: float = atan2(direction.x, direction.z)
 		mesh.rotation.y = lerp_angle(mesh.rotation.y, target_rotation, delta * 10.0)
 
-	# Soft Camera Lock: zieht die Kamera sanft Richtung Ziel, ohne die
-	# manuelle Maussteuerung komplett zu übernehmen — du kannst jederzeit
-	# wegschauen, die Kamera "zieht" nur leicht zurück Richtung Ziel.
 	if _current_target and is_instance_valid(_current_target):
 		var to_target_cam: Vector3 = _current_target.global_position - camera_pivot.global_position
 		to_target_cam.y = 0
 		if to_target_cam.length() > 0.01:
-			# WICHTIG: negiert, weil die Kamera eine andere Blickrichtungs-
-			# Konvention hat als das Mesh — ohne die Negation schaut die
-			# Kamera exakt 180° falsch (vom Ziel weg statt drauf).
 			var desired_yaw: float = atan2(-to_target_cam.x, -to_target_cam.z)
-
-			# Kleine/schnelle Gegner (z.B. Scout) können per
-			# camera_lock_multiplier < 1.0 die Lock-Stärke abschwächen —
-			# sonst reißt die Kamera bei jedem schnellen Umlaufen ruckartig
-			# hinterher. Fehlt das Feld am Ziel, gilt die normale Stärke.
 			var lock_multiplier: float = 1.0
 			var custom_lock_multiplier = _current_target.get("camera_lock_multiplier")
 			if custom_lock_multiplier != null:
 				lock_multiplier = custom_lock_multiplier
-
 			var effective_lock_strength: float = camera_soft_lock_strength * lock_multiplier
 			camera_pivot.rotation.y = lerp_angle(camera_pivot.rotation.y, desired_yaw, effective_lock_strength * delta)
 
@@ -14126,23 +14905,13 @@ func _physics_process(delta: float) -> void:
 	var is_fighting_large_now: bool = _large_enemy_timer > 0.0
 
 	if is_fighting_large_now:
-		# Beim ÜBERGANG "kein großer Gegner" -> "großer Gegner": aktuelle
-		# (manuell gescrollte) Zoomstufe merken, BEVOR wir sie überschreiben.
 		if not _was_fighting_large_enemy:
 			_pre_large_enemy_zoom = spring_arm.spring_length
 			if _return_tween and _return_tween.is_valid():
 				_return_tween.kill()
-
-		# Während des Kampfs: JEDEN Frame aktiv auf zoom_max ziehen,
-		# überschreibt dabei bewusst manuelles Scrollen (so gewollt).
 		spring_arm.spring_length = move_toward(spring_arm.spring_length, zoom_max, large_enemy_zoom_speed * delta)
 
 	elif _was_fighting_large_enemy:
-		# Beim ÜBERGANG "großer Gegner" -> "kein großer Gegner mehr":
-		# GENAU EINMAL eine Rücksprung-Tween zur alten Zoomstufe starten.
-		# Danach fasst dieses Script den Zoom nicht mehr an, bis der
-		# nächste große Gegner gelockt wird — kein Dauer-Lerp mehr,
-		# also auch kein Gummiband-Ziehen während du frei scrollst.
 		if _return_tween and _return_tween.is_valid():
 			_return_tween.kill()
 		_return_tween = create_tween()
@@ -14152,6 +14921,18 @@ func _physics_process(delta: float) -> void:
 	_was_fighting_large_enemy = is_fighting_large_now
 
 	move_and_slide()
+
+	# Heavy-Enemy Wall: Kollisions-Rückstoß gegen schwere Gegner unterdrücken.
+	# move_and_slide() gibt bei Kollisionen automatisch Slide-Velocity zurück —
+	# gegen is_heavy-Gegner soll der Player wie gegen eine Wand laufen,
+	# also kein horizontaler Rückprall. Y (Schwerkraft/Sprung) bleibt unangetastet.
+	for i: int in get_slide_collision_count():
+		var col: KinematicCollision3D = get_slide_collision(i)
+		var collider: Object = col.get_collider()
+		if collider and collider.get("is_heavy") == true:
+			velocity.x = 0.0
+			velocity.z = 0.0
+			break
 
 
 ===== FILE: scripts\primary_hitbox.gd =====
@@ -14838,6 +15619,23 @@ func _process(delta: float) -> void:
 		_effects.erase(id)
 		effect_expired.emit(id)
 		_debug("Effekt '%s' abgelaufen" % id)
+
+
+===== FILE: scripts\zone_marker.gd =====
+
+extends Area3D
+class_name ZoneMarker
+
+# Markiert einen benannten Spielbereich fuer die Minimap-Anzeige.
+# Node wird automatisch der Gruppe "zone" hinzugefuegt.
+
+@export var zone_name: String = "Lemonade Fields"
+
+func _ready() -> void:
+	if not is_in_group("zone"):
+		add_to_group("zone")
+	monitoring = true
+	monitorable = false
 
 
 ===== FILE: shaders\colorblind.gdshader =====

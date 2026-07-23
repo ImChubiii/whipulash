@@ -1,0 +1,246 @@
+[gd_scene format=3 uid="uid://bhudmain001"]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/minimap.gd" id="2_minimap"]
+[ext_resource type="PackedScene" uid="uid://bpartyslot01" path="res://scenes/party_slot.tscn" id="3_pslot"]
+[ext_resource type="PackedScene" uid="uid://bablslot001" path="res://scenes/ability_slot.tscn" id="4_abslot"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
+bg_color = Color(0.06, 0.06, 0.09, 0.82)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.48, 0.18, 1)
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_arrow"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_arrow"]
+width = 16
+height = 16
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud")
+
+[node name="Minimap" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 240.0
+offset_bottom = 280.0
+mouse_filter = 2
+script = ExtResource("2_minimap")
+
+[node name="Frame" type="Panel" parent="Minimap"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 238.0
+offset_bottom = 278.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mapframe")
+
+[node name="ZoneLabel" type="Label" parent="Minimap/Frame"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 28.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 15
+text = "LEMONADE FIELDS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MapContainer" type="Control" parent="Minimap/Frame"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 210.0
+offset_bottom = 232.0
+mouse_filter = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Minimap/Frame/MapContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Minimap/Frame/MapContainer/SubViewportContainer"]
+own_world_3d = false
+handle_input_locally = false
+size = Vector2i(200, 200)
+render_target_update_mode = 4
+
+[node name="MapCamera" type="Camera3D" parent="Minimap/Frame/MapContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 40, 0)
+projection = 1
+current = true
+size = 30.0
+
+[node name="PlayerArrow" type="TextureRect" parent="Minimap/Frame/MapContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(8, 8)
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_arrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoordLabel" type="Label" parent="Minimap/Frame"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = -26.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "X: 0   Y: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightPanel" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -200.0
+offset_right = -14.0
+offset_bottom = 200.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PartyContainer" type="VBoxContainer" parent="RightPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="PartySlot1" parent="RightPanel/PartyContainer" instance=ExtResource("3_pslot")]
+layout_mode = 2
+
+[node name="PartySlot2" parent="RightPanel/PartyContainer" instance=ExtResource("3_pslot")]
+layout_mode = 2
+
+[node name="PartySlot3" parent="RightPanel/PartyContainer" instance=ExtResource("3_pslot")]
+layout_mode = 2
+
+[node name="PartySlot4" parent="RightPanel/PartyContainer" instance=ExtResource("3_pslot")]
+layout_mode = 2
+
+[node name="AbilityBar" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -330.0
+offset_top = -90.0
+offset_right = -14.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="AbilityContainer" type="HBoxContainer" parent="AbilityBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 2
+theme_override_constants/separation = 8
+
+[node name="AbilitySlot1" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="AbilitySlot2" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="AbilitySlot3" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="AbilitySlot4" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="AbilitySlot5" parent="AbilityBar/AbilityContainer" instance=ExtResource("4_abslot")]
+layout_mode = 2
+
+[node name="ComboDisplay" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 60.0
+offset_top = -60.0
+offset_right = 300.0
+offset_bottom = 60.0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ComboCount" type="Label" parent="ComboDisplay"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 48
+text = "x5"
+
+[node name="ComboText" type="Label" parent="ComboDisplay"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 20
+text = "COMBO!"

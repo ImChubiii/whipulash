@@ -1,23 +1,23 @@
 [gd_scene format=3 uid="uid://bnlevdvxc4nnq"]
 
 [ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_g0wwu"]
-[ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_1cllw"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_iy4sn"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_21bqe"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_mew1s"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="6_kjoxb"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="7_2xqp6"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="7_mio06"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="8_mio06"]
+[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_wxbki"]
+[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="9_frsmd"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="9_wxbki"]
+[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_6ci1b"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="10_frsmd"]
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="11_6ci1b"]
+[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="11_cgcdo"]
+[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="12_6klec"]
 [ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="12_cgcdo"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cr2eh"]
-bg_color = Color(0.80784315, 0.81960785, 0.78431374, 0.16862746)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cy6r3"]
-bg_color = Color(0.18848461, 0.7894686, 0.15840396, 1)
+[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="13_8blc5"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0tv6x"]
 shader = ExtResource("6_kjoxb")
@@ -47,72 +47,6 @@ shader_parameter/flash_strength = 0.0
 
 [node name="Player" parent="CanvasLayer" unique_id=1005944688 instance=ExtResource("1_g0wwu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7768364, 1, -30.211166)
-
-[node name="HUD" type="Control" parent="CanvasLayer" unique_id=804877872]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -177.0
-offset_top = -81.0
-offset_right = 178.0
-grow_horizontal = 2
-grow_vertical = 0
-script = ExtResource("2_1cllw")
-
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/HUD" unique_id=613048961]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -92.5
-offset_top = -30.0
-offset_right = 92.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_cr2eh")
-theme_override_styles/fill = SubResource("StyleBoxFlat_cy6r3")
-show_percentage = false
-
-[node name="HealthLabel" type="Label" parent="CanvasLayer/HUD" unique_id=525707145]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -39.5
-offset_top = -29.0
-offset_right = 40.5
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="ComboDisplay" type="VBoxContainer" parent="CanvasLayer/HUD" unique_id=1779257113]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.16900001
-anchor_top = -3.7560003
-anchor_right = -0.16900001
-anchor_bottom = -3.7560003
-offset_left = -55.709995
-offset_top = -29.493988
-offset_right = 164.845
-offset_bottom = 83.50601
-
-[node name="ComboCount" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=807320614]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "x5"
-
-[node name="ComboText" type="Label" parent="CanvasLayer/HUD/ComboDisplay" unique_id=1937637713]
-layout_mode = 2
-text = "COMBO!"
 
 [node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1702809052]
 layout_mode = 3
@@ -292,6 +226,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("7_2xqp6")
+
+[node name="HUD" parent="CanvasLayer" unique_id=2020866629 instance=ExtResource("7_mio06")]
+
+[node name="Node" type="Node" parent="." unique_id=745760395]
+script = ExtResource("8_wxbki")
+party_sets = Array[ExtResource("9_frsmd")]([ExtResource("10_6ci1b"), ExtResource("11_cgcdo"), ExtResource("12_6klec"), ExtResource("13_8blc5")])
 
 [node name="Stingerspawn" type="Node3D" parent="." unique_id=1890598471 node_paths=PackedStringArray("spawn_points")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8152657, 3.6324558, -11.489873)
