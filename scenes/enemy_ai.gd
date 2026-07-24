@@ -1,5 +1,3 @@
-
-
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -187,11 +185,28 @@ func _recalculate_jump_velocity() -> void:
 	jump_velocity = sqrt(2.0 * gravity * jump_height)
 	_debug("Sprungkraft neu berechnet: jump_height=%.2f, gravity=%.2f -> jump_velocity=%.2f" % [jump_height, gravity, jump_velocity])
 
-func _ready() -> void:
-	add_to_group("enemies")
-	_player = get_tree().get_root().find_child("Player", true, false)
+# Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — haelt
+# _player aktuell, da der Player-Node beim Wechseln komplett ausgetauscht
+# wird (alte Instanz wird entfernt, neue gespawnt).
+func _on_active_player_changed(new_player: CharacterBody3D) -> void:
+	_player = new_player
+
+# Holt die aktuelle Spieler-Instanz bevorzugt ueber PartyManager (immer
+# aktuell), find_child("Player") nur als Fallback, falls PartyManager aus
+# irgendeinem Grund noch keine Instanz kennt.
+func _refresh_player_reference() -> void:
+	if PartyManager.player and is_instance_valid(PartyManager.player):
+		_player = PartyManager.player
+	else:
+		_player = get_tree().get_root().find_child("Player", true, false)
 	if _player == null:
 		push_warning("EnemyAI: Konnte keinen Node namens 'Player' finden.")
+
+func _ready() -> void:
+	add_to_group("enemies")
+	_refresh_player_reference()
+	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
+		PartyManager.active_player_changed.connect(_on_active_player_changed)
 
 	_debug("_ready() aufgerufen. attack_hitbox gefunden: %s | telegraph_inner: %s | telegraph_outer: %s | nav_agent: %s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
 

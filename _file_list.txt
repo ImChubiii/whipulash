@@ -1,6 +1,6 @@
 ﻿==================================================
 PROJEKT-DATEIUEBERSICHT: whiplash
-Gesamtanzahl Dateien: 115
+Gesamtanzahl Dateien: 603
 ==================================================
 
 â€¢ Name: .editorconfig
@@ -24,6 +24,1266 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: assets\blossom_the_powerpuff_girls_0.png.import
   Art:  Import-Metadaten
 
+â€¢ Name: assets\dungeon kit v2\Floor_Curved.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Full.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Full.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Full.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Half.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Half.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Half.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Large_Full.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Large_Full.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Large_Full.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Large_Half.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Large_Half.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Large_Half.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Outer_Full.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Outer_Full.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Outer_Full.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Outer_Half.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Outer_Half.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Curved_Outer_Half.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square_Full.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square_Full.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square_Full.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square_Half.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square_Half.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Square_Half.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Full.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Full.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Full.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Half.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Half.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Half.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Outer_Full.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Outer_Full.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Outer_Full.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Outer_Half.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Outer_Half.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Floor_Tapered_Outer_Half.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Gateway_Large.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Gateway_Large.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Gateway_Large.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Gateway_Small.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Gateway_Small.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Gateway_Small.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Lever_Floor.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Lever_Floor.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Lever_Floor.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Pedestal.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Pedestal.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Pedestal.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Base_Corner.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Base_Corner.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Base_Corner.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Base_Side.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Base_Side.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Base_Side.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Corner.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Corner.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Corner.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Side.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Side.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Side.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Top_Corner.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Top_Corner.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Top_Corner.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Top_Side.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Top_Side.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Pillar_Top_Side.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Rail.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Rail.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Rail.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Rail_End.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Rail_End.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Rail_End.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Ramp.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Ramp.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Ramp.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Steps.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Steps.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Steps.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Concave.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Concave.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Concave.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Convex.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Convex.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Convex.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Outer.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Outer.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Steps_Curved_Outer.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Switch_Floor.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Switch_Floor.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Switch_Floor.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Curved.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Curved.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Curved.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Curved_Outer.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Curved_Outer.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Curved_Outer.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Inner_Curved.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Inner_Curved.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Inner_Curved.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Inner_Squared.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Inner_Squared.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Inner_Squared.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Straight.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Straight.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Straight.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Tapered.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Tapered.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Base_Tapered.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell_Door.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell_Door.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell_Door.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell_Doorframe.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell_Doorframe.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Cell_Doorframe.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Curved.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Curved.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Curved.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Curved_Outer.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Curved_Outer.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Curved_Outer.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Gateway_Small.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Gateway_Small.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Gateway_Small.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Inner_Curved.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Inner_Curved.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Inner_Curved.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Inner_Squared.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Inner_Squared.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Inner_Squared.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Ramped_Full.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Ramped_Full.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Ramped_Full.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Ramped_Half.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Ramped_Half.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Ramped_Half.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Straight.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Straight.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Straight.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Tapered.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Tapered.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Tapered.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Curved.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Curved.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Curved.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Curved_Outer.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Curved_Outer.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Curved_Outer.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Straight.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Straight.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Straight.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Tapered.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Tapered.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon kit v2\Wall_Top_Tapered.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\armchair.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\armchair.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\armchair.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\armchair.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\armchair.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\axe.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\axe.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\axe.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\axe.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\axe.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\barstool.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\barstool.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\barstool.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\barstool.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\barstool.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\bench.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\bench.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\bench.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\bench.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\bench.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\book_blue.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\book_blue.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\book_blue.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\book_blue.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\book_blue.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\book_green.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\book_green.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\book_green.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\book_green.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\book_green.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\book_red.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\book_red.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\book_red.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\book_red.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\book_red.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\bookshelf.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\bookshelf.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\bookshelf.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\bookshelf.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\bookshelf.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\chair.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\chair.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\chair.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\chair.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\chair.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\chest.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\chest.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\chest.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\chest.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\chest.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\chest_lid.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\chest_lid.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\chest_lid.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\chest_lid.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\chest_lid.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\chest_lock.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\chest_lock.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\chest_lock.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\chest_lock.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\chest_lock.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\coin.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\coin.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\coin.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\coin.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\coin.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\coin_big.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\coin_big.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\coin_big.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\coin_big.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\coin_big.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\door.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\door.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\door.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\door.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\door.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\door_frame.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\door_frame.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\door_frame.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\door_frame.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\door_frame.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\grass.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\grass.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\grass.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\grass.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\grass.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\hammer.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\hammer.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\hammer.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\hammer.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\hammer.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\health_potion.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\health_potion.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\health_potion.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\health_potion.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\health_potion.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\heart.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\heart.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\heart.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\heart.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\heart.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\human_base.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\human_base.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\human_base.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\human_base.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\human_base.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\human_base_colored.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\human_base_colored.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\human_base_colored.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\human_base_colored.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\human_base_colored.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\key.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\key.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\key.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\key.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\key.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\knight_statue.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\knight_statue.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\knight_statue.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\knight_statue.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\knight_statue.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\lantern.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\lantern.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\lantern.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\lantern.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\lantern.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\mana_potion.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\mana_potion.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\mana_potion.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\mana_potion.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\mana_potion.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\mug.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\mug.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\mug.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\mug.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\mug.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\pillar.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\pillar.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\pillar.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\pillar.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\pillar.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\pillar_thicc.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\pillar_thicc.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\pillar_thicc.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\pillar_thicc.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\pillar_thicc.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\poison.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\poison.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\poison.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\poison.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\poison.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\roof_flat.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\roof_flat.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\roof_flat.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\roof_flat.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\roof_flat.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\roof_raised.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\roof_raised.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\roof_raised.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\roof_raised.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\roof_raised.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\shield.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\shield.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\shield.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\shield.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\shield.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\skeleton.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\skeleton.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\skeleton.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\skeleton.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\skeleton.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\slime.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\slime.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\slime.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\slime.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\slime.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\spider.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\spider.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\spider.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\spider.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\spider.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\stamina_potion.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\stamina_potion.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\stamina_potion.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\stamina_potion.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\stamina_potion.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\sword.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\sword.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\sword.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\sword.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\sword.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\table_2x2.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\table_2x2.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\table_2x2.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\table_2x2.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\table_2x2.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\table_2x3.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\table_2x3.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\table_2x3.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\table_2x3.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\table_2x3.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x2.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x2.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x2.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x2.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x2.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x3.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x3.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x3.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x3.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\table_fancy_2x3.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\tile_flat.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\tile_flat.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\tile_flat.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\tile_flat.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\tile_flat.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\tile_raised.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\tile_raised.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\tile_raised.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\tile_raised.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\tile_raised.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\torch.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\torch.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\torch.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\torch.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\torch.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\wall_flat.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\wall_flat.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\wall_flat.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\wall_flat.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\wall_flat.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\wall_raised.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\wall_raised.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\wall_raised.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\wall_raised.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\wall_raised.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\wizard_staff.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\wizard_staff.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\wizard_staff.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\wizard_staff.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\wizard_staff.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\wood_beam.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\wood_beam.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\wood_beam.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\wood_beam.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\wood_beam.png.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\zombie.mtl
+  Art:  Datei (.mtl)
+
+â€¢ Name: assets\dungeon_kit\zombie.obj
+  Art:  3D-Modell (OBJ)
+
+â€¢ Name: assets\dungeon_kit\zombie.obj.import
+  Art:  Import-Metadaten
+
+â€¢ Name: assets\dungeon_kit\zombie.png
+  Art:  Textur/Bild (PNG)
+
+â€¢ Name: assets\dungeon_kit\zombie.png.import
+  Art:  Import-Metadaten
+
 â€¢ Name: assets\image-removebg-preview (10).png
   Art:  Textur/Bild (PNG)
 
@@ -41,6 +1301,9 @@ Gesamtanzahl Dateien: 115
 
 â€¢ Name: assets\image-removebg-preview (9).png.import
   Art:  Import-Metadaten
+
+â€¢ Name: assets\Kit.meshlib
+  Art:  Datei (.meshlib)
 
 â€¢ Name: export_file_tree.ps1
   Art:  Datei (.ps1)
@@ -66,23 +1329,11 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: index.apple-touch-icon.png.import
   Art:  Import-Metadaten
 
-â€¢ Name: index.audio.position.worklet.js
-  Art:  Datei (.js)
-
-â€¢ Name: index.audio.worklet.js
-  Art:  Datei (.js)
-
 â€¢ Name: index.icon.png
   Art:  Textur/Bild (PNG)
 
 â€¢ Name: index.icon.png.import
   Art:  Import-Metadaten
-
-â€¢ Name: index.js
-  Art:  Datei (.js)
-
-â€¢ Name: index.pck
-  Art:  Godot Package (Binaerdatei)
 
 â€¢ Name: index.png
   Art:  Textur/Bild (PNG)
@@ -90,20 +1341,11 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: index.png.import
   Art:  Import-Metadaten
 
-â€¢ Name: index.wasm
-  Art:  WebAssembly (Binaerdatei)
-
 â€¢ Name: Lemonade.apple-touch-icon.png
   Art:  Textur/Bild (PNG)
 
 â€¢ Name: Lemonade.apple-touch-icon.png.import
   Art:  Import-Metadaten
-
-â€¢ Name: Lemonade.audio.position.worklet.js
-  Art:  Datei (.js)
-
-â€¢ Name: Lemonade.audio.worklet.js
-  Art:  Datei (.js)
 
 â€¢ Name: lemonade.gd
   Art:  GDScript (Code)
@@ -117,9 +1359,6 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: Lemonade.icon.png.import
   Art:  Import-Metadaten
 
-â€¢ Name: Lemonade.js
-  Art:  Datei (.js)
-
 â€¢ Name: Lemonade.png
   Art:  Textur/Bild (PNG)
 
@@ -129,9 +1368,6 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: lemonade.tscn
   Art:  Godot-Szene
 
-â€¢ Name: Lemonade.wasm
-  Art:  WebAssembly (Binaerdatei)
-
 â€¢ Name: materials\psx_material.tres
   Art:  Godot-Ressource/Material
 
@@ -140,6 +1376,39 @@ Gesamtanzahl Dateien: 115
 
 â€¢ Name: README.md
   Art:  Markdown-Dokument
+
+â€¢ Name: resources\char_1.tres
+  Art:  Godot-Ressource/Material
+
+â€¢ Name: resources\char_2.tres
+  Art:  Godot-Ressource/Material
+
+â€¢ Name: resources\char_3.tres
+  Art:  Godot-Ressource/Material
+
+â€¢ Name: resources\char_4.tres
+  Art:  Godot-Ressource/Material
+
+â€¢ Name: scenes\ability_slot.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\area_3d.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\area_3d.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\characters\char_giselle.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\characters\char_karina.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\characters\char_ningning.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\characters\char_winter.tscn
+  Art:  Godot-Szene
 
 â€¢ Name: scenes\combo_label.gd
   Art:  GDScript (Code)
@@ -204,6 +1473,9 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: scenes\health_bar_3d.gd.uid
   Art:  Datei (.uid)
 
+â€¢ Name: scenes\hud.tscn
+  Art:  Godot-Szene
+
 â€¢ Name: scenes\kill_gate.gd
   Art:  GDScript (Code)
 
@@ -225,6 +1497,9 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: scenes\level_01.tscn
   Art:  Godot-Szene
 
+â€¢ Name: scenes\level_01.tscn3490454905.tmp
+  Art:  Datei (.tmp)
+
 â€¢ Name: scenes\level_02.tscn
   Art:  Godot-Szene
 
@@ -240,19 +1515,79 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: scenes\level_02test.tscn
   Art:  Godot-Szene
 
-â€¢ Name: scenes\player.tscn
+â€¢ Name: scenes\level_generation\door.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\level_generation\door.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\level_generation\level_generator.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\level_generation\level_generator.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\level_generation\room_data.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\level_generation\room_data.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\level_generation\room_grid_generator.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\level_generation\room_grid_generator.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\level_generation\room_instance.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\level_generation\room_instance.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\nav_test_level.tscn
   Art:  Godot-Szene
 
-â€¢ Name: scenes\player.tscn30575603.tmp
-  Art:  Datei (.tmp)
+â€¢ Name: scenes\party_slot.tscn
+  Art:  Godot-Szene
 
-â€¢ Name: scenes\player.tscn8606880042.tmp
-  Art:  Datei (.tmp)
+â€¢ Name: scenes\rooms\boss\room_boss_01.tscn
+  Art:  Godot-Szene
 
-â€¢ Name: scenes\player.tscn8621304898.tmp
-  Art:  Datei (.tmp)
+â€¢ Name: scenes\rooms\combat\room_combat_01.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\rooms\combat\room_combat_02.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\rooms\combat\room_combat_03.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\rooms\combat\room_combat_04.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\rooms\corridor\room_corridor_01.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\rooms\corridor\room_corridor_02.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\rooms\room_start_01.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\rooms\treasure\room_treasure_01.tscn
+  Art:  Godot-Szene
 
 â€¢ Name: scenes\scout_dummy.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\settings_menu.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scenes\settings_menu.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scenes\settings_menu.tscn
   Art:  Godot-Szene
 
 â€¢ Name: scenes\submersion_overlay.gd
@@ -270,16 +1605,91 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: scenes\target_reticle.gd.uid
   Art:  Datei (.uid)
 
+â€¢ Name: scenes\test level.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\Testlevel für gridmap.tscn
+  Art:  Godot-Szene
+
+â€¢ Name: scenes\Testlevel für gridmap.tscn5925034925.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\Testlevel für gridmap.tscn5942199956.tmp
+  Art:  Datei (.tmp)
+
+â€¢ Name: scenes\tileset.tscn
+  Art:  Godot-Szene
+
 â€¢ Name: scenes\win_screen.gd
   Art:  GDScript (Code)
 
 â€¢ Name: scenes\win_screen.gd.uid
   Art:  Datei (.uid)
 
-â€¢ Name: scripts\combat.gd
+â€¢ Name: scripts\ability_slot.gd
   Art:  GDScript (Code)
 
-â€¢ Name: scripts\combat.gd.uid
+â€¢ Name: scripts\ability_slot.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\character_data.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\character_data.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\characters\char_giselle.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\characters\char_giselle.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\characters\char_karina.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\characters\char_karina.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\characters\char_ningning.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\characters\char_ningning.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\characters\char_winter.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\characters\char_winter.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\characters\combat_giselle.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\characters\combat_giselle.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\characters\combat_karina.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\characters\combat_karina.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\characters\combat_ningning.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\characters\combat_ningning.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\characters\combat_winter.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\characters\combat_winter.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\combat_base.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\combat_base.gd.uid
   Art:  Datei (.uid)
 
 â€¢ Name: scripts\death_screen.gd
@@ -306,16 +1716,46 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: scripts\hud.gd.uid
   Art:  Datei (.uid)
 
+â€¢ Name: scripts\minimap.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\minimap.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\party_manager.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\party_manager.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\party_setup.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\party_setup.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\party_slot.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\party_slot.gd.uid
+  Art:  Datei (.uid)
+
 â€¢ Name: scripts\pause_menu.gd
   Art:  GDScript (Code)
 
 â€¢ Name: scripts\pause_menu.gd.uid
   Art:  Datei (.uid)
 
-â€¢ Name: scripts\player.gd
+â€¢ Name: scripts\player_base.gd
   Art:  GDScript (Code)
 
-â€¢ Name: scripts\player.gd.uid
+â€¢ Name: scripts\player_base.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: scripts\player_spawn_point.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\player_spawn_point.gd.uid
   Art:  Datei (.uid)
 
 â€¢ Name: scripts\primary_hitbox.gd
@@ -324,16 +1764,40 @@ Gesamtanzahl Dateien: 115
 â€¢ Name: scripts\primary_hitbox.gd.uid
   Art:  Datei (.uid)
 
+â€¢ Name: scripts\settings_manager.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\settings_manager.gd.uid
+  Art:  Datei (.uid)
+
 â€¢ Name: scripts\status_effect_manager.gd
   Art:  GDScript (Code)
 
 â€¢ Name: scripts\status_effect_manager.gd.uid
   Art:  Datei (.uid)
 
+â€¢ Name: scripts\zone_marker.gd
+  Art:  GDScript (Code)
+
+â€¢ Name: scripts\zone_marker.gd.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: shaders\colorblind.gdshader
+  Art:  Shader
+
+â€¢ Name: shaders\colorblind.gdshader.uid
+  Art:  Datei (.uid)
+
 â€¢ Name: shaders\crt_effect.gdshader
   Art:  Shader
 
 â€¢ Name: shaders\crt_effect.gdshader.uid
+  Art:  Datei (.uid)
+
+â€¢ Name: shaders\menu_blur.gdshader
+  Art:  Shader
+
+â€¢ Name: shaders\menu_blur.gdshader.uid
   Art:  Datei (.uid)
 
 â€¢ Name: shaders\psx.gdshader

@@ -1,10 +1,10 @@
-[gd_scene format=3 uid="uid://i1hdv5qqmw21"]
+[gd_scene format=3 uid="uid://cjx2moomxyu34"]
 
-[ext_resource type="Script" uid="uid://bpp7utu2mp6m1" path="res://scripts/player.gd" id="1_3vyb7"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_3vyb7"]
 [ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
-[ext_resource type="Script" uid="uid://by2rus5v4mrye" path="res://scripts/combat.gd" id="5_qlg0r"]
+[ext_resource type="Script" path="res://scripts/combat.gd" id="5_qlg0r"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 

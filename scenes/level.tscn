@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://lr5uahfanci4"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_04hsl"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="PackedScene" uid="uid://d0fs0qbmya5ye" path="res://scenes/floor.tscn" id="2_o3n3m"]
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="3_phjcq"]
 [ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="4_kf42o"]
@@ -25,9 +25,8 @@ shader_parameter/scroll_speed = 0.0
 
 [node name="Level" type="Node3D" unique_id=61825429]
 
-[node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_04hsl")]
-collision_mask = 5
-
+[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
+script = ExtResource("spawn_point")
 [node name="floor" parent="." unique_id=1562715279 instance=ExtResource("2_o3n3m")]
 transform = Transform3D(168.44647, 0, 0, 0, 1, 0, 0, 0, 145.76561, -0.071914196, -1.6819923, -0.82225466)
 
@@ -225,3 +224,5 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("6_8c41q")
+
+

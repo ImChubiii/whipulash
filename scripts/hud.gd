@@ -1,4 +1,3 @@
-
 extends Control
 
 # Zentrales HUD:
@@ -6,6 +5,11 @@ extends Control
 #  - rechts unten: 5 Ability-Icons (Primary, Secondary, Shift, Q, E)
 #  - oben links: Minimap mit Zonenname darueber und X/Y-Koordinaten darunter
 #  - Mitte: Combo-Anzeige (bestehende Logik, unveraendert)
+#
+# WICHTIG: player/player_health/player_combat werden NICHT mehr nur einmal
+# beim Start gesucht, sondern bei JEDEM Charakterwechsel ueber
+# PartyManager.active_player_changed neu verbunden — da beim Wechsel die
+# komplette Player-Instanz ausgetauscht wird.
 
 @onready var combo_display: Control = $ComboDisplay
 @onready var combo_count_label: Label = $ComboDisplay/ComboCount
@@ -16,7 +20,7 @@ extends Control
 const SLOT_COUNT: int = 5
 
 var player_health: Health
-var player_combat: Combat
+var player_combat: CombatBase
 var player: CharacterBody3D
 
 var _party_slots: Array[PartySlot] = []
@@ -34,18 +38,13 @@ func _ready() -> void:
 	SettingsManager.hud_visible_changed.connect(_on_hud_visible_changed)
 
 	_cache_slots()
-
-	await get_tree().process_frame
-
-	_find_player()
-	_find_and_connect_player_health()
-	_find_and_connect_player_combat()
 	_connect_party_manager()
 	_refresh_party()
 	_refresh_ability_icons()
 
-	if minimap and player:
-		minimap.set_player(player)
+	# Falls PartyManager schon vor dem HUD gespawnt hat, sofort verbinden.
+	if PartyManager.player and is_instance_valid(PartyManager.player):
+		_on_active_player_changed(PartyManager.player)
 
 func _cache_slots() -> void:
 	_party_slots.clear()
@@ -61,44 +60,6 @@ func _cache_slots() -> void:
 func _on_hud_visible_changed(is_visible: bool) -> void:
 	visible = is_visible
 
-func _find_player() -> void:
-	var found := get_tree().get_root().find_child("Player", true, false)
-	if found and found is CharacterBody3D:
-		player = found
-		PartyManager.register_player(player)
-	else:
-		push_warning("HUD: Konnte keinen Node namens 'Player' finden.")
-
-func _find_and_connect_player_health() -> void:
-	if player == null:
-		return
-
-	var health_node := player.find_child("Health", true, false)
-	if health_node == null or not (health_node is Health):
-		push_warning("HUD: Player hat keine Health-Komponente (Kind-Node 'Health').")
-		return
-
-	player_health = health_node
-	player_health.health_changed.connect(_on_health_changed)
-	_on_health_changed(player_health.current_health, player_health.max_health)
-
-func _on_health_changed(current: float, max_hp: float) -> void:
-	var idx: int = PartyManager.get_active_index()
-	if idx >= 0 and idx < _party_slots.size():
-		_party_slots[idx].update_health(current, max_hp)
-
-func _find_and_connect_player_combat() -> void:
-	if player == null:
-		return
-
-	var combat_node := player.find_child("Combat", true, false)
-	if combat_node == null or not (combat_node is Combat):
-		push_warning("HUD: Player hat keine Combat-Komponente (Kind-Node 'Combat').")
-		return
-
-	player_combat = combat_node
-	player_combat.combo_changed.connect(_on_combo_changed)
-
 func _connect_party_manager() -> void:
 	if not PartyManager.active_character_changed.is_connected(_on_active_character_changed):
 		PartyManager.active_character_changed.connect(_on_active_character_changed)
@@ -106,16 +67,55 @@ func _connect_party_manager() -> void:
 		PartyManager.member_health_changed.connect(_on_member_health_changed)
 	if not PartyManager.party_changed.is_connected(_refresh_party):
 		PartyManager.party_changed.connect(_refresh_party)
+	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
+		PartyManager.active_player_changed.connect(_on_active_player_changed)
+
+# Wird bei JEDEM Spawn/Wechsel aufgerufen — haelt player/player_health/
+# player_combat und die Minimap-Referenz immer aktuell.
+func _on_active_player_changed(new_player: CharacterBody3D) -> void:
+	if player_health and player_health.health_changed.is_connected(_on_health_changed):
+		player_health.health_changed.disconnect(_on_health_changed)
+
+	player = new_player
+	player_health = null
+	player_combat = null
+
+	if player == null or not is_instance_valid(player):
+		return
+
+	var health_node := player.find_child("Health", true, false)
+	if health_node and health_node is Health:
+		player_health = health_node
+		player_health.health_changed.connect(_on_health_changed)
+		_on_health_changed(player_health.current_health, player_health.max_health)
+	else:
+		push_warning("HUD: Player hat keine Health-Komponente (Kind-Node 'Health').")
+
+	var combat_node := player.find_child("Combat", true, false)
+	if combat_node and combat_node is CombatBase:
+		player_combat = combat_node
+		if not player_combat.combo_changed.is_connected(_on_combo_changed):
+			player_combat.combo_changed.connect(_on_combo_changed)
+	else:
+		push_warning("HUD: Player hat keine Combat-Komponente (Kind-Node 'Combat').")
+
+	if minimap:
+		minimap.set_player(player)
+
+func _on_health_changed(current: float, max_hp: float) -> void:
+	var idx: int = PartyManager.get_active_index()
+	if idx >= 0 and idx < _party_slots.size():
+		_party_slots[idx].update_health(current, max_hp)
 
 func _refresh_party() -> void:
 	var active: int = PartyManager.get_active_index()
 
 	for i: int in range(_party_slots.size()):
 		var slot: PartySlot = _party_slots[i]
-		var set: AbilitySet = PartyManager.get_set(i)
-		slot.setup(i, set)
+		var data: CharacterData = PartyManager.get_data(i)
+		slot.setup(i, data)
 
-		if set == null:
+		if data == null:
 			continue
 
 		slot.update_health(
@@ -154,24 +154,31 @@ func _reorder_party_container(active_index: int) -> void:
 
 # Laedt die Icons des aktuell aktiven Charakters in die 5 Ability-Slots.
 func _refresh_ability_icons() -> void:
-	var set: AbilitySet = PartyManager.get_active_set()
-	if set == null or _ability_slots.size() < SLOT_COUNT:
+	var data: CharacterData = PartyManager.get_active_data()
+	if data == null or _ability_slots.size() < SLOT_COUNT:
 		return
 
 	var keys: Array[String] = ["LMB", "RMB", "SHIFT", "Q", "E"]
 	var icons: Array[Texture2D] = [
-		set.icon_primary,
-		set.icon_secondary,
-		set.icon_utility,
-		set.icon_ability_q,
-		set.icon_ability_e
+		data.icon_primary,
+		data.icon_secondary,
+		data.icon_utility,
+		data.icon_ability_q,
+		data.icon_ability_e
 	]
 
 	for i: int in range(SLOT_COUNT):
 		_ability_slots[i].setup(icons[i], keys[i])
 
 func _process(_delta: float) -> void:
-	if player_combat == null:
+	# Switch-Cooldown der Party-Slots (unabhaengig davon, ob player_combat
+	# gerade gueltig ist — betrifft auch inaktive Party-Mitglieder).
+	for i: int in range(_party_slots.size()):
+		var switch_percent: float = PartyManager.get_switch_cooldown_percent(i)
+		var switch_remaining: float = PartyManager.get_switch_cooldown_remaining(i)
+		_party_slots[i].update_switch_cooldown(switch_percent, switch_remaining)
+
+	if player_combat == null or not is_instance_valid(player_combat):
 		return
 
 	for i: int in range(min(SLOT_COUNT, _ability_slots.size())):

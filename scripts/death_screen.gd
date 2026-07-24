@@ -1,4 +1,3 @@
-
 extends Control
 class_name DeathScreen
 
@@ -32,8 +31,15 @@ func _ready() -> void:
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 
-	await get_tree().process_frame
-	_connect_to_player_health()
+	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
+		PartyManager.active_player_changed.connect(_on_active_player_changed)
+
+	if PartyManager.player and is_instance_valid(PartyManager.player):
+		_on_active_player_changed(PartyManager.player)
+	else:
+		await get_tree().process_frame
+		if PartyManager.player and is_instance_valid(PartyManager.player):
+			_on_active_player_changed(PartyManager.player)
 
 
 # Gleiches Fix wie im PauseMenu: Panel ist Full-Rect mit opakem Hintergrund
@@ -51,13 +57,20 @@ func _fix_panel_background() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 
 
-func _connect_to_player_health() -> void:
-	var player := get_tree().get_root().find_child("Player", true, false)
-	if player == null:
-		push_warning("DeathScreen: Konnte keinen Node namens 'Player' finden.")
+# Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — der alte
+# Player-Node samt seiner Health-Komponente wird komplett entfernt, also
+# muss auch died-Verbindung jedes Mal neu aufgebaut werden. Ohne das würde
+# der DeathScreen nach dem ersten Charakterwechsel nie wieder auslösen.
+func _on_active_player_changed(new_player: CharacterBody3D) -> void:
+	if _health_node and is_instance_valid(_health_node) and _health_node.died.is_connected(_on_player_died):
+		_health_node.died.disconnect(_on_player_died)
+	_health_node = null
+
+	if new_player == null or not is_instance_valid(new_player):
+		push_warning("DeathScreen: Kein gueltiger Player vorhanden.")
 		return
 
-	var health_node := player.find_child("Health", true, false)
+	var health_node := new_player.find_child("Health", true, false)
 	if health_node == null or not (health_node is Health):
 		push_warning("DeathScreen: Player hat keine Health-Komponente.")
 		return

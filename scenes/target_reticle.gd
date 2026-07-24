@@ -21,9 +21,28 @@ func _ready() -> void:
 	# Gegner-Meshes verdeckt, besonders beim skalierten Tank — der Ring
 	# soll IMMER oben drauf gerendert werden, egal was davor/dahinter steht.
 	no_depth_test = true
-	_player = get_tree().get_root().find_child("Player", true, false)
-	if _player == null:
-		push_warning("TargetReticle: Konnte keinen Node namens 'Player' finden.")
+
+	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
+		PartyManager.active_player_changed.connect(_on_active_player_changed)
+
+	if PartyManager.player and is_instance_valid(PartyManager.player):
+		_on_active_player_changed(PartyManager.player)
+
+# Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — der alte
+# Player-Node wird komplett entfernt, also muss auch die target_changed-
+# Verbindung jedes Mal neu aufgebaut werden, sonst bleibt das Reticle nach
+# dem ersten Wechsel fuer immer "taub".
+func _on_active_player_changed(new_player: CharacterBody3D) -> void:
+	if _player and is_instance_valid(_player) and _player.has_signal("target_changed"):
+		if _player.target_changed.is_connected(_on_target_changed):
+			_player.target_changed.disconnect(_on_target_changed)
+
+	_player = new_player
+	_target = null
+	visible = false
+
+	if _player == null or not is_instance_valid(_player):
+		push_warning("TargetReticle: Kein gueltiger Player vorhanden.")
 		return
 	if _player.has_signal("target_changed"):
 		_player.target_changed.connect(_on_target_changed)

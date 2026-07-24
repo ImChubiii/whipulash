@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://dlw0rj8ock3xm"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_vsm81"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_eutxe"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_efmsy"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="5_05i8t"]
@@ -11,7 +10,7 @@
 [ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_c1kxm"]
 [ext_resource type="MeshLibrary" uid="uid://cidkitv756718" path="res://assets/Kit.meshlib" id="8_ruyoh"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="9_eutxe"]
-[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="9_g21q3"]
+[ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="9_g21q3"]
 [ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_bpwxd"]
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="10_efmsy"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="11_05i8t"]
@@ -20,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="12_ll6ne"]
 [ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="13_lknka"]
 [ext_resource type="Script" uid="uid://dsy4cktqiacs" path="res://scripts/zone_marker.gd" id="14_fr3ye"]
+[ext_resource type="Script" uid="uid://bgngov2w0v4yo" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_b4nts"]
 shader = ExtResource("6_05i8t")
@@ -29,6 +29,10 @@ shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
 shader_parameter/scroll_speed = 0.0
 
 [node name="Node3D" type="Node3D" unique_id=1282289642]
+
+[node name="PlayerSpawnPoint" type="Marker3D" parent="." unique_id=2049951090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.034775, -47.352436, -50.52691)
+script = ExtResource("spawn_point")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1018722565]
 
@@ -227,15 +231,12 @@ script = ExtResource("7_ll6ne")
 
 [node name="Node" type="Node" parent="." unique_id=1502658180]
 script = ExtResource("8_c1kxm")
-party_sets = Array[ExtResource("9_g21q3")]([ExtResource("10_bpwxd"), ExtResource("11_mv0uh"), ExtResource("12_0kovo"), ExtResource("13_lknka")])
+party_members = Array[ExtResource("9_g21q3")]([ExtResource("10_bpwxd"), ExtResource("11_mv0uh"), ExtResource("12_0kovo"), ExtResource("13_lknka")])
 
 [node name="Area3D" type="Area3D" parent="." unique_id=1430905872]
 script = ExtResource("14_fr3ye")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1004127298]
-
-[node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_vsm81")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.98834, -44.073395, -52.662354)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=993089913]
 transform = Transform3D(0.9659259, 0.25881907, -8.74681e-09, -0.06698732, 0.2500001, 0.9659258, 0.25000003, -0.9330127, 0.25881913, 188.47772, 21.25647, -36.77253)

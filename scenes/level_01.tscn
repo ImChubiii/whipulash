@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://bujv4m8kc3b6b"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_t0ybu"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="2_wqkcq"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_llcge"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_lwi15"]
@@ -16,7 +15,7 @@
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="10_cy6r3"]
 [ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="10_w4cok"]
 [ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="11_0tv6x"]
-[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="11_3kr23"]
+[ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="11_3kr23"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="11_e6mo4"]
 [ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="12_oy082"]
 [ext_resource type="PackedScene" uid="uid://d00w77tyt3r10" path="res://scenes/kill_gate.tscn" id="13_2ucnx"]
@@ -26,6 +25,7 @@
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="14_s61md"]
 [ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="15_l0wem"]
 [ext_resource type="Script" uid="uid://cw2plpk5i6wia" path="res://scenes/goal_zone.gd" id="17_42ncp"]
+[ext_resource type="Script" uid="uid://bgngov2w0v4yo" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0tv6x"]
 shader = ExtResource("7_2ucnx")
@@ -60,8 +60,9 @@ shader_parameter/flash_strength = 0.0
 
 [node name="level_01" type="Node3D" unique_id=1608724818]
 
-[node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_t0ybu")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
+[node name="PlayerSpawnPoint" type="Marker3D" parent="." unique_id=1276147982]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -32.10936)
+script = ExtResource("spawn_point")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
 
@@ -272,7 +273,7 @@ material = ExtResource("6_qgxqk")
 
 [node name="Node" type="Node" parent="." unique_id=506339664]
 script = ExtResource("10_w4cok")
-party_sets = Array[ExtResource("11_3kr23")]([ExtResource("12_oy082"), ExtResource("13_a577o"), ExtResource("14_ne2m8"), ExtResource("15_l0wem")])
+party_members = Array[ExtResource("11_3kr23")]([ExtResource("12_oy082"), ExtResource("13_a577o"), ExtResource("14_ne2m8"), ExtResource("15_l0wem")])
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=431866886]
 transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 90, 1.524353, 0)
