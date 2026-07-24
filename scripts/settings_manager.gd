@@ -1,3 +1,5 @@
+
+
 extends Node
 
 # ============================================================================
@@ -21,6 +23,7 @@ signal colorblind_mode_changed(mode: int)
 
 # General
 signal hud_visible_changed(visible: bool)
+signal minimap_rotate_with_player_changed(enabled: bool)
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
@@ -44,6 +47,8 @@ const REBINDABLE_ACTIONS: Dictionary = {
 	"attack_primary": "Primärangriff",
 	"attack_secondary": "Sekundärangriff",
 	"utility": "Dash",
+	"ability_primary": "Fähigkeit (Q)",
+	"ability_secondary": "Fähigkeit (E)",
 	"interact ": "Interagieren",
 	"ui_accept": "Springen",
 	"ui_left": "Links",
@@ -67,6 +72,8 @@ var fps_limit: int = 144  # 0 = unlimited
 
 # --- General ---
 var hud_visible: bool = true
+# false = Minimap bleibt IMMER nordorientiert (Standard), true = Minimap dreht sich mit dem Spieler.
+var minimap_rotate_with_player: bool = false
 
 # --- Accessibility ---
 var crt_filter_enabled: bool = true
@@ -204,6 +211,11 @@ func _apply_fps_limit(fps: int) -> void:
 func set_hud_visible(is_visible: bool) -> void:
 	hud_visible = is_visible
 	hud_visible_changed.emit(is_visible)
+	save_settings()
+
+func set_minimap_rotate_with_player(enabled: bool) -> void:
+	minimap_rotate_with_player = enabled
+	minimap_rotate_with_player_changed.emit(enabled)
 	save_settings()
 
 # ============================================================================
@@ -354,6 +366,7 @@ func reset_all_to_defaults() -> void:
 	vsync_enabled = true
 	fps_limit = 144
 	hud_visible = true
+	minimap_rotate_with_player = false
 	crt_filter_enabled = true
 	screen_shake_enabled = true
 	colorblind_mode = COLORBLIND_OFF
@@ -370,6 +383,7 @@ func reset_all_to_defaults() -> void:
 	vsync_changed.emit(vsync_enabled)
 	fps_limit_changed.emit(fps_limit)
 	hud_visible_changed.emit(hud_visible)
+	minimap_rotate_with_player_changed.emit(minimap_rotate_with_player)
 	crt_filter_changed.emit(crt_filter_enabled)
 	screen_shake_changed.emit(screen_shake_enabled)
 	colorblind_mode_changed.emit(colorblind_mode)
@@ -391,6 +405,7 @@ func save_settings() -> void:
 	config.set_value("display", "fps_limit", fps_limit)
 
 	config.set_value("general", "hud_visible", hud_visible)
+	config.set_value("general", "minimap_rotate_with_player", minimap_rotate_with_player)
 
 	config.set_value("accessibility", "crt_filter", crt_filter_enabled)
 	config.set_value("accessibility", "screen_shake", screen_shake_enabled)
@@ -434,6 +449,7 @@ func load_settings() -> void:
 	fps_limit = config.get_value("display", "fps_limit", 144)
 
 	hud_visible = config.get_value("general", "hud_visible", true)
+	minimap_rotate_with_player = config.get_value("general", "minimap_rotate_with_player", false)
 
 	crt_filter_enabled = config.get_value("accessibility", "crt_filter", true)
 	screen_shake_enabled = config.get_value("accessibility", "screen_shake", true)

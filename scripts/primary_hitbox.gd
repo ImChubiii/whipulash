@@ -1,3 +1,4 @@
+
 extends Area3D
 class_name Hitbox
 
@@ -76,14 +77,28 @@ func _on_body_entered(body: Node3D) -> void:
 		_debug("  -> apply_status_effect('%s', duration=%.2f, magnitude=%.2f, tick=%.2f) auf '%s' aufgerufen" % [status_effect_id, status_effect_duration, status_effect_magnitude, status_effect_tick_interval, body.name])
 
 	# Knockback: nur wenn knockback_force > 0.0 und Ziel kein schwerer Gegner.
+	#
+	# WICHTIG: Player und EnemyAI setzen velocity.x/z JEDEN Physik-Frame direkt
+	# aus ihrer eigenen Bewegungslogik (Input bzw. State-Machine) — ein simples
+	# "body.velocity += push_dir * knockback_force" wird dadurch im naechsten
+	# Frame sofort wieder ueberschrieben und ist praktisch unsichtbar. Deshalb
+	# wird bevorzugt apply_knockback() aufgerufen: dort landet der Impuls in
+	# einem separaten, ueber Zeit abklingenden Puffer, der von der Bewegung
+	# NICHT ueberschrieben wird. Bodies ohne diese Methode fallen weiterhin
+	# auf die direkte velocity-Modifikation zurueck.
 	if knockback_force > 0.0 and body is CharacterBody3D:
 		var is_heavy_target: bool = body.get("is_heavy") == true
 		if is_heavy_target:
 			_debug("  -> Knockback IGNORIERT: '%s' ist ein schwerer Gegner (is_heavy=true)" % body.name)
 		else:
 			var push_dir := (body.global_position - global_position).normalized()
-			body.velocity += push_dir * knockback_force
-			_debug("  -> Knockback %.1f auf '%s' angewendet" % [knockback_force, body.name])
+			var impulse: Vector3 = push_dir * knockback_force
+			if body.has_method("apply_knockback"):
+				body.apply_knockback(impulse)
+				_debug("  -> Knockback %.1f ueber apply_knockback() auf '%s' angewendet" % [knockback_force, body.name])
+			else:
+				body.velocity += impulse
+				_debug("  -> Knockback %.1f (Fallback: direkt auf velocity) auf '%s' angewendet" % [knockback_force, body.name])
 
 	_spawn_damage_number(body)
 

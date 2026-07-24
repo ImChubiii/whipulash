@@ -1,3 +1,4 @@
+
 extends Control
 
 # Zentrales HUD:
@@ -123,6 +124,8 @@ func _refresh_party() -> void:
 		)
 		slot.set_active(i == active)
 
+	_reorder_party_container(active)
+
 func _on_member_health_changed(index: int, current: float, max_hp: float) -> void:
 	if index >= 0 and index < _party_slots.size():
 		_party_slots[index].update_health(current, max_hp)
@@ -130,7 +133,24 @@ func _on_member_health_changed(index: int, current: float, max_hp: float) -> voi
 func _on_active_character_changed(index: int) -> void:
 	for i: int in range(_party_slots.size()):
 		_party_slots[i].set_active(i == index)
+	_reorder_party_container(index)
 	_refresh_ability_icons()
+
+# Der aktuell ausgewaehlte Charakter soll UNTEN in der Liste stehen statt
+# oben. _party_slots bleibt dabei per PartyManager-Index fest zugeordnet
+# (Health-Updates etc. adressieren weiterhin ueber den Index) — nur die
+# VISUELLE Reihenfolge im VBoxContainer wird angepasst: der aktive Slot
+# wandert an die letzte Position, alle anderen behalten ihre relative
+# Reihenfolge zueinander.
+func _reorder_party_container(active_index: int) -> void:
+	if active_index < 0 or active_index >= _party_slots.size():
+		return
+
+	var active_slot: PartySlot = _party_slots[active_index]
+	if not is_instance_valid(active_slot):
+		return
+
+	party_container.move_child(active_slot, party_container.get_child_count() - 1)
 
 # Laedt die Icons des aktuell aktiven Charakters in die 5 Ability-Slots.
 func _refresh_ability_icons() -> void:

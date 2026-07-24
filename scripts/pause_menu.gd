@@ -1,6 +1,16 @@
+
 # scripts/pause_menu.gd
 extends Control
 class_name PauseMenu
+
+# HUD liegt in JEDEM Level immer im selben CanvasLayer wie die Overlay-
+# Screens (Pause/Death/Win/Settings), aber die tatsächliche Sibling-
+# Reihenfolge im Szenenbaum variiert von Level zu Level (in level_01.tscn
+# z.B. wird HUD als LETZTES Kind hinzugefügt -> würde ohne z_index über
+# allem anderen liegen). z_index macht die Zeichenreihenfolge unabhängig
+# davon, wie die Level-Autoren die Nodes im Baum anordnen.
+const Z_INDEX_BLUR: int = 10
+const Z_INDEX_MENU: int = 20
 
 @onready var resume_button: Button = $Panel/VBoxContainer/ResumeButton
 @onready var settings_button: Button = $Panel/VBoxContainer/SettingsButton
@@ -12,10 +22,18 @@ var settings_menu: SettingsMenu
 
 var _blur_overlay: ColorRect = null
 
+# Wird von death_screen.gd / win_screen.gd SOFORT beim Tod/Sieg gesetzt
+# (nicht erst wenn der jeweilige Screen sichtbar wird — bei DeathScreen
+# liegt dazwischen noch eine Verzögerung, siehe death_screen_delay). Damit
+# ist ESC/Pause exakt ab dem Moment gesperrt, in dem das Spiel logisch
+# vorbei ist, nicht erst ab dem sichtbaren Screen.
+var _locked_out: bool = false
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	z_index = Z_INDEX_MENU
 
 	_blur_overlay = _get_or_create_shared_blur()
 	_fix_panel_background()
@@ -52,6 +70,7 @@ func _get_or_create_shared_blur() -> ColorRect:
 
 	var existing := parent.get_node_or_null("BlurOverlay")
 	if existing is ColorRect:
+		existing.z_index = Z_INDEX_BLUR
 		return existing
 
 	var shader := load("res://shaders/menu_blur.gdshader") as Shader
@@ -68,12 +87,27 @@ func _get_or_create_shared_blur() -> ColorRect:
 	blur.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	blur.material = mat
 	blur.visible = false
+	# Liegt ueber dem HUD, aber UNTER den Menu-Panels (Z_INDEX_MENU) —
+	# unabhaengig von der Sibling-Reihenfolge im Baum.
+	blur.z_index = Z_INDEX_BLUR
 
 	parent.add_child(blur)
 	parent.move_child(blur, 0)
 	blur.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	return blur
+
+
+# Wird von death_screen.gd bzw. win_screen.gd aufgerufen, SOBALD das Spiel
+# logisch endet (nicht erst wenn der jeweilige Screen sichtbar wird).
+# Ab dann kann Pause fuer den Rest des Levels nicht mehr geoeffnet werden —
+# ein bereits offenes PauseMenu wird dabei defensiv geschlossen.
+func lock_out() -> void:
+	_locked_out = true
+	if visible:
+		visible = false
+		if _blur_overlay:
+			_blur_overlay.visible = false
 
 
 func _is_endscreen_active() -> bool:
@@ -94,7 +128,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		return
 
-	if _is_endscreen_active():
+	# _locked_out deckt die Zeit ZWISCHEN Tod/Sieg und dem sichtbaren
+	# Death-/Win-Screen ab (death_screen_delay!). _is_endscreen_active()
+	# bleibt zusaetzlich als Absicherung, falls lock_out() aus irgendeinem
+	# Grund nicht aufgerufen wurde.
+	if _locked_out or _is_endscreen_active():
 		get_viewport().set_input_as_handled()
 		return
 
@@ -109,6 +147,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _open_pause() -> void:
+	if _locked_out:
+		return
 	if _blur_overlay:
 		_blur_overlay.visible = true
 	visible = true

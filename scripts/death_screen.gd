@@ -1,3 +1,4 @@
+
 extends Control
 class_name DeathScreen
 
@@ -12,14 +13,20 @@ class_name DeathScreen
 
 var _health_node: Health
 var _blur_overlay: ColorRect = null
+var _pause_menu: PauseMenu = null
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	# Muss ueber dem HUD liegen, unabhaengig davon wie die Level-Szene die
+	# Nodes im Baum anordnet (siehe pause_menu.gd fuer die ausfuehrliche
+	# Begruendung — gleiche Konstante wie PauseMenu/WinScreen).
+	z_index = PauseMenu.Z_INDEX_MENU
 
 	# BlurOverlay wurde von pause_menu.gd bereits im Parent erstellt
 	_blur_overlay = get_parent().get_node_or_null("BlurOverlay") as ColorRect
+	_pause_menu = get_parent().get_node_or_null("PauseMenu") as PauseMenu
 	_fix_panel_background()
 
 	restart_button.pressed.connect(_on_restart_pressed)
@@ -60,6 +67,12 @@ func _connect_to_player_health() -> void:
 
 
 func _on_player_died() -> void:
+	# SOFORT sperren — der Spieler ist ab genau JETZT tot, nicht erst wenn
+	# der Screen nach death_screen_delay sichtbar wird. Ohne das könnte man
+	# waehrend der Verzoegerung noch ESC druecken und die Pause oeffnen.
+	if _pause_menu:
+		_pause_menu.lock_out()
+
 	killed_by_label.text = "Getötet von: %s" % _get_killer_name()
 	_update_items_display()
 
