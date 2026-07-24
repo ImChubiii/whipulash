@@ -6337,24 +6337,22 @@ shader_parameter/vertex_jitter_strength = 0.0
 
 ===== FILE: resources\char_1.tres =====
 
-[gd_resource type="Resource" script_class="AbilitySet" load_steps=2 format=3 uid="uid://bcharset001"]
+[gd_resource type="Resource" script_class="CharacterData" load_steps=3 format=3 uid="uid://bcharset001"]
 
-[ext_resource type="Script" path="res://scripts/ability_set.gd" id="1_abset"]
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/characters/char_ningning.tscn" id="2_scene"]
 
 [resource]
-script = ExtResource("1_abset")
-character_name = "Lemon"
+script = ExtResource("1_data")
+character_id = &"ningning"
+character_name = "Ningning"
 portrait = null
+player_scene = ExtResource("2_scene")
 icon_primary = null
 icon_secondary = null
 icon_utility = null
 icon_ability_q = null
 icon_ability_e = null
-primary_cooldown = 0.4
-secondary_cooldown = 3.0
-utility_cooldown = 0.8
-ability_q_cooldown = 6.0
-ability_e_cooldown = 10.0
 max_health = 100.0
 name_primary = "Slash"
 name_secondary = "Heavy"
@@ -6365,86 +6363,44 @@ name_ability_e = "Sour Storm"
 
 ===== FILE: resources\char_2.tres =====
 
-[gd_resource type="Resource" script_class="AbilitySet" load_steps=2 format=3 uid="uid://bcharset002"]
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://bcharset002"]
 
-[ext_resource type="Script" path="res://scripts/ability_set.gd" id="1_abset"]
+[ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/characters/char_giselle.tscn" id="2_scene"]
 
 [resource]
-script = ExtResource("1_abset")
-character_name = "Char 2"
-portrait = null
-icon_primary = null
-icon_secondary = null
-icon_utility = null
-icon_ability_q = null
-icon_ability_e = null
-primary_cooldown = 0.4
-secondary_cooldown = 3.0
-utility_cooldown = 0.8
-ability_q_cooldown = 6.0
-ability_e_cooldown = 10.0
-max_health = 100.0
-name_primary = "Slash"
-name_secondary = "Heavy"
-name_utility = "Dash"
-name_ability_q = "Q-Ability"
-name_ability_e = "E-Ability"
+script = ExtResource("1_data")
+character_id = &"giselle"
+character_name = "Giselle"
+player_scene = ExtResource("2_scene")
 
 
 ===== FILE: resources\char_3.tres =====
 
-[gd_resource type="Resource" script_class="AbilitySet" load_steps=2 format=3 uid="uid://bcharset003"]
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://bcharset003"]
 
-[ext_resource type="Script" path="res://scripts/ability_set.gd" id="1_abset"]
+[ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/characters/char_karina.tscn" id="2_scene"]
 
 [resource]
-script = ExtResource("1_abset")
-character_name = "Char 3"
-portrait = null
-icon_primary = null
-icon_secondary = null
-icon_utility = null
-icon_ability_q = null
-icon_ability_e = null
-primary_cooldown = 0.4
-secondary_cooldown = 3.0
-utility_cooldown = 0.8
-ability_q_cooldown = 6.0
-ability_e_cooldown = 10.0
-max_health = 100.0
-name_primary = "Slash"
-name_secondary = "Heavy"
-name_utility = "Dash"
-name_ability_q = "Q-Ability"
-name_ability_e = "E-Ability"
+script = ExtResource("1_data")
+character_id = &"karina"
+character_name = "Karina"
+player_scene = ExtResource("2_scene")
 
 
 ===== FILE: resources\char_4.tres =====
 
-[gd_resource type="Resource" script_class="AbilitySet" load_steps=2 format=3 uid="uid://bcharset004"]
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://bcharset004"]
 
-[ext_resource type="Script" path="res://scripts/ability_set.gd" id="1_abset"]
+[ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/characters/char_winter.tscn" id="2_scene"]
 
 [resource]
-script = ExtResource("1_abset")
-character_name = "Char 4"
-portrait = null
-icon_primary = null
-icon_secondary = null
-icon_utility = null
-icon_ability_q = null
-icon_ability_e = null
-primary_cooldown = 0.4
-secondary_cooldown = 3.0
-utility_cooldown = 0.8
-ability_q_cooldown = 6.0
-ability_e_cooldown = 10.0
-max_health = 100.0
-name_primary = "Slash"
-name_secondary = "Heavy"
-name_utility = "Dash"
-name_ability_q = "Q-Ability"
-name_ability_e = "E-Ability"
+script = ExtResource("1_data")
+character_id = &"winter"
+character_name = "Winter"
+player_scene = ExtResource("2_scene")
 
 
 ===== FILE: scenes\ability_slot.tscn =====
@@ -6573,81 +6529,344 @@ func _process(delta: float) -> void:
 	pass
 
 
-===== FILE: scenes\combo_label.gd =====
+===== FILE: scenes\characters\char_giselle.tscn =====
 
-extends Control
+[gd_scene format=3]
 
-# --- Node-Referenzen auf die UI-Elemente ---
-@onready var health_bar: ProgressBar = $HealthBar
-@onready var health_label: Label = $HealthLabel
-@onready var combo_label: Label = $ComboLabel
+[ext_resource type="Script" path="res://scripts/characters/char_giselle.gd" id="1_giselle"]
+[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
+[ext_resource type="Script" path="res://scripts/characters/combat_giselle.gd" id="5_gisellecombat"]
 
-# --- Referenzen auf die Komponenten des Players ---
-# Werden zur Laufzeit gesucht (siehe _ready), damit du im Editor nichts
-# manuell verknüpfen musst — funktioniert, solange dein Player-Node
-# im Szenenbaum "Player" heißt und die entsprechenden Kind-Nodes hat.
-var player_health: Health
-var player_combat: Combat
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
-func _ready() -> void:
-	combo_label.visible = false
-	# Kurz warten, bis alle Nodes in der Szene bereit sind
-	await get_tree().process_frame
-	_find_and_connect_player_health()
-	_find_and_connect_player_combat()
+[sub_resource type="BoxShape3D" id="BoxShape3D_qlg0r"]
+size = Vector3(3.2440796, 3.4442139, 2.7280273)
 
-func _find_and_connect_player_health() -> void:
-	# Sucht rekursiv im ganzen Szenenbaum nach einem Node namens "Player"
-	var player := get_tree().get_root().find_child("Player", true, false)
-	if player == null:
-		push_warning("HUD: Konnte keinen Node namens 'Player' finden.")
-		return
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rn2lo"]
+shading_mode = 0
+disable_ambient_light = true
+albedo_color = Color(0.9462666, 0.5312258, 0.2327764, 1)
 
-	var health_node := player.find_child("Health", true, false)
-	if health_node == null or not (health_node is Health):
-		push_warning("HUD: Player hat keine Health-Komponente (Kind-Node 'Health').")
-		return
+[sub_resource type="BoxMesh" id="BoxMesh_qlg0r"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(3.2530518, 3.45578, 3.3742065)
 
-	player_health = health_node
-	# Signal verbinden: sobald sich die HP ändern, wird _on_health_changed aufgerufen
-	player_health.health_changed.connect(_on_health_changed)
+[sub_resource type="BoxShape3D" id="BoxShape3D_4eyt2"]
+size = Vector3(1, 1, 4.548828)
 
-	# Direkt beim Start einmal die Anzeige mit den aktuellen Werten füllen
-	_on_health_changed(player_health.current_health, player_health.max_health)
+[sub_resource type="BoxMesh" id="BoxMesh_6igkw"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(18.537506, 22.847519, 72.81865)
 
-func _on_health_changed(current: float, max_hp: float) -> void:
-	health_bar.max_value = max_hp
-	health_bar.value = current
-	health_label.text = "%d / %d" % [current, max_hp]
+[node name="CharGiselle" type="CharacterBody3D"]
+script = ExtResource("1_giselle")
+zoom_max = 15.0
+large_enemy_zoom_hold_time = 1.0
+large_enemy_zoom_speed = 4.0
 
-func _find_and_connect_player_combat() -> void:
-	var player := get_tree().get_root().find_child("Player", true, false)
-	if player == null:
-		return
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_6igkw")
 
-	var combat_node := player.find_child("Combat", true, false)
-	if combat_node == null or not (combat_node is Combat):
-		push_warning("HUD: Player hat keine Combat-Komponente (Kind-Node 'Combat').")
-		return
+[node name="CharacterModel" parent="." instance=ExtResource("2_tuyoq")]
+transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
 
-	player_combat = combat_node
-	player_combat.combo_changed.connect(_on_combo_changed)
+[node name="CameraPivot" type="Node3D" parent="."]
 
-func _on_combo_changed(count: int) -> void:
-	if count <= 1:
-		# Combo verfallen oder noch kein zweiter Treffer → Anzeige ausblenden
-		combo_label.visible = false
-		return
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
 
-	combo_label.visible = true
-	combo_label.text = "x%d COMBO!" % count
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
+shape = SubResource("BoxShape3D_qlg0r")
 
-	# Kleiner "Punch"-Effekt bei jedem neuen Combo-Treffer: kurz größer
-	# werden lassen und zurückfedern, macht's spürbarer/befriedigender.
-	combo_label.scale = Vector2(1.4, 1.4)
-	var tween := create_tween()
-	tween.tween_property(combo_label, "scale", Vector2(1.0, 1.0), 0.2)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
+mesh = SubResource("BoxMesh_qlg0r")
+
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot"]
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+damage = 9.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
+shape = SubResource("BoxShape3D_4eyt2")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox"]
+transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
+mesh = SubResource("BoxMesh_6igkw")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+spring_length = 8.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_qhqgy")
+
+[node name="Combat" type="Node" parent="."]
+script = ExtResource("5_gisellecombat")
+
+
+===== FILE: scenes\characters\char_karina.tscn =====
+
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/char_karina.gd" id="1_karina"]
+[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
+[ext_resource type="Script" path="res://scripts/characters/combat_karina.gd" id="5_karinacombat"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qlg0r"]
+size = Vector3(3.2440796, 3.4442139, 2.7280273)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rn2lo"]
+shading_mode = 0
+disable_ambient_light = true
+albedo_color = Color(0.9462666, 0.5312258, 0.2327764, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qlg0r"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(3.2530518, 3.45578, 3.3742065)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4eyt2"]
+size = Vector3(1, 1, 4.548828)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6igkw"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(18.537506, 22.847519, 72.81865)
+
+[node name="CharKarina" type="CharacterBody3D"]
+script = ExtResource("1_karina")
+zoom_max = 15.0
+large_enemy_zoom_hold_time = 1.0
+large_enemy_zoom_speed = 4.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_6igkw")
+
+[node name="CharacterModel" parent="." instance=ExtResource("2_tuyoq")]
+transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
+
+[node name="CameraPivot" type="Node3D" parent="."]
+
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
+shape = SubResource("BoxShape3D_qlg0r")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
+mesh = SubResource("BoxMesh_qlg0r")
+
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot"]
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+damage = 9.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
+shape = SubResource("BoxShape3D_4eyt2")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox"]
+transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
+mesh = SubResource("BoxMesh_6igkw")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+spring_length = 8.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_qhqgy")
+
+[node name="Combat" type="Node" parent="."]
+script = ExtResource("5_karinacombat")
+
+
+===== FILE: scenes\characters\char_ningning.tscn =====
+
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/char_ningning.gd" id="1_ning"]
+[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
+[ext_resource type="Script" path="res://scripts/characters/combat_ningning.gd" id="5_ningcombat"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qlg0r"]
+size = Vector3(3.2440796, 3.4442139, 2.7280273)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rn2lo"]
+shading_mode = 0
+disable_ambient_light = true
+albedo_color = Color(0.9462666, 0.5312258, 0.2327764, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qlg0r"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(3.2530518, 3.45578, 3.3742065)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4eyt2"]
+size = Vector3(1, 1, 4.548828)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6igkw"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(18.537506, 22.847519, 72.81865)
+
+[node name="CharNingning" type="CharacterBody3D"]
+script = ExtResource("1_ning")
+zoom_max = 15.0
+large_enemy_zoom_hold_time = 1.0
+large_enemy_zoom_speed = 4.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_6igkw")
+
+[node name="CharacterModel" parent="." instance=ExtResource("2_tuyoq")]
+transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
+
+[node name="CameraPivot" type="Node3D" parent="."]
+
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
+shape = SubResource("BoxShape3D_qlg0r")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
+mesh = SubResource("BoxMesh_qlg0r")
+
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot"]
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+damage = 9.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
+shape = SubResource("BoxShape3D_4eyt2")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox"]
+transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
+mesh = SubResource("BoxMesh_6igkw")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+spring_length = 8.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_qhqgy")
+
+[node name="Combat" type="Node" parent="."]
+script = ExtResource("5_ningcombat")
+
+
+===== FILE: scenes\characters\char_winter.tscn =====
+
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/char_winter.gd" id="1_winter"]
+[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
+[ext_resource type="Script" path="res://scripts/characters/combat_winter.gd" id="5_wintercombat"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qlg0r"]
+size = Vector3(3.2440796, 3.4442139, 2.7280273)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rn2lo"]
+shading_mode = 0
+disable_ambient_light = true
+albedo_color = Color(0.9462666, 0.5312258, 0.2327764, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qlg0r"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(3.2530518, 3.45578, 3.3742065)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4eyt2"]
+size = Vector3(1, 1, 4.548828)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6igkw"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(18.537506, 22.847519, 72.81865)
+
+[node name="CharWinter" type="CharacterBody3D"]
+script = ExtResource("1_winter")
+zoom_max = 15.0
+large_enemy_zoom_hold_time = 1.0
+large_enemy_zoom_speed = 4.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_6igkw")
+
+[node name="CharacterModel" parent="." instance=ExtResource("2_tuyoq")]
+transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
+
+[node name="CameraPivot" type="Node3D" parent="."]
+
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
+shape = SubResource("BoxShape3D_qlg0r")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
+mesh = SubResource("BoxMesh_qlg0r")
+
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot"]
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+damage = 9.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
+shape = SubResource("BoxShape3D_4eyt2")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox"]
+transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
+mesh = SubResource("BoxMesh_6igkw")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+spring_length = 8.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_qhqgy")
+
+[node name="Combat" type="Node" parent="."]
+script = ExtResource("5_wintercombat")
 
 
 ===== FILE: scenes\damage_number.gd =====
@@ -6820,6 +7039,7 @@ script = ExtResource("2_k5f3b")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.216951)
 script = ExtResource("4_fva3d")
 damage = 30.0
+knockback_force = 5.0
 damage_number_scene = ExtResource("5_dmgnum")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
@@ -6842,6 +7062,7 @@ mesh = SubResource("CylinderMesh_fva3d")
 
 
 ===== FILE: scenes\enemy_ai.gd =====
+
 
 
 extends CharacterBody3D
@@ -7296,8 +7517,15 @@ func _move_towards_player(delta: float) -> void:
 
 	var target_velocity_x: float = dir.x * effective_speed
 	var target_velocity_z: float = dir.z * effective_speed
-	velocity.x = move_toward(velocity.x, target_velocity_x, movement_acceleration * delta)
-	velocity.z = move_toward(velocity.z, target_velocity_z, movement_acceleration * delta)
+	# Residual (velocity OHNE den zuletzt aufaddierten Knockback-Anteil) als
+	# Basis nehmen, sonst wuerde ein aktiver Knockback hier langsam in die
+	# normale Verfolgungsgeschwindigkeit "eingerechnet" statt sauber
+	# eigenstaendig abzuklingen (siehe player.gd fuer die ausfuehrliche
+	# Begruendung desselben Musters).
+	var residual_x: float = velocity.x - _knockback_velocity.x
+	var residual_z: float = velocity.z - _knockback_velocity.z
+	velocity.x = move_toward(residual_x, target_velocity_x, movement_acceleration * delta)
+	velocity.z = move_toward(residual_z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
 
 func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:
@@ -8209,7 +8437,7 @@ size = Vector3(52.525833, 23.01352, 70.00348)
 
 [gd_scene format=3 uid="uid://lr5uahfanci4"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_04hsl"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="PackedScene" uid="uid://d0fs0qbmya5ye" path="res://scenes/floor.tscn" id="2_o3n3m"]
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="3_phjcq"]
 [ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="4_kf42o"]
@@ -8234,9 +8462,8 @@ shader_parameter/scroll_speed = 0.0
 
 [node name="Level" type="Node3D" unique_id=61825429]
 
-[node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_04hsl")]
-collision_mask = 5
-
+[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
+script = ExtResource("spawn_point")
 [node name="floor" parent="." unique_id=1562715279 instance=ExtResource("2_o3n3m")]
 transform = Transform3D(168.44647, 0, 0, 0, 1, 0, 0, 0, 145.76561, -0.071914196, -1.6819923, -0.82225466)
 
@@ -8436,11 +8663,13 @@ grow_vertical = 2
 script = ExtResource("6_8c41q")
 
 
+
+
 ===== FILE: scenes\level_01.tscn =====
 
 [gd_scene format=3 uid="uid://bujv4m8kc3b6b"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_t0ybu"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="2_wqkcq"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_llcge"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_lwi15"]
@@ -8456,7 +8685,7 @@ script = ExtResource("6_8c41q")
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="10_cy6r3"]
 [ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="10_w4cok"]
 [ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="11_0tv6x"]
-[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="11_3kr23"]
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="11_3kr23"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="11_e6mo4"]
 [ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="12_oy082"]
 [ext_resource type="PackedScene" uid="uid://d00w77tyt3r10" path="res://scenes/kill_gate.tscn" id="13_2ucnx"]
@@ -8500,9 +8729,9 @@ shader_parameter/flash_strength = 0.0
 
 [node name="level_01" type="Node3D" unique_id=1608724818]
 
-[node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_t0ybu")]
+[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.776836, 0, -29.211166)
-
+script = ExtResource("spawn_point")
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1776630831]
 
 [node name="SettingsMenu" parent="CanvasLayer" unique_id=1233549317 instance=ExtResource("2_wqkcq")]
@@ -8712,7 +8941,7 @@ material = ExtResource("6_qgxqk")
 
 [node name="Node" type="Node" parent="." unique_id=506339664]
 script = ExtResource("10_w4cok")
-party_sets = Array[ExtResource("11_3kr23")]([ExtResource("12_oy082"), ExtResource("13_a577o"), ExtResource("14_ne2m8"), ExtResource("15_l0wem")])
+party_members = Array[ExtResource("11_3kr23")]([ExtResource("12_oy082"), ExtResource("13_a577o"), ExtResource("14_ne2m8"), ExtResource("15_l0wem")])
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=431866886]
 transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 90, 1.524353, 0)
@@ -8897,11 +9126,13 @@ shape = SubResource("BoxShape3D_qr0ht")
 mesh = SubResource("BoxMesh_6f8o3")
 
 
+
+
 ===== FILE: scenes\level_02.tscn =====
 
 [gd_scene format=3 uid="uid://c81noxov6se3n"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_pause"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_death"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_win"]
@@ -8913,7 +9144,7 @@ mesh = SubResource("BoxMesh_6f8o3")
 [ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="9_7hevf"]
 [ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="9_reticle_tex"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="10_reticle"]
-[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="10_tmoxt"]
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="10_tmoxt"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="11_psxmat"]
 [ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="11_r2fl4"]
 [ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="12_fighter"]
@@ -8942,9 +9173,9 @@ size = Vector3(10, 6, 30)
 
 [node name="ArenaGauntlet" type="Node3D" unique_id=900001]
 
-[node name="Player" parent="." unique_id=900002 instance=ExtResource("1_player")]
+[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 5.7365723, 0)
-
+script = ExtResource("spawn_point")
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=900003]
 
 [node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=900016]
@@ -9135,7 +9366,7 @@ text = "Quit"
 
 [node name="Node" type="Node" parent="." unique_id=125253270]
 script = ExtResource("9_7hevf")
-party_sets = Array[ExtResource("10_tmoxt")]([ExtResource("11_r2fl4"), ExtResource("12_s1jqf"), ExtResource("13_rndxe"), ExtResource("14_rqluw")])
+party_members = Array[ExtResource("10_tmoxt")]([ExtResource("11_r2fl4"), ExtResource("12_s1jqf"), ExtResource("13_rndxe"), ExtResource("14_rqluw")])
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=987172830]
 transform = Transform3D(1, 0, 1.6703743e-22, 0, 1, 0, 1.6703743e-22, 0, 1, -20, 0, -1.4210855e-14)
@@ -9551,11 +9782,13 @@ texture = ExtResource("9_reticle_tex")
 script = ExtResource("10_reticle")
 
 
+
+
 ===== FILE: scenes\level_02test.tscn =====
 
 [gd_scene format=3 uid="uid://id04i1e0vua3"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="2_hud"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_pause"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_death"]
@@ -9591,9 +9824,9 @@ size = Vector3(10, 6, 30)
 
 [node name="ArenaGauntlet" type="Node3D" unique_id=900001]
 
-[node name="Player" parent="." unique_id=900002 instance=ExtResource("1_player")]
+[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 5.7365723, 0)
-
+script = ExtResource("spawn_point")
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=900003]
 
 [node name="HUD" type="Control" parent="CanvasLayer" unique_id=900004]
@@ -10272,12 +10505,458 @@ script = ExtResource("17_goal")
 shape = SubResource("BoxShape3D_goal")
 
 
+
+
+===== FILE: scenes\level_generation\door.gd =====
+
+extends StaticBody3D
+class_name Door
+
+## Tür fährt beim Entriegeln senkrecht nach oben aus dem Türrahmen weg
+## (klassischer Action-Spiel-Look, kein Dreh-Clipping mit der Wand).
+@export var open_height: float = 3.5
+@export var move_speed: float = 6.0
+
+var _locked: bool = true
+var _closed_y: float = 0.0
+var _open_y: float = 0.0
+
+@onready var _collision: CollisionShape3D = $CollisionShape3D
+
+func _ready() -> void:
+	_closed_y = position.y
+	_open_y = _closed_y + open_height
+	_collision.disabled = not _locked
+	set_process(true)
+
+func set_locked(locked: bool) -> void:
+	_locked = locked
+
+func _process(delta: float) -> void:
+	var target_y: float = _closed_y if _locked else _open_y
+	if is_equal_approx(position.y, target_y):
+		_collision.disabled = not _locked
+		return
+	position.y = move_toward(position.y, target_y, move_speed * delta)
+	_collision.disabled = not _locked
+
+
+===== FILE: scenes\level_generation\level_generator.gd =====
+
+extends Node
+class_name LevelGenerator
+
+@export var room_pool: Array[RoomData] = []
+@export var current_stage: int = 1
+@export var enemy_pool: Array[PackedScene] = []
+
+## Weltgröße einer Grid-Zelle. MUSS zur physischen Größe eurer Raum-Vorlagen
+## passen (die generierten Blockout-Räume sind 16x16), sonst driften Türen
+## benachbarter Räume auseinander.
+@export var cell_size: Vector3 = Vector3(16.0, 0.0, 16.0)
+
+## Node im Baum, das RoomGridGenerator als Skript trägt - im Inspector zuweisen.
+@export var grid_generator: RoomGridGenerator
+
+var _used_unique_rooms: Array[RoomData] = []
+var _instances: Dictionary = {}  # Vector2i -> RoomInstance
+var _current_layout: Dictionary = {}
+
+## Baut eine komplett neue Ebene: neues Zufalls-Grid-Layout + neue
+## Raum-Bestückung/Gegner.
+func generate_new_stage() -> void:
+	_current_layout = grid_generator.generate_layout()
+	_instantiate_layout(_current_layout)
+
+## Baut die NÄCHSTE Ebene mit dem GLEICHEN Grid-Muster wie zuvor
+## (Isaac-Stil: "gleiches Muster, neue Ebene"). Würfelt dabei neu,
+## welche konkreten Raum-Szenen und Gegner reinkommen.
+func generate_next_stage_same_pattern() -> void:
+	current_stage += 1
+	_instantiate_layout(_current_layout)
+
+func _instantiate_layout(layout: Dictionary) -> void:
+	_clear_current_rooms()
+	_used_unique_rooms.clear()
+
+	for grid_pos in layout.keys():
+		var cell: RoomGridGenerator.RoomCell = layout[grid_pos]
+		var data: RoomData = _pick_room(cell.room_type, cell.exit_flags)
+		if data == null:
+			continue
+
+		var world_pos := Vector3(grid_pos.x * cell_size.x, 0.0, grid_pos.y * cell_size.z)
+		var room := load_room(data, Transform3D(Basis.IDENTITY, world_pos))
+		if room:
+			room.apply_exit_flags(cell.exit_flags)
+			_instances[grid_pos] = room
+
+func _clear_current_rooms() -> void:
+	for room in _instances.values():
+		if is_instance_valid(room):
+			room.queue_free()
+	_instances.clear()
+
+func _pick_room(type: int, required_exit_flags: int) -> RoomData:
+	var candidates: Array[RoomData] = []
+	for data in room_pool:
+		if data.room_type != type:
+			continue
+		if data.min_stage > current_stage:
+			continue
+		if data.unique_per_run and data in _used_unique_rooms:
+			continue
+		# Vorlage muss MINDESTENS die geforderten Ausgänge besitzen -
+		# überschüssige Türen werden in RoomInstance.apply_exit_flags
+		# dauerhaft zugesperrt.
+		if (data.available_exits & required_exit_flags) != required_exit_flags:
+			continue
+		candidates.append(data)
+
+	if candidates.is_empty():
+		push_error("LevelGenerator: Kein passender Raum für Typ %s (Exits %d) gefunden!" % [type, required_exit_flags])
+		return null
+
+	var chosen: RoomData = _weighted_pick(candidates)
+	if chosen.unique_per_run:
+		_used_unique_rooms.append(chosen)
+	return chosen
+
+func _weighted_pick(candidates: Array[RoomData]) -> RoomData:
+	var total_weight: float = 0.0
+	for c in candidates:
+		total_weight += c.spawn_weight
+
+	var roll: float = randf() * total_weight
+	var accumulated: float = 0.0
+	for c in candidates:
+		accumulated += c.spawn_weight
+		if roll <= accumulated:
+			return c
+
+	return candidates.back()
+
+func load_room(data: RoomData, spawn_transform: Transform3D) -> RoomInstance:
+	var instance: Node3D = data.scene.instantiate()
+	get_tree().current_scene.add_child(instance)
+	instance.global_transform = spawn_transform
+
+	var room: RoomInstance = instance as RoomInstance
+	if room:
+		room.populate_enemies(enemy_pool, 2, 5)
+	return room
+
+
+===== FILE: scenes\level_generation\room_data.gd =====
+
+extends Resource
+class_name RoomData
+
+## Referenz auf die tatsächliche Raum-Szene (.tscn)
+@export var scene: PackedScene
+
+## Kategorie steuert, wo der Raum im Layout eingesetzt werden darf
+enum RoomType { COMBAT, TREASURE, BOSS, CORRIDOR, SHOP, START }
+@export var room_type: RoomType = RoomType.COMBAT
+
+## Welche Seiten dieser Raum-Vorlage physisch eine Tür besitzen.
+## Bitmask: Norden=1, Süden=2, Osten=4, Westen=8 - deckt sich exakt mit
+## RoomGridGenerator.DIRECTION_FLAG und RoomInstance.EXIT_*.
+## Der Grid-Generator wählt nur Räume, deren available_exits MINDESTENS
+## die vom Layout geforderten Richtungen abdeckt (required & available
+## == required). Überschüssige Türen der Vorlage werden zur Laufzeit
+## dauerhaft zugesperrt (siehe RoomInstance.apply_exit_flags).
+@export_flags("Norden:1", "Süden:2", "Osten:4", "Westen:8") var available_exits: int = 15
+
+## Optionale Gewichtung, wie oft dieser Raum im Vergleich zu anderen
+## des gleichen Typs gezogen wird (höher = wahrscheinlicher)
+@export var spawn_weight: float = 1.0
+
+## Mindest-Spielfortschritt (z.B. "Etage 3"), ab dem dieser Raum
+## überhaupt in den Pool aufgenommen wird (für schwierigere Varianten)
+@export var min_stage: int = 0
+
+## Verhindert, dass derselbe Raum zweimal im gleichen Run vorkommt
+@export var unique_per_run: bool = false
+
+
+===== FILE: scenes\level_generation\room_grid_generator.gd =====
+
+extends Node
+class_name RoomGridGenerator
+
+## Isaac-artiger Grid-Layout-Generator: erzeugt zunächst NUR eine reine
+## Datenstruktur (welche Grid-Zelle hat welchen Raumtyp und welche
+## Tür-Richtungen zu Nachbarn), ohne irgendeine Szene zu instanzieren.
+## Das erlaubt es, das exakt gleiche Muster in einer späteren Ebene
+## wiederzuverwenden (siehe LevelGenerator.generate_next_stage_same_pattern):
+## nur WELCHE konkrete Raum-Szene + Gegner reinkommen wird neu gewürfelt.
+
+const NORTH := "north"
+const SOUTH := "south"
+const EAST := "east"
+const WEST := "west"
+
+const DIRECTION_OFFSETS := {
+	NORTH: Vector2i(0, -1),
+	SOUTH: Vector2i(0, 1),
+	EAST: Vector2i(1, 0),
+	WEST: Vector2i(-1, 0),
+}
+
+const OPPOSITE := {
+	NORTH: SOUTH,
+	SOUTH: NORTH,
+	EAST: WEST,
+	WEST: EAST,
+}
+
+## Muss 1:1 mit RoomInstance.EXIT_* und RoomData.available_exits übereinstimmen.
+const DIRECTION_FLAG := {
+	NORTH: 1,
+	SOUTH: 2,
+	EAST: 4,
+	WEST: 8,
+}
+
+class RoomCell:
+	var grid_pos: Vector2i
+	var room_type: int = RoomData.RoomType.COMBAT
+	var exit_flags: int = 0  # Bitmask aus DIRECTION_FLAG - welche Nachbarn existieren
+
+## Wie viele COMBAT-Zellen (bevor Corridor/Treasure/Boss draus werden)
+## zusätzlich zum Startraum erzeugt werden sollen.
+@export var target_room_count: int = 7
+
+func generate_layout() -> Dictionary:
+	var cells: Dictionary = {}  # Vector2i -> RoomCell
+
+	var start_cell := RoomCell.new()
+	start_cell.grid_pos = Vector2i.ZERO
+	start_cell.room_type = RoomData.RoomType.START
+	cells[Vector2i.ZERO] = start_cell
+
+	var frontier: Array[Vector2i] = [Vector2i.ZERO]
+	var placed: int = 0
+
+	while placed < target_room_count and not frontier.is_empty():
+		var current: Vector2i = frontier[randi() % frontier.size()]
+		var directions: Array = DIRECTION_OFFSETS.keys()
+		directions.shuffle()
+
+		var expanded: bool = false
+		for dir in directions:
+			var next_pos: Vector2i = current + DIRECTION_OFFSETS[dir]
+			if cells.has(next_pos):
+				continue
+
+			var new_cell := RoomCell.new()
+			new_cell.grid_pos = next_pos
+			new_cell.room_type = RoomData.RoomType.COMBAT
+			cells[next_pos] = new_cell
+			frontier.append(next_pos)
+
+			_link_neighbors(cells, current, next_pos, dir)
+
+			placed += 1
+			expanded = true
+			break
+
+		if not expanded:
+			frontier.erase(current)
+
+	_place_special_rooms(cells)
+	_place_corridors(cells)
+	return cells
+
+func _link_neighbors(cells: Dictionary, from_pos: Vector2i, to_pos: Vector2i, dir: String) -> void:
+	var from_cell: RoomCell = cells[from_pos]
+	var to_cell: RoomCell = cells[to_pos]
+	from_cell.exit_flags |= DIRECTION_FLAG[dir]
+	to_cell.exit_flags |= DIRECTION_FLAG[OPPOSITE[dir]]
+
+func _place_special_rooms(cells: Dictionary) -> void:
+	# Boss- und Treasure-Räume kommen an "Dead Ends" (genau 1 Verbindung).
+	# Boss bevorzugt den vom Start am weitesten entfernten Dead End.
+	var dead_ends: Array[Vector2i] = []
+	for pos in cells.keys():
+		if pos == Vector2i.ZERO:
+			continue
+		var cell: RoomCell = cells[pos]
+		if _count_flags(cell.exit_flags) == 1:
+			dead_ends.append(pos)
+
+	dead_ends.sort_custom(func(a, b): return a.distance_squared_to(Vector2i.ZERO) > b.distance_squared_to(Vector2i.ZERO))
+
+	if not dead_ends.is_empty():
+		var boss_pos: Vector2i = dead_ends[0]
+		cells[boss_pos].room_type = RoomData.RoomType.BOSS
+		dead_ends.remove_at(0)
+
+	if not dead_ends.is_empty():
+		var treasure_pos: Vector2i = dead_ends[randi() % dead_ends.size()]
+		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
+
+func _place_corridors(cells: Dictionary) -> void:
+	# Zellen mit genau 2 gegenüberliegenden Verbindungen (reiner
+	# Durchgang) werden mit 50% Chance als CORRIDOR statt COMBAT
+	# markiert - passt zu euren 2 Corridor-Varianten im Pool.
+	for pos in cells.keys():
+		var cell: RoomCell = cells[pos]
+		if cell.room_type != RoomData.RoomType.COMBAT:
+			continue
+		var flags: int = cell.exit_flags
+		var is_straight_through: bool = (flags == (DIRECTION_FLAG[NORTH] | DIRECTION_FLAG[SOUTH])) \
+			or (flags == (DIRECTION_FLAG[EAST] | DIRECTION_FLAG[WEST]))
+		if is_straight_through and randf() < 0.5:
+			cell.room_type = RoomData.RoomType.CORRIDOR
+
+func _count_flags(flags: int) -> int:
+	var count: int = 0
+	for i in range(4):
+		if flags & (1 << i) != 0:
+			count += 1
+	return count
+
+
+===== FILE: scenes\level_generation\room_instance.gd =====
+
+extends Node3D
+class_name RoomInstance
+
+## Bitmask-Konstanten, identisch zu RoomData.available_exits und
+## RoomGridGenerator.DIRECTION_FLAG, damit Raum und Grid-Generator sich
+## ohne harte Klassenabhängigkeit einig sind, welche Richtung was ist.
+const EXIT_NORTH := 1
+const EXIT_SOUTH := 2
+const EXIT_EAST := 4
+const EXIT_WEST := 8
+
+const _FLAG_BY_KEY := {
+	"north": EXIT_NORTH,
+	"south": EXIT_SOUTH,
+	"east": EXIT_EAST,
+	"west": EXIT_WEST,
+}
+
+## Marker3D-Kinder unter "EnemySpawnPoints" markieren mögliche
+## Gegner-Spawnpunkte. Nicht jeder Marker muss belegt werden -> variiert
+## die Dichte pro Durchlauf.
+var enemy_spawn_points: Array[Marker3D] = []
+
+## Marker für Loot/Items (Chests, Pickups)
+var loot_spawn_points: Array[Marker3D] = []
+
+## Gerichtete Türen: "north"/"south"/"east"/"west" -> Marker3D.
+## Nur Richtungen, die im aktuellen Grid-Layout tatsächlich gebraucht
+## werden, bleiben nach apply_exit_flags() in diesem Dictionary.
+var exit_points: Dictionary = {}
+
+signal room_cleared
+signal room_entered
+
+var _is_cleared: bool = false
+var _active_enemies: int = 0
+
+func _ready() -> void:
+	_collect_markers()
+	_lock_exits(true)
+
+func _collect_markers() -> void:
+	var spawn_group := get_node_or_null("EnemySpawnPoints")
+	if spawn_group:
+		for child in spawn_group.get_children():
+			if child is Marker3D:
+				enemy_spawn_points.append(child)
+
+	var loot_group := get_node_or_null("LootSpawnPoints")
+	if loot_group:
+		for child in loot_group.get_children():
+			if child is Marker3D:
+				loot_spawn_points.append(child)
+
+	var exit_group := get_node_or_null("ExitPoints")
+	if exit_group:
+		for child in exit_group.get_children():
+			if child is Marker3D:
+				var key: String = child.name.to_lower()
+				if not _FLAG_BY_KEY.has(key):
+					continue
+				exit_points[key] = child
+				# Tür wird über Namenskonvention gefunden statt fest in der
+				# .tscn verdrahtet: "Doors/Door" + Marker-Name (z.B. "North"
+				# -> "Doors/DoorNorth"). Spart fehleranfällige NodePath-
+				# Zuweisungen im Editor pro Raum-Variante.
+				var door := get_node_or_null("Doors/Door%s" % child.name.capitalize())
+				if door:
+					child.set_meta("door_node", door)
+
+## Wird vom LevelGenerator aufgerufen, um zufällig eine Teilmenge der
+## verfügbaren Spawn-Punkte mit Gegnern zu befüllen (variiert Dichte).
+func populate_enemies(enemy_scenes: Array[PackedScene], min_count: int, max_count: int) -> void:
+	if enemy_scenes.is_empty() or enemy_spawn_points.is_empty():
+		return
+
+	var shuffled := enemy_spawn_points.duplicate()
+	shuffled.shuffle()
+
+	var count: int = clampi(randi_range(min_count, max_count), 0, shuffled.size())
+	for i in range(count):
+		var point: Marker3D = shuffled[i]
+		var enemy_scene: PackedScene = enemy_scenes.pick_random()
+		var enemy: Node3D = enemy_scene.instantiate()
+		add_child(enemy)
+		enemy.global_position = point.global_position
+		enemy.global_rotation = point.global_rotation
+		_active_enemies += 1
+
+		# WICHTIG: Self-Damage-Schutz laut Projektregel - owner zeigt auf
+		# Szenen-Root, damit Hitboxen den eigenen Raum/Spawner nicht als
+		# Quelle für Friendly-Fire missverstehen.
+		if enemy.has_signal("died"):
+			enemy.died.connect(_on_enemy_died)
+
+	if count == 0:
+		# Raum ohne Gegner (z.B. Corridor/Treasure) gilt sofort als "clear"
+		_is_cleared = true
+		_lock_exits(false)
+
+## Wird vom LevelGenerator direkt nach dem Instanziieren aufgerufen.
+## Entfernt alle Türen, die im aktuellen Grid-Layout NICHT gebraucht
+## werden, aus exit_points. Diese Türen bleiben dadurch für immer
+## verriegelt (sie werden nie wieder von _lock_exits erreicht) und
+## wirken effektiv wie eine massive Wand - kosmetisch bleibt es eine
+## geschlossene Tür-Mesh, funktional ist sie unpassierbar.
+func apply_exit_flags(required_flags: int) -> void:
+	for key in exit_points.keys().duplicate():
+		var flag: int = _FLAG_BY_KEY.get(key, 0)
+		if flag & required_flags == 0:
+			exit_points.erase(key)
+
+func _on_enemy_died() -> void:
+	_active_enemies -= 1
+	if _active_enemies <= 0 and not _is_cleared:
+		_is_cleared = true
+		_lock_exits(false)
+		room_cleared.emit()
+
+func _lock_exits(locked: bool) -> void:
+	for marker in exit_points.values():
+		if marker.has_meta("door_node"):
+			var door: Node = marker.get_meta("door_node")
+			if door.has_method("set_locked"):
+				door.set_locked(locked)
+
+func on_player_entered() -> void:
+	room_entered.emit()
+
+
 ===== FILE: scenes\nav_test_level.tscn =====
 
 [gd_scene format=3 uid="uid://bq6pd2by1dwq2"]
 
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="1_b4psi"]
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="2_psxmat"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="2_xyve8"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="3_nvt7p"]
@@ -10563,9 +11242,9 @@ navigation_mesh = SubResource("NavigationMesh_hqxar")
 transform = Transform3D(1, 0, 0, 0, 0.7071068, -0.7071068, 0, 0.7071068, 0.7071068, 0, 10, 0)
 shadow_enabled = true
 
-[node name="Player" parent="." unique_id=500002 instance=ExtResource("1_player")]
+[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, -16)
-
+script = ExtResource("spawn_point")
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=500003]
 navigation_mesh = SubResource("NavigationMesh_d46x6")
 
@@ -10653,6 +11332,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 10)
 
 [node name="SpawnIsolatedLedge" type="Node3D" parent="EnemySpawner" unique_id=500016]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 4, 10)
+
+
 
 
 ===== FILE: scenes\party_slot.tscn =====
@@ -10782,16 +11463,53 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.6)
 
+[node name="SwitchCooldownOverlay" type="ColorRect" parent="Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="SwitchReadyFlash" type="ColorRect" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0)
+color = Color(1, 0.98, 0.75, 1)
+
+[node name="SwitchCooldownLabel" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+
 
 ===== FILE: scenes\player.tscn =====
 
-[gd_scene format=3 uid="uid://i1hdv5qqmw21"]
+[gd_scene format=3 uid="uid://cjx2moomxyu34"]
 
-[ext_resource type="Script" uid="uid://bpp7utu2mp6m1" path="res://scripts/player.gd" id="1_3vyb7"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_3vyb7"]
 [ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
-[ext_resource type="Script" uid="uid://by2rus5v4mrye" path="res://scripts/combat.gd" id="5_qlg0r"]
+[ext_resource type="Script" path="res://scripts/combat.gd" id="5_qlg0r"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -10816,6 +11534,9 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="Player" type="CharacterBody3D" unique_id=1005944688]
 script = ExtResource("1_3vyb7")
+zoom_max = 15.0
+large_enemy_zoom_hold_time = 1.0
+large_enemy_zoom_speed = 4.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=246789424]
 shape = SubResource("CapsuleShape3D_6igkw")
@@ -10843,6 +11564,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage = 9.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=779664953]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
@@ -10862,6 +11584,1751 @@ script = ExtResource("3_qhqgy")
 
 [node name="Combat" type="Node" parent="." unique_id=1214410704]
 script = ExtResource("5_qlg0r")
+
+
+===== FILE: scenes\rooms\boss\room_boss_01.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+
+[node name="LootSpawnPoints" type="Node3D" parent="."]
+
+[node name="Loot1" type="Marker3D" parent="LootSpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 6)
+
+
+===== FILE: scenes\rooms\combat\room_combat_01.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.3, -6)
+
+[node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.3, -6)
+
+[node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.3, 6)
+
+[node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.3, 6)
+
+
+===== FILE: scenes\rooms\combat\room_combat_02.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.3, 0)
+
+[node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.3, 0)
+
+[node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -3)
+
+[node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 3)
+
+[node name="Enemy5" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+
+[node name="LootSpawnPoints" type="Node3D" parent="."]
+
+[node name="Loot1" type="Marker3D" parent="LootSpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.3, 6)
+
+
+===== FILE: scenes\rooms\combat\room_combat_03.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.3, -4)
+
+[node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.3, -4)
+
+[node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.3, 4)
+
+[node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.3, 4)
+
+
+===== FILE: scenes\rooms\combat\room_combat_04.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0.3, 0)
+
+[node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.3, 0)
+
+[node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -5)
+
+[node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 5)
+
+[node name="Enemy5" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+
+[node name="LootSpawnPoints" type="Node3D" parent="."]
+
+[node name="Loot1" type="Marker3D" parent="LootSpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.3, 3)
+
+
+===== FILE: scenes\rooms\corridor\room_corridor_01.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+
+===== FILE: scenes\rooms\corridor\room_corridor_02.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+
+
+===== FILE: scenes\rooms\room_start_01.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+
+===== FILE: scenes\rooms\treasure\room_treasure_01.tscn =====
+
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(16.0, 0.4, 16.0)
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(6.0, 4.0, 0.5)
+[sub_resource type="BoxMesh" id="wall_ew_mesh"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxShape3D" id="wall_ew_shape"]
+size = Vector3(0.5, 4.0, 6.0)
+[sub_resource type="BoxMesh" id="door_mesh_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxShape3D" id="door_shape_ns"]
+size = Vector3(4.0, 4.0, 0.3)
+[sub_resource type="BoxMesh" id="door_mesh_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+[sub_resource type="BoxShape3D" id="door_shape_ew"]
+size = Vector3(0.3, 4.0, 4.0)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallEast_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, -5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+shape = SubResource("wall_ew_shape")
+
+[node name="WallWest_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 5.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+mesh = SubResource("wall_ew_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+shape = SubResource("wall_ew_shape")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, -8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 8.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_mesh_ns")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_shape_ns")
+
+[node name="DoorEast" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+shape = SubResource("door_shape_ew")
+
+[node name="DoorWest" type="StaticBody3D" parent="Doors"]
+script = ExtResource("door_script")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 2.0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+mesh = SubResource("door_mesh_ew")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+shape = SubResource("door_shape_ew")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.0)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.0)
+
+[node name="East" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0, 0)
+
+[node name="West" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0, 0)
+
+[node name="LootSpawnPoints" type="Node3D" parent="."]
+
+[node name="Loot1" type="Marker3D" parent="LootSpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.3, 0)
+
+[node name="Loot2" type="Marker3D" parent="LootSpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.3, 0)
 
 
 ===== FILE: scenes\scout_dummy.tscn =====
@@ -11006,6 +13473,7 @@ mesh = SubResource("CylinderMesh_fva3d")
 ===== FILE: scenes\settings_menu.gd =====
 
 
+
 extends Control
 class_name SettingsMenu
 
@@ -11054,6 +13522,10 @@ var _keybind_buttons: Dictionary = {}
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	# Muss ueber PauseMenu/DeathScreen/WinScreen (Z_INDEX_MENU) UND ueber dem
+	# HUD liegen — SettingsMenu kann sowohl vom PauseMenu als auch (potenziell)
+	# direkt geoeffnet werden, muss also in jedem Fall zuoberst liegen.
+	z_index = PauseMenu.Z_INDEX_MENU + 10
 
 	_fix_panel_background()
 	_setup_slider_ranges()
@@ -11068,7 +13540,16 @@ func _ready() -> void:
 
 
 # Panel hat opaken Standardhintergrund — fix auf halbtransparent damit der
-# BackgroundBlur (hint_screen_texture ColorRect) dahinter sichtbar wird.
+# BackgroundBlur (flaches, dunkles ColorRect) dahinter sichtbar wird.
+# HINWEIS: BackgroundBlur nutzt bewusst KEINEN Screen-Blur-Shader mehr —
+# der 9-Tap-Blur (menu_blur.gdshader) erzeugte auf scharfen UI-/HUD-Texten
+# (Minimap-Koordinaten, Ability-Icons etc.) sichtbare "Geisterbilder" statt
+# einer sauberen Unschärfe, weil er nur 9 Samples nutzt. Bei Pause/Death/Win
+# fällt das nicht auf, weil dort das Panel Full-Rect UND komplett opak ist
+# und den Effekt komplett verdeckt. Settings hat aber bewusst ein KLEINES,
+# zentriertes Panel (damit man sieht, dass man "über" dem Pause-Menü ist) —
+# der Rest des Bildschirms braucht daher einen eigenen, aber schlichten
+# dunklen Overlay statt des Blur-Shaders.
 func _fix_panel_background() -> void:
 	var panel := get_node_or_null("Panel") as Panel
 	if panel == null:
@@ -11300,13 +13781,10 @@ func _input(event: InputEvent) -> void:
 ===== FILE: scenes\settings_menu.tscn =====
 
 
-[gd_scene load_steps=4 format=3 uid="uid://by0b1jhagnufc"]
+
+[gd_scene load_steps=2 format=3 uid="uid://by0b1jhagnufc"]
 
 [ext_resource type="Script" path="res://scenes/settings_menu.gd" id="1_menu"]
-[ext_resource type="Shader" path="res://shaders/menu_blur.gdshader" id="2_blur"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_blur"]
-shader = ExtResource("2_blur")
 
 [node name="SettingsMenu" type="Control"]
 layout_mode = 3
@@ -11318,7 +13796,6 @@ grow_vertical = 2
 script = ExtResource("1_menu")
 
 [node name="BackgroundBlur" type="ColorRect" parent="."]
-material = SubResource("ShaderMaterial_blur")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -11326,7 +13803,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(1, 1, 1, 1)
+color = Color(0.05, 0.05, 0.08, 0.85)
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
@@ -11571,6 +14048,7 @@ layout_mode = 2
 text = "Back"
 
 
+
 ===== FILE: scenes\submersion_overlay.gd =====
 
 extends ColorRect
@@ -11715,7 +14193,7 @@ max_health = 400.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.216951)
 script = ExtResource("4_1v3u1")
 damage = 70.0
-knockback_force = 50.0
+knockback_force = 10.0
 damage_number_scene = ExtResource("5_dmgnum")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
@@ -11822,7 +14300,7 @@ func _process(delta: float) -> void:
 
 [gd_scene format=3 uid="uid://bnlevdvxc4nnq"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_g0wwu"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_iy4sn"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_21bqe"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="5_mew1s"]
@@ -11831,7 +14309,7 @@ func _process(delta: float) -> void:
 [ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="7_mio06"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="8_mio06"]
 [ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_wxbki"]
-[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="9_frsmd"]
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="9_frsmd"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="9_wxbki"]
 [ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_6ci1b"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="10_frsmd"]
@@ -11867,9 +14345,9 @@ shader_parameter/flash_strength = 0.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=516340564]
 
-[node name="Player" parent="CanvasLayer" unique_id=1005944688 instance=ExtResource("1_g0wwu")]
+[node name="PlayerSpawnPoint" type="Marker3D" parent="CanvasLayer"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7768364, 1, -30.211166)
-
+script = ExtResource("spawn_point")
 [node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1702809052]
 layout_mode = 3
 anchors_preset = 15
@@ -12053,7 +14531,7 @@ script = ExtResource("7_2xqp6")
 
 [node name="Node" type="Node" parent="." unique_id=745760395]
 script = ExtResource("8_wxbki")
-party_sets = Array[ExtResource("9_frsmd")]([ExtResource("10_6ci1b"), ExtResource("11_cgcdo"), ExtResource("12_6klec"), ExtResource("13_8blc5")])
+party_members = Array[ExtResource("9_frsmd")]([ExtResource("10_6ci1b"), ExtResource("11_cgcdo"), ExtResource("12_6klec"), ExtResource("13_8blc5")])
 
 [node name="Stingerspawn" type="Node3D" parent="." unique_id=1890598471 node_paths=PackedStringArray("spawn_points")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8152657, 3.6324558, -11.489873)
@@ -12108,11 +14586,13 @@ use_collision = true
 size = Vector3(29, 24, 9)
 
 
+
+
 ===== FILE: scenes\Testlevel f�r gridmap.tscn =====
 
 [gd_scene format=3 uid="uid://dlw0rj8ock3xm"]
 
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_vsm81"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="3_eutxe"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="4_efmsy"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="5_05i8t"]
@@ -12123,7 +14603,7 @@ size = Vector3(29, 24, 9)
 [ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_c1kxm"]
 [ext_resource type="MeshLibrary" uid="uid://cidkitv756718" path="res://assets/Kit.meshlib" id="8_ruyoh"]
 [ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="9_eutxe"]
-[ext_resource type="Script" uid="uid://ed466rvruicw" path="res://scripts/ability_set.gd" id="9_g21q3"]
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="9_g21q3"]
 [ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_bpwxd"]
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="10_efmsy"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="11_05i8t"]
@@ -12339,16 +14819,16 @@ script = ExtResource("7_ll6ne")
 
 [node name="Node" type="Node" parent="." unique_id=1502658180]
 script = ExtResource("8_c1kxm")
-party_sets = Array[ExtResource("9_g21q3")]([ExtResource("10_bpwxd"), ExtResource("11_mv0uh"), ExtResource("12_0kovo"), ExtResource("13_lknka")])
+party_members = Array[ExtResource("9_g21q3")]([ExtResource("10_bpwxd"), ExtResource("11_mv0uh"), ExtResource("12_0kovo"), ExtResource("13_lknka")])
 
 [node name="Area3D" type="Area3D" parent="." unique_id=1430905872]
 script = ExtResource("14_fr3ye")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1004127298]
 
-[node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_vsm81")]
+[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.98834, -44.073395, -52.662354)
-
+script = ExtResource("spawn_point")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=993089913]
 transform = Transform3D(0.9659259, 0.25881907, -8.74681e-09, -0.06698732, 0.2500001, 0.9659258, 0.25000003, -0.9330127, 0.25881913, 188.47772, 21.25647, -36.77253)
 light_energy = 3.195
@@ -12394,6 +14874,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90.30863, 4.230812, 29.635681
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 164.03406, 175.75824, -19.68518)
 light_color = Color(1, 0.59607846, 0.24705882, 1)
 light_energy = 8.707
+
+
 
 
 ===== FILE: scenes\tileset.tscn =====
@@ -13134,6 +15616,7 @@ shape = SubResource("ConcavePolygonShape3D_ky17o")
 
 ===== FILE: scenes\win_screen.gd =====
 
+
 extends Control
 class_name WinScreen
 
@@ -13141,14 +15624,20 @@ class_name WinScreen
 @onready var quit_button: Button = $Panel/VBoxContainer/QuitButton
 
 var _blur_overlay: ColorRect = null
+var _pause_menu: PauseMenu = null
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	# Muss ueber dem HUD liegen, unabhaengig davon wie die Level-Szene die
+	# Nodes im Baum anordnet (siehe pause_menu.gd fuer die ausfuehrliche
+	# Begruendung — gleiche Konstante wie PauseMenu/DeathScreen).
+	z_index = PauseMenu.Z_INDEX_MENU
 
 	# BlurOverlay wurde von pause_menu.gd bereits im Parent erstellt
 	_blur_overlay = get_parent().get_node_or_null("BlurOverlay") as ColorRect
+	_pause_menu = get_parent().get_node_or_null("PauseMenu") as PauseMenu
 	_fix_panel_background()
 
 	restart_button.pressed.connect(_on_restart_pressed)
@@ -13172,6 +15661,12 @@ func _fix_panel_background() -> void:
 func show_win() -> void:
 	if visible:
 		return  # Nicht doppelt auslösen
+
+	# SOFORT sperren, bevor die Buttons ueberhaupt sichtbar sind — ab jetzt
+	# ist das Level gewonnen, ESC/Pause soll nicht mehr moeglich sein.
+	if _pause_menu:
+		_pause_menu.lock_out()
+
 	if _blur_overlay:
 		_blur_overlay.visible = true
 	visible = true
@@ -13188,42 +15683,6 @@ func _on_restart_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
-
-
-===== FILE: scripts\ability_set.gd =====
-
-extends Resource
-class_name AbilitySet
-
-# Definiert das komplette Loadout EINES Charakters.
-# Als .tres im Ordner /resources ablegen, z.B. res://resources/char_1.tres
-
-@export var character_name: String = "Lemon"
-@export var portrait: Texture2D = null
-
-@export_group("Icons")
-@export var icon_primary: Texture2D = null
-@export var icon_secondary: Texture2D = null
-@export var icon_utility: Texture2D = null
-@export var icon_ability_q: Texture2D = null
-@export var icon_ability_e: Texture2D = null
-
-@export_group("Cooldowns")
-@export var primary_cooldown: float = 0.4
-@export var secondary_cooldown: float = 5
-@export var utility_cooldown: float = 5
-@export var ability_q_cooldown: float = 6.0
-@export var ability_e_cooldown: float = 10.0
-
-@export_group("Stats")
-@export var max_health: float = 100.0
-
-@export_group("Display Names")
-@export var name_primary: String = "Slash"
-@export var name_secondary: String = "Heavy"
-@export var name_utility: String = "Dash"
-@export var name_ability_q: String = "Q-Ability"
-@export var name_ability_e: String = "E-Ability"
 
 
 ===== FILE: scripts\ability_slot.gd =====
@@ -13293,12 +15752,222 @@ func _play_ready_flash() -> void:
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
-===== FILE: scripts\combat.gd =====
+===== FILE: scripts\character_data.gd =====
+
+extends Resource
+class_name CharacterData
+
+# Ersetzt die alte "AbilitySet"-Resource.
+#
+# WICHTIG: Enthält NUR noch Meta-/Anzeigedaten fuers HUD und die Party-
+# Auswahl (Name, Portrait, Icons, Anzeigenamen, max_health) — KEINE
+# Cooldown-Werte mehr! Cooldowns und die eigentliche Fähigkeits-Logik
+# leben jetzt direkt im jeweiligen Combat-Script des Charakters
+# (z.B. res://scripts/characters/combat_ningning.gd), da jeder Charakter
+# eigene, unterschiedliche Fähigkeiten haben soll.
+#
+# Als .tres im Ordner /resources ablegen, z.B. res://resources/char_1.tres
+
+@export var character_id: StringName = &""
+@export var character_name: String = "Char"
+@export var portrait: Texture2D = null
+
+# Die komplette Charakter-Szene (CharacterBody3D-Root), die PartyManager
+# instanziert, sobald dieser Charakter aktiv wird.
+# z.B. res://scenes/characters/char_ningning.tscn
+@export var player_scene: PackedScene = null
+
+@export_group("Icons")
+@export var icon_primary: Texture2D = null
+@export var icon_secondary: Texture2D = null
+@export var icon_utility: Texture2D = null
+@export var icon_ability_q: Texture2D = null
+@export var icon_ability_e: Texture2D = null
+
+@export_group("Stats")
+@export var max_health: float = 100.0
+
+@export_group("Display Names")
+@export var name_primary: String = "Slash"
+@export var name_secondary: String = "Heavy"
+@export var name_utility: String = "Dash"
+@export var name_ability_q: String = "Q-Ability"
+@export var name_ability_e: String = "E-Ability"
+
+
+===== FILE: scripts\characters\char_giselle.gd =====
+
+extends PlayerBase
+class_name CharGiselle
+
+# Giselle: TODO — char-spezifische Bewegungs-Overrides hier einbauen,
+# falls sie z.B. eine andere Basis-Geschwindigkeit oder eine besondere
+# Bewegungsmechanik (Doppelsprung, Gleiten, ...) bekommen soll.
+
+
+===== FILE: scripts\characters\char_karina.gd =====
+
+extends PlayerBase
+class_name CharKarina
+
+# Karina: TODO — char-spezifische Bewegungs-Overrides hier einbauen.
+
+
+===== FILE: scripts\characters\char_ningning.gd =====
+
+extends PlayerBase
+class_name CharNingning
+
+# Ningning: ausgewogener Allrounder mit schnellen, kurzen Cooldowns.
+# Bewegungswerte (speed, jump_velocity, ...) werden im Inspector der
+# char_ningning.tscn gesetzt — hier nur Platz für char-spezifische
+# Overrides/Extra-Mechaniken, die über reine Combat-Fähigkeiten hinausgehen
+# (z.B. ein Passiv-Effekt, der die Basis-Bewegung beeinflusst).
+
+
+===== FILE: scripts\characters\char_winter.gd =====
+
+extends PlayerBase
+class_name CharWinter
+
+# Winter: TODO — char-spezifische Bewegungs-Overrides hier einbauen.
+
+
+===== FILE: scripts\characters\combat_giselle.gd =====
+
+extends CombatBase
+class_name CombatGiselle
+
+# WICHTIG: @export-Variablen, die schon in CombatBase existieren, duerfen in
+# der Subklasse NICHT nochmal mit @export deklariert werden (Godot-Fehler
+# "member already exists in parent class"). Stattdessen werden abweichende
+# Werte hier in _init() gesetzt.
+func _init() -> void:
+	primary_cooldown = 0.4
+	secondary_cooldown = 3.0
+	utility_cooldown = 0.8
+	ability_q_cooldown = 6.0
+	ability_e_cooldown = 10.0
+
+# TODO: Giselles einzigartige Q-Fähigkeit.
+func _perform_ability_q() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.35)
+	print("Giselle: Q-Ability!")
+
+# TODO: Giselles einzigartige E-Fähigkeit.
+func _perform_ability_e() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.5)
+	print("Giselle: E-Ability!")
+
+
+===== FILE: scripts\characters\combat_karina.gd =====
+
+extends CombatBase
+class_name CombatKarina
+
+# WICHTIG: @export-Variablen, die schon in CombatBase existieren, duerfen in
+# der Subklasse NICHT nochmal mit @export deklariert werden (Godot-Fehler
+# "member already exists in parent class"). Stattdessen werden abweichende
+# Werte hier in _init() gesetzt.
+func _init() -> void:
+	primary_cooldown = 0.4
+	secondary_cooldown = 3.0
+	utility_cooldown = 0.8
+	ability_q_cooldown = 6.0
+	ability_e_cooldown = 10.0
+
+# TODO: Karinas einzigartige Q-Fähigkeit.
+func _perform_ability_q() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.35)
+	print("Karina: Q-Ability!")
+
+# TODO: Karinas einzigartige E-Fähigkeit.
+func _perform_ability_e() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.5)
+	print("Karina: E-Ability!")
+
+
+===== FILE: scripts\characters\combat_ningning.gd =====
+
+extends CombatBase
+class_name CombatNingning
+
+# Ningning: schnelle Combo-Klingen, kurze Cooldowns.
+# WICHTIG: @export-Variablen, die schon in CombatBase existieren, duerfen in
+# der Subklasse NICHT nochmal mit @export deklariert werden (Godot-Fehler
+# "member already exists in parent class"). Stattdessen werden abweichende
+# Werte hier in _init() gesetzt.
+func _init() -> void:
+	primary_cooldown = 0.4
+	secondary_cooldown = 3.0
+	utility_cooldown = 0.8
+	ability_q_cooldown = 6.0
+	ability_e_cooldown = 10.0
+
+# TODO: "Zest Burst" — Ningnings einzigartige Q-Fähigkeit.
+# Primary/Secondary/Utility nutzen aktuell noch das Standardverhalten aus
+# CombatBase (Hitbox-Angriff / Dash) — hier kannst du das bei Bedarf
+# ebenfalls überschreiben (_perform_primary, _perform_secondary, _perform_utility).
+func _perform_ability_q() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.35)
+	print("Ningning: Zest Burst!")
+
+# TODO: "Sour Storm" — Ningnings einzigartige E-Fähigkeit.
+func _perform_ability_e() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.5)
+	print("Ningning: Sour Storm!")
+
+
+===== FILE: scripts\characters\combat_winter.gd =====
+
+extends CombatBase
+class_name CombatWinter
+
+# WICHTIG: @export-Variablen, die schon in CombatBase existieren, duerfen in
+# der Subklasse NICHT nochmal mit @export deklariert werden (Godot-Fehler
+# "member already exists in parent class"). Stattdessen werden abweichende
+# Werte hier in _init() gesetzt.
+func _init() -> void:
+	primary_cooldown = 0.4
+	secondary_cooldown = 3.0
+	utility_cooldown = 0.8
+	ability_q_cooldown = 6.0
+	ability_e_cooldown = 10.0
+
+# TODO: Winters einzigartige Q-Fähigkeit.
+func _perform_ability_q() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.35)
+	print("Winter: Q-Ability!")
+
+# TODO: Winters einzigartige E-Fähigkeit.
+func _perform_ability_e() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.5)
+	print("Winter: E-Ability!")
+
+
+===== FILE: scripts\combat_base.gd =====
 
 extends Node
-class_name Combat
+class_name CombatBase
 
-# --- Cooldown-Werte, im Inspector einstellbar ---
+# --- Basisklasse für ALLE Charakter-Combat-Skripte ---
+# Enthält das komplette gemeinsame Cooldown-, Combo-, Hit-Lock- und Dash-
+# System. Die eigentlichen FÄHIGKEITEN (was Primary/Secondary/Utility/Q/E
+# tatsächlich TUN) sind virtuelle "_perform_*"-Methoden — jeder Charakter
+# überschreibt sie in seinem eigenen Combat-Script (z.B. combat_ningning.gd)
+# mit eigener Logik. Cooldown-Werte werden ebenfalls pro Charakter-Script
+# überschrieben (siehe combat_ningning.gd) — es gibt KEIN globales
+# Daten-Objekt mehr, das Cooldowns zur Laufzeit "einspielt".
+
+# --- Cooldown-Werte, im Inspector einstellbar UND in Charakter-Subklassen überschreibbar ---
 @export var primary_cooldown: float = 0.4
 @export var secondary_cooldown: float = 3.0
 @export var utility_cooldown: float = 0.8
@@ -13371,7 +16040,7 @@ var _combo_count: int = 0
 var _combo_timer: float = 0.0
 
 # --- Dash-Vertikalitaet: vorwaerts behaelt volle Blickrichtungs-Neigung, ---
-# --- rueckwaerts bleibt bewusst flach/horizontal ("normaler" Dash). ---
+# --- rueckwaerts bleibt bewusst flach/horizontal (default-Dash). ---
 @export_range(0.0, 1.0) var backward_dash_vertical_influence: float = 0.0
 
 # --- Node-Referenzen, die wir vom Player brauchen ---
@@ -13385,23 +16054,6 @@ func setup(owner_player: CharacterBody3D) -> void:
 		primary_hitbox.hit_landed.connect(_on_hit_landed)
 	if secondary_hitbox:
 		secondary_hitbox.hit_landed.connect(_on_hit_landed)
-
-# Uebernimmt die Cooldown-Werte eines AbilitySet beim Charakterwechsel.
-# Laufende Cooldowns werden dabei zurueckgesetzt.
-func apply_ability_set(set: AbilitySet) -> void:
-	if set == null:
-		return
-	primary_cooldown = set.primary_cooldown
-	secondary_cooldown = set.secondary_cooldown
-	utility_cooldown = set.utility_cooldown
-	ability_q_cooldown = set.ability_q_cooldown
-	ability_e_cooldown = set.ability_e_cooldown
-
-	_primary_timer = 0.0
-	_secondary_timer = 0.0
-	_utility_timer = 0.0
-	_ability_q_timer = 0.0
-	_ability_e_timer = 0.0
 
 func _on_hit_landed(target: Node) -> void:
 	_hit_lock_timer = hit_lock_duration
@@ -13500,9 +16152,13 @@ func _do_primary() -> void:
 	_primary_timer = cd
 	primary_used.emit()
 	cooldown_started.emit(Slot.PRIMARY, cd)
+	_perform_primary()
+
+# Von Charakter-Subklassen überschreibbar. Standardverhalten: PrimaryHitbox
+# fuer ein kurzes Angriffs-Fenster aktivieren.
+func _perform_primary() -> void:
 	if primary_hitbox:
 		primary_hitbox.activate()
-		# Hitbox nach kurzer Zeit wieder ausschalten (Angriffs-"Fenster")
 		await get_tree().create_timer(0.15).timeout
 		primary_hitbox.deactivate()
 
@@ -13519,34 +16175,25 @@ func _do_secondary() -> void:
 	_secondary_timer = secondary_cooldown
 	secondary_used.emit()
 	cooldown_started.emit(Slot.SECONDARY, secondary_cooldown)
+	_perform_secondary()
+
+# Von Charakter-Subklassen überschreibbar. Standardverhalten: SecondaryHitbox
+# fuer ein laengeres Angriffs-Fenster aktivieren.
+func _perform_secondary() -> void:
 	if secondary_hitbox:
 		secondary_hitbox.activate()
 		await get_tree().create_timer(0.25).timeout
 		secondary_hitbox.deactivate()
 
-# --- Q-Ability: Platzhalter-Logik, hier deine Charakterfaehigkeit einbauen ---
-func _do_ability_q() -> void:
-	_ability_q_timer = ability_q_cooldown
-	ability_q_used.emit()
-	cooldown_started.emit(Slot.ABILITY_Q, ability_q_cooldown)
-
-	if player and player.has_method("shake_camera"):
-		player.shake_camera(0.35)
-
-# --- E-Ability: Platzhalter-Logik, hier deine Charakterfaehigkeit einbauen ---
-func _do_ability_e() -> void:
-	_ability_e_timer = ability_e_cooldown
-	ability_e_used.emit()
-	cooldown_started.emit(Slot.ABILITY_E, ability_e_cooldown)
-
-	if player and player.has_method("shake_camera"):
-		player.shake_camera(0.5)
-
 func _do_utility() -> void:
 	_utility_timer = utility_cooldown
 	utility_used.emit()
 	cooldown_started.emit(Slot.UTILITY, utility_cooldown)
+	_perform_utility()
 
+# Von Charakter-Subklassen überschreibbar. Standardverhalten: Dash in
+# Bewegungs-/Blickrichtung.
+func _perform_utility() -> void:
 	if player and player.has_method("play_dash_fov_effect"):
 		player.play_dash_fov_effect()
 
@@ -13580,6 +16227,30 @@ func _do_utility() -> void:
 
 	_is_dashing = true
 	_dash_timer = dash_duration
+
+# --- Q-Ability: von jedem Charakter individuell zu überschreiben ---
+func _do_ability_q() -> void:
+	_ability_q_timer = ability_q_cooldown
+	ability_q_used.emit()
+	cooldown_started.emit(Slot.ABILITY_Q, ability_q_cooldown)
+	_perform_ability_q()
+
+# Fallback, falls ein Charakter-Script das nicht überschreibt.
+func _perform_ability_q() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.35)
+
+# --- E-Ability: von jedem Charakter individuell zu überschreiben ---
+func _do_ability_e() -> void:
+	_ability_e_timer = ability_e_cooldown
+	ability_e_used.emit()
+	cooldown_started.emit(Slot.ABILITY_E, ability_e_cooldown)
+	_perform_ability_e()
+
+# Fallback, falls ein Charakter-Script das nicht überschreibt.
+func _perform_ability_e() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.5)
 
 # Wird vom Player-Script in _physics_process aufgerufen, damit der Dash
 # die normale Bewegung waehrend seiner Dauer ueberschreiben kann.
@@ -13671,6 +16342,7 @@ func get_combo_count() -> int:
 
 ===== FILE: scripts\death_screen.gd =====
 
+
 extends Control
 class_name DeathScreen
 
@@ -13685,14 +16357,20 @@ class_name DeathScreen
 
 var _health_node: Health
 var _blur_overlay: ColorRect = null
+var _pause_menu: PauseMenu = null
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	# Muss ueber dem HUD liegen, unabhaengig davon wie die Level-Szene die
+	# Nodes im Baum anordnet (siehe pause_menu.gd fuer die ausfuehrliche
+	# Begruendung — gleiche Konstante wie PauseMenu/WinScreen).
+	z_index = PauseMenu.Z_INDEX_MENU
 
 	# BlurOverlay wurde von pause_menu.gd bereits im Parent erstellt
 	_blur_overlay = get_parent().get_node_or_null("BlurOverlay") as ColorRect
+	_pause_menu = get_parent().get_node_or_null("PauseMenu") as PauseMenu
 	_fix_panel_background()
 
 	restart_button.pressed.connect(_on_restart_pressed)
@@ -13733,6 +16411,12 @@ func _connect_to_player_health() -> void:
 
 
 func _on_player_died() -> void:
+	# SOFORT sperren — der Spieler ist ab genau JETZT tot, nicht erst wenn
+	# der Screen nach death_screen_delay sichtbar wird. Ohne das könnte man
+	# waehrend der Verzoegerung noch ESC druecken und die Pause oeffnen.
+	if _pause_menu:
+		_pause_menu.lock_out()
+
 	killed_by_label.text = "Getötet von: %s" % _get_killer_name()
 	_update_items_display()
 
@@ -13877,7 +16561,6 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 
 ===== FILE: scripts\hud.gd =====
 
-
 extends Control
 
 # Zentrales HUD:
@@ -13885,6 +16568,11 @@ extends Control
 #  - rechts unten: 5 Ability-Icons (Primary, Secondary, Shift, Q, E)
 #  - oben links: Minimap mit Zonenname darueber und X/Y-Koordinaten darunter
 #  - Mitte: Combo-Anzeige (bestehende Logik, unveraendert)
+#
+# WICHTIG: player/player_health/player_combat werden NICHT mehr nur einmal
+# beim Start gesucht, sondern bei JEDEM Charakterwechsel ueber
+# PartyManager.active_player_changed neu verbunden — da beim Wechsel die
+# komplette Player-Instanz ausgetauscht wird.
 
 @onready var combo_display: Control = $ComboDisplay
 @onready var combo_count_label: Label = $ComboDisplay/ComboCount
@@ -13895,7 +16583,7 @@ extends Control
 const SLOT_COUNT: int = 5
 
 var player_health: Health
-var player_combat: Combat
+var player_combat: CombatBase
 var player: CharacterBody3D
 
 var _party_slots: Array[PartySlot] = []
@@ -13913,18 +16601,13 @@ func _ready() -> void:
 	SettingsManager.hud_visible_changed.connect(_on_hud_visible_changed)
 
 	_cache_slots()
-
-	await get_tree().process_frame
-
-	_find_player()
-	_find_and_connect_player_health()
-	_find_and_connect_player_combat()
 	_connect_party_manager()
 	_refresh_party()
 	_refresh_ability_icons()
 
-	if minimap and player:
-		minimap.set_player(player)
+	# Falls PartyManager schon vor dem HUD gespawnt hat, sofort verbinden.
+	if PartyManager.player and is_instance_valid(PartyManager.player):
+		_on_active_player_changed(PartyManager.player)
 
 func _cache_slots() -> void:
 	_party_slots.clear()
@@ -13940,44 +16623,6 @@ func _cache_slots() -> void:
 func _on_hud_visible_changed(is_visible: bool) -> void:
 	visible = is_visible
 
-func _find_player() -> void:
-	var found := get_tree().get_root().find_child("Player", true, false)
-	if found and found is CharacterBody3D:
-		player = found
-		PartyManager.register_player(player)
-	else:
-		push_warning("HUD: Konnte keinen Node namens 'Player' finden.")
-
-func _find_and_connect_player_health() -> void:
-	if player == null:
-		return
-
-	var health_node := player.find_child("Health", true, false)
-	if health_node == null or not (health_node is Health):
-		push_warning("HUD: Player hat keine Health-Komponente (Kind-Node 'Health').")
-		return
-
-	player_health = health_node
-	player_health.health_changed.connect(_on_health_changed)
-	_on_health_changed(player_health.current_health, player_health.max_health)
-
-func _on_health_changed(current: float, max_hp: float) -> void:
-	var idx: int = PartyManager.get_active_index()
-	if idx >= 0 and idx < _party_slots.size():
-		_party_slots[idx].update_health(current, max_hp)
-
-func _find_and_connect_player_combat() -> void:
-	if player == null:
-		return
-
-	var combat_node := player.find_child("Combat", true, false)
-	if combat_node == null or not (combat_node is Combat):
-		push_warning("HUD: Player hat keine Combat-Komponente (Kind-Node 'Combat').")
-		return
-
-	player_combat = combat_node
-	player_combat.combo_changed.connect(_on_combo_changed)
-
 func _connect_party_manager() -> void:
 	if not PartyManager.active_character_changed.is_connected(_on_active_character_changed):
 		PartyManager.active_character_changed.connect(_on_active_character_changed)
@@ -13985,16 +16630,55 @@ func _connect_party_manager() -> void:
 		PartyManager.member_health_changed.connect(_on_member_health_changed)
 	if not PartyManager.party_changed.is_connected(_refresh_party):
 		PartyManager.party_changed.connect(_refresh_party)
+	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
+		PartyManager.active_player_changed.connect(_on_active_player_changed)
+
+# Wird bei JEDEM Spawn/Wechsel aufgerufen — haelt player/player_health/
+# player_combat und die Minimap-Referenz immer aktuell.
+func _on_active_player_changed(new_player: CharacterBody3D) -> void:
+	if player_health and player_health.health_changed.is_connected(_on_health_changed):
+		player_health.health_changed.disconnect(_on_health_changed)
+
+	player = new_player
+	player_health = null
+	player_combat = null
+
+	if player == null or not is_instance_valid(player):
+		return
+
+	var health_node := player.find_child("Health", true, false)
+	if health_node and health_node is Health:
+		player_health = health_node
+		player_health.health_changed.connect(_on_health_changed)
+		_on_health_changed(player_health.current_health, player_health.max_health)
+	else:
+		push_warning("HUD: Player hat keine Health-Komponente (Kind-Node 'Health').")
+
+	var combat_node := player.find_child("Combat", true, false)
+	if combat_node and combat_node is CombatBase:
+		player_combat = combat_node
+		if not player_combat.combo_changed.is_connected(_on_combo_changed):
+			player_combat.combo_changed.connect(_on_combo_changed)
+	else:
+		push_warning("HUD: Player hat keine Combat-Komponente (Kind-Node 'Combat').")
+
+	if minimap:
+		minimap.set_player(player)
+
+func _on_health_changed(current: float, max_hp: float) -> void:
+	var idx: int = PartyManager.get_active_index()
+	if idx >= 0 and idx < _party_slots.size():
+		_party_slots[idx].update_health(current, max_hp)
 
 func _refresh_party() -> void:
 	var active: int = PartyManager.get_active_index()
 
 	for i: int in range(_party_slots.size()):
 		var slot: PartySlot = _party_slots[i]
-		var set: AbilitySet = PartyManager.get_set(i)
-		slot.setup(i, set)
+		var data: CharacterData = PartyManager.get_data(i)
+		slot.setup(i, data)
 
-		if set == null:
+		if data == null:
 			continue
 
 		slot.update_health(
@@ -14033,24 +16717,31 @@ func _reorder_party_container(active_index: int) -> void:
 
 # Laedt die Icons des aktuell aktiven Charakters in die 5 Ability-Slots.
 func _refresh_ability_icons() -> void:
-	var set: AbilitySet = PartyManager.get_active_set()
-	if set == null or _ability_slots.size() < SLOT_COUNT:
+	var data: CharacterData = PartyManager.get_active_data()
+	if data == null or _ability_slots.size() < SLOT_COUNT:
 		return
 
 	var keys: Array[String] = ["LMB", "RMB", "SHIFT", "Q", "E"]
 	var icons: Array[Texture2D] = [
-		set.icon_primary,
-		set.icon_secondary,
-		set.icon_utility,
-		set.icon_ability_q,
-		set.icon_ability_e
+		data.icon_primary,
+		data.icon_secondary,
+		data.icon_utility,
+		data.icon_ability_q,
+		data.icon_ability_e
 	]
 
 	for i: int in range(SLOT_COUNT):
 		_ability_slots[i].setup(icons[i], keys[i])
 
 func _process(_delta: float) -> void:
-	if player_combat == null:
+	# Switch-Cooldown der Party-Slots (unabhaengig davon, ob player_combat
+	# gerade gueltig ist — betrifft auch inaktive Party-Mitglieder).
+	for i: int in range(_party_slots.size()):
+		var switch_percent: float = PartyManager.get_switch_cooldown_percent(i)
+		var switch_remaining: float = PartyManager.get_switch_cooldown_remaining(i)
+		_party_slots[i].update_switch_cooldown(switch_percent, switch_remaining)
+
+	if player_combat == null or not is_instance_valid(player_combat):
 		return
 
 	for i: int in range(min(SLOT_COUNT, _ability_slots.size())):
@@ -14092,6 +16783,7 @@ func _play_combo_expire_animation() -> void:
 ===== FILE: scripts\minimap.gd =====
 
 
+
 extends Control
 
 # Minimap oben links: orthogonale Kamera in einem SubViewport, die
@@ -14099,6 +16791,7 @@ extends Control
 # Gruppe "zone" ermittelt (siehe zone_marker.gd).
 
 @onready var zone_label: Label = $Frame/ZoneLabel
+@onready var map_container: Control = $Frame/MapContainer
 @onready var sub_viewport: SubViewport = $Frame/MapContainer/SubViewportContainer/SubViewport
 @onready var map_camera: Camera3D = $Frame/MapContainer/SubViewportContainer/SubViewport/MapCamera
 @onready var coord_label: Label = $Frame/CoordLabel
@@ -14106,6 +16799,12 @@ extends Control
 
 @export var map_height: float = 40.0
 @export var map_size: float = 30.0
+# Kalibrierungs-Korrektur: die gerenderte Karte war um 90° verdreht.
+# Godot-2D-Rotation ist positiv = im Uhrzeigersinn, daher -90 fuer
+# "90° gegen den Uhrzeigersinn". Wird als reine Bildschirmraum-Drehung auf
+# MapContainer (SubViewport-Bild + Spieler-Pfeil zusammen) angewendet —
+# unabhaengig davon, ob die Karte nordorientiert bleibt oder mit dreht.
+@export var map_calibration_offset_degrees: float = -90.0
 # Editor-Fallback, falls SettingsManager (Autoload) mal nicht verfuegbar ist.
 # Im normalen Spielbetrieb wird dieser Wert in _ready() von
 # SettingsManager.minimap_rotate_with_player ueberschrieben und danach live
@@ -14127,6 +16826,12 @@ func _ready() -> void:
 	sub_viewport.own_world_3d = false
 	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_set_zone_text(default_zone_name)
+
+	# Kalibrierungs-Drehung: um die Mitte drehen statt um die obere linke
+	# Ecke (Control-Standard-Pivot), sonst verschiebt sich das Bild.
+	# MapContainer ist quadratisch (200x200), Pivot = Zentrum.
+	map_container.pivot_offset = map_container.size * 0.5
+	map_container.rotation_degrees = map_calibration_offset_degrees
 
 	# Setting "Karte dreht sich mit Spieler" (General-Tab): Standard ist
 	# AUS -> Karte bleibt immer nordorientiert, nur der Spieler-Pfeil dreht sich.
@@ -14150,8 +16855,15 @@ func _process(delta: float) -> void:
 	var model: Node3D = player.get_node_or_null("CharacterModel")
 
 	if rotate_with_player:
-		if model:
-			map_camera.rotation.y = model.rotation.y
+		# WICHTIG: hier muss die KAMERA-Blickrichtung rein, nicht die
+		# Blickrichtung des Charakter-Modells — die beiden koennen
+		# auseinanderlaufen (z.B. waehrend Target-Lock dreht sich das Modell
+		# zum anvisierten Gegner, waehrend die Kamera woanders hinschaut).
+		# "Karte dreht mit Kamera" soll heissen: die Richtung, in die man
+		# gerade SCHAUT, zeigt auf der Karte immer nach oben.
+		var camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
+		if camera_pivot:
+			map_camera.rotation.y = camera_pivot.rotation.y
 		player_arrow.rotation = 0.0
 	else:
 		map_camera.rotation.y = 0.0
@@ -14199,6 +16911,7 @@ func _set_zone_text(text: String) -> void:
 
 
 
+
 ===== FILE: scripts\party_manager.gd =====
 
 extends Node
@@ -14206,55 +16919,117 @@ extends Node
 # AUTOLOAD — Name: PartyManager
 # Projekt -> Projekteinstellungen -> Autoload -> res://scripts/party_manager.gd
 #
-# Verwaltet die 4 Party-Mitglieder, ihren HP-Stand und wer gerade aktiv ist.
-# Inaktive Charaktere haben KEINE Health-Node in der Szene — ihr HP-Stand
-# wird hier gespiegelt, damit das HUD alle 4 Bars anzeigen kann.
+# Verwaltet die Party (bis zu 4 CharacterData), wer aktiv ist, und deren
+# HP-Stand. Es existiert IMMER nur EIN aktiver CharacterBody3D im Level —
+# beim Wechsel wird die aktuelle Charakter-Instanz entfernt und die neue
+# (mit ihrem eigenen Combat-Script/eigenen Fähigkeiten) an derselben
+# Stelle neu instanziert. Position, Kamera-Ausrichtung und HP werden dabei
+# übernommen.
+#
+# Switch-Cooldown: Sobald man von einem Charakter WEGwechselt, bekommt
+# GENAU DIESER Charakter (nicht der neu aktivierte) einen Cooldown von
+# SWITCH_COOLDOWN_DURATION Sekunden, bevor man wieder zu ihm wechseln kann.
 
 signal party_changed
 signal active_character_changed(index: int)
 signal member_health_changed(index: int, current: float, max_hp: float)
+# Wird JEDES MAL gefeuert, wenn die aktive Spieler-Instanz ausgetauscht
+# wurde (erstes Spawnen UND jeder Charakterwechsel). Systeme, die sich
+# den Player-Node merken (HUD, Minimap, ...), MÜSSEN darauf reagieren und
+# ihre Referenz erneuern, statt ihn nur einmal zu suchen.
+signal active_player_changed(player: CharacterBody3D)
 
 const MAX_PARTY_SIZE: int = 4
+const PLAYER_NODE_NAME: String = "Player"
+const PLAYER_GROUP: String = "player"
 
-var ability_sets: Array[AbilitySet] = []
+# Wie lange ein Charakter gesperrt bleibt, NACHDEM man von ihm weggewechselt
+# ist (nicht: nachdem man ihn ausgewählt hat).
+const SWITCH_COOLDOWN_DURATION: float = 10.0
+
+var party: Array[CharacterData] = []
 
 var _current_health: Array[float] = []
 var _max_health: Array[float] = []
+# Verbleibende Cooldown-Sekunden pro Party-Index, 0.0 = bereit.
+var _switch_cooldowns: Array[float] = []
 var _active_index: int = 0
 
 var player: CharacterBody3D = null
 var _player_health: Health = null
 
+var _spawn_parent: Node = null
+var _spawn_transform: Transform3D = Transform3D.IDENTITY
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-# Wird vom Level (oder einem Charakter-Auswahl-Menue) aufgerufen.
-func setup_party(sets: Array[AbilitySet]) -> void:
-	ability_sets.clear()
+func _process(delta: float) -> void:
+	for i: int in range(_switch_cooldowns.size()):
+		if _switch_cooldowns[i] > 0.0:
+			_switch_cooldowns[i] = max(_switch_cooldowns[i] - delta, 0.0)
+
+# Wird vom Level (ueber PartySetup) oder spaeter vom Home-Screen aufgerufen.
+func setup_party(members: Array[CharacterData]) -> void:
+	party.clear()
 	_current_health.clear()
 	_max_health.clear()
+	_switch_cooldowns.clear()
 
-	for i: int in range(min(sets.size(), MAX_PARTY_SIZE)):
-		var set: AbilitySet = sets[i]
-		if set == null:
+	for i: int in range(min(members.size(), MAX_PARTY_SIZE)):
+		var data: CharacterData = members[i]
+		if data == null:
 			continue
-		ability_sets.append(set)
-		_max_health.append(set.max_health)
-		_current_health.append(set.max_health)
+		party.append(data)
+		_max_health.append(data.max_health)
+		_current_health.append(data.max_health)
+		_switch_cooldowns.append(0.0)
 
 	_active_index = 0
 	party_changed.emit()
 
-# Verbindet den echten Player-Node mit dem aktiven Party-Slot.
-func register_player(p: CharacterBody3D) -> void:
-	player = p
-	var h := p.find_child("Health", true, false)
+	# Falls bereits ein Spawn-Punkt registriert ist (Level war schneller
+	# bereit als PartySetup), aber noch kein Spieler existiert, jetzt spawnen.
+	if player == null and _spawn_parent != null:
+		_spawn_active_character(_spawn_transform)
+
+# Wird von einem PlayerSpawnPoint-Marker3D im Level aufgerufen (siehe
+# scripts/player_spawn_point.gd).
+func register_spawn_point(parent: Node, at_transform: Transform3D) -> void:
+	_spawn_parent = parent
+	_spawn_transform = at_transform
+	if player == null and not party.is_empty():
+		_spawn_active_character(at_transform)
+
+func _spawn_active_character(at_transform: Transform3D) -> void:
+	var data: CharacterData = get_active_data()
+	if data == null or data.player_scene == null:
+		push_warning("PartyManager: Aktiver Charakter '%s' hat keine player_scene zugewiesen." % (data.character_name if data else "?"))
+		return
+	if _spawn_parent == null or not is_instance_valid(_spawn_parent):
+		push_warning("PartyManager: Kein gueltiger Spawn-Parent registriert (PlayerSpawnPoint fehlt im Level).")
+		return
+
+	var instance: CharacterBody3D = data.player_scene.instantiate()
+	instance.name = PLAYER_NODE_NAME
+	instance.add_to_group(PLAYER_GROUP)
+	_spawn_parent.add_child(instance)
+	instance.global_transform = at_transform
+
+	player = instance
+	_connect_player_health()
+	_apply_active_health_to_player()
+
+	active_player_changed.emit(player)
+
+func _connect_player_health() -> void:
+	if player == null:
+		return
+	var h := player.find_child("Health", true, false)
 	if h and h is Health:
 		_player_health = h
 		if not _player_health.health_changed.is_connected(_on_player_health_changed):
 			_player_health.health_changed.connect(_on_player_health_changed)
-
-	_apply_active_set_to_player()
 
 func _on_player_health_changed(current: float, max_hp: float) -> void:
 	if _active_index < 0 or _active_index >= _current_health.size():
@@ -14263,53 +17038,106 @@ func _on_player_health_changed(current: float, max_hp: float) -> void:
 	_max_health[_active_index] = max_hp
 	member_health_changed.emit(_active_index, current, max_hp)
 
+func _apply_active_health_to_player() -> void:
+	if _player_health == null or _active_index >= _max_health.size():
+		return
+	_player_health.max_health = _max_health[_active_index]
+	_player_health.current_health = _current_health[_active_index]
+	_player_health.health_changed.emit(_player_health.current_health, _player_health.max_health)
+
+# Schaltet Kollision UND Processing der alten Instanz SOFORT ab, statt
+# darauf zu warten, dass queue_free() sie entfernt (das passiert erst am
+# Frame-Ende). Ohne das kollidiert die neu gespawnte Instanz beim schnellen
+# Wechseln kurz mit der noch nicht ganz entfernten alten (beide exakt am
+# selben Ort) und wird ueber move_and_slide() ein Stueck weggeschubst.
+func _deactivate_old_player(old_player: CharacterBody3D) -> void:
+	if old_player == null or not is_instance_valid(old_player):
+		return
+
+	old_player.set_physics_process(false)
+	old_player.set_process(false)
+	old_player.set_process_unhandled_input(false)
+	old_player.collision_layer = 0
+	old_player.collision_mask = 0
+	old_player.velocity = Vector3.ZERO
+
+	for area: Node in old_player.find_children("*", "Area3D", true, false):
+		area.monitoring = false
+		area.monitorable = false
+		area.collision_layer = 0
+		area.collision_mask = 0
+
 func switch_to(index: int) -> void:
-	if index < 0 or index >= ability_sets.size():
+	if index < 0 or index >= party.size():
 		return
 	if index == _active_index:
 		return
 	if not is_member_alive(index):
 		return
+	if index < _switch_cooldowns.size() and _switch_cooldowns[index] > 0.0:
+		return
+
+	if player == null:
+		# Noch keine Instanz vorhanden — einfach nur den Index umstellen,
+		# der naechste register_spawn_point()/setup_party()-Aufruf spawnt
+		# dann direkt den richtigen Charakter.
+		_active_index = index
+		active_character_changed.emit(index)
+		return
+
+	# Zustand der aktuellen Instanz sichern, bevor sie ersetzt wird.
+	var carried_transform: Transform3D = player.global_transform
+	var carried_camera_yaw: float = 0.0
+	var carried_camera_pitch: float = 0.0
+	var old_camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
+	var old_spring_arm: SpringArm3D = player.get_node_or_null("CameraPivot/SpringArm3D")
+	if old_camera_pivot:
+		carried_camera_yaw = old_camera_pivot.rotation.y
+	if old_spring_arm:
+		carried_camera_pitch = old_spring_arm.rotation.x
+
+	if _player_health and _player_health.health_changed.is_connected(_on_player_health_changed):
+		_player_health.health_changed.disconnect(_on_player_health_changed)
+
+	# Der Charakter, den wir gerade VERLASSEN, kriegt den Cooldown — nicht
+	# der neu ausgewaehlte.
+	var leaving_index: int = _active_index
+	if leaving_index >= 0 and leaving_index < _switch_cooldowns.size():
+		_switch_cooldowns[leaving_index] = SWITCH_COOLDOWN_DURATION
+
+	_deactivate_old_player(player)
+	player.queue_free()
+	player = null
+	_player_health = null
 
 	_active_index = index
-	_apply_active_set_to_player()
+	_spawn_active_character(carried_transform)
+
+	if player:
+		var new_camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
+		var new_spring_arm: SpringArm3D = player.get_node_or_null("CameraPivot/SpringArm3D")
+		if new_camera_pivot:
+			new_camera_pivot.rotation.y = carried_camera_yaw
+		if new_spring_arm:
+			new_spring_arm.rotation.x = carried_camera_pitch
+
 	active_character_changed.emit(index)
-
-# Uebertraegt AbilitySet + gespeicherten HP-Stand auf den Player-Node.
-func _apply_active_set_to_player() -> void:
-	if player == null:
-		return
-	var set: AbilitySet = get_active_set()
-	if set == null:
-		return
-
-	var combat := player.find_child("Combat", true, false)
-	if combat and combat is Combat:
-		combat.apply_ability_set(set)
-
-	if _player_health and _active_index < _max_health.size():
-		_player_health.max_health = _max_health[_active_index]
-		_player_health.current_health = _current_health[_active_index]
-		_player_health.health_changed.emit(
-			_player_health.current_health,
-			_player_health.max_health
-		)
 
 func get_active_index() -> int:
 	return _active_index
 
-func get_active_set() -> AbilitySet:
-	if _active_index >= 0 and _active_index < ability_sets.size():
-		return ability_sets[_active_index]
+func get_active_data() -> CharacterData:
+	if _active_index >= 0 and _active_index < party.size():
+		return party[_active_index]
 	return null
 
-func get_set(index: int) -> AbilitySet:
-	if index >= 0 and index < ability_sets.size():
-		return ability_sets[index]
+func get_data(index: int) -> CharacterData:
+	if index >= 0 and index < party.size():
+		return party[index]
 	return null
 
 func get_party_size() -> int:
-	return ability_sets.size()
+	return party.size()
 
 func get_member_health(index: int) -> float:
 	if index >= 0 and index < _current_health.size():
@@ -14323,6 +17151,21 @@ func get_member_max_health(index: int) -> float:
 
 func is_member_alive(index: int) -> bool:
 	return get_member_health(index) > 0.0
+
+# 1.0 = Cooldown gerade erst gestartet, 0.0 = bereit (fuers UI, gleiche
+# Konvention wie Combat.get_cooldown_percent()).
+func get_switch_cooldown_percent(index: int) -> float:
+	if index < 0 or index >= _switch_cooldowns.size() or SWITCH_COOLDOWN_DURATION <= 0.0:
+		return 0.0
+	return _switch_cooldowns[index] / SWITCH_COOLDOWN_DURATION
+
+func get_switch_cooldown_remaining(index: int) -> float:
+	if index < 0 or index >= _switch_cooldowns.size():
+		return 0.0
+	return _switch_cooldowns[index]
+
+func is_on_switch_cooldown(index: int) -> bool:
+	return get_switch_cooldown_remaining(index) > 0.0
 
 func _unhandled_input(event: InputEvent) -> void:
 	if get_tree().paused:
@@ -14339,17 +17182,19 @@ func _unhandled_input(event: InputEvent) -> void:
 extends Node
 class_name PartySetup
 
-# An einen leeren Node im Level haengen. Zieht die 4 AbilitySet-.tres
-# im Inspector in party_sets. Muss VOR dem HUD-Refresh laufen —
-# das HUD wartet einen Frame, daher passt die Reihenfolge.
+# An einen leeren Node im Level haengen. Zieht bis zu 4 CharacterData-.tres
+# im Inspector in party_members. Bestimmt, welche Charaktere in diesem
+# Level als Party zur Verfuegung stehen — Platzhalter, bis der Home-Screen
+# mit echter Roster-Auswahl steht (der wird dieselbe PartyManager-API
+# nutzen: PartyManager.setup_party(...)).
 
-@export var party_sets: Array[AbilitySet] = []
+@export var party_members: Array[CharacterData] = []
 
 func _ready() -> void:
-	if party_sets.is_empty():
-		push_warning("PartySetup: party_sets ist leer — HUD zeigt keine Charaktere.")
+	if party_members.is_empty():
+		push_warning("PartySetup: party_members ist leer — HUD zeigt keine Charaktere.")
 		return
-	PartyManager.setup_party(party_sets)
+	PartyManager.setup_party(party_members)
 
 
 ===== FILE: scripts\party_slot.gd =====
@@ -14359,7 +17204,9 @@ class_name PartySlot
 
 # Eine Charakterkarte rechts im HUD: Portrait, HP-Bar, Name.
 # Der aktive Charakter wird groesser skaliert und zeigt zusaetzlich
-# den Namen neben der HP-Leiste an.
+# den Namen neben der HP-Leiste an. Zusaetzlich: Switch-Cooldown-Anzeige
+# (dunkles Overlay + Countdown-Zahl + Ready-Blitz), optisch identisch zum
+# Cooldown-Verhalten der AbilitySlots im HUD.
 
 @onready var panel: Panel = $Panel
 @onready var portrait: TextureRect = $Panel/Portrait
@@ -14368,6 +17215,9 @@ class_name PartySlot
 @onready var name_label: Label = $Panel/NameLabel
 @onready var dead_overlay: ColorRect = $Panel/DeadOverlay
 @onready var key_hint: Label = $Panel/KeyHint
+@onready var switch_cooldown_overlay: ColorRect = $Panel/SwitchCooldownOverlay
+@onready var switch_cooldown_label: Label = $Panel/SwitchCooldownLabel
+@onready var switch_ready_flash: ColorRect = $Panel/SwitchReadyFlash
 
 @export var active_scale: float = 1.0
 @export var inactive_scale: float = 0.72
@@ -14375,32 +17225,37 @@ class_name PartySlot
 var _index: int = 0
 var _is_active: bool = false
 var _scale_tween: Tween
+var _switch_flash_tween: Tween
+var _was_on_switch_cooldown: bool = false
 
 func _ready() -> void:
 	# Pivot am RECHTEN Rand, damit beim Skalieren die rechte
 	# Bildschirmkante buendig bleibt und nichts flattert.
 	pivot_offset = Vector2(size.x, size.y * 0.5)
 
-func setup(index: int, set: AbilitySet) -> void:
+	switch_cooldown_overlay.color = Color(0.0, 0.0, 0.0, 0.65)
+	switch_cooldown_overlay.anchor_top = 0.0
+	switch_cooldown_overlay.visible = false
+	switch_cooldown_label.text = ""
+	switch_ready_flash.modulate.a = 0.0
+
+func setup(index: int, data: CharacterData) -> void:
 	_index = index
 	key_hint.text = str(index + 1)
 
-	if set == null:
+	if data == null:
 		visible = false
 		return
 
 	visible = true
-	name_label.text = set.character_name
-	if set.portrait:
-		portrait.texture = set.portrait
+	name_label.text = data.character_name
+	if data.portrait:
+		portrait.texture = data.portrait
 
 	dead_overlay.visible = false
 
 func set_active(active: bool) -> void:
 	_is_active = active
-
-	# Nur der aktive Charakter zeigt den Namen
-	name_label.visible = active
 
 	var target: float = active_scale if active else inactive_scale
 	if _scale_tween and _scale_tween.is_valid():
@@ -14435,15 +17290,54 @@ func update_health(current: float, max_hp: float) -> void:
 
 	dead_overlay.visible = current <= 0.0
 
+# percent: 1.0 = Cooldown gerade erst gestartet, 0.0 = bereit.
+# Gleiche Optik/Logik wie AbilitySlot.update_cooldown().
+func update_switch_cooldown(percent: float, remaining: float) -> void:
+	var on_cd: bool = percent > 0.001
+
+	switch_cooldown_overlay.visible = on_cd
+	switch_cooldown_overlay.anchor_top = 1.0 - percent
+
+	if on_cd:
+		if remaining < 10.0:
+			switch_cooldown_label.text = "%.1f" % remaining
+		else:
+			switch_cooldown_label.text = "%d" % int(remaining)
+	else:
+		switch_cooldown_label.text = ""
+
+	if _was_on_switch_cooldown and not on_cd:
+		_play_switch_ready_flash()
+
+	_was_on_switch_cooldown = on_cd
+
+func _play_switch_ready_flash() -> void:
+	switch_ready_flash.modulate.a = 0.85
+	if _switch_flash_tween and _switch_flash_tween.is_valid():
+		_switch_flash_tween.kill()
+	_switch_flash_tween = create_tween()
+	_switch_flash_tween.tween_property(switch_ready_flash, "modulate:a", 0.0, 0.35)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
 func get_party_index() -> int:
 	return _index
 
 
 ===== FILE: scripts\pause_menu.gd =====
 
+
 # scripts/pause_menu.gd
 extends Control
 class_name PauseMenu
+
+# HUD liegt in JEDEM Level immer im selben CanvasLayer wie die Overlay-
+# Screens (Pause/Death/Win/Settings), aber die tatsächliche Sibling-
+# Reihenfolge im Szenenbaum variiert von Level zu Level (in level_01.tscn
+# z.B. wird HUD als LETZTES Kind hinzugefügt -> würde ohne z_index über
+# allem anderen liegen). z_index macht die Zeichenreihenfolge unabhängig
+# davon, wie die Level-Autoren die Nodes im Baum anordnen.
+const Z_INDEX_BLUR: int = 10
+const Z_INDEX_MENU: int = 20
 
 @onready var resume_button: Button = $Panel/VBoxContainer/ResumeButton
 @onready var settings_button: Button = $Panel/VBoxContainer/SettingsButton
@@ -14455,10 +17349,18 @@ var settings_menu: SettingsMenu
 
 var _blur_overlay: ColorRect = null
 
+# Wird von death_screen.gd / win_screen.gd SOFORT beim Tod/Sieg gesetzt
+# (nicht erst wenn der jeweilige Screen sichtbar wird — bei DeathScreen
+# liegt dazwischen noch eine Verzögerung, siehe death_screen_delay). Damit
+# ist ESC/Pause exakt ab dem Moment gesperrt, in dem das Spiel logisch
+# vorbei ist, nicht erst ab dem sichtbaren Screen.
+var _locked_out: bool = false
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	z_index = Z_INDEX_MENU
 
 	_blur_overlay = _get_or_create_shared_blur()
 	_fix_panel_background()
@@ -14495,6 +17397,7 @@ func _get_or_create_shared_blur() -> ColorRect:
 
 	var existing := parent.get_node_or_null("BlurOverlay")
 	if existing is ColorRect:
+		existing.z_index = Z_INDEX_BLUR
 		return existing
 
 	var shader := load("res://shaders/menu_blur.gdshader") as Shader
@@ -14511,12 +17414,27 @@ func _get_or_create_shared_blur() -> ColorRect:
 	blur.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	blur.material = mat
 	blur.visible = false
+	# Liegt ueber dem HUD, aber UNTER den Menu-Panels (Z_INDEX_MENU) —
+	# unabhaengig von der Sibling-Reihenfolge im Baum.
+	blur.z_index = Z_INDEX_BLUR
 
 	parent.add_child(blur)
 	parent.move_child(blur, 0)
 	blur.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	return blur
+
+
+# Wird von death_screen.gd bzw. win_screen.gd aufgerufen, SOBALD das Spiel
+# logisch endet (nicht erst wenn der jeweilige Screen sichtbar wird).
+# Ab dann kann Pause fuer den Rest des Levels nicht mehr geoeffnet werden —
+# ein bereits offenes PauseMenu wird dabei defensiv geschlossen.
+func lock_out() -> void:
+	_locked_out = true
+	if visible:
+		visible = false
+		if _blur_overlay:
+			_blur_overlay.visible = false
 
 
 func _is_endscreen_active() -> bool:
@@ -14537,7 +17455,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		return
 
-	if _is_endscreen_active():
+	# _locked_out deckt die Zeit ZWISCHEN Tod/Sieg und dem sichtbaren
+	# Death-/Win-Screen ab (death_screen_delay!). _is_endscreen_active()
+	# bleibt zusaetzlich als Absicherung, falls lock_out() aus irgendeinem
+	# Grund nicht aufgerufen wurde.
+	if _locked_out or _is_endscreen_active():
 		get_viewport().set_input_as_handled()
 		return
 
@@ -14552,6 +17474,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _open_pause() -> void:
+	if _locked_out:
+		return
 	if _blur_overlay:
 		_blur_overlay.visible = true
 	visible = true
@@ -14598,12 +17522,18 @@ func _on_quit_pressed() -> void:
 	get_tree().quit()
 
 
-===== FILE: scripts\player.gd =====
-
+===== FILE: scripts\player_base.gd =====
 
 extends CharacterBody3D
+class_name PlayerBase
 
-# --- Einstellbare Werte (im Godot-Inspector sichtbar, wenn du @export nutzt) ---
+# --- Basisklasse für ALLE Charaktere (Ningning, Giselle, Karina, Winter, ...) ---
+# Enthält die komplette gemeinsame Bewegungs-, Kamera-, Lock-On-, Status-
+# Effekt- und Death-Logik. Charakter-spezifische Skripte (z.B. char_ningning.gd)
+# erben von dieser Klasse. Charakter-spezifische FÄHIGKEITEN gehören NICHT
+# hierher, sondern ins jeweilige Combat-Script (siehe combat_base.gd).
+
+# --- Einstellbare Werte (im Godot-Inspector sichtbar, jedes Char-Scene kann eigene Werte setzen) ---
 @export var speed: float = 15.0
 @export var jump_velocity: float = 13.0
 @export var mouse_sensitivity: float = 0.003
@@ -14613,8 +17543,9 @@ extends CharacterBody3D
 # Horizontaler Knockback wird NICHT direkt auf velocity addiert, weil
 # _physics_process velocity.x/z jeden Frame aus dem Input neu berechnet
 # und einen einmaligen Impuls sofort wieder ueberschreiben wuerde. Stattdessen
-# landet er in _knockback_velocity, wird JEDEN Frame zusaetzlich zur
-# Bewegung angewendet und klingt ueber knockback_friction ab.
+# landet er in _knockback_velocity und wird JEDEN Frame FRISCH (nicht
+# kumulativ) mit der Eigenbewegung kombiniert — siehe _physics_process fuer
+# die Herleitung, warum das insbesondere waehrend Stun wichtig ist.
 @export var knockback_friction: float = 10.0
 var _knockback_velocity: Vector3 = Vector3.ZERO
 
@@ -14676,7 +17607,7 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 @onready var spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 @onready var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
 @onready var mesh: Node3D = $CharacterModel
-@onready var combat: Combat = $Combat
+@onready var combat: CombatBase = $Combat
 @onready var health: Health = $Health
 @onready var own_collision: CollisionShape3D = $CollisionShape3D
 
@@ -14964,21 +17895,37 @@ func _physics_process(delta: float) -> void:
 	direction.y = 0
 	direction = direction.normalized()
 
+	# --- Bewegung + Knockback sauber getrennt kombinieren ---
+	# BUG (behoben): vorher wurde _knockback_velocity per "+=" auf velocity.x/z
+	# addiert. Das funktioniert NUR, wenn direkt danach velocity.x/z wieder
+	# komplett neu aus dem Input berechnet wird (normalfall). Waehrend Stun
+	# ist effective_speed = 0 -> move_toward(velocity.x, 0, 0) aendert NICHTS,
+	# d.h. der bereits letzten Frame aufaddierte Knockback blieb in velocity.x
+	# STECKEN, und wir haben JEDEN weiteren Frame den (noch nicht ganz
+	# abgeklungenen) Puffer NOCHMAL draufaddiert -> unkontrolliertes Aufschaukeln
+	# ("Magnet"-Gefuehl), das sich beim naechsten Nicht-Stun-Frame wieder
+	# schlagartig auf 0 totbremste. Deshalb rechnen wir "move_x"/"move_z" jetzt
+	# aus dem RESIDUAL (aktuelle velocity MINUS dem zuletzt aufaddierten
+	# Knockback-Anteil) — die reine Eigenbewegung bleibt so unabhaengig vom
+	# Knockback-Puffer, egal ob gestunnt, in der Luft oder am Stehen.
+	var move_x: float
+	var move_z: float
 	if direction.length() > 0.1:
-		velocity.x = direction.x * effective_speed
-		velocity.z = direction.z * effective_speed
+		move_x = direction.x * effective_speed
+		move_z = direction.z * effective_speed
 	else:
-		velocity.x = move_toward(velocity.x, 0, effective_speed)
-		velocity.z = move_toward(velocity.z, 0, effective_speed)
+		var residual_x: float = velocity.x - _knockback_velocity.x
+		var residual_z: float = velocity.z - _knockback_velocity.z
+		move_x = move_toward(residual_x, 0.0, effective_speed)
+		move_z = move_toward(residual_z, 0.0, effective_speed)
 
-	# Horizontaler Knockback-Puffer: wird ZUSAETZLICH zur normalen Bewegung
-	# aufaddiert (statt sie zu ersetzen) und klingt eigenstaendig ab — so
-	# bleibt ein Hit sichtbar/spuerbar, statt im selben Frame durch die
-	# obige Input-basierte Zuweisung ausradiert zu werden.
-	velocity.x += _knockback_velocity.x
-	velocity.z += _knockback_velocity.z
+	# Knockback-Puffer klingt UNABHAENGIG von Input/Stun ab und wird jeden
+	# Frame frisch (nicht kumulativ) mit der Eigenbewegung kombiniert.
 	_knockback_velocity.x = move_toward(_knockback_velocity.x, 0.0, knockback_friction * delta)
 	_knockback_velocity.z = move_toward(_knockback_velocity.z, 0.0, knockback_friction * delta)
+
+	velocity.x = move_x + _knockback_velocity.x
+	velocity.z = move_z + _knockback_velocity.z
 
 	if _current_target and is_instance_valid(_current_target):
 		if global_position.distance_to(_current_target.global_position) > max_lock_range:
@@ -15049,6 +17996,27 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			velocity.z = 0.0
 			break
+
+
+===== FILE: scripts\player_spawn_point.gd =====
+
+extends Marker3D
+class_name PlayerSpawnPoint
+
+# In jedem Level EINMAL platzieren, dort wo frueher die feste Player-Node
+# direkt in der Szene lag. Ersetzt diese — PartyManager entscheidet zur
+# Laufzeit, WELCHER Charakter hier spawnt (abhaengig von der per
+# PartySetup/Home-Screen gewaehlten Party).
+#
+# WICHTIG: PartySetup.setup_party() sollte VOR diesem Marker laufen, damit
+# beim Spawnen schon eine Party existiert. Falls die Reihenfolge im
+# Level-Baum das nicht garantiert, wartet dieses Script notfalls einen
+# Frame, bevor es sich registriert.
+
+func _ready() -> void:
+	if PartyManager.get_party_size() == 0:
+		await get_tree().process_frame
+	PartyManager.register_spawn_point(get_parent(), global_transform)
 
 
 ===== FILE: scripts\primary_hitbox.gd =====
@@ -15172,6 +18140,7 @@ func _spawn_damage_number(body: Node3D) -> void:
 ===== FILE: scripts\settings_manager.gd =====
 
 
+
 extends Node
 
 # ============================================================================
@@ -15219,6 +18188,8 @@ const REBINDABLE_ACTIONS: Dictionary = {
 	"attack_primary": "Primärangriff",
 	"attack_secondary": "Sekundärangriff",
 	"utility": "Dash",
+	"ability_primary": "Fähigkeit (Q)",
+	"ability_secondary": "Fähigkeit (E)",
 	"interact ": "Interagieren",
 	"ui_accept": "Springen",
 	"ui_left": "Links",
@@ -15868,6 +18839,7 @@ void fragment() {
 
 ===== FILE: shaders\menu_blur.gdshader =====
 
+
 shader_type canvas_item;
 
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_linear;
@@ -15878,7 +18850,19 @@ uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_l
 // Multiplikator (siehe RADIUS_SCALE) als man intuitiv erwarten würde, sonst
 // verschiebt sich der Sample-Punkt nur um 1-2 Pixel und der Effekt ist
 // de facto unsichtbar.
-uniform float blur_amount : hint_range(0.0, 20.0) = 0.0;
+// BUGFIX: Default stand hier faelschlicherweise auf 0.0 -> der Kommentar
+// oben versprach 4.0, tatsaechlich passierte dadurch GAR NICHTS (0 * irgendwas
+// = 0 Pixel-Versatz). Das ist der Grund, warum der Hintergrund hinter
+// Pause/Settings bisher nur innerhalb des opaken Dialog-Panels abgedunkelt
+// wirkte (das ist eine eigene, kleinere StyleBoxFlat) und ringsum einfach
+// unveraendert durchschien ("nicht ganz ausgefüllt").
+uniform float blur_amount : hint_range(0.0, 20.0) = 4.0;
+
+// NEU: eigentliche Verdunkelung. Der Blur allein aendert die Helligkeit
+// kaum — fuer einen klar erkennbaren "Rest der Szene ist gedimmt"-Effekt
+// wird das geblurrte Bild zusaetzlich Richtung Schwarz multipliziert.
+// 0.0 = keine Verdunkelung, 1.0 = komplett schwarz.
+uniform float darken_amount : hint_range(0.0, 1.0) = 0.45;
 
 const float RADIUS_SCALE = 8.0;
 
@@ -15899,8 +18883,11 @@ void fragment() {
 	sum += texture(screen_texture, SCREEN_UV + vec2( pixel_size.x,  pixel_size.y));
 	sum /= 10.0;
 
+	sum.rgb *= (1.0 - darken_amount);
+
 	COLOR = sum;
 }
+
 
 ===== FILE: shaders\psx.gdshader =====
 

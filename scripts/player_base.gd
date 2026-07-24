@@ -1,8 +1,13 @@
-
-
 extends CharacterBody3D
+class_name PlayerBase
 
-# --- Einstellbare Werte (im Godot-Inspector sichtbar, wenn du @export nutzt) ---
+# --- Basisklasse für ALLE Charaktere (Ningning, Giselle, Karina, Winter, ...) ---
+# Enthält die komplette gemeinsame Bewegungs-, Kamera-, Lock-On-, Status-
+# Effekt- und Death-Logik. Charakter-spezifische Skripte (z.B. char_ningning.gd)
+# erben von dieser Klasse. Charakter-spezifische FÄHIGKEITEN gehören NICHT
+# hierher, sondern ins jeweilige Combat-Script (siehe combat_base.gd).
+
+# --- Einstellbare Werte (im Godot-Inspector sichtbar, jedes Char-Scene kann eigene Werte setzen) ---
 @export var speed: float = 15.0
 @export var jump_velocity: float = 13.0
 @export var mouse_sensitivity: float = 0.003
@@ -76,7 +81,7 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 @onready var spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 @onready var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
 @onready var mesh: Node3D = $CharacterModel
-@onready var combat: Combat = $Combat
+@onready var combat: CombatBase = $Combat
 @onready var health: Health = $Health
 @onready var own_collision: CollisionShape3D = $CollisionShape3D
 

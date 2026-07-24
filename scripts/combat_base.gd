@@ -1,7 +1,16 @@
 extends Node
-class_name Combat
+class_name CombatBase
 
-# --- Cooldown-Werte, im Inspector einstellbar ---
+# --- Basisklasse für ALLE Charakter-Combat-Skripte ---
+# Enthält das komplette gemeinsame Cooldown-, Combo-, Hit-Lock- und Dash-
+# System. Die eigentlichen FÄHIGKEITEN (was Primary/Secondary/Utility/Q/E
+# tatsächlich TUN) sind virtuelle "_perform_*"-Methoden — jeder Charakter
+# überschreibt sie in seinem eigenen Combat-Script (z.B. combat_ningning.gd)
+# mit eigener Logik. Cooldown-Werte werden ebenfalls pro Charakter-Script
+# überschrieben (siehe combat_ningning.gd) — es gibt KEIN globales
+# Daten-Objekt mehr, das Cooldowns zur Laufzeit "einspielt".
+
+# --- Cooldown-Werte, im Inspector einstellbar UND in Charakter-Subklassen überschreibbar ---
 @export var primary_cooldown: float = 0.4
 @export var secondary_cooldown: float = 3.0
 @export var utility_cooldown: float = 0.8
@@ -74,7 +83,7 @@ var _combo_count: int = 0
 var _combo_timer: float = 0.0
 
 # --- Dash-Vertikalitaet: vorwaerts behaelt volle Blickrichtungs-Neigung, ---
-# --- rueckwaerts bleibt bewusst flach/horizontal ("normaler" Dash). ---
+# --- rueckwaerts bleibt bewusst flach/horizontal (default-Dash). ---
 @export_range(0.0, 1.0) var backward_dash_vertical_influence: float = 0.0
 
 # --- Node-Referenzen, die wir vom Player brauchen ---
@@ -88,23 +97,6 @@ func setup(owner_player: CharacterBody3D) -> void:
 		primary_hitbox.hit_landed.connect(_on_hit_landed)
 	if secondary_hitbox:
 		secondary_hitbox.hit_landed.connect(_on_hit_landed)
-
-# Uebernimmt die Cooldown-Werte eines AbilitySet beim Charakterwechsel.
-# Laufende Cooldowns werden dabei zurueckgesetzt.
-func apply_ability_set(set: AbilitySet) -> void:
-	if set == null:
-		return
-	primary_cooldown = set.primary_cooldown
-	secondary_cooldown = set.secondary_cooldown
-	utility_cooldown = set.utility_cooldown
-	ability_q_cooldown = set.ability_q_cooldown
-	ability_e_cooldown = set.ability_e_cooldown
-
-	_primary_timer = 0.0
-	_secondary_timer = 0.0
-	_utility_timer = 0.0
-	_ability_q_timer = 0.0
-	_ability_e_timer = 0.0
 
 func _on_hit_landed(target: Node) -> void:
 	_hit_lock_timer = hit_lock_duration
@@ -203,9 +195,13 @@ func _do_primary() -> void:
 	_primary_timer = cd
 	primary_used.emit()
 	cooldown_started.emit(Slot.PRIMARY, cd)
+	_perform_primary()
+
+# Von Charakter-Subklassen überschreibbar. Standardverhalten: PrimaryHitbox
+# fuer ein kurzes Angriffs-Fenster aktivieren.
+func _perform_primary() -> void:
 	if primary_hitbox:
 		primary_hitbox.activate()
-		# Hitbox nach kurzer Zeit wieder ausschalten (Angriffs-"Fenster")
 		await get_tree().create_timer(0.15).timeout
 		primary_hitbox.deactivate()
 
@@ -222,34 +218,25 @@ func _do_secondary() -> void:
 	_secondary_timer = secondary_cooldown
 	secondary_used.emit()
 	cooldown_started.emit(Slot.SECONDARY, secondary_cooldown)
+	_perform_secondary()
+
+# Von Charakter-Subklassen überschreibbar. Standardverhalten: SecondaryHitbox
+# fuer ein laengeres Angriffs-Fenster aktivieren.
+func _perform_secondary() -> void:
 	if secondary_hitbox:
 		secondary_hitbox.activate()
 		await get_tree().create_timer(0.25).timeout
 		secondary_hitbox.deactivate()
 
-# --- Q-Ability: Platzhalter-Logik, hier deine Charakterfaehigkeit einbauen ---
-func _do_ability_q() -> void:
-	_ability_q_timer = ability_q_cooldown
-	ability_q_used.emit()
-	cooldown_started.emit(Slot.ABILITY_Q, ability_q_cooldown)
-
-	if player and player.has_method("shake_camera"):
-		player.shake_camera(0.35)
-
-# --- E-Ability: Platzhalter-Logik, hier deine Charakterfaehigkeit einbauen ---
-func _do_ability_e() -> void:
-	_ability_e_timer = ability_e_cooldown
-	ability_e_used.emit()
-	cooldown_started.emit(Slot.ABILITY_E, ability_e_cooldown)
-
-	if player and player.has_method("shake_camera"):
-		player.shake_camera(0.5)
-
 func _do_utility() -> void:
 	_utility_timer = utility_cooldown
 	utility_used.emit()
 	cooldown_started.emit(Slot.UTILITY, utility_cooldown)
+	_perform_utility()
 
+# Von Charakter-Subklassen überschreibbar. Standardverhalten: Dash in
+# Bewegungs-/Blickrichtung.
+func _perform_utility() -> void:
 	if player and player.has_method("play_dash_fov_effect"):
 		player.play_dash_fov_effect()
 
@@ -283,6 +270,30 @@ func _do_utility() -> void:
 
 	_is_dashing = true
 	_dash_timer = dash_duration
+
+# --- Q-Ability: von jedem Charakter individuell zu überschreiben ---
+func _do_ability_q() -> void:
+	_ability_q_timer = ability_q_cooldown
+	ability_q_used.emit()
+	cooldown_started.emit(Slot.ABILITY_Q, ability_q_cooldown)
+	_perform_ability_q()
+
+# Fallback, falls ein Charakter-Script das nicht überschreibt.
+func _perform_ability_q() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.35)
+
+# --- E-Ability: von jedem Charakter individuell zu überschreiben ---
+func _do_ability_e() -> void:
+	_ability_e_timer = ability_e_cooldown
+	ability_e_used.emit()
+	cooldown_started.emit(Slot.ABILITY_E, ability_e_cooldown)
+	_perform_ability_e()
+
+# Fallback, falls ein Charakter-Script das nicht überschreibt.
+func _perform_ability_e() -> void:
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.5)
 
 # Wird vom Player-Script in _physics_process aufgerufen, damit der Dash
 # die normale Bewegung waehrend seiner Dauer ueberschreiben kann.

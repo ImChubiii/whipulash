@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bq6pd2by1dwq2"]
 
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="1_b4psi"]
-[ext_resource type="PackedScene" uid="uid://i1hdv5qqmw21" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="2_psxmat"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="2_xyve8"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="3_nvt7p"]
@@ -287,9 +287,9 @@ navigation_mesh = SubResource("NavigationMesh_hqxar")
 transform = Transform3D(1, 0, 0, 0, 0.7071068, -0.7071068, 0, 0.7071068, 0.7071068, 0, 10, 0)
 shadow_enabled = true
 
-[node name="Player" parent="." unique_id=500002 instance=ExtResource("1_player")]
+[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, -16)
-
+script = ExtResource("spawn_point")
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=500003]
 navigation_mesh = SubResource("NavigationMesh_d46x6")
 
@@ -377,3 +377,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 10)
 
 [node name="SpawnIsolatedLedge" type="Node3D" parent="EnemySpawner" unique_id=500016]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 4, 10)
+
+
