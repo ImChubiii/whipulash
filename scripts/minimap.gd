@@ -1,3 +1,5 @@
+
+
 extends Control
 
 # Minimap oben links: orthogonale Kamera in einem SubViewport, die
@@ -5,6 +7,7 @@ extends Control
 # Gruppe "zone" ermittelt (siehe zone_marker.gd).
 
 @onready var zone_label: Label = $Frame/ZoneLabel
+@onready var map_container: Control = $Frame/MapContainer
 @onready var sub_viewport: SubViewport = $Frame/MapContainer/SubViewportContainer/SubViewport
 @onready var map_camera: Camera3D = $Frame/MapContainer/SubViewportContainer/SubViewport/MapCamera
 @onready var coord_label: Label = $Frame/CoordLabel
@@ -12,6 +15,16 @@ extends Control
 
 @export var map_height: float = 40.0
 @export var map_size: float = 30.0
+# Kalibrierungs-Korrektur: die gerenderte Karte war um 90° verdreht.
+# Godot-2D-Rotation ist positiv = im Uhrzeigersinn, daher -90 fuer
+# "90° gegen den Uhrzeigersinn". Wird als reine Bildschirmraum-Drehung auf
+# MapContainer (SubViewport-Bild + Spieler-Pfeil zusammen) angewendet —
+# unabhaengig davon, ob die Karte nordorientiert bleibt oder mit dreht.
+@export var map_calibration_offset_degrees: float = -90.0
+# Editor-Fallback, falls SettingsManager (Autoload) mal nicht verfuegbar ist.
+# Im normalen Spielbetrieb wird dieser Wert in _ready() von
+# SettingsManager.minimap_rotate_with_player ueberschrieben und danach live
+# per Signal aktualisiert (siehe General-Tab im Einstellungsmenue).
 @export var rotate_with_player: bool = false
 @export var default_zone_name: String = "UNKNOWN AREA"
 @export var zone_check_interval: float = 0.25
@@ -30,6 +43,21 @@ func _ready() -> void:
 	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_set_zone_text(default_zone_name)
 
+	# Kalibrierungs-Drehung: um die Mitte drehen statt um die obere linke
+	# Ecke (Control-Standard-Pivot), sonst verschiebt sich das Bild.
+	# MapContainer ist quadratisch (200x200), Pivot = Zentrum.
+	map_container.pivot_offset = map_container.size * 0.5
+	map_container.rotation_degrees = map_calibration_offset_degrees
+
+	# Setting "Karte dreht sich mit Spieler" (General-Tab): Standard ist
+	# AUS -> Karte bleibt immer nordorientiert, nur der Spieler-Pfeil dreht sich.
+	rotate_with_player = SettingsManager.minimap_rotate_with_player
+	if not SettingsManager.minimap_rotate_with_player_changed.is_connected(_on_rotate_setting_changed):
+		SettingsManager.minimap_rotate_with_player_changed.connect(_on_rotate_setting_changed)
+
+func _on_rotate_setting_changed(enabled: bool) -> void:
+	rotate_with_player = enabled
+
 func set_player(p: Node3D) -> void:
 	player = p
 
@@ -43,8 +71,15 @@ func _process(delta: float) -> void:
 	var model: Node3D = player.get_node_or_null("CharacterModel")
 
 	if rotate_with_player:
-		if model:
-			map_camera.rotation.y = model.rotation.y
+		# WICHTIG: hier muss die KAMERA-Blickrichtung rein, nicht die
+		# Blickrichtung des Charakter-Modells — die beiden koennen
+		# auseinanderlaufen (z.B. waehrend Target-Lock dreht sich das Modell
+		# zum anvisierten Gegner, waehrend die Kamera woanders hinschaut).
+		# "Karte dreht mit Kamera" soll heissen: die Richtung, in die man
+		# gerade SCHAUT, zeigt auf der Karte immer nach oben.
+		var camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
+		if camera_pivot:
+			map_camera.rotation.y = camera_pivot.rotation.y
 		player_arrow.rotation = 0.0
 	else:
 		map_camera.rotation.y = 0.0
@@ -89,3 +124,5 @@ func _set_zone_text(text: String) -> void:
 	var tween := create_tween()
 	tween.tween_property(zone_label, "modulate:a", 1.0, 0.4)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+

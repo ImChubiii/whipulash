@@ -1,3 +1,4 @@
+
 extends Control
 class_name WinScreen
 
@@ -5,14 +6,20 @@ class_name WinScreen
 @onready var quit_button: Button = $Panel/VBoxContainer/QuitButton
 
 var _blur_overlay: ColorRect = null
+var _pause_menu: PauseMenu = null
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	# Muss ueber dem HUD liegen, unabhaengig davon wie die Level-Szene die
+	# Nodes im Baum anordnet (siehe pause_menu.gd fuer die ausfuehrliche
+	# Begruendung — gleiche Konstante wie PauseMenu/DeathScreen).
+	z_index = PauseMenu.Z_INDEX_MENU
 
 	# BlurOverlay wurde von pause_menu.gd bereits im Parent erstellt
 	_blur_overlay = get_parent().get_node_or_null("BlurOverlay") as ColorRect
+	_pause_menu = get_parent().get_node_or_null("PauseMenu") as PauseMenu
 	_fix_panel_background()
 
 	restart_button.pressed.connect(_on_restart_pressed)
@@ -36,6 +43,12 @@ func _fix_panel_background() -> void:
 func show_win() -> void:
 	if visible:
 		return  # Nicht doppelt auslösen
+
+	# SOFORT sperren, bevor die Buttons ueberhaupt sichtbar sind — ab jetzt
+	# ist das Level gewonnen, ESC/Pause soll nicht mehr moeglich sein.
+	if _pause_menu:
+		_pause_menu.lock_out()
+
 	if _blur_overlay:
 		_blur_overlay.visible = true
 	visible = true

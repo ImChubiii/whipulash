@@ -6558,6 +6558,21 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 
+===== FILE: scenes\area_3d.gd =====
+
+extends Area3D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+
+
 ===== FILE: scenes\combo_label.gd =====
 
 extends Control
@@ -6828,6 +6843,7 @@ mesh = SubResource("CylinderMesh_fva3d")
 
 ===== FILE: scenes\enemy_ai.gd =====
 
+
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -6952,6 +6968,19 @@ var _waiting_at_ledge: bool = false
 # Cooldown damit der Slide-Impuls nicht jeden Frame überschrieben wird
 # und move_and_slide() ihn sofort wieder killt.
 var _slide_cooldown: float = 0.0
+
+# --- Knockback (z.B. von Hitboxen mit knockback_force, is_heavy schuetzt) ---
+# Gleiches Prinzip wie in player.gd: _state-abhaengige Bewegung (IDLE/ATTACK
+# setzen velocity.x/z direkt auf 0, CHASE regelt per move_toward) wuerde
+# einen direkten velocity-Impuls sofort wieder ueberschreiben. Der Puffer
+# wird stattdessen additiv angewendet und klingt eigenstaendig ab.
+@export var knockback_friction: float = 10.0
+var _knockback_velocity: Vector3 = Vector3.ZERO
+
+func apply_knockback(impulse: Vector3) -> void:
+	_knockback_velocity.x += impulse.x
+	_knockback_velocity.z += impulse.z
+	velocity.y += impulse.y
 
 # --- Status-Effekt-System (Poison, Slow, Fear, ...) ---
 var status_effects: StatusEffectManager
@@ -7096,6 +7125,14 @@ func _physics_process(delta: float) -> void:
 	# Sanfte Separation von anderen Gegnern draufaddieren — verhindert,
 	# dass sie sich stapeln/überlappen, ohne harte Physik-Pops.
 	velocity += _get_separation_velocity()
+
+	# Knockback-Puffer additiv drauf, NACH der State-Machine-Logik, damit er
+	# nicht von velocity.x/z = 0 (IDLE/ATTACK) oder move_toward (CHASE)
+	# ueberschrieben wird. Klingt selbststaendig ueber knockback_friction ab.
+	velocity.x += _knockback_velocity.x
+	velocity.z += _knockback_velocity.z
+	_knockback_velocity.x = move_toward(_knockback_velocity.x, 0.0, knockback_friction * delta)
+	_knockback_velocity.z = move_toward(_knockback_velocity.z, 0.0, knockback_friction * delta)
 
 	move_and_slide()
 
@@ -10968,6 +11005,7 @@ mesh = SubResource("CylinderMesh_fva3d")
 
 ===== FILE: scenes\settings_menu.gd =====
 
+
 extends Control
 class_name SettingsMenu
 
@@ -10977,6 +11015,7 @@ signal back_pressed
 
 # --- General ---
 @onready var hud_visible_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/HUDVisibleRow/HUDVisibleCheck
+@onready var minimap_rotate_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/MinimapRotateRow/MinimapRotateCheck
 @onready var crt_filter_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/CRTFilterRow/CRTFilterCheck
 @onready var screen_shake_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/ScreenShakeRow/ScreenShakeCheck
 @onready var colorblind_option: OptionButton = $Panel/VBoxContainer/TabContainer/General/ColorblindRow/ColorblindOption
@@ -11079,6 +11118,7 @@ func _hide_missing_audio_buses() -> void:
 
 func _connect_signals() -> void:
 	hud_visible_check.toggled.connect(SettingsManager.set_hud_visible)
+	minimap_rotate_check.toggled.connect(SettingsManager.set_minimap_rotate_with_player)
 	crt_filter_check.toggled.connect(SettingsManager.set_crt_filter_enabled)
 	screen_shake_check.toggled.connect(SettingsManager.set_screen_shake_enabled)
 	colorblind_option.item_selected.connect(_on_colorblind_selected)
@@ -11115,6 +11155,7 @@ func is_rebinding() -> bool:
 
 func _refresh_from_settings() -> void:
 	hud_visible_check.button_pressed = SettingsManager.hud_visible
+	minimap_rotate_check.button_pressed = SettingsManager.minimap_rotate_with_player
 	crt_filter_check.button_pressed = SettingsManager.crt_filter_enabled
 	screen_shake_check.button_pressed = SettingsManager.screen_shake_enabled
 	_select_option_by_id(colorblind_option, SettingsManager.colorblind_mode)
@@ -11258,6 +11299,7 @@ func _input(event: InputEvent) -> void:
 
 ===== FILE: scenes\settings_menu.tscn =====
 
+
 [gd_scene load_steps=4 format=3 uid="uid://by0b1jhagnufc"]
 
 [ext_resource type="Script" path="res://scenes/settings_menu.gd" id="1_menu"]
@@ -11340,6 +11382,17 @@ layout_mode = 2
 text = "HUD anzeigen"
 
 [node name="HUDVisibleCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/General/HUDVisibleRow"]
+layout_mode = 2
+
+[node name="MinimapRotateRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/General"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/General/MinimapRotateRow"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Karte dreht sich mit Spieler"
+
+[node name="MinimapRotateCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/General/MinimapRotateRow"]
 layout_mode = 2
 
 [node name="CRTFilterRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/General"]
@@ -11516,6 +11569,7 @@ text = "Reset to Defaults"
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 text = "Back"
+
 
 ===== FILE: scenes\submersion_overlay.gd =====
 
@@ -12288,9 +12342,9 @@ script = ExtResource("8_c1kxm")
 party_sets = Array[ExtResource("9_g21q3")]([ExtResource("10_bpwxd"), ExtResource("11_mv0uh"), ExtResource("12_0kovo"), ExtResource("13_lknka")])
 
 [node name="Area3D" type="Area3D" parent="." unique_id=1430905872]
+script = ExtResource("14_fr3ye")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1004127298]
-script = ExtResource("14_fr3ye")
 
 [node name="Player" parent="." unique_id=1005944688 instance=ExtResource("1_vsm81")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.98834, -44.073395, -52.662354)
@@ -13156,8 +13210,8 @@ class_name AbilitySet
 
 @export_group("Cooldowns")
 @export var primary_cooldown: float = 0.4
-@export var secondary_cooldown: float = 3.0
-@export var utility_cooldown: float = 0.8
+@export var secondary_cooldown: float = 5
+@export var utility_cooldown: float = 5
 @export var ability_q_cooldown: float = 6.0
 @export var ability_e_cooldown: float = 10.0
 
@@ -13823,6 +13877,7 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 
 ===== FILE: scripts\hud.gd =====
 
+
 extends Control
 
 # Zentrales HUD:
@@ -13948,6 +14003,8 @@ func _refresh_party() -> void:
 		)
 		slot.set_active(i == active)
 
+	_reorder_party_container(active)
+
 func _on_member_health_changed(index: int, current: float, max_hp: float) -> void:
 	if index >= 0 and index < _party_slots.size():
 		_party_slots[index].update_health(current, max_hp)
@@ -13955,7 +14012,24 @@ func _on_member_health_changed(index: int, current: float, max_hp: float) -> voi
 func _on_active_character_changed(index: int) -> void:
 	for i: int in range(_party_slots.size()):
 		_party_slots[i].set_active(i == index)
+	_reorder_party_container(index)
 	_refresh_ability_icons()
+
+# Der aktuell ausgewaehlte Charakter soll UNTEN in der Liste stehen statt
+# oben. _party_slots bleibt dabei per PartyManager-Index fest zugeordnet
+# (Health-Updates etc. adressieren weiterhin ueber den Index) — nur die
+# VISUELLE Reihenfolge im VBoxContainer wird angepasst: der aktive Slot
+# wandert an die letzte Position, alle anderen behalten ihre relative
+# Reihenfolge zueinander.
+func _reorder_party_container(active_index: int) -> void:
+	if active_index < 0 or active_index >= _party_slots.size():
+		return
+
+	var active_slot: PartySlot = _party_slots[active_index]
+	if not is_instance_valid(active_slot):
+		return
+
+	party_container.move_child(active_slot, party_container.get_child_count() - 1)
 
 # Laedt die Icons des aktuell aktiven Charakters in die 5 Ability-Slots.
 func _refresh_ability_icons() -> void:
@@ -14017,6 +14091,7 @@ func _play_combo_expire_animation() -> void:
 
 ===== FILE: scripts\minimap.gd =====
 
+
 extends Control
 
 # Minimap oben links: orthogonale Kamera in einem SubViewport, die
@@ -14031,6 +14106,10 @@ extends Control
 
 @export var map_height: float = 40.0
 @export var map_size: float = 30.0
+# Editor-Fallback, falls SettingsManager (Autoload) mal nicht verfuegbar ist.
+# Im normalen Spielbetrieb wird dieser Wert in _ready() von
+# SettingsManager.minimap_rotate_with_player ueberschrieben und danach live
+# per Signal aktualisiert (siehe General-Tab im Einstellungsmenue).
 @export var rotate_with_player: bool = false
 @export var default_zone_name: String = "UNKNOWN AREA"
 @export var zone_check_interval: float = 0.25
@@ -14048,6 +14127,15 @@ func _ready() -> void:
 	sub_viewport.own_world_3d = false
 	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_set_zone_text(default_zone_name)
+
+	# Setting "Karte dreht sich mit Spieler" (General-Tab): Standard ist
+	# AUS -> Karte bleibt immer nordorientiert, nur der Spieler-Pfeil dreht sich.
+	rotate_with_player = SettingsManager.minimap_rotate_with_player
+	if not SettingsManager.minimap_rotate_with_player_changed.is_connected(_on_rotate_setting_changed):
+		SettingsManager.minimap_rotate_with_player_changed.connect(_on_rotate_setting_changed)
+
+func _on_rotate_setting_changed(enabled: bool) -> void:
+	rotate_with_player = enabled
 
 func set_player(p: Node3D) -> void:
 	player = p
@@ -14108,6 +14196,7 @@ func _set_zone_text(text: String) -> void:
 	var tween := create_tween()
 	tween.tween_property(zone_label, "modulate:a", 1.0, 0.4)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
 
 
 ===== FILE: scripts\party_manager.gd =====
@@ -14511,6 +14600,7 @@ func _on_quit_pressed() -> void:
 
 ===== FILE: scripts\player.gd =====
 
+
 extends CharacterBody3D
 
 # --- Einstellbare Werte (im Godot-Inspector sichtbar, wenn du @export nutzt) ---
@@ -14518,6 +14608,23 @@ extends CharacterBody3D
 @export var jump_velocity: float = 13.0
 @export var mouse_sensitivity: float = 0.003
 @export var gravity: float = 40.0
+
+# --- Knockback (z.B. von Gegner-Hitboxen via apply_knockback()) ---
+# Horizontaler Knockback wird NICHT direkt auf velocity addiert, weil
+# _physics_process velocity.x/z jeden Frame aus dem Input neu berechnet
+# und einen einmaligen Impuls sofort wieder ueberschreiben wuerde. Stattdessen
+# landet er in _knockback_velocity, wird JEDEN Frame zusaetzlich zur
+# Bewegung angewendet und klingt ueber knockback_friction ab.
+@export var knockback_friction: float = 10.0
+var _knockback_velocity: Vector3 = Vector3.ZERO
+
+# Wird von Hitbox.gd aufgerufen (siehe primary_hitbox.gd). Vertikale
+# Komponente (impulse.y) geht direkt in velocity.y, da diese von der
+# Bewegungslogik nicht ueberschrieben wird — nur X/Z brauchen den Puffer.
+func apply_knockback(impulse: Vector3) -> void:
+	_knockback_velocity.x += impulse.x
+	_knockback_velocity.z += impulse.z
+	velocity.y += impulse.y
 
 # --- Kamera-Zoom per Mausrad ---
 @export var zoom_min: float = 3
@@ -14864,6 +14971,15 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0, effective_speed)
 		velocity.z = move_toward(velocity.z, 0, effective_speed)
 
+	# Horizontaler Knockback-Puffer: wird ZUSAETZLICH zur normalen Bewegung
+	# aufaddiert (statt sie zu ersetzen) und klingt eigenstaendig ab — so
+	# bleibt ein Hit sichtbar/spuerbar, statt im selben Frame durch die
+	# obige Input-basierte Zuweisung ausradiert zu werden.
+	velocity.x += _knockback_velocity.x
+	velocity.z += _knockback_velocity.z
+	_knockback_velocity.x = move_toward(_knockback_velocity.x, 0.0, knockback_friction * delta)
+	_knockback_velocity.z = move_toward(_knockback_velocity.z, 0.0, knockback_friction * delta)
+
 	if _current_target and is_instance_valid(_current_target):
 		if global_position.distance_to(_current_target.global_position) > max_lock_range:
 			clear_target()
@@ -14936,6 +15052,7 @@ func _physics_process(delta: float) -> void:
 
 
 ===== FILE: scripts\primary_hitbox.gd =====
+
 
 extends Area3D
 class_name Hitbox
@@ -15015,14 +15132,28 @@ func _on_body_entered(body: Node3D) -> void:
 		_debug("  -> apply_status_effect('%s', duration=%.2f, magnitude=%.2f, tick=%.2f) auf '%s' aufgerufen" % [status_effect_id, status_effect_duration, status_effect_magnitude, status_effect_tick_interval, body.name])
 
 	# Knockback: nur wenn knockback_force > 0.0 und Ziel kein schwerer Gegner.
+	#
+	# WICHTIG: Player und EnemyAI setzen velocity.x/z JEDEN Physik-Frame direkt
+	# aus ihrer eigenen Bewegungslogik (Input bzw. State-Machine) — ein simples
+	# "body.velocity += push_dir * knockback_force" wird dadurch im naechsten
+	# Frame sofort wieder ueberschrieben und ist praktisch unsichtbar. Deshalb
+	# wird bevorzugt apply_knockback() aufgerufen: dort landet der Impuls in
+	# einem separaten, ueber Zeit abklingenden Puffer, der von der Bewegung
+	# NICHT ueberschrieben wird. Bodies ohne diese Methode fallen weiterhin
+	# auf die direkte velocity-Modifikation zurueck.
 	if knockback_force > 0.0 and body is CharacterBody3D:
 		var is_heavy_target: bool = body.get("is_heavy") == true
 		if is_heavy_target:
 			_debug("  -> Knockback IGNORIERT: '%s' ist ein schwerer Gegner (is_heavy=true)" % body.name)
 		else:
 			var push_dir := (body.global_position - global_position).normalized()
-			body.velocity += push_dir * knockback_force
-			_debug("  -> Knockback %.1f auf '%s' angewendet" % [knockback_force, body.name])
+			var impulse: Vector3 = push_dir * knockback_force
+			if body.has_method("apply_knockback"):
+				body.apply_knockback(impulse)
+				_debug("  -> Knockback %.1f ueber apply_knockback() auf '%s' angewendet" % [knockback_force, body.name])
+			else:
+				body.velocity += impulse
+				_debug("  -> Knockback %.1f (Fallback: direkt auf velocity) auf '%s' angewendet" % [knockback_force, body.name])
 
 	_spawn_damage_number(body)
 
@@ -15039,6 +15170,7 @@ func _spawn_damage_number(body: Node3D) -> void:
 
 
 ===== FILE: scripts\settings_manager.gd =====
+
 
 extends Node
 
@@ -15063,6 +15195,7 @@ signal colorblind_mode_changed(mode: int)
 
 # General
 signal hud_visible_changed(visible: bool)
+signal minimap_rotate_with_player_changed(enabled: bool)
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
@@ -15109,6 +15242,8 @@ var fps_limit: int = 144  # 0 = unlimited
 
 # --- General ---
 var hud_visible: bool = true
+# false = Minimap bleibt IMMER nordorientiert (Standard), true = Minimap dreht sich mit dem Spieler.
+var minimap_rotate_with_player: bool = false
 
 # --- Accessibility ---
 var crt_filter_enabled: bool = true
@@ -15246,6 +15381,11 @@ func _apply_fps_limit(fps: int) -> void:
 func set_hud_visible(is_visible: bool) -> void:
 	hud_visible = is_visible
 	hud_visible_changed.emit(is_visible)
+	save_settings()
+
+func set_minimap_rotate_with_player(enabled: bool) -> void:
+	minimap_rotate_with_player = enabled
+	minimap_rotate_with_player_changed.emit(enabled)
 	save_settings()
 
 # ============================================================================
@@ -15396,6 +15536,7 @@ func reset_all_to_defaults() -> void:
 	vsync_enabled = true
 	fps_limit = 144
 	hud_visible = true
+	minimap_rotate_with_player = false
 	crt_filter_enabled = true
 	screen_shake_enabled = true
 	colorblind_mode = COLORBLIND_OFF
@@ -15412,6 +15553,7 @@ func reset_all_to_defaults() -> void:
 	vsync_changed.emit(vsync_enabled)
 	fps_limit_changed.emit(fps_limit)
 	hud_visible_changed.emit(hud_visible)
+	minimap_rotate_with_player_changed.emit(minimap_rotate_with_player)
 	crt_filter_changed.emit(crt_filter_enabled)
 	screen_shake_changed.emit(screen_shake_enabled)
 	colorblind_mode_changed.emit(colorblind_mode)
@@ -15433,6 +15575,7 @@ func save_settings() -> void:
 	config.set_value("display", "fps_limit", fps_limit)
 
 	config.set_value("general", "hud_visible", hud_visible)
+	config.set_value("general", "minimap_rotate_with_player", minimap_rotate_with_player)
 
 	config.set_value("accessibility", "crt_filter", crt_filter_enabled)
 	config.set_value("accessibility", "screen_shake", screen_shake_enabled)
@@ -15476,6 +15619,7 @@ func load_settings() -> void:
 	fps_limit = config.get_value("display", "fps_limit", 144)
 
 	hud_visible = config.get_value("general", "hud_visible", true)
+	minimap_rotate_with_player = config.get_value("general", "minimap_rotate_with_player", false)
 
 	crt_filter_enabled = config.get_value("accessibility", "crt_filter", true)
 	screen_shake_enabled = config.get_value("accessibility", "screen_shake", true)

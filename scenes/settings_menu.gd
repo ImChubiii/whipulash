@@ -1,3 +1,5 @@
+
+
 extends Control
 class_name SettingsMenu
 
@@ -7,6 +9,7 @@ signal back_pressed
 
 # --- General ---
 @onready var hud_visible_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/HUDVisibleRow/HUDVisibleCheck
+@onready var minimap_rotate_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/MinimapRotateRow/MinimapRotateCheck
 @onready var crt_filter_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/CRTFilterRow/CRTFilterCheck
 @onready var screen_shake_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/ScreenShakeRow/ScreenShakeCheck
 @onready var colorblind_option: OptionButton = $Panel/VBoxContainer/TabContainer/General/ColorblindRow/ColorblindOption
@@ -45,6 +48,10 @@ var _keybind_buttons: Dictionary = {}
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	# Muss ueber PauseMenu/DeathScreen/WinScreen (Z_INDEX_MENU) UND ueber dem
+	# HUD liegen — SettingsMenu kann sowohl vom PauseMenu als auch (potenziell)
+	# direkt geoeffnet werden, muss also in jedem Fall zuoberst liegen.
+	z_index = PauseMenu.Z_INDEX_MENU + 10
 
 	_fix_panel_background()
 	_setup_slider_ranges()
@@ -59,7 +66,16 @@ func _ready() -> void:
 
 
 # Panel hat opaken Standardhintergrund — fix auf halbtransparent damit der
-# BackgroundBlur (hint_screen_texture ColorRect) dahinter sichtbar wird.
+# BackgroundBlur (flaches, dunkles ColorRect) dahinter sichtbar wird.
+# HINWEIS: BackgroundBlur nutzt bewusst KEINEN Screen-Blur-Shader mehr —
+# der 9-Tap-Blur (menu_blur.gdshader) erzeugte auf scharfen UI-/HUD-Texten
+# (Minimap-Koordinaten, Ability-Icons etc.) sichtbare "Geisterbilder" statt
+# einer sauberen Unschärfe, weil er nur 9 Samples nutzt. Bei Pause/Death/Win
+# fällt das nicht auf, weil dort das Panel Full-Rect UND komplett opak ist
+# und den Effekt komplett verdeckt. Settings hat aber bewusst ein KLEINES,
+# zentriertes Panel (damit man sieht, dass man "über" dem Pause-Menü ist) —
+# der Rest des Bildschirms braucht daher einen eigenen, aber schlichten
+# dunklen Overlay statt des Blur-Shaders.
 func _fix_panel_background() -> void:
 	var panel := get_node_or_null("Panel") as Panel
 	if panel == null:
@@ -109,6 +125,7 @@ func _hide_missing_audio_buses() -> void:
 
 func _connect_signals() -> void:
 	hud_visible_check.toggled.connect(SettingsManager.set_hud_visible)
+	minimap_rotate_check.toggled.connect(SettingsManager.set_minimap_rotate_with_player)
 	crt_filter_check.toggled.connect(SettingsManager.set_crt_filter_enabled)
 	screen_shake_check.toggled.connect(SettingsManager.set_screen_shake_enabled)
 	colorblind_option.item_selected.connect(_on_colorblind_selected)
@@ -145,6 +162,7 @@ func is_rebinding() -> bool:
 
 func _refresh_from_settings() -> void:
 	hud_visible_check.button_pressed = SettingsManager.hud_visible
+	minimap_rotate_check.button_pressed = SettingsManager.minimap_rotate_with_player
 	crt_filter_check.button_pressed = SettingsManager.crt_filter_enabled
 	screen_shake_check.button_pressed = SettingsManager.screen_shake_enabled
 	_select_option_by_id(colorblind_option, SettingsManager.colorblind_mode)

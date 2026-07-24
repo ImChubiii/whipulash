@@ -16,8 +16,8 @@ class_name AbilitySet
 
 @export_group("Cooldowns")
 @export var primary_cooldown: float = 0.4
-@export var secondary_cooldown: float = 3.0
-@export var utility_cooldown: float = 0.8
+@export var secondary_cooldown: float = 5
+@export var utility_cooldown: float = 5
 @export var ability_q_cooldown: float = 6.0
 @export var ability_e_cooldown: float = 10.0
 

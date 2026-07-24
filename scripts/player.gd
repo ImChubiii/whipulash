@@ -1,3 +1,5 @@
+
+
 extends CharacterBody3D
 
 # --- Einstellbare Werte (im Godot-Inspector sichtbar, wenn du @export nutzt) ---
@@ -5,6 +7,24 @@ extends CharacterBody3D
 @export var jump_velocity: float = 13.0
 @export var mouse_sensitivity: float = 0.003
 @export var gravity: float = 40.0
+
+# --- Knockback (z.B. von Gegner-Hitboxen via apply_knockback()) ---
+# Horizontaler Knockback wird NICHT direkt auf velocity addiert, weil
+# _physics_process velocity.x/z jeden Frame aus dem Input neu berechnet
+# und einen einmaligen Impuls sofort wieder ueberschreiben wuerde. Stattdessen
+# landet er in _knockback_velocity und wird JEDEN Frame FRISCH (nicht
+# kumulativ) mit der Eigenbewegung kombiniert — siehe _physics_process fuer
+# die Herleitung, warum das insbesondere waehrend Stun wichtig ist.
+@export var knockback_friction: float = 10.0
+var _knockback_velocity: Vector3 = Vector3.ZERO
+
+# Wird von Hitbox.gd aufgerufen (siehe primary_hitbox.gd). Vertikale
+# Komponente (impulse.y) geht direkt in velocity.y, da diese von der
+# Bewegungslogik nicht ueberschrieben wird — nur X/Z brauchen den Puffer.
+func apply_knockback(impulse: Vector3) -> void:
+	_knockback_velocity.x += impulse.x
+	_knockback_velocity.z += impulse.z
+	velocity.y += impulse.y
 
 # --- Kamera-Zoom per Mausrad ---
 @export var zoom_min: float = 3
@@ -344,12 +364,37 @@ func _physics_process(delta: float) -> void:
 	direction.y = 0
 	direction = direction.normalized()
 
+	# --- Bewegung + Knockback sauber getrennt kombinieren ---
+	# BUG (behoben): vorher wurde _knockback_velocity per "+=" auf velocity.x/z
+	# addiert. Das funktioniert NUR, wenn direkt danach velocity.x/z wieder
+	# komplett neu aus dem Input berechnet wird (normalfall). Waehrend Stun
+	# ist effective_speed = 0 -> move_toward(velocity.x, 0, 0) aendert NICHTS,
+	# d.h. der bereits letzten Frame aufaddierte Knockback blieb in velocity.x
+	# STECKEN, und wir haben JEDEN weiteren Frame den (noch nicht ganz
+	# abgeklungenen) Puffer NOCHMAL draufaddiert -> unkontrolliertes Aufschaukeln
+	# ("Magnet"-Gefuehl), das sich beim naechsten Nicht-Stun-Frame wieder
+	# schlagartig auf 0 totbremste. Deshalb rechnen wir "move_x"/"move_z" jetzt
+	# aus dem RESIDUAL (aktuelle velocity MINUS dem zuletzt aufaddierten
+	# Knockback-Anteil) — die reine Eigenbewegung bleibt so unabhaengig vom
+	# Knockback-Puffer, egal ob gestunnt, in der Luft oder am Stehen.
+	var move_x: float
+	var move_z: float
 	if direction.length() > 0.1:
-		velocity.x = direction.x * effective_speed
-		velocity.z = direction.z * effective_speed
+		move_x = direction.x * effective_speed
+		move_z = direction.z * effective_speed
 	else:
-		velocity.x = move_toward(velocity.x, 0, effective_speed)
-		velocity.z = move_toward(velocity.z, 0, effective_speed)
+		var residual_x: float = velocity.x - _knockback_velocity.x
+		var residual_z: float = velocity.z - _knockback_velocity.z
+		move_x = move_toward(residual_x, 0.0, effective_speed)
+		move_z = move_toward(residual_z, 0.0, effective_speed)
+
+	# Knockback-Puffer klingt UNABHAENGIG von Input/Stun ab und wird jeden
+	# Frame frisch (nicht kumulativ) mit der Eigenbewegung kombiniert.
+	_knockback_velocity.x = move_toward(_knockback_velocity.x, 0.0, knockback_friction * delta)
+	_knockback_velocity.z = move_toward(_knockback_velocity.z, 0.0, knockback_friction * delta)
+
+	velocity.x = move_x + _knockback_velocity.x
+	velocity.z = move_z + _knockback_velocity.z
 
 	if _current_target and is_instance_valid(_current_target):
 		if global_position.distance_to(_current_target.global_position) > max_lock_range:

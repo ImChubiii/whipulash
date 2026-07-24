@@ -29,6 +29,9 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="Player" type="CharacterBody3D" unique_id=1005944688]
 script = ExtResource("1_3vyb7")
+zoom_max = 15.0
+large_enemy_zoom_hold_time = 1.0
+large_enemy_zoom_speed = 4.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=246789424]
 shape = SubResource("CapsuleShape3D_6igkw")
@@ -56,6 +59,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage = 9.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=779664953]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)

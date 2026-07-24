@@ -1,3 +1,5 @@
+
+
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -122,6 +124,19 @@ var _waiting_at_ledge: bool = false
 # Cooldown damit der Slide-Impuls nicht jeden Frame überschrieben wird
 # und move_and_slide() ihn sofort wieder killt.
 var _slide_cooldown: float = 0.0
+
+# --- Knockback (z.B. von Hitboxen mit knockback_force, is_heavy schuetzt) ---
+# Gleiches Prinzip wie in player.gd: _state-abhaengige Bewegung (IDLE/ATTACK
+# setzen velocity.x/z direkt auf 0, CHASE regelt per move_toward) wuerde
+# einen direkten velocity-Impuls sofort wieder ueberschreiben. Der Puffer
+# wird stattdessen additiv angewendet und klingt eigenstaendig ab.
+@export var knockback_friction: float = 10.0
+var _knockback_velocity: Vector3 = Vector3.ZERO
+
+func apply_knockback(impulse: Vector3) -> void:
+	_knockback_velocity.x += impulse.x
+	_knockback_velocity.z += impulse.z
+	velocity.y += impulse.y
 
 # --- Status-Effekt-System (Poison, Slow, Fear, ...) ---
 var status_effects: StatusEffectManager
@@ -266,6 +281,14 @@ func _physics_process(delta: float) -> void:
 	# Sanfte Separation von anderen Gegnern draufaddieren — verhindert,
 	# dass sie sich stapeln/überlappen, ohne harte Physik-Pops.
 	velocity += _get_separation_velocity()
+
+	# Knockback-Puffer additiv drauf, NACH der State-Machine-Logik, damit er
+	# nicht von velocity.x/z = 0 (IDLE/ATTACK) oder move_toward (CHASE)
+	# ueberschrieben wird. Klingt selbststaendig ueber knockback_friction ab.
+	velocity.x += _knockback_velocity.x
+	velocity.z += _knockback_velocity.z
+	_knockback_velocity.x = move_toward(_knockback_velocity.x, 0.0, knockback_friction * delta)
+	_knockback_velocity.z = move_toward(_knockback_velocity.z, 0.0, knockback_friction * delta)
 
 	move_and_slide()
 
@@ -429,8 +452,15 @@ func _move_towards_player(delta: float) -> void:
 
 	var target_velocity_x: float = dir.x * effective_speed
 	var target_velocity_z: float = dir.z * effective_speed
-	velocity.x = move_toward(velocity.x, target_velocity_x, movement_acceleration * delta)
-	velocity.z = move_toward(velocity.z, target_velocity_z, movement_acceleration * delta)
+	# Residual (velocity OHNE den zuletzt aufaddierten Knockback-Anteil) als
+	# Basis nehmen, sonst wuerde ein aktiver Knockback hier langsam in die
+	# normale Verfolgungsgeschwindigkeit "eingerechnet" statt sauber
+	# eigenstaendig abzuklingen (siehe player.gd fuer die ausfuehrliche
+	# Begruendung desselben Musters).
+	var residual_x: float = velocity.x - _knockback_velocity.x
+	var residual_z: float = velocity.z - _knockback_velocity.z
+	velocity.x = move_toward(residual_x, target_velocity_x, movement_acceleration * delta)
+	velocity.z = move_toward(residual_z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
 
 func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:

@@ -1,3 +1,4 @@
+
 shader_type canvas_item;
 
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_linear;
@@ -8,7 +9,19 @@ uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_l
 // Multiplikator (siehe RADIUS_SCALE) als man intuitiv erwarten würde, sonst
 // verschiebt sich der Sample-Punkt nur um 1-2 Pixel und der Effekt ist
 // de facto unsichtbar.
-uniform float blur_amount : hint_range(0.0, 20.0) = 0.0;
+// BUGFIX: Default stand hier faelschlicherweise auf 0.0 -> der Kommentar
+// oben versprach 4.0, tatsaechlich passierte dadurch GAR NICHTS (0 * irgendwas
+// = 0 Pixel-Versatz). Das ist der Grund, warum der Hintergrund hinter
+// Pause/Settings bisher nur innerhalb des opaken Dialog-Panels abgedunkelt
+// wirkte (das ist eine eigene, kleinere StyleBoxFlat) und ringsum einfach
+// unveraendert durchschien ("nicht ganz ausgefüllt").
+uniform float blur_amount : hint_range(0.0, 20.0) = 4.0;
+
+// NEU: eigentliche Verdunkelung. Der Blur allein aendert die Helligkeit
+// kaum — fuer einen klar erkennbaren "Rest der Szene ist gedimmt"-Effekt
+// wird das geblurrte Bild zusaetzlich Richtung Schwarz multipliziert.
+// 0.0 = keine Verdunkelung, 1.0 = komplett schwarz.
+uniform float darken_amount : hint_range(0.0, 1.0) = 0.45;
 
 const float RADIUS_SCALE = 8.0;
 
@@ -28,6 +41,8 @@ void fragment() {
 	sum += texture(screen_texture, SCREEN_UV + vec2( 0.0,           pixel_size.y));
 	sum += texture(screen_texture, SCREEN_UV + vec2( pixel_size.x,  pixel_size.y));
 	sum /= 10.0;
+
+	sum.rgb *= (1.0 - darken_amount);
 
 	COLOR = sum;
 }

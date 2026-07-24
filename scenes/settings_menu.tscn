@@ -1,10 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://by0b1jhagnufc"]
+
+
+[gd_scene load_steps=2 format=3 uid="uid://by0b1jhagnufc"]
 
 [ext_resource type="Script" path="res://scenes/settings_menu.gd" id="1_menu"]
-[ext_resource type="Shader" path="res://shaders/menu_blur.gdshader" id="2_blur"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_blur"]
-shader = ExtResource("2_blur")
 
 [node name="SettingsMenu" type="Control"]
 layout_mode = 3
@@ -16,7 +14,6 @@ grow_vertical = 2
 script = ExtResource("1_menu")
 
 [node name="BackgroundBlur" type="ColorRect" parent="."]
-material = SubResource("ShaderMaterial_blur")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,7 +21,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(1, 1, 1, 1)
+color = Color(0.05, 0.05, 0.08, 0.85)
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
@@ -80,6 +77,17 @@ layout_mode = 2
 text = "HUD anzeigen"
 
 [node name="HUDVisibleCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/General/HUDVisibleRow"]
+layout_mode = 2
+
+[node name="MinimapRotateRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/General"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/General/MinimapRotateRow"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Karte dreht sich mit Spieler"
+
+[node name="MinimapRotateCheck" type="CheckButton" parent="Panel/VBoxContainer/TabContainer/General/MinimapRotateRow"]
 layout_mode = 2
 
 [node name="CRTFilterRow" type="HBoxContainer" parent="Panel/VBoxContainer/TabContainer/General"]
@@ -256,3 +264,4 @@ text = "Reset to Defaults"
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 text = "Back"
+
