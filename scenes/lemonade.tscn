@@ -15,11 +15,20 @@ size = Vector3(4, 1, 4)
 
 [node name="Lemonade" type="Node3D" unique_id=1115630498]
 script = ExtResource("1_2rkj2")
+size = Vector3(4, 1, 4)
 lava_color = Color(0.6666667, 0.84313726, 0.21568628, 1)
+glow_energy = 2.0
+alpha = 0.85
+pulse_enabled = true
+pulse_speed = 2.0
+pulse_amount = 0.4
 damage_per_tick = 8.0
+tick_interval = 1.0
 buoyancy_rise_speed = 0.3
 entry_dampening = 0.3
-debug_logging = true
+damage_on_entry = false
+display_name = "Lemonade"
+debug_logging = false
 
 [node name="LemonadeVisual" type="CSGBox3D" parent="." unique_id=313934804]
 size = Vector3(4, 1, 4)
@@ -30,7 +39,3 @@ collision_mask = 5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="LemonadeTrigger" unique_id=2123325636]
 shape = SubResource("BoxShape3D_qbaa6")
-
-[node name="CSGBox3D2" type="CSGBox3D" parent="." unique_id=374429338]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85.68291, -13.575211, -30.717503)
-size = Vector3(52.525833, 23.01352, 70.00348)

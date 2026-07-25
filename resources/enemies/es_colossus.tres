@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemySpawnEntry" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+scene = ExtResource("2_scene")
+display_name = "Colossus"
+weight = 1.0
+threat_cost = 10
+min_stage = 1
+guaranteed_count = 1
+max_per_room = 1
+min_room_height = 20.0
+min_spawn_spacing = 14.0

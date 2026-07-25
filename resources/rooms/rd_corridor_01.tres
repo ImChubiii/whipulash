@@ -7,7 +7,7 @@
 script = ExtResource("1_script")
 scene = ExtResource("2_scene")
 room_type = 3
-available_exits = 15
+available_exits = 3
 spawn_weight = 1.0
 min_stage = 0
 unique_per_run = false

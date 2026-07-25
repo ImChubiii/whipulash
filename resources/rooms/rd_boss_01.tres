@@ -10,4 +10,4 @@ room_type = 2
 available_exits = 15
 spawn_weight = 1.0
 min_stage = 0
-unique_per_run = false
+unique_per_run = true
