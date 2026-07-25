@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d381h02qxjkfl"
-path="res://.godot/imported/human_base_colored.png-116977e0ba38139b27c297b2f8e23621.ctex"
+uid="uid://bd0s34jsplqb6"
+path="res://.godot/imported/image-removebg-preview (13).png-025e2e5a68c520ab945214c3b452f215.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/dungeon_kit/human_base_colored.png"
-dest_files=["res://.godot/imported/human_base_colored.png-116977e0ba38139b27c297b2f8e23621.ctex"]
+source_file="res://textures/image-removebg-preview (13).png"
+dest_files=["res://.godot/imported/image-removebg-preview (13).png-025e2e5a68c520ab945214c3b452f215.ctex"]
 
 [params]
 
