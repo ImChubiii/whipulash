@@ -74,18 +74,33 @@ func setup_party(members: Array[CharacterData]) -> void:
 
 	# Falls bereits ein Spawn-Punkt registriert ist (Level war schneller
 	# bereit als PartySetup), aber noch kein Spieler existiert, jetzt spawnen.
+	#
+	# WICHTIG: deferred, nicht direkt! setup_party() kann selbst mitten in
+	# einer fremden Ready-Kaskade laufen (z.B. wenn PartySetup._ready() im
+	# selben Frame läuft wie ein dynamisch instanziertes Level), und
+	# _spawn_active_character() haengt am Ende einen Node per add_child()
+	# in den Baum - das schlaegt fehl, wenn der Zielparent gerade selbst
+	# "busy" (blocked) ist, weil ER noch seine eigenen Kinder aufbaut.
 	if player == null and _spawn_parent != null:
-		_spawn_active_character(_spawn_transform)
+		call_deferred("_spawn_active_character", _spawn_transform)
 
 # Wird von einem PlayerSpawnPoint-Marker3D im Level aufgerufen (siehe
-# scripts/player_spawn_point.gd).
+# scripts/player_spawn_point.gd). Läuft typischerweise SYNCHRON innerhalb
+# der Ready-Kaskade des Levels/Raums, in dem der Marker liegt - deshalb
+# NIEMALS hier direkt add_child() durchziehen, sondern immer deferren.
 func register_spawn_point(parent: Node, at_transform: Transform3D) -> void:
 	_spawn_parent = parent
 	_spawn_transform = at_transform
 	if player == null and not party.is_empty():
-		_spawn_active_character(at_transform)
+		call_deferred("_spawn_active_character", at_transform)
 
 func _spawn_active_character(at_transform: Transform3D) -> void:
+	# Kann inzwischen (durch den einen Frame Verzoegerung via call_deferred)
+	# ueberholt worden sein - z.B. wenn zwischenzeitlich schon jemand
+	# anderes gespawnt hat. Doppel-Spawn verhindern.
+	if player != null:
+		return
+
 	var data: CharacterData = get_active_data()
 	if data == null or data.player_scene == null:
 		push_warning("PartyManager: Aktiver Charakter '%s' hat keine player_scene zugewiesen." % (data.character_name if data else "?"))
@@ -195,6 +210,11 @@ func switch_to(index: int) -> void:
 	_player_health = null
 
 	_active_index = index
+	# switch_to() laeuft zur Laufzeit per Input-Event, nicht mitten in einer
+	# Ready-Kaskade - hier bleibt der Aufruf bewusst SYNCHRON, weil direkt
+	# danach mit dem neuen "player" weitergearbeitet wird (Kamera-Werte
+	# uebertragen). Waere dieser Aufruf auch deferred, waere "player" an
+	# der Stelle unten noch null.
 	_spawn_active_character(carried_transform)
 
 	if player:
