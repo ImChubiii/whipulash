@@ -1,5 +1,6 @@
 
 
+
 extends Node
 
 # ============================================================================
@@ -41,15 +42,13 @@ const COLORBLIND_DEUTERANOPIA: int = 2
 const COLORBLIND_TRITANOPIA: int = 3
 
 # --- Rebindbare Actions + Anzeigename fürs SettingsMenu-UI. ---
-# ACHTUNG: "interact " (mit Leerzeichen am Ende) ist ein bestehender Tippfehler
-# im InputMap-Namen selbst (project.godot), hier absichtlich 1:1 übernommen.
 const REBINDABLE_ACTIONS: Dictionary = {
 	"attack_primary": "Primärangriff",
 	"attack_secondary": "Sekundärangriff",
 	"utility": "Dash",
 	"ability_primary": "Fähigkeit (Q)",
 	"ability_secondary": "Fähigkeit (E)",
-	"interact ": "Interagieren",
+	"interact": "Interagieren",
 	"ui_accept": "Springen",
 	"ui_left": "Links",
 	"ui_right": "Rechts",

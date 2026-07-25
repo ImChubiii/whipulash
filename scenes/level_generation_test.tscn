@@ -1,9 +1,9 @@
-[gd_scene load_steps=37 format=3 uid="uid://c31lh8cafu3h5"]
+[gd_scene format=3 uid="uid://c31lh8cafu3h5"]
 
 [ext_resource type="Script" uid="uid://vawbwqsvu3wp" path="res://scenes/level_generation/level_generator.gd" id="1_lg"]
 [ext_resource type="Script" uid="uid://cektwwmfbufkr" path="res://scenes/level_generation/room_grid_generator.gd" id="2_grid"]
 [ext_resource type="Script" uid="uid://b13fmywklr32" path="res://scenes/level_generation/room_data.gd" id="3_room_data_script"]
-[ext_resource type="Script" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="4_enemy_entry_script"]
+[ext_resource type="Script" uid="uid://cvv6ttrhxcdyi" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="4_enemy_entry_script"]
 [ext_resource type="Resource" path="res://resources/enemies/es_stinger.tres" id="5_es_stinger"]
 [ext_resource type="Resource" path="res://resources/enemies/es_fighter.tres" id="6_es_fighter"]
 [ext_resource type="Resource" path="res://resources/enemies/es_colossus.tres" id="7_es_colossus"]
@@ -31,33 +31,9 @@
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="29_o54k0"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="30_u4jxp"]
 [ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="31_w24rf"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_bqido"]
-shader = ExtResource("29_o54k0")
-shader_parameter/scanline_count = 320.0
-shader_parameter/scanline_intensity = 0.15
-shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
-shader_parameter/scroll_speed = 0.0
-
-[sub_resource type="NavigationMesh" id="NavigationMesh_gen"]
-vertices = PackedVector3Array()
-cell_size = 0.25
-cell_height = 0.25
-agent_height = 2.0
-agent_radius = 2.0
-agent_max_climb = 1.5
-agent_max_slope = 45.0
-region_min_size = 4.0
-region_merge_size = 20.0
-edge_max_length = 12.0
-edge_max_error = 1.3
-vertices_per_polygon = 6.0
-detail_sample_distance = 6.0
-detail_sample_max_error = 1.0
-geometry_parsed_geometry_type = 1
-geometry_collision_mask = 1
-geometry_source_geometry_mode = 1
-geometry_source_group_name = &"navmesh_source"
+[ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="32_u4jxp"]
+[ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="33_w24rf"]
+[ext_resource type="Script" uid="uid://5ccb87ohsjij" path="res://scripts/dungeon_atmosphere.gd" id="34_bqido"]
 
 [sub_resource type="Environment" id="Environment_gen"]
 background_mode = 1
@@ -69,6 +45,24 @@ tonemap_mode = 2
 glow_enabled = true
 glow_intensity = 0.5
 glow_bloom = 0.1
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_gen"]
+geometry_parsed_geometry_type = 1
+geometry_collision_mask = 1
+geometry_source_geometry_mode = 1
+geometry_source_group_name = &"navmesh_source"
+agent_height = 2.0
+agent_radius = 2.0
+agent_max_climb = 1.5
+region_min_size = 4.0
+edge_max_length = 12.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bqido"]
+shader = ExtResource("29_o54k0")
+shader_parameter/scanline_count = 320.0
+shader_parameter/scanline_intensity = 0.15
+shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
+shader_parameter/scroll_speed = 0.0
 
 [node name="LevelGenerationTest" type="Node3D" unique_id=1117207563]
 
@@ -89,25 +83,15 @@ navigation_mesh = SubResource("NavigationMesh_gen")
 
 [node name="RoomGridGenerator" type="Node" parent="." unique_id=531904483]
 script = ExtResource("2_grid")
-target_room_count = 9
-corridor_chance = 0.5
-boss_min_distance = 2
 
-[node name="LevelGenerator" type="Node" parent="." node_paths=PackedStringArray("grid_generator", "navigation_region") unique_id=864998062]
+[node name="LevelGenerator" type="Node" parent="." unique_id=864998062 node_paths=PackedStringArray("grid_generator", "navigation_region")]
 script = ExtResource("1_lg")
 room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2")])
-current_stage = 1
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
-cell_size = Vector3(48, 0, 48)
 grid_generator = NodePath("../RoomGridGenerator")
-navigation_region = NodePath("../NavigationRegion3D")
-combat_threat_budget = 5
-corridor_threat_budget = 2
 boss_threat_budget = 13
-threat_per_stage = 2
-threat_hard_cap = 14
-random_seed = 0
+navigation_region = NodePath("../NavigationRegion3D")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1169866606]
 
@@ -303,3 +287,13 @@ grow_vertical = 2
 script = ExtResource("30_u4jxp")
 
 [node name="HUD" parent="CanvasLayer" unique_id=2088396334 instance=ExtResource("31_w24rf")]
+
+[node name="TargetReticle" type="Sprite3D" parent="." unique_id=1674978570]
+transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8.742278e-08, -1, 4.371139e-08, 90, 1.524353, 0)
+texture = ExtResource("32_u4jxp")
+script = ExtResource("33_w24rf")
+spin_speed = 0.0
+pulse_amount = 0.0
+
+[node name="DungeonAtmosphere" type="Node" parent="." unique_id=1358924922]
+script = ExtResource("34_bqido")

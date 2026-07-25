@@ -1,4 +1,5 @@
 
+
 # scripts/pause_menu.gd
 extends Control
 class_name PauseMenu
@@ -11,6 +12,8 @@ class_name PauseMenu
 # davon, wie die Level-Autoren die Nodes im Baum anordnen.
 const Z_INDEX_BLUR: int = 10
 const Z_INDEX_MENU: int = 20
+
+const MINIMAP_GROUP := "minimap"
 
 @onready var resume_button: Button = $Panel/VBoxContainer/ResumeButton
 @onready var settings_button: Button = $Panel/VBoxContainer/SettingsButton
@@ -124,6 +127,20 @@ func _is_endscreen_active() -> bool:
 	return false
 
 
+# Prueft, ob irgendeine Minimap gerade ihre Grosskarte offen hat. Mehrere
+# Minimap-Instanzen sollten im Level nie gleichzeitig existieren, aber
+# get_nodes_in_group() ist billig genug, um das nicht vorauszusetzen.
+func _close_open_big_map() -> bool:
+	var minimaps: Array[Node] = get_tree().get_nodes_in_group(MINIMAP_GROUP)
+	for m in minimaps:
+		if not is_instance_valid(m):
+			continue
+		if m.has_method("is_big_map_open") and m.is_big_map_open():
+			m.close_big_map()
+			return true
+	return false
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		return
@@ -133,6 +150,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	# bleibt zusaetzlich als Absicherung, falls lock_out() aus irgendeinem
 	# Grund nicht aufgerufen wurde.
 	if _locked_out or _is_endscreen_active():
+		get_viewport().set_input_as_handled()
+		return
+
+	# WICHTIG: erster ESC-Druck bei offener Grosskarte schliesst NUR die
+	# Karte - die Pause darf sich dabei nicht gleichzeitig oeffnen. Erst
+	# der NAECHSTE ESC-Druck (Karte bereits zu) macht Pause auf/zu.
+	if _close_open_big_map():
 		get_viewport().set_input_as_handled()
 		return
 

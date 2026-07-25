@@ -1,12 +1,26 @@
 extends Node
 class_name RoomGridGenerator
 
-## Isaac-artiger Grid-Layout-Generator: erzeugt zunaechst NUR eine reine
-## Datenstruktur (welche Grid-Zelle hat welchen Raumtyp und welche
-## Tuer-Richtungen zu Nachbarn), ohne irgendeine Szene zu instanzieren.
-## Das erlaubt es, das exakt gleiche Muster in einer spaeteren Ebene
-## wiederzuverwenden (siehe LevelGenerator.generate_next_stage_same_pattern):
-## nur WELCHE konkrete Raum-Szene + Gegner reinkommen wird neu gewuerfelt.
+## Isaac-artiger Grid-Layout-Generator: erzeugt NUR eine Datenstruktur,
+## keine Szenen. Dadurch kann dasselbe Muster in einer spaeteren Etage
+## mit anderen Raeumen/Gegnern wiederverwendet werden.
+##
+## NEU - VERSCHACHTELTE MAP:
+##  1. Zwischen Kampfraeumen werden gezielt KORRIDOR-Zellen erzwungen
+##     (min_connectors). Die Korridor-Templates sind nur 20 statt 48
+##     Einheiten breit, aber volle 48 lang - dadurch entsteht der
+##     "schmaler Gang zwischen zwei Arenen"-Rhythmus und ein Delay
+##     zwischen zwei Kampfraeumen.
+##  2. Jede Zelle bekommt eine HOEHENSTUFE (elevation). Geaendert wird
+##     die Hoehe ausschliesslich INNERHALB eines Korridors: der Gang
+##     bekommt eine Rampe (slope_delta = +1 Steigung / -1 Senkung / 0
+##     gerade). Der LevelGenerator setzt die Raeume danach auf
+##     unterschiedliche Y-Hoehen ab - die Map wirkt dadurch mehrstoeckig,
+##     ohne dass Tueren aus der Flucht laufen.
+##
+## Das Layout ist ein BAUM (Zellen werden nur beim Erzeugen verbunden,
+## es entstehen keine Ringe). Deshalb ist die Hoehenverteilung ueber eine
+## einfache BFS ab dem Startraum immer widerspruchsfrei.
 
 const NORTH := "north"
 const SOUTH := "south"
@@ -38,21 +52,37 @@ const DIRECTION_FLAG := {
 class RoomCell:
 	var grid_pos: Vector2i
 	var room_type: int = RoomData.RoomType.COMBAT
-	var exit_flags: int = 0  # Bitmask aus DIRECTION_FLAG - welche Nachbarn existieren
+	var exit_flags: int = 0
+	## Absolute Hoehenstufe der EINGANGSSEITE dieser Zelle.
+	var elevation: int = 0
+	## Nur bei Korridoren != 0: Hoehenunterschied, den die Rampe im
+	## Inneren dieser Zelle ueberwindet.
+	var slope_delta: int = 0
+	## Richtung zur TIEFEREN/eingehenden Seite des Korridors.
+	var slope_low_dir: String = ""
 
-## Wie viele Zellen (zusaetzlich zum Startraum) erzeugt werden sollen.
 @export var target_room_count: int = 9
 
-## Wahrscheinlichkeit, dass eine reine Durchgangszelle (genau 2
-## gegenueberliegende Verbindungen) zum Korridor statt zum Kampfraum wird.
-@export_range(0.0, 1.0) var corridor_chance: float = 0.5
+## Wahrscheinlichkeit, dass eine reine Durchgangszelle zum Korridor wird.
+@export_range(0.0, 1.0) var corridor_chance: float = 0.7
 
-## Der Bossraum wird mindestens so viele Grid-Schritte vom Start entfernt
-## platziert. Verhindert "Boss direkt neben der Tuer".
+## Mindestanzahl Korridore. Wird notfalls durch Umwandeln geeigneter
+## Durchgangszellen erzwungen - "gut waere, wenn es schon paar mal ist".
+@export var min_connectors: int = 3
+
+## Wahrscheinlichkeit, dass ein Korridor eine Rampe statt eines geraden
+## Ganges bekommt.
+@export_range(0.0, 1.0) var slope_chance: float = 0.55
+
+## Wie viele Hoehenstufen ueber/unter dem Startraum maximal erlaubt sind.
+@export var max_elevation: int = 2
+@export var min_elevation: int = -2
+
 @export var boss_min_distance: int = 2
 
+
 func generate_layout() -> Dictionary:
-	var cells: Dictionary = {}  # Vector2i -> RoomCell
+	var cells: Dictionary = {}
 
 	var start_cell := RoomCell.new()
 	start_cell.grid_pos = Vector2i.ZERO
@@ -61,8 +91,6 @@ func generate_layout() -> Dictionary:
 
 	var frontier: Array[Vector2i] = [Vector2i.ZERO]
 	var placed: int = 0
-	# Sicherheitsnetz gegen Endlosschleifen, falls frontier nie leer wird
-	# (kann bei kuenftigen Aenderungen an der Expansionslogik passieren).
 	var guard: int = 0
 	var guard_limit: int = target_room_count * 50 + 100
 
@@ -99,7 +127,9 @@ func generate_layout() -> Dictionary:
 
 	_place_special_rooms(cells)
 	_place_corridors(cells)
+	_plan_elevations(cells)
 	return cells
+
 
 func _link_neighbors(cells: Dictionary, from_pos: Vector2i, to_pos: Vector2i, dir: String) -> void:
 	var from_cell: RoomCell = cells[from_pos]
@@ -107,9 +137,8 @@ func _link_neighbors(cells: Dictionary, from_pos: Vector2i, to_pos: Vector2i, di
 	from_cell.exit_flags |= DIRECTION_FLAG[dir]
 	to_cell.exit_flags |= DIRECTION_FLAG[OPPOSITE[dir]]
 
+
 func _place_special_rooms(cells: Dictionary) -> void:
-	# Boss- und Treasure-Raeume kommen an "Dead Ends" (genau 1 Verbindung).
-	# Boss bevorzugt den vom Start am weitesten entfernten Dead End.
 	var dead_ends: Array[Vector2i] = []
 	for pos in cells.keys():
 		if pos == Vector2i.ZERO:
@@ -130,9 +159,6 @@ func _place_special_rooms(cells: Dictionary) -> void:
 			break
 
 	if not boss_found:
-		# Fallback: kein passender Dead End (z.B. ringfoermiges Layout).
-		# Dann nimmt der Boss einfach die am weitesten entfernte Zelle -
-		# ein Level ohne Bossraum waere schlimmer als einer mit 2 Tueren.
 		var farthest: int = -1
 		for pos in cells.keys():
 			if pos == Vector2i.ZERO:
@@ -151,12 +177,15 @@ func _place_special_rooms(cells: Dictionary) -> void:
 		var treasure_pos: Vector2i = dead_ends[randi() % dead_ends.size()]
 		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
 
+
+## Durchgangszellen (genau 2 gegenueberliegende Verbindungen) werden zu
+## Korridoren. Die exit_flags sind dann garantiert NORTH|SOUTH (3) oder
+## EAST|WEST (12) - passend zu den beiden gerichteten Korridor-Varianten
+## im Pool. Falls der Zufall zu wenige liefert, wird nachgezogen, bis
+## min_connectors erreicht ist.
 func _place_corridors(cells: Dictionary) -> void:
-	# Zellen mit genau 2 gegenueberliegenden Verbindungen (reiner
-	# Durchgang) werden mit corridor_chance als CORRIDOR statt COMBAT
-	# markiert. Die exit_flags sind dann garantiert entweder
-	# NORTH|SOUTH (3) oder EAST|WEST (12) - passend zu den beiden
-	# gerichteten Korridor-Varianten im Pool.
+	var candidates: Array[Vector2i] = []
+
 	for pos in cells.keys():
 		var cell: RoomCell = cells[pos]
 		if cell.room_type != RoomData.RoomType.COMBAT:
@@ -164,11 +193,66 @@ func _place_corridors(cells: Dictionary) -> void:
 		var flags: int = cell.exit_flags
 		var is_straight_through: bool = (flags == (DIRECTION_FLAG[NORTH] | DIRECTION_FLAG[SOUTH])) \
 			or (flags == (DIRECTION_FLAG[EAST] | DIRECTION_FLAG[WEST]))
-		if is_straight_through and randf() < corridor_chance:
-			cell.room_type = RoomData.RoomType.CORRIDOR
+		if is_straight_through:
+			candidates.append(pos)
+
+	candidates.shuffle()
+
+	var made: int = 0
+	for pos in candidates:
+		if randf() < corridor_chance:
+			cells[pos].room_type = RoomData.RoomType.CORRIDOR
+			made += 1
+
+	# Nachziehen, falls der Wuerfel zu geizig war.
+	for pos in candidates:
+		if made >= min_connectors:
+			break
+		if cells[pos].room_type == RoomData.RoomType.COMBAT:
+			cells[pos].room_type = RoomData.RoomType.CORRIDOR
+			made += 1
+
+
+## Verteilt Hoehenstufen per BFS ab dem Startraum. Nur Korridore duerfen
+## die Hoehe aendern - dadurch liegen die Tueren zweier benachbarter
+## Raeume immer auf derselben Hoehe, und der Hoehenunterschied wird
+## komplett von der Rampe im Gang geschluckt.
+func _plan_elevations(cells: Dictionary) -> void:
+	var visited: Dictionary = {}
+	var queue: Array = [{"pos": Vector2i.ZERO, "elev": 0, "from": ""}]
+	visited[Vector2i.ZERO] = true
+
+	while not queue.is_empty():
+		var job: Dictionary = queue.pop_front()
+		var pos: Vector2i = job["pos"]
+		var cell: RoomCell = cells[pos]
+		cell.elevation = job["elev"]
+		cell.slope_delta = 0
+		cell.slope_low_dir = ""
+
+		var outgoing_elev: int = cell.elevation
+
+		if cell.room_type == RoomData.RoomType.CORRIDOR and job["from"] != "" and randf() < slope_chance:
+			var delta: int = 1 if randf() < 0.5 else -1
+			var target: int = cell.elevation + delta
+			if target <= max_elevation and target >= min_elevation:
+				cell.slope_delta = delta
+				cell.slope_low_dir = job["from"]
+				outgoing_elev = target
+
+		for dir in DIRECTION_OFFSETS.keys():
+			if cell.exit_flags & DIRECTION_FLAG[dir] == 0:
+				continue
+			var next_pos: Vector2i = pos + DIRECTION_OFFSETS[dir]
+			if not cells.has(next_pos) or visited.has(next_pos):
+				continue
+			visited[next_pos] = true
+			queue.append({"pos": next_pos, "elev": outgoing_elev, "from": OPPOSITE[dir]})
+
 
 func _manhattan(pos: Vector2i) -> int:
 	return absi(pos.x) + absi(pos.y)
+
 
 func _count_flags(flags: int) -> int:
 	var count: int = 0
