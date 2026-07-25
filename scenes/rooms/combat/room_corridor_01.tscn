@@ -1,72 +1,61 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
 
 [sub_resource type="BoxMesh" id="bm1"]
-size = Vector3(48.0, 1.0, 48.0)
+size = Vector3(20.0, 1.0, 48.0)
 
 [sub_resource type="BoxShape3D" id="bs1"]
-size = Vector3(48.0, 1.0, 48.0)
+size = Vector3(20.0, 1.0, 48.0)
 
 [sub_resource type="BoxMesh" id="bm2"]
-size = Vector3(19.0, 14.0, 1.0)
+size = Vector3(5.0, 14.0, 1.0)
 
 [sub_resource type="BoxShape3D" id="bs2"]
-size = Vector3(19.0, 14.0, 1.0)
+size = Vector3(5.0, 14.0, 1.0)
 
 [sub_resource type="BoxMesh" id="bm3"]
-size = Vector3(1.0, 14.0, 19.0)
+size = Vector3(1.0, 14.0, 48.0)
 
 [sub_resource type="BoxShape3D" id="bs3"]
-size = Vector3(1.0, 14.0, 19.0)
+size = Vector3(1.0, 14.0, 48.0)
 
 [sub_resource type="BoxMesh" id="bm4"]
-size = Vector3(18.0, 2.4, 18.0)
+size = Vector3(16.0, 1.6, 14.0)
 
 [sub_resource type="BoxShape3D" id="bs4"]
-size = Vector3(18.0, 2.4, 18.0)
+size = Vector3(16.0, 1.6, 14.0)
 
 [sub_resource type="BoxMesh" id="bm5"]
-size = Vector3(10.0, 2.4, 1.6)
+size = Vector3(8.0, 1.6, 1.4)
 
 [sub_resource type="BoxShape3D" id="bs5"]
-size = Vector3(10.0, 2.4, 1.6)
+size = Vector3(8.0, 1.6, 1.4)
 
 [sub_resource type="BoxMesh" id="bm6"]
-size = Vector3(10.0, 1.8, 1.6)
+size = Vector3(8.0, 1.06667, 1.4)
 
 [sub_resource type="BoxShape3D" id="bs6"]
-size = Vector3(10.0, 1.8, 1.6)
+size = Vector3(8.0, 1.06667, 1.4)
 
 [sub_resource type="BoxMesh" id="bm7"]
-size = Vector3(10.0, 1.2, 1.6)
+size = Vector3(8.0, 0.533333, 1.4)
 
 [sub_resource type="BoxShape3D" id="bs7"]
-size = Vector3(10.0, 1.2, 1.6)
+size = Vector3(8.0, 0.533333, 1.4)
 
 [sub_resource type="BoxMesh" id="bm8"]
-size = Vector3(10.0, 0.6, 1.6)
+size = Vector3(10.0, 10.0, 0.8)
 
 [sub_resource type="BoxShape3D" id="bs8"]
-size = Vector3(10.0, 0.6, 1.6)
-
-[sub_resource type="BoxMesh" id="bm9"]
 size = Vector3(10.0, 10.0, 0.8)
-
-[sub_resource type="BoxShape3D" id="bs9"]
-size = Vector3(10.0, 10.0, 0.8)
-
-[sub_resource type="BoxMesh" id="bm10"]
-size = Vector3(0.8, 10.0, 10.0)
-
-[sub_resource type="BoxShape3D" id="bs10"]
-size = Vector3(0.8, 10.0, 10.0)
 
 [node name="RoomRoot" type="Node3D"]
 script = ExtResource("room_script")
-room_footprint = Vector2(48.0, 48.0)
+room_footprint = Vector2(20.0, 48.0)
 room_height = 14.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
@@ -80,7 +69,7 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs1")
 
 [node name="WallNorth_A" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 7.0, -24.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 7.0, -24.0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
 mesh = SubResource("bm2")
@@ -90,7 +79,7 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs2")
 
 [node name="WallNorth_B" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 7.0, -24.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7.0, -24.0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
 mesh = SubResource("bm2")
@@ -100,7 +89,7 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs2")
 
 [node name="WallSouth_A" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 7.0, 24.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 7.0, 24.0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
 mesh = SubResource("bm2")
@@ -110,7 +99,7 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs2")
 
 [node name="WallSouth_B" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 7.0, 24.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7.0, 24.0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
 mesh = SubResource("bm2")
@@ -119,48 +108,28 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
 shape = SubResource("bs2")
 
-[node name="WallEast_A" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 7.0, -14.5)
+[node name="WallEast" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.0, 7.0, 0.0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast"]
 mesh = SubResource("bm3")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast"]
 shape = SubResource("bs3")
 
-[node name="WallEast_B" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 7.0, 14.5)
+[node name="WallWest" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.0, 7.0, 0.0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest"]
 mesh = SubResource("bm3")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
-shape = SubResource("bs3")
-
-[node name="WallWest_A" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 7.0, -14.5)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
-mesh = SubResource("bm3")
-surface_material_override/0 = ExtResource("mat")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
-shape = SubResource("bs3")
-
-[node name="WallWest_B" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 7.0, 14.5)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
-mesh = SubResource("bm3")
-surface_material_override/0 = ExtResource("mat")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest"]
 shape = SubResource("bs3")
 
 [node name="Platform1" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.2, 0.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.8, 0.0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Platform1"]
 mesh = SubResource("bm4")
@@ -170,7 +139,7 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs4")
 
 [node name="Step2" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.2, -9.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.8, -7.7)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Step2"]
 mesh = SubResource("bm5")
@@ -180,7 +149,7 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs5")
 
 [node name="Step3" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.9, -11.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.533333, -9.1)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Step3"]
 mesh = SubResource("bm6")
@@ -190,7 +159,7 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs6")
 
 [node name="Step4" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.6, -13.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.266667, -10.5)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Step4"]
 mesh = SubResource("bm7")
@@ -200,54 +169,34 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs7")
 
 [node name="Step5" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.3, -14.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.8, 7.7)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Step5"]
-mesh = SubResource("bm8")
-surface_material_override/0 = ExtResource("mat")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Step5"]
-shape = SubResource("bs8")
-
-[node name="Step6" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.2, 9.8)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Step6"]
 mesh = SubResource("bm5")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Step6"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Step5"]
 shape = SubResource("bs5")
 
-[node name="Step7" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.9, 11.4)
+[node name="Step6" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.533333, 9.1)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Step7"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Step6"]
 mesh = SubResource("bm6")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Step7"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Step6"]
 shape = SubResource("bs6")
 
-[node name="Step8" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.6, 13.0)
+[node name="Step7" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.266667, 10.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Step8"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Step7"]
 mesh = SubResource("bm7")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Step8"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Step7"]
 shape = SubResource("bs7")
-
-[node name="Step9" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.3, 14.6)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Step9"]
-mesh = SubResource("bm8")
-surface_material_override/0 = ExtResource("mat")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Step9"]
-shape = SubResource("bs8")
 
 [node name="Doors" type="Node3D" parent="."]
 
@@ -256,44 +205,48 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5.0, -24.0)
 script = ExtResource("door_script")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
-mesh = SubResource("bm9")
+mesh = SubResource("bm8")
 surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
-shape = SubResource("bs9")
+shape = SubResource("bs8")
 
 [node name="DoorSouth" type="StaticBody3D" parent="Doors"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5.0, 24.0)
 script = ExtResource("door_script")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
-mesh = SubResource("bm9")
+mesh = SubResource("bm8")
 surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
-shape = SubResource("bs9")
+shape = SubResource("bs8")
 
-[node name="DoorEast" type="StaticBody3D" parent="Doors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 5.0, 0.0)
-script = ExtResource("door_script")
+[node name="Hazards" type="Node3D" parent="."]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
-mesh = SubResource("bm10")
-surface_material_override/0 = ExtResource("mat")
+[node name="Lava1" parent="Hazards" instance=ExtResource("lava")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.0, -0.15, -18.0)
+size = Vector3(5.0, 1.0, 8.0)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
-shape = SubResource("bs10")
+[node name="Lava1Obstacle" type="NavigationObstacle3D" parent="Hazards"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.0, 0.0, -18.0)
+avoidance_enabled = false
+affect_navigation_mesh = true
+carve_navigation_mesh = true
+height = 4.0
+vertices = PackedVector3Array(-2.5, 0, -4.0, 2.5, 0, -4.0, 2.5, 0, 4.0, -2.5, 0, 4.0)
 
-[node name="DoorWest" type="StaticBody3D" parent="Doors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 5.0, 0.0)
-script = ExtResource("door_script")
+[node name="Lava2" parent="Hazards" instance=ExtResource("lava")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.0, -0.15, 18.0)
+size = Vector3(5.0, 1.0, 8.0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
-mesh = SubResource("bm10")
-surface_material_override/0 = ExtResource("mat")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
-shape = SubResource("bs10")
+[node name="Lava2Obstacle" type="NavigationObstacle3D" parent="Hazards"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.0, 0.0, 18.0)
+avoidance_enabled = false
+affect_navigation_mesh = true
+carve_navigation_mesh = true
+height = 4.0
+vertices = PackedVector3Array(-2.5, 0, -4.0, 2.5, 0, -4.0, 2.5, 0, 4.0, -2.5, 0, 4.0)
 
 [node name="ExitPoints" type="Node3D" parent="."]
 
@@ -303,34 +256,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, -24.0)
 [node name="South" type="Marker3D" parent="ExitPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 24.0)
 
-[node name="East" type="Marker3D" parent="ExitPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 0.0, 0.0)
-
-[node name="West" type="Marker3D" parent="ExitPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 0.0, 0.0)
-
 [node name="EnemySpawnPoints" type="Node3D" parent="."]
 
 [node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.0, 0.5, -17.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -16.0)
 
 [node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 0.5, -17.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.1, 0.0)
 
 [node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.0, 0.5, 17.0)
-
-[node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 0.5, 17.0)
-
-[node name="Enemy5" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -19.0)
-
-[node name="Enemy6" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 19.0)
-
-[node name="Enemy7" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.9, 0.0)
-
-[node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.0, 2.9, 0.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 16.0)

@@ -10719,6 +10719,12 @@ class_name LevelGenerator
 @export var cell_size: Vector3 = Vector3(16.0, 0.0, 16.0)
 @export var grid_generator: RoomGridGenerator
 @export var autostart: bool = true
+## Multiplikator für die Raumgröße. cell_size bleibt die BASIS-Größe der
+## Room-Templates (16x16) - der tatsächliche Weltabstand zwischen Raum-
+## Zentren wird zur Laufzeit mit diesem Faktor multipliziert. Skaliert den
+## kompletten RoomRoot-Node hoch (Wände, Boden, Türen, Marker wachsen alle
+## proportional mit), ohne die 9 Room-Szenen einzeln anfassen zu müssen.
+@export var room_scale: float = 2.5
 
 var _used_unique_rooms: Array[RoomData] = []
 var _instances: Dictionary = {}
@@ -10736,7 +10742,14 @@ func _ready() -> void:
 
 	print("[LevelGenerator] _ready() - autostart=%s, grid_generator=%s, room_pool.size()=%d" % [autostart, grid_generator, room_pool.size()])
 	if autostart and grid_generator:
-		generate_new_stage()
+		# WICHTIG: NICHT synchron aus _ready() heraus generieren!
+		# Während der initialen Ready-Kaskade der Szene ist die Root-Node
+		# (current_scene) noch "busy" (blocked > 0), weil sie selbst gerade
+		# ihre Kinder durchläuft - add_child() darauf schlägt in diesem
+		# Fenster lautlos fehl ("Parent node is busy setting up children").
+		# call_deferred verschiebt den Aufruf auf den Moment, in dem die
+		# Ready-Kaskade fertig ist und current_scene nicht mehr blockiert.
+		call_deferred("generate_new_stage")
 	elif autostart and grid_generator == null:
 		push_error("[LevelGenerator] Kein RoomGridGenerator gefunden! Node muss 'RoomGridGenerator' heißen und Geschwister-Node von LevelGenerator sein, ODER im Inspector manuell zugewiesen werden.")
 
@@ -10760,14 +10773,22 @@ func _instantiate_layout(layout: Dictionary) -> void:
 			print("[LevelGenerator] KEIN Raum gefunden für Zelle %s (type=%s, exit_flags=%s)" % [grid_pos, cell.room_type, cell.exit_flags])
 			continue
 
-		var world_pos := Vector3(grid_pos.x * cell_size.x, 0.0, grid_pos.y * cell_size.z)
+		# world_pos nutzt cell_size * room_scale, damit der Grid-Abstand
+		# zwischen Raum-Zentren mit der tatsächlichen (skalierten) Raum-
+		# größe übereinstimmt - sonst würden sich größer skalierte Räume
+		# gegenseitig überlappen.
+		var world_pos := Vector3(grid_pos.x * cell_size.x * room_scale, 0.0, grid_pos.y * cell_size.z * room_scale)
 		var room := load_room(data, Transform3D(Basis.IDENTITY, world_pos))
 		if room == null:
-			print("[LevelGenerator] load_room() lieferte null für %s (scene=%s) - ist die Root-Node vom Typ RoomInstance?" % [grid_pos, data.scene])
+			print("[LevelGenerator] load_room() lieferte null für %s (scene=%s) - ist die Root-Node vom Typ RoomInstance, oder ist add_child() fehlgeschlagen?" % [grid_pos, data.scene])
 			continue
 
 		room.apply_exit_flags(cell.exit_flags)
-		room.populate_enemies(enemy_pool, 2, 5)
+		# Gegner werden NICHT mehr sofort gespawnt, sondern erst wenn der
+		# Player den Raum betritt (siehe RoomInstance.prepare_enemies /
+		# on_player_entered). Hier werden nur die möglichen Gegner-Typen
+		# und die Anzahl-Range hinterlegt.
+		room.prepare_enemies(enemy_pool, 2, 5)
 		_instances[grid_pos] = room
 		print("[LevelGenerator] Raum instanziert bei %s: %s (type=%s)" % [grid_pos, data.scene.resource_path, cell.room_type])
 
@@ -10820,8 +10841,9 @@ func load_room(data: RoomData, spawn_transform: Transform3D) -> RoomInstance:
 		print("[LevelGenerator] RoomData hat keine scene zugewiesen!")
 		return null
 	var instance: Node3D = data.scene.instantiate()
+	instance.scale = Vector3.ONE * room_scale
 	get_tree().current_scene.add_child(instance)
-	instance.global_transform = spawn_transform
+	instance.global_transform = Transform3D(instance.global_transform.basis, spawn_transform.origin)
 	var room := instance as RoomInstance
 	if room == null:
 		print("[LevelGenerator] Instanzierte Szene '%s' hat Root-Typ %s statt RoomInstance-Script!" % [data.scene.resource_path, instance.get_class()])
@@ -11020,6 +11042,14 @@ const _FLAG_BY_KEY := {
 	"west": EXIT_WEST,
 }
 
+## Basis-Grundfläche/Höhe der 9 aktuellen Room-Templates (VOR Skalierung
+## durch LevelGenerator.room_scale - der Entry-Trigger unten ist Kind von
+## RoomRoot und wird dadurch automatisch mitskaliert). Falls künftig Räume
+## mit abweichenden Maßen dazukommen, muss das hier pro Raum konfigurierbar
+## werden (z.B. @export) statt hart codiert zu sein.
+const ROOM_FOOTPRINT: Vector2 = Vector2(16.0, 16.0)
+const ROOM_HEIGHT: float = 4.5
+
 ## Marker3D-Kinder unter "EnemySpawnPoints" markieren mögliche
 ## Gegner-Spawnpunkte. Nicht jeder Marker muss belegt werden -> variiert
 ## die Dichte pro Durchlauf.
@@ -11039,9 +11069,38 @@ signal room_entered
 var _is_cleared: bool = false
 var _active_enemies: int = 0
 
+## Ob dieser Raum überhaupt Gegner hat und sich daher beim Betreten
+## versiegeln muss. Räume ohne EnemySpawnPoints (Start/Corridor/Treasure)
+## bleiben immer offen.
+var _requires_clear: bool = false
+
+var _entry_trigger: Area3D = null
+var _has_entered: bool = false
+var _enemies_spawned: bool = false
+var _pending_enemy_scenes: Array[PackedScene] = []
+var _pending_min_count: int = 0
+var _pending_max_count: int = 0
+var _spawned_enemies: Array[Node3D] = []
+
 func _ready() -> void:
 	_collect_markers()
-	_lock_exits(true)
+	_setup_entry_trigger()
+	# WICHTIG: hier NICHT mehr _lock_exits(true) - Türen starten offen.
+	# Ob und wann ein Raum sich sperrt, entscheidet prepare_enemies() bzw.
+	# on_player_entered(). Würden wir hier schon sperren, könnte der
+	# Player einen Combat-Raum nie betreten (Deadlock: Tür bleibt zu, bis
+	# Gegner tot sind, die aber nur spawnen, wenn der Player den Raum
+	# betritt).
+
+func _exit_tree() -> void:
+	# Gegner hängen (siehe _spawn_prepared_enemies) nicht mehr an diesem
+	# Node, sondern an current_scene, damit sie NICHT die room_scale-
+	# Skalierung von RoomRoot erben. Dadurch werden sie beim Aufräumen
+	# alter Räume (LevelGenerator._clear_current_rooms -> queue_free) auch
+	# nicht mehr automatisch mit entfernt - das holen wir hier nach.
+	for enemy in _spawned_enemies:
+		if is_instance_valid(enemy):
+			enemy.queue_free()
 
 func _collect_markers() -> void:
 	var spawn_group := get_node_or_null("EnemySpawnPoints")
@@ -11072,23 +11131,78 @@ func _collect_markers() -> void:
 				if door:
 					child.set_meta("door_node", door)
 
-## Wird vom LevelGenerator aufgerufen, um zufällig eine Teilmenge der
-## verfügbaren Spawn-Punkte mit Gegnern zu befüllen (variiert Dichte).
-func populate_enemies(enemy_scenes: Array[PackedScene], min_count: int, max_count: int) -> void:
+## Erzeugt eine Area3D, die die Bodenfläche des Raums abdeckt. Löst beim
+## ersten Betreten durch den Player on_player_entered() aus. Programmatisch
+## statt in den 9 .tscn-Dateien angelegt, damit alle Räume automatisch die
+## gleiche Logik bekommen, ohne jede Szene einzeln pflegen zu müssen.
+func _setup_entry_trigger() -> void:
+	_entry_trigger = Area3D.new()
+	_entry_trigger.name = "EntryTrigger"
+	_entry_trigger.collision_layer = 0
+	_entry_trigger.collision_mask = 0xFFFFFFFF
+	_entry_trigger.monitoring = true
+	_entry_trigger.monitorable = false
+	add_child(_entry_trigger)
+
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	# Etwas kleiner als die volle Grundfläche, damit der Trigger erst
+	# feuert wenn man wirklich im Raum ist (nicht schon in der Türöffnung).
+	box.size = Vector3(ROOM_FOOTPRINT.x - 1.0, ROOM_HEIGHT, ROOM_FOOTPRINT.y - 1.0)
+	shape.shape = box
+	shape.position = Vector3(0.0, ROOM_HEIGHT * 0.5, 0.0)
+	_entry_trigger.add_child(shape)
+
+	_entry_trigger.body_entered.connect(_on_entry_trigger_body_entered)
+
+func _on_entry_trigger_body_entered(body: Node) -> void:
+	if _has_entered:
+		return
+	if not body.is_in_group(PartyManager.PLAYER_GROUP):
+		return
+	_has_entered = true
+	on_player_entered()
+
+## Wird vom LevelGenerator direkt nach dem Instanziieren aufgerufen.
+## Legt fest, WELCHE Gegner-Typen/Anzahl beim Betreten gespawnt werden
+## sollen - spawnt aber noch NICHTS. Räume ohne EnemySpawnPoints (Start,
+## Corridor, Treasure) haben nichts zu klären und bleiben dauerhaft offen.
+func prepare_enemies(enemy_scenes: Array[PackedScene], min_count: int, max_count: int) -> void:
 	if enemy_scenes.is_empty() or enemy_spawn_points.is_empty():
+		_is_cleared = true
+		_lock_exits(false)
+		return
+	_requires_clear = true
+	_pending_enemy_scenes = enemy_scenes
+	_pending_min_count = min_count
+	_pending_max_count = max_count
+	# Tür bleibt bewusst OFFEN, bis der Player den Raum tatsächlich betritt
+	# (siehe on_player_entered) - sonst könnte der Player nie rein.
+	_lock_exits(false)
+
+func _spawn_prepared_enemies() -> void:
+	if _pending_enemy_scenes.is_empty() or enemy_spawn_points.is_empty():
+		_is_cleared = true
+		_lock_exits(false)
 		return
 
 	var shuffled := enemy_spawn_points.duplicate()
 	shuffled.shuffle()
 
-	var count: int = clampi(randi_range(min_count, max_count), 0, shuffled.size())
+	var count: int = clampi(randi_range(_pending_min_count, _pending_max_count), 0, shuffled.size())
 	for i in range(count):
 		var point: Marker3D = shuffled[i]
-		var enemy_scene: PackedScene = enemy_scenes.pick_random()
+		var enemy_scene: PackedScene = _pending_enemy_scenes.pick_random()
 		var enemy: Node3D = enemy_scene.instantiate()
-		add_child(enemy)
+		# WICHTIG: current_scene statt self (RoomRoot) als Parent, damit
+		# der Gegner NICHT die room_scale-Skalierung von RoomRoot erbt
+		# (sonst wäre er proportional genauso vergrößert wie der Raum).
+		# global_position berücksichtigt die Skalierung des Markers durch
+		# seinen (skalierten) Parent trotzdem korrekt.
+		get_tree().current_scene.add_child(enemy)
 		enemy.global_position = point.global_position
 		enemy.global_rotation = point.global_rotation
+		_spawned_enemies.append(enemy)
 		_active_enemies += 1
 
 		# WICHTIG: Self-Damage-Schutz laut Projektregel - owner zeigt auf
@@ -11111,7 +11225,6 @@ func populate_enemies(enemy_scenes: Array[PackedScene], min_count: int, max_coun
 				enemy.tree_exited.connect(_on_enemy_died)
 
 	if count == 0:
-		# Raum ohne Gegner (z.B. Corridor/Treasure) gilt sofort als "clear"
 		_is_cleared = true
 		_lock_exits(false)
 
@@ -11143,6 +11256,13 @@ func _lock_exits(locked: bool) -> void:
 
 func on_player_entered() -> void:
 	room_entered.emit()
+	if _is_cleared or _enemies_spawned or not _requires_clear:
+		return
+	_enemies_spawned = true
+	# Jetzt erst - beim tatsächlichen Betreten - sperrt sich der Raum und
+	# spawnt seine Gegner. Vorher war die Tür absichtlich offen.
+	_lock_exits(true)
+	_spawn_prepared_enemies()
 
 
 ===== FILE: scenes\level_generation_test.tscn =====
@@ -11169,6 +11289,20 @@ func on_player_entered() -> void:
 [ext_resource type="Resource" path="res://resources/rooms/rd_boss_01.tres" id="18_boss"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_corridor_01.tres" id="19_cor1"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_corridor_02.tres" id="20_cor2"]
+[ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="21_0k6p3"]
+[ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="22_w0ny2"]
+[ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="23_bfk81"]
+[ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="24_pd8jf"]
+[ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="25_o54k0"]
+[ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="26_u4jxp"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="27_w24rf"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bqido"]
+shader = ExtResource("25_o54k0")
+shader_parameter/scanline_count = 320.0
+shader_parameter/scanline_intensity = 0.15
+shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
+shader_parameter/scroll_speed = 0.0
 
 [node name="LevelGenerationTest" type="Node3D" unique_id=1117207563]
 
@@ -11187,6 +11321,201 @@ enemy_pool = Array[PackedScene]([ExtResource("4_scout"), ExtResource("5_tank")])
 
 [node name="RoomGridGenerator" type="Node" parent="." unique_id=531904483]
 script = ExtResource("2_grid")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1169866606]
+
+[node name="SettingsMenu" parent="CanvasLayer" unique_id=1398079986 instance=ExtResource("21_0k6p3")]
+
+[node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1648839761]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("22_w0ny2")
+settings_menu_path = NodePath("../SettingsMenu")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/PauseMenu" unique_id=835444744]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -3.0
+offset_right = 1.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PauseMenu/Panel" unique_id=603065751]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -301.0
+offset_top = -219.0
+offset_right = 300.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_auto_translate_mode = 1
+
+[node name="ResumeButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=897104399]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1122984882]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="SettingsButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=1637531638]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Settings
+"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/PauseMenu/Panel/VBoxContainer" unique_id=908879686]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="DeathScreen" type="Control" parent="CanvasLayer" unique_id=440998422]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("23_bfk81")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/DeathScreen" unique_id=2007994481]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = -10.0
+offset_right = 11.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/DeathScreen/Panel" unique_id=1112641224]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.68200004
+anchor_right = 0.5
+anchor_bottom = 0.68200004
+offset_left = -300.0
+offset_top = -316.93604
+offset_right = 300.0
+offset_bottom = 224.31396
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SkillIssueLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=910100037]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "        SKILL ISSUE
+"
+
+[node name="KilledByLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=1823698626]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+
+[node name="ItemsBox" type="PanelContainer" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=2052551958]
+layout_mode = 2
+
+[node name="ItemsLabel" type="Label" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer/ItemsBox" unique_id=1402867087]
+layout_mode = 2
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=755998496]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/DeathScreen/Panel/VBoxContainer" unique_id=1282476031]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "Quit"
+
+[node name="WinScreen" type="Control" parent="CanvasLayer" unique_id=432201760]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("24_pd8jf")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/WinScreen" unique_id=568472520]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/WinScreen/Panel" unique_id=971682065]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -286.0
+offset_top = -96.0
+offset_right = 282.0
+offset_bottom = 237.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=1931721510]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "LEVEL GESCHAFFT!"
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=54803956]
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/WinScreen/Panel/VBoxContainer" unique_id=1375942775]
+layout_mode = 2
+text = "Quit"
+
+[node name="PostProcessLayer" type="CanvasLayer" parent="CanvasLayer" unique_id=986801584]
+layer = 100
+
+[node name="CRTOverlay" type="ColorRect" parent="CanvasLayer/PostProcessLayer" unique_id=107411250]
+material = SubResource("ShaderMaterial_bqido")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08627451)
+
+[node name="SubmersionOverlay" type="ColorRect" parent="CanvasLayer" unique_id=342016599]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("26_u4jxp")
+
+[node name="HUD" parent="CanvasLayer" unique_id=2088396334 instance=ExtResource("27_w24rf")]
 
 
 ===== FILE: scenes\nav_test_level.tscn =====
@@ -17582,18 +17911,33 @@ func setup_party(members: Array[CharacterData]) -> void:
 
 	# Falls bereits ein Spawn-Punkt registriert ist (Level war schneller
 	# bereit als PartySetup), aber noch kein Spieler existiert, jetzt spawnen.
+	#
+	# WICHTIG: deferred, nicht direkt! setup_party() kann selbst mitten in
+	# einer fremden Ready-Kaskade laufen (z.B. wenn PartySetup._ready() im
+	# selben Frame läuft wie ein dynamisch instanziertes Level), und
+	# _spawn_active_character() haengt am Ende einen Node per add_child()
+	# in den Baum - das schlaegt fehl, wenn der Zielparent gerade selbst
+	# "busy" (blocked) ist, weil ER noch seine eigenen Kinder aufbaut.
 	if player == null and _spawn_parent != null:
-		_spawn_active_character(_spawn_transform)
+		call_deferred("_spawn_active_character", _spawn_transform)
 
 # Wird von einem PlayerSpawnPoint-Marker3D im Level aufgerufen (siehe
-# scripts/player_spawn_point.gd).
+# scripts/player_spawn_point.gd). Läuft typischerweise SYNCHRON innerhalb
+# der Ready-Kaskade des Levels/Raums, in dem der Marker liegt - deshalb
+# NIEMALS hier direkt add_child() durchziehen, sondern immer deferren.
 func register_spawn_point(parent: Node, at_transform: Transform3D) -> void:
 	_spawn_parent = parent
 	_spawn_transform = at_transform
 	if player == null and not party.is_empty():
-		_spawn_active_character(at_transform)
+		call_deferred("_spawn_active_character", at_transform)
 
 func _spawn_active_character(at_transform: Transform3D) -> void:
+	# Kann inzwischen (durch den einen Frame Verzoegerung via call_deferred)
+	# ueberholt worden sein - z.B. wenn zwischenzeitlich schon jemand
+	# anderes gespawnt hat. Doppel-Spawn verhindern.
+	if player != null:
+		return
+
 	var data: CharacterData = get_active_data()
 	if data == null or data.player_scene == null:
 		push_warning("PartyManager: Aktiver Charakter '%s' hat keine player_scene zugewiesen." % (data.character_name if data else "?"))
@@ -17703,6 +18047,11 @@ func switch_to(index: int) -> void:
 	_player_health = null
 
 	_active_index = index
+	# switch_to() laeuft zur Laufzeit per Input-Event, nicht mitten in einer
+	# Ready-Kaskade - hier bleibt der Aufruf bewusst SYNCHRON, weil direkt
+	# danach mit dem neuen "player" weitergearbeitet wird (Kamera-Werte
+	# uebertragen). Waere dieser Aufruf auch deferred, waere "player" an
+	# der Stelle unten noch null.
 	_spawn_active_character(carried_transform)
 
 	if player:
@@ -18604,6 +18953,13 @@ class_name PlayerSpawnPoint
 # beim Spawnen schon eine Party existiert. Falls die Reihenfolge im
 # Level-Baum das nicht garantiert, wartet dieses Script notfalls einen
 # Frame, bevor es sich registriert.
+#
+# WICHTIG 2: Als Parent wird current_scene übergeben, NICHT get_parent().
+# Bei dynamisch generierten Leveln (Grid-System) liegt dieser Marker als
+# Kind eines RoomInstance-Node, der (a) durch LevelGenerator.room_scale
+# skaliert sein kann - ein Kind davon würde die Skalierung erben - und
+# (b) beim Regenerieren eines neuen Stage-Layouts komplett queue_free()'t
+# wird, was den Player mit in den Abgrund reißen würde.
 
 func _ready() -> void:
 	print("[PlayerSpawnPoint] _ready() bei %s, parent=%s, party_size=%d" % [global_transform.origin, get_parent(), PartyManager.get_party_size()])
@@ -18611,7 +18967,7 @@ func _ready() -> void:
 		print("[PlayerSpawnPoint] Party noch leer, warte einen Frame...")
 		await get_tree().process_frame
 		print("[PlayerSpawnPoint] nach 1 Frame: party_size=%d" % PartyManager.get_party_size())
-	PartyManager.register_spawn_point(get_parent(), global_transform)
+	PartyManager.register_spawn_point(get_tree().current_scene, global_transform)
 	print("[PlayerSpawnPoint] register_spawn_point() aufgerufen. PartyManager.player=%s" % PartyManager.player)
 
 

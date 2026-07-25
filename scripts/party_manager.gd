@@ -53,6 +53,19 @@ func _process(delta: float) -> void:
 		if _switch_cooldowns[i] > 0.0:
 			_switch_cooldowns[i] = max(_switch_cooldowns[i] - delta, 0.0)
 
+# BUGFIX: Entfernt jede Skalierung/Scherung aus einer Spawn-Transform und
+# behaelt nur Position + Yaw. Ein Spawn-Marker, der als Kind eines
+# skalierten Nodes haengt (z.B. ein hochskalierter RoomRoot im
+# Level-Generator), liefert sonst eine Basis MIT Skalierungsfaktor - und
+# die landete vorher ungefiltert auf dem Spieler-CharacterBody3D. Ergebnis:
+# ein 2.5x zu grosser Spieler, wodurch alle Gegner falsch dimensioniert
+# wirkten. Diese Funktion ist die letzte Verteidigungslinie dagegen, egal
+# welches Level/Script die Transform liefert.
+func _sanitize_spawn_transform(source: Transform3D) -> Transform3D:
+	var yaw: float = source.basis.get_euler().y
+	var basis := Basis.IDENTITY.rotated(Vector3.UP, yaw)
+	return Transform3D(basis, source.origin)
+
 # Wird vom Level (ueber PartySetup) oder spaeter vom Home-Screen aufgerufen.
 func setup_party(members: Array[CharacterData]) -> void:
 	party.clear()
@@ -90,9 +103,9 @@ func setup_party(members: Array[CharacterData]) -> void:
 # NIEMALS hier direkt add_child() durchziehen, sondern immer deferren.
 func register_spawn_point(parent: Node, at_transform: Transform3D) -> void:
 	_spawn_parent = parent
-	_spawn_transform = at_transform
+	_spawn_transform = _sanitize_spawn_transform(at_transform)
 	if player == null and not party.is_empty():
-		call_deferred("_spawn_active_character", at_transform)
+		call_deferred("_spawn_active_character", _spawn_transform)
 
 func _spawn_active_character(at_transform: Transform3D) -> void:
 	# Kann inzwischen (durch den einen Frame Verzoegerung via call_deferred)
@@ -113,7 +126,9 @@ func _spawn_active_character(at_transform: Transform3D) -> void:
 	instance.name = PLAYER_NODE_NAME
 	instance.add_to_group(PLAYER_GROUP)
 	_spawn_parent.add_child(instance)
-	instance.global_transform = at_transform
+	# IMMER sanitisiert setzen - siehe _sanitize_spawn_transform().
+	instance.global_transform = _sanitize_spawn_transform(at_transform)
+	instance.scale = Vector3.ONE
 
 	player = instance
 	_connect_player_health()
@@ -159,6 +174,10 @@ func _deactivate_old_player(old_player: CharacterBody3D) -> void:
 	old_player.collision_layer = 0
 	old_player.collision_mask = 0
 	old_player.velocity = Vector3.ZERO
+	# BUGFIX: Auch aus der Player-Gruppe nehmen. Sonst zaehlt die noch
+	# nicht freigegebene alte Instanz beim Raum-EntryTrigger als "Player"
+	# und kann einen Raum ein zweites Mal triggern.
+	old_player.remove_from_group(PLAYER_GROUP)
 
 	for area: Node in old_player.find_children("*", "Area3D", true, false):
 		area.monitoring = false
@@ -185,7 +204,7 @@ func switch_to(index: int) -> void:
 		return
 
 	# Zustand der aktuellen Instanz sichern, bevor sie ersetzt wird.
-	var carried_transform: Transform3D = player.global_transform
+	var carried_transform: Transform3D = _sanitize_spawn_transform(player.global_transform)
 	var carried_camera_yaw: float = 0.0
 	var carried_camera_pitch: float = 0.0
 	var old_camera_pivot: Node3D = player.get_node_or_null("CameraPivot")

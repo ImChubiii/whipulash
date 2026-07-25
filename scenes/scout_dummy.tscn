@@ -16,11 +16,11 @@ height = 1.2
 render_priority = 0
 shader = ExtResource("2_dtsht")
 shader_parameter/albedo_color = Color(1, 1, 1, 1)
-shader_parameter/snap_resolution = 77.730003502175
-shader_parameter/vertex_jitter_strength = 0.6400000304
+shader_parameter/snap_resolution = 77.73
+shader_parameter/vertex_jitter_strength = 0.64
 shader_parameter/alpha_multiplier = 1.0
 shader_parameter/flash_color = Color(1, 0, 0, 1)
-shader_parameter/flash_strength = 0.486000023085
+shader_parameter/flash_strength = 0.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
 height = 1.0
@@ -29,8 +29,8 @@ height = 1.0
 render_priority = 0
 shader = ExtResource("2_dtsht")
 shader_parameter/albedo_color = Color(0.7316159, 0, 0.20945221, 1)
-shader_parameter/snap_resolution = 24.102000954845
-shader_parameter/vertex_jitter_strength = 0.7290000346275
+shader_parameter/snap_resolution = 24.102
+shader_parameter/vertex_jitter_strength = 0.729
 shader_parameter/alpha_multiplier = 1.0
 shader_parameter/flash_color = Color(1, 0, 0, 1)
 shader_parameter/flash_strength = 0.0
@@ -71,7 +71,6 @@ bottom_radius = 1.7
 height = 0.001
 
 [node name="ScoutDummy" type="CharacterBody3D" unique_id=786565251]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5643892, 0)
 collision_layer = 4
 floor_snap_length = 0.29
 script = ExtResource("1_p4blw")
@@ -79,6 +78,7 @@ move_speed = 16.0
 detection_range = 50.0
 attack_range = 2.5
 attack_cooldown = 1.4
+gravity = 20.0
 attack_windup_time = 0.35
 pre_attack_delay = 0.25
 display_name = "Stinger"
@@ -91,7 +91,9 @@ separation_strength = 3.0
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
-debug_logging = true
+movement_acceleration = 55.0
+nav_target_update_interval = 0.15
+debug_logging = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -109,12 +111,14 @@ regen_enabled = false
 
 [node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.8)
+collision_layer = 0
+collision_mask = 1
 script = ExtResource("4_r5myi")
 damage = 6.0
 knockback_force = 3.0
 stun_duration = 0.7
 damage_number_scene = ExtResource("5_dmgnum")
-debug_logging = true
+debug_logging = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
@@ -133,3 +137,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6418824, -1.8)
 mesh = SubResource("CylinderMesh_fva3d")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=2082225921]
+path_desired_distance = 1.0
+target_desired_distance = 1.5
+path_height_offset = 0.2
+radius = 0.5
+height = 2.0

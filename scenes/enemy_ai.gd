@@ -3,56 +3,55 @@ class_name EnemyAI
 
 enum State { IDLE, CHASE, ATTACK }
 
-@export var move_speed: float = 7
-@export var detection_range: float = 20
-@export var attack_range: float = 5
-@export var attack_cooldown: float = 0
+@export var move_speed: float = 7.0
+@export var detection_range: float = 20.0
+@export var attack_range: float = 5.0
+@export var attack_cooldown: float = 1.0
 
 # gravity hat einen Setter, damit jump_velocity automatisch neu berechnet
 # wird, falls gravity zur Laufzeit (Inspector-Live-Edit, Debug-Tools etc.)
-# verändert wird — sonst bliebe die Sprungkraft auf Basis der ALTEN
+# veraendert wird — sonst bliebe die Sprungkraft auf Basis der ALTEN
 # gravity "eingefroren".
 @export var gravity: float = 20.0:
 	set(value):
 		gravity = value
 		_recalculate_jump_velocity()
 
-@export var attack_windup_time: float = 1
+@export var attack_windup_time: float = 1.0
 @export var pre_attack_delay: float = 0.8
 
-# Eigener Anzeigename für UI/Death-Screen — unabhängig vom technischen
-# Godot-Node-Namen (der bei gespawnten Kopien hässlich werden kann, z.B.
+# Eigener Anzeigename fuer UI/Death-Screen — unabhaengig vom technischen
+# Godot-Node-Namen (der bei gespawnten Kopien haesslich werden kann, z.B.
 # "@CharacterBody3D@3").
 @export var display_name: String = "Gegner"
 
 func get_display_name() -> String:
 	return display_name
 
-
-# Markiert diesen Gegner als "groß" — Kamera zoomt beim Lock-On automatisch
+# Markiert diesen Gegner als "gross" — Kamera zoomt beim Lock-On automatisch
 # raus auf zoom_max, statt bei der aktuellen manuellen Zoomstufe zu bleiben.
 @export var is_large_enemy: bool = false
 
-# Schwere Gegner können vom Player nicht weggestoßen werden (Knockback
-# vom Player's Hitbox wird ignoriert). Im Inspector aktivieren für Fighter, Colossus etc.
+# Schwere Gegner koennen vom Player nicht weggestossen werden (Knockback
+# vom Player's Hitbox wird ignoriert). Im Inspector aktivieren fuer Fighter, Colossus etc.
 @export var is_heavy: bool = false
 
-# Höhe, auf der der Lock-On-Ring über DIESEM Gegner erscheint.
+# Hoehe, auf der der Lock-On-Ring ueber DIESEM Gegner erscheint.
 @export var reticle_height_offset: float = 1.2
 
 # Wie weit der Ring Richtung Kamera vor DIESEM Gegner schwebt.
 @export var reticle_forward_offset: float = 1.0
 
-# Skaliert die GRÖSSE des Lock-On-Rings passend zur Gegnergröße.
+# Skaliert die GROESSE des Lock-On-Rings passend zur Gegnergroesse.
 @export var reticle_scale: float = 1.0
 
-# Multiplikator für die Stärke des Kamera-Soft-Locks, wenn dieser Gegner
+# Multiplikator fuer die Staerke des Kamera-Soft-Locks, wenn dieser Gegner
 # gerade als Ziel gelockt ist.
 @export var camera_lock_multiplier: float = 1.0
 
 # --- Sanfte Separation von anderen Gegnern ---
-@export var separation_radius: float = 6
-@export var separation_strength: float = 5
+@export var separation_radius: float = 6.0
+@export var separation_strength: float = 5.0
 
 # --- Transparenz nach HP + Hit-Flash ---
 @export_range(0.0, 1.0) var min_alpha_at_zero_hp: float = 0.15
@@ -88,14 +87,14 @@ var jump_velocity: float = 0.0
 @export var jump_across_max_gap: float = 4.0
 @export var ground_raycast_mask: int = 1
 
-# Kanten-Check skaliert dynamisch mit der tatsächlichen Kapselgröße
-# (Radius) dieses Gegners, damit große Gegner (Fighter, Colossus) nicht
-# schon über den eigenen Körper fälschlich "Abgrund" erkennen.
+# Kanten-Check skaliert dynamisch mit der tatsaechlichen Kapselgroesse
+# (Radius) dieses Gegners, damit grosse Gegner (Fighter, Colossus) nicht
+# schon ueber den eigenen Koerper faelschlich "Abgrund" erkennen.
 @export var ledge_check_scale_with_radius: bool = true
 @export var ledge_check_radius_margin: float = 0.5
 
-# Zusätzlich zum mittleren Raycast werden zwei seitlich versetzte
-# Raycasts geprüft — eine Kante wird nur erkannt, wenn ALLE drei
+# Zusaetzlich zum mittleren Raycast werden zwei seitlich versetzte
+# Raycasts geprueft — eine Kante wird nur erkannt, wenn ALLE drei
 # Raycasts keinen Boden finden.
 @export var ledge_check_lateral_samples: bool = true
 
@@ -105,7 +104,7 @@ var jump_velocity: float = 0.0
 # Wie oft (in Sekunden) das Ziel des NavigationAgent3D neu gesetzt wird.
 @export var nav_target_update_interval: float = 0.2
 
-# --- Ledge-Drop-Verhalten (greift NUR, wenn KEIN gültiger NavMesh-
+# --- Ledge-Drop-Verhalten (greift NUR, wenn KEIN gueltiger NavMesh-
 # Pfad zum Spieler existiert) ---
 @export var ledge_drop_enabled: bool = true
 @export var max_safe_drop_height: float = 4.0
@@ -119,15 +118,16 @@ var jump_velocity: float = 0.0
 
 var _waiting_at_ledge: bool = false
 
-# Cooldown damit der Slide-Impuls nicht jeden Frame überschrieben wird
+# Cooldown damit der Slide-Impuls nicht jeden Frame ueberschrieben wird
 # und move_and_slide() ihn sofort wieder killt.
 var _slide_cooldown: float = 0.0
 
 # --- Knockback (z.B. von Hitboxen mit knockback_force, is_heavy schuetzt) ---
-# Gleiches Prinzip wie in player.gd: _state-abhaengige Bewegung (IDLE/ATTACK
-# setzen velocity.x/z direkt auf 0, CHASE regelt per move_toward) wuerde
-# einen direkten velocity-Impuls sofort wieder ueberschreiben. Der Puffer
-# wird stattdessen additiv angewendet und klingt eigenstaendig ab.
+# Gleiches Prinzip wie in player_base.gd: _state-abhaengige Bewegung
+# (IDLE/ATTACK setzen velocity.x/z direkt auf 0, CHASE regelt per
+# move_toward) wuerde einen direkten velocity-Impuls sofort wieder
+# ueberschreiben. Der Puffer wird stattdessen additiv angewendet und
+# klingt eigenstaendig ab.
 @export var knockback_friction: float = 10.0
 var _knockback_velocity: Vector3 = Vector3.ZERO
 
@@ -172,18 +172,28 @@ var _last_known_health: float = -1.0
 var _alpha_tween: Tween
 var _flash_tween: Tween
 
+# BUGFIX: _do_attack() enthaelt mehrere awaits. Stirbt der Gegner mittendrin,
+# lief die Coroutine danach auf einem bereits freigegebenen Objekt weiter und
+# warf "Attempt to call function on a previously freed instance" in die
+# Konsole. Ueber dieses Flag steigt die Coroutine sauber aus.
+var _is_dead: bool = false
+
 var _collision_shape_cache: CollisionShape3D
 var _warned_missing_collision_shape: bool = false
 
 var _nav_update_timer: float = 0.0
+# Wird beim ersten Nutzungsversuch geprueft: existiert ueberhaupt eine
+# NavigationRegion3D auf der Map? Ohne die spammt is_target_reachable()
+# nur Warnungen und liefert immer false.
+var _nav_map_checked: bool = false
+var _nav_map_usable: bool = false
 
 func _debug(msg: String) -> void:
 	if debug_logging:
 		print("EnemyAI DEBUG [%s]: %s" % [display_name, msg])
 
 func _recalculate_jump_velocity() -> void:
-	jump_velocity = sqrt(2.0 * gravity * jump_height)
-	_debug("Sprungkraft neu berechnet: jump_height=%.2f, gravity=%.2f -> jump_velocity=%.2f" % [jump_height, gravity, jump_velocity])
+	jump_velocity = sqrt(2.0 * max(gravity, 0.0) * max(jump_height, 0.0))
 
 # Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — haelt
 # _player aktuell, da der Player-Node beim Wechseln komplett ausgetauscht
@@ -208,14 +218,11 @@ func _ready() -> void:
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
 
-	_debug("_ready() aufgerufen. attack_hitbox gefunden: %s | telegraph_inner: %s | telegraph_outer: %s | nav_agent: %s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
+	_debug("_ready(). attack_hitbox=%s | telegraph_inner=%s | telegraph_outer=%s | nav_agent=%s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
 
 	var shape_node := _get_collision_shape_node()
-	if shape_node:
-		_debug("CollisionShape3D gefunden: %s (Pfad: %s)" % [shape_node.shape, shape_node.get_path()])
-		_debug("-> berechneter Körperradius: %.2f | Fuß-Y: %.2f (eigene global_position.y: %.2f)" % [_get_body_radius(), _get_feet_y(), global_position.y])
-	else:
-		push_warning("EnemyAI (%s): Keine CollisionShape3D gefunden! Kanten-/Hindernis-Checks laufen mit Fallback-Werten und sind unzuverlässig." % display_name)
+	if shape_node == null:
+		push_warning("EnemyAI (%s): Keine CollisionShape3D gefunden! Kanten-/Hindernis-Checks laufen mit Fallback-Werten und sind unzuverlaessig." % display_name)
 
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
@@ -235,7 +242,7 @@ func _ready() -> void:
 			mesh.set_surface_override_material(0, _mesh_material)
 			_mesh_material.set_shader_parameter("flash_strength", 0.0)
 		else:
-			push_warning("EnemyAI: Mesh hat kein ShaderMaterial mit alpha_multiplier — Transparenz-Effekt wird nicht funktionieren.")
+			push_warning("EnemyAI (%s): Mesh hat kein ShaderMaterial mit alpha_multiplier — Transparenz-Effekt wird nicht funktionieren." % display_name)
 
 	if health:
 		health.died.connect(_on_died)
@@ -245,15 +252,20 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= gravity * delta
-	else:
-		velocity.y = 0
+	elif velocity.y <= 0.0:
+		# BUGFIX: Frueher wurde velocity.y auf dem Boden bedingungslos
+		# genullt. Damit hat _handle_standing_on_player() seinen
+		# Aufwaerts-Kick nie ueberlebt (der Gegner "steht" ja auf dem
+		# Spielerkopf = is_on_floor()). Jetzt bleibt ein positiver
+		# Y-Impuls erhalten und nur Restfallgeschwindigkeit wird gekappt.
+		velocity.y = 0.0
 
 	_attack_timer = max(_attack_timer - delta, 0.0)
 	_slide_cooldown = max(_slide_cooldown - delta, 0.0)
 
 	if _player == null or not is_instance_valid(_player):
-		velocity.x = 0
-		velocity.z = 0
+		velocity.x = 0.0
+		velocity.z = 0.0
 		move_and_slide()
 		_update_telegraph_ground_position()
 		return
@@ -263,8 +275,8 @@ func _physics_process(delta: float) -> void:
 
 	match _state:
 		State.IDLE:
-			velocity.x = 0
-			velocity.z = 0
+			velocity.x = 0.0
+			velocity.z = 0.0
 			if distance <= detection_range:
 				_state = State.CHASE
 
@@ -277,24 +289,23 @@ func _physics_process(delta: float) -> void:
 				_move_towards_player(delta)
 
 		State.ATTACK:
-			velocity.x = 0
-			velocity.z = 0
+			velocity.x = 0.0
+			velocity.z = 0.0
 			_face_player(delta)
 			if distance > attack_range * 1.3 and not _is_attacking:
 				_state = State.CHASE
 			elif _attack_timer <= 0.0 and not _is_attacking:
-				_debug("Bedingungen erfüllt (attack_timer=%.2f, is_attacking=%s) -> _do_attack() wird aufgerufen. Distanz zum Player: %.2f" % [_attack_timer, _is_attacking, distance])
 				_do_attack()
 
 	if _state != previous_state:
-		_debug("State-Wechsel: %s -> %s (Distanz zum Player: %.2f, attack_range: %.2f)" % [State.keys()[previous_state], State.keys()[_state], distance, attack_range])
+		_debug("State-Wechsel: %s -> %s (Distanz %.2f, attack_range %.2f)" % [State.keys()[previous_state], State.keys()[_state], distance, attack_range])
 		if _state == State.ATTACK and telegraph_outer:
 			telegraph_outer.visible = true
 		elif _state != State.ATTACK and telegraph_outer and not _is_attacking:
 			telegraph_outer.visible = false
 
 	# Sanfte Separation von anderen Gegnern draufaddieren — verhindert,
-	# dass sie sich stapeln/überlappen, ohne harte Physik-Pops.
+	# dass sie sich stapeln/ueberlappen, ohne harte Physik-Pops.
 	velocity += _get_separation_velocity()
 
 	# Knockback-Puffer additiv drauf, NACH der State-Machine-Logik, damit er
@@ -314,7 +325,7 @@ func _physics_process(delta: float) -> void:
 
 # Erkennt, ob der Gegner auf dem Player-Kopf steht, und verpasst ihm
 # einen einmaligen Impuls weg — mit Cooldown, damit move_and_slide()
-# den Impuls nicht sofort im nächsten Frame wieder killt.
+# den Impuls nicht sofort im naechsten Frame wieder killt.
 func _handle_standing_on_player() -> void:
 	if _player == null or not is_instance_valid(_player):
 		return
@@ -327,13 +338,13 @@ func _handle_standing_on_player() -> void:
 	to_player_xz.y = 0.0
 	var dist_xz: float = to_player_xz.length()
 
-	# Höhen-Check: stehen wir signifikant ÜBER dem Player?
+	# Hoehen-Check: stehen wir signifikant UEBER dem Player?
 	var feet_y: float = _get_feet_y()
 	var player_y: float = _player.global_position.y
 	if feet_y < player_y + player_head_slide_min_height_above_player:
 		return
 
-	# Nur wenn wir wirklich direkt drüber sind.
+	# Nur wenn wir wirklich direkt drueber sind.
 	if dist_xz > 4.0:
 		return
 
@@ -344,13 +355,13 @@ func _handle_standing_on_player() -> void:
 
 	_debug("Auf Player-Kopf erkannt (feet_y=%.2f, dist_xz=%.2f) -> Slide-Impuls." % [feet_y, dist_xz])
 
-	# Impuls direkt überschreiben — kein move_toward, kein max().
+	# Impuls direkt ueberschreiben — kein move_toward, kein max().
 	velocity.x = away.x * player_head_slide_impulse
 	velocity.z = away.z * player_head_slide_impulse
-	# Aufwärts-Kick damit Gravity den Impuls nicht sofort neutralisiert.
+	# Aufwaerts-Kick damit Gravity den Impuls nicht sofort neutralisiert.
 	velocity.y = player_head_slide_impulse * 0.8
 
-	# Für 0.4s nicht nochmal feuern — lässt den Impuls voll wirken.
+	# Fuer 0.4s nicht nochmal feuern — laesst den Impuls voll wirken.
 	_slide_cooldown = 0.4
 
 func _update_telegraph_ground_position() -> void:
@@ -392,29 +403,50 @@ func _update_telegraph_ground_position() -> void:
 
 func _get_separation_velocity() -> Vector3:
 	var push: Vector3 = Vector3.ZERO
+	if separation_radius <= 0.0 or separation_strength <= 0.0:
+		return push
 	for other in get_tree().get_nodes_in_group("enemies"):
 		if other == self or not is_instance_valid(other):
 			continue
-		var offset: Vector3 = global_position - other.global_position
-		offset.y = 0
+		var other_3d := other as Node3D
+		if other_3d == null:
+			continue
+		var offset: Vector3 = global_position - other_3d.global_position
+		offset.y = 0.0
 		var dist: float = offset.length()
 		if dist > 0.001 and dist < separation_radius:
 			var strength: float = (1.0 - dist / separation_radius) * separation_strength
 			push += offset.normalized() * strength
 	return push
 
+# Prueft EINMALIG, ob die Navigation-Map ueberhaupt Regionen enthaelt.
+# Im Level-Generator-Test fehlte die NavigationRegion3D komplett - dann
+# liefert is_target_reachable() dauerhaft false und Godot spammt
+# "NavigationAgent3D is not on a navigation map" in die Konsole.
+func _is_nav_usable() -> bool:
+	if nav_agent == null:
+		return false
+	if _nav_map_checked:
+		return _nav_map_usable
+	_nav_map_checked = true
+	var map: RID = nav_agent.get_navigation_map()
+	_nav_map_usable = map.is_valid() and NavigationServer3D.map_get_regions(map).size() > 0
+	if not _nav_map_usable:
+		push_warning("EnemyAI (%s): Keine NavigationRegion3D auf der Map - Pathfinding deaktiviert, es greift nur Direkt-Chasing." % display_name)
+	return _nav_map_usable
+
 func _move_towards_player(delta: float) -> void:
 	var dir: Vector3 = Vector3.ZERO
 	var following_nav_path: bool = false
 
-	# --- NavMesh-Pfadverfolgung, FALLS ein gültiger Pfad existiert ---
-	if nav_agent != null:
+	# --- NavMesh-Pfadverfolgung, FALLS ein gueltiger Pfad existiert ---
+	if _is_nav_usable():
 		_nav_update_timer -= delta
 		if _nav_update_timer <= 0.0:
-			_nav_update_timer = nav_target_update_interval
+			_nav_update_timer = max(nav_target_update_interval, 0.05)
 			nav_agent.target_position = _player.global_position
 
-		if _has_valid_nav_path_to_player():
+		if nav_agent.is_target_reachable():
 			var next_point: Vector3 = nav_agent.get_next_path_position()
 			var to_next: Vector3 = next_point - global_position
 			to_next.y = 0.0
@@ -424,12 +456,12 @@ func _move_towards_player(delta: float) -> void:
 
 	if not following_nav_path:
 		dir = (_player.global_position - global_position)
-		dir.y = 0
+		dir.y = 0.0
 		dir = dir.normalized()
 
 	_waiting_at_ledge = false
 
-	# --- Ledge-Logik: NUR relevant ohne gültigen NavMesh-Pfad ---
+	# --- Ledge-Logik: NUR relevant ohne gueltigen NavMesh-Pfad ---
 	if not following_nav_path and dir.length() > 0.01 and _is_ledge_ahead(dir):
 		var jumped_across: bool = can_jump_across_ledges and is_on_floor() and _try_jump_across_ledge(dir)
 
@@ -444,23 +476,19 @@ func _move_towards_player(delta: float) -> void:
 
 			var may_drop: bool = ledge_drop_enabled and player_is_below and drop_depth <= max_safe_drop_height
 
-			if may_drop:
-				_debug("Sicherer Drop erkannt (Tiefe %.2f <= max_safe_drop_height %.2f, player_is_below=%s) -> laufe über die Kante." % [drop_depth, max_safe_drop_height, player_is_below])
-			else:
-				if ledge_wait_enabled:
-					_debug("WARTE AN KANTE — kein NavMesh-Pfad, Drop nicht sicher/erlaubt (Tiefe %.2f, player_is_below=%s, ledge_drop_enabled=%s)." % [drop_depth, player_is_below, ledge_drop_enabled])
-					_waiting_at_ledge = true
-					velocity.x = 0
-					velocity.z = 0
-					_face_player(delta)
-					return
+			if not may_drop and ledge_wait_enabled:
+				_debug("WARTE AN KANTE (Tiefe %.2f, player_is_below=%s)." % [drop_depth, player_is_below])
+				_waiting_at_ledge = true
+				velocity.x = 0.0
+				velocity.z = 0.0
+				_face_player(delta)
+				return
 
 	# --- Hindernis-Check: kleine Stufe hochspringen ---
 	if can_jump and is_on_floor() and dir.length() > 0.01:
 		var required_height: float = _get_required_jump_height(dir)
 		if required_height > 0.0:
 			velocity.y = sqrt(2.0 * gravity * required_height)
-			_debug("Springe auf Zielhöhe %.2f (Obergrenze %.2f) über Hindernis." % [required_height, jump_height])
 
 	var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
 	var effective_speed: float = move_speed * slow_factor
@@ -470,8 +498,7 @@ func _move_towards_player(delta: float) -> void:
 	# Residual (velocity OHNE den zuletzt aufaddierten Knockback-Anteil) als
 	# Basis nehmen, sonst wuerde ein aktiver Knockback hier langsam in die
 	# normale Verfolgungsgeschwindigkeit "eingerechnet" statt sauber
-	# eigenstaendig abzuklingen (siehe player.gd fuer die ausfuehrliche
-	# Begruendung desselben Musters).
+	# eigenstaendig abzuklingen.
 	var residual_x: float = velocity.x - _knockback_velocity.x
 	var residual_z: float = velocity.z - _knockback_velocity.z
 	velocity.x = move_toward(residual_x, target_velocity_x, movement_acceleration * delta)
@@ -495,12 +522,6 @@ func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> flo
 	var drop_y: float = result.position.y
 	return feet_y - drop_y
 
-func _has_valid_nav_path_to_player() -> bool:
-	if nav_agent == null or _player == null:
-		return false
-
-	return nav_agent.is_target_reachable()
-
 func _get_collision_shape_node() -> CollisionShape3D:
 	if _collision_shape_cache and is_instance_valid(_collision_shape_cache):
 		return _collision_shape_cache
@@ -513,13 +534,13 @@ func _get_collision_shape_node() -> CollisionShape3D:
 	for child in get_children():
 		if child is CollisionShape3D:
 			if not _warned_missing_collision_shape:
-				_debug("WARNUNG: Kein Kind namens 'CollisionShape3D' — nutze stattdessen direktes Kind '%s'." % child.get_path())
+				_debug("Kein Kind namens 'CollisionShape3D' — nutze stattdessen '%s'." % child.get_path())
 				_warned_missing_collision_shape = true
 			_collision_shape_cache = child
 			return _collision_shape_cache
 
 	if not _warned_missing_collision_shape:
-		push_warning("EnemyAI (%s): Konnte KEINE CollisionShape3D unter den direkten Kindern finden. Kanten-/Hindernis-Checks laufen mit unzuverlässigen Fallback-Werten." % display_name)
+		push_warning("EnemyAI (%s): Konnte KEINE CollisionShape3D unter den direkten Kindern finden." % display_name)
 		_warned_missing_collision_shape = true
 	return null
 
@@ -613,7 +634,6 @@ func _is_ledge_ahead(dir: Vector3) -> bool:
 		if not result.is_empty():
 			return false
 
-	_debug("Kante erkannt: feet_y=%.2f, effective_forward_distance=%.2f (Basis ledge_check_forward_distance=%.2f, Körperradius=%.2f)" % [feet_y, effective_forward_distance, ledge_check_forward_distance, _get_body_radius()])
 	return true
 
 func _try_jump_across_ledge(dir: Vector3) -> bool:
@@ -630,13 +650,14 @@ func _try_jump_across_ledge(dir: Vector3) -> bool:
 		var result := space_state.intersect_ray(query)
 		if not result.is_empty():
 			velocity.y = jump_velocity
-			_debug("Springe über Lücke Richtung Spieler (Distanz ~%.1f)." % t)
 			return true
 	return false
 
 func _face_player(delta: float) -> void:
+	if _player == null or not is_instance_valid(_player):
+		return
 	var dir: Vector3 = (_player.global_position - global_position)
-	dir.y = 0
+	dir.y = 0.0
 	if dir.length() < 0.01:
 		return
 	dir = dir.normalized()
@@ -646,33 +667,36 @@ func _face_player(delta: float) -> void:
 func _do_attack() -> void:
 	_is_attacking = true
 	_attack_timer = attack_cooldown
-	_debug("_do_attack() gestartet. Warte pre_attack_delay=%.2fs..." % pre_attack_delay)
+	_debug("_do_attack() gestartet. pre_attack_delay=%.2fs" % pre_attack_delay)
 
-	await get_tree().create_timer(pre_attack_delay).timeout
+	if pre_attack_delay > 0.0:
+		await get_tree().create_timer(pre_attack_delay).timeout
+	if _is_dead or not is_instance_valid(self):
+		return
 
 	if telegraph_inner:
 		telegraph_inner.visible = true
 		telegraph_inner.scale = Vector3(0.01, 1.0, 0.01)
 		var grow_tween := create_tween()
-		grow_tween.tween_property(telegraph_inner, "scale", Vector3(1.0, 1.0, 1.0), attack_windup_time)\
+		grow_tween.tween_property(telegraph_inner, "scale", Vector3.ONE, attack_windup_time)\
 			.set_trans(Tween.TRANS_LINEAR)
-		_debug("Telegraph Inner sichtbar, wächst über attack_windup_time=%.2fs" % attack_windup_time)
-	else:
-		_debug("WARNUNG: telegraph_inner ist null, kein visueller Windup!")
 
-	await get_tree().create_timer(attack_windup_time).timeout
+	if attack_windup_time > 0.0:
+		await get_tree().create_timer(attack_windup_time).timeout
+	if _is_dead or not is_instance_valid(self):
+		return
 
 	if telegraph_inner:
 		telegraph_inner.visible = false
 
 	if attack_hitbox:
-		_debug("attack_hitbox.activate() wird jetzt aufgerufen. Hitbox global_position: %s" % attack_hitbox.global_position)
 		attack_hitbox.activate()
 		await get_tree().create_timer(0.2).timeout
+		if _is_dead or not is_instance_valid(self):
+			return
 		attack_hitbox.deactivate()
-		_debug("attack_hitbox.deactivate() aufgerufen — Angriffsfenster vorbei.")
 	else:
-		_debug("FEHLER: attack_hitbox ist null! Kein Angriff kann ausgelöst werden — Node-Pfad 'AttackHitbox' existiert nicht oder heißt anders.")
+		push_warning("EnemyAI (%s): attack_hitbox ist null — Node 'AttackHitbox' fehlt." % display_name)
 
 	_is_attacking = false
 
@@ -682,7 +706,7 @@ func _do_attack() -> void:
 # --- Transparenz nach HP + Hit-Flash ---
 
 func _on_health_changed(current: float, max_hp: float) -> void:
-	var percent: float = clamp(current / max_hp, 0.0, 1.0)
+	var percent: float = clamp(current / max(max_hp, 0.001), 0.0, 1.0)
 	_base_alpha = lerp(min_alpha_at_zero_hp, 1.0, percent)
 	_set_mesh_alpha(_base_alpha)
 
@@ -717,7 +741,17 @@ func _set_flash_strength(value: float) -> void:
 # --- Tod ---
 
 func _on_died() -> void:
+	if _is_dead:
+		return
+	_is_dead = true
 	set_physics_process(false)
+	# Kollision sofort abschalten, damit die sterbende Instanz waehrend der
+	# Death-Animation weder den Spieler blockiert noch von Hitboxen
+	# nochmal getroffen wird.
+	collision_layer = 0
+	collision_mask = 0
+	remove_from_group("enemies")
+
 	if attack_hitbox:
 		attack_hitbox.deactivate()
 	if telegraph_inner:

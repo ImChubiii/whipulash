@@ -7,20 +7,22 @@
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="5_dmgnum"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
-radius = 1.0
-height = 4.0
+radius = 3.0
+height = 12.0
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qbaa6"]
+radius = 3.0
+height = 12.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_k5f3b"]
 render_priority = 0
 shader = ExtResource("2_0p5eo")
 shader_parameter/albedo_color = Color(1, 1, 1, 1)
-shader_parameter/snap_resolution = 77.730003502175
-shader_parameter/vertex_jitter_strength = 0.6400000304
+shader_parameter/snap_resolution = 77.73
+shader_parameter/vertex_jitter_strength = 0.64
 shader_parameter/alpha_multiplier = 1.0
 shader_parameter/flash_color = Color(1, 0, 0, 1)
-shader_parameter/flash_strength = 0.486000023085
+shader_parameter/flash_strength = 0.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
 radius = 3.3
@@ -30,8 +32,8 @@ height = 9.9
 render_priority = 0
 shader = ExtResource("2_0p5eo")
 shader_parameter/albedo_color = Color(0.7316159, 0, 0.20945221, 1)
-shader_parameter/snap_resolution = 24.102000954845
-shader_parameter/vertex_jitter_strength = 0.7290000346275
+shader_parameter/snap_resolution = 24.102
+shader_parameter/vertex_jitter_strength = 0.729
 shader_parameter/alpha_multiplier = 1.0
 shader_parameter/flash_color = Color(1, 0, 0, 1)
 shader_parameter/flash_strength = 0.0
@@ -73,94 +75,104 @@ bottom_radius = 8.4
 height = 0.001
 
 [node name="TankDummy" type="CharacterBody3D" unique_id=786565251]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5643892, 0)
 collision_layer = 4
+floor_snap_length = 0.5
 script = ExtResource("1_p7a36")
-move_speed = null
+move_speed = 5.5
 detection_range = 100.0
-attack_range = null
+attack_range = 9.0
 attack_cooldown = 1.5
-gravity = null
+gravity = 20.0
 attack_windup_time = 2.0
-pre_attack_delay = null
+pre_attack_delay = 0.6
 display_name = "Colossus"
 is_large_enemy = true
 is_heavy = true
-reticle_height_offset = 6.0
+reticle_height_offset = 13.0
 reticle_forward_offset = 5.0
 reticle_scale = 2.5
-camera_lock_multiplier = null
+camera_lock_multiplier = 1.0
 separation_radius = 8.0
-separation_strength = null
-min_alpha_at_zero_hp = null
-hit_flash_alpha = null
+separation_strength = 4.0
+min_alpha_at_zero_hp = 0.25
+hit_flash_alpha = 0.2
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
-telegraph_ground_snap = null
-telegraph_ground_clearance = null
-telegraph_ground_raycast_mask = null
-telegraph_ground_raycast_range = null
-can_jump = null
-jump_height = null
-obstacle_jump_margin = null
-obstacle_check_distance = null
-obstacle_check_low_height = null
-ledge_check_forward_distance = null
-ledge_check_drop_distance = null
-ledge_wait_enabled = null
-can_jump_across_ledges = true
-jump_across_max_gap = null
-ground_raycast_mask = null
-ledge_check_scale_with_radius = null
-ledge_check_radius_margin = null
-ledge_check_lateral_samples = null
-movement_acceleration = null
-nav_target_update_interval = null
-ledge_drop_enabled = null
-max_safe_drop_height = null
-ledge_drop_probe_distance = null
-ledge_drop_player_below_margin = null
+telegraph_ground_snap = true
+telegraph_ground_clearance = 0.05
+telegraph_ground_raycast_mask = 1
+telegraph_ground_raycast_range = 30.0
+can_jump = false
+jump_height = 0.0
+obstacle_jump_margin = 0.3
+obstacle_check_distance = 3.5
+obstacle_check_low_height = 0.5
+ledge_check_forward_distance = 3.5
+ledge_check_drop_distance = 4.0
+ledge_wait_enabled = true
+can_jump_across_ledges = false
+jump_across_max_gap = 4.0
+ground_raycast_mask = 1
+ledge_check_scale_with_radius = true
+ledge_check_radius_margin = 1.0
+ledge_check_lateral_samples = true
+movement_acceleration = 18.0
+nav_target_update_interval = 0.25
+ledge_drop_enabled = true
+max_safe_drop_height = 6.0
+ledge_drop_probe_distance = 20.0
+ledge_drop_player_below_margin = 1.5
 player_head_slide_impulse = 25.0
-player_head_slide_normal_threshold = null
+player_head_slide_normal_threshold = 0.4
 player_head_slide_min_height_above_player = 0.5
-knockback_friction = null
-debug_logging = true
+knockback_friction = 14.0
+debug_logging = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
-transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 3.0100098, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.0, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=662295708]
-transform = Transform3D(6.5, 0, 0, 0, 6.5, 0, 0, 0, 6.5, 0, 3.0100098, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.0, 0)
 mesh = SubResource("CapsuleMesh_qbaa6")
 surface_material_override/0 = SubResource("ShaderMaterial_k5f3b")
 
 [node name="Health" type="Node" parent="." unique_id=496713544]
 script = ExtResource("3_vm80r")
 max_health = 400.0
+regen_enabled = false
 
 [node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.216951)
+collision_layer = 0
+collision_mask = 1
 script = ExtResource("4_1v3u1")
 damage = 70.0
 knockback_force = 10.0
+stun_duration = 1.0
 damage_number_scene = ExtResource("5_dmgnum")
+debug_logging = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.730341, -3.4395208)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, -3.4395208)
 shape = SubResource("CapsuleShape3D_sl5qy")
 
 [node name="Visual" type="MeshInstance3D" parent="AttackHitbox" unique_id=1173160389]
-transform = Transform3D(1.8915654, 0, 0, 0, 1, 0, 0, 0, 2.3874803, 0, 1.5325947, -3.0344234)
+transform = Transform3D(1.8915654, 0, 0, 0, 1, 0, 0, 0, 2.3874803, 0, 4.3, -3.0344234)
 mesh = SubResource("CapsuleMesh_sl5qy")
 
 [node name="TelegraphOuterRing" type="MeshInstance3D" parent="AttackHitbox" unique_id=1368129936]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.6938715, -8.249018)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -8.249018)
 mesh = SubResource("TorusMesh_6igkw")
 
 [node name="TelegraphInner" type="MeshInstance3D" parent="AttackHitbox" unique_id=1874015288]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.684444, -8.234204)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -8.234204)
 mesh = SubResource("CylinderMesh_fva3d")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=974135199]
+path_desired_distance = 2.0
+target_desired_distance = 4.0
+path_height_offset = 0.5
+radius = 3.0
+height = 12.0

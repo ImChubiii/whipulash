@@ -1,61 +1,117 @@
-[gd_scene format=3 uid="uid://c31lh8cafu3h5"]
+[gd_scene load_steps=37 format=3 uid="uid://c31lh8cafu3h5"]
 
 [ext_resource type="Script" uid="uid://vawbwqsvu3wp" path="res://scenes/level_generation/level_generator.gd" id="1_lg"]
 [ext_resource type="Script" uid="uid://cektwwmfbufkr" path="res://scenes/level_generation/room_grid_generator.gd" id="2_grid"]
 [ext_resource type="Script" uid="uid://b13fmywklr32" path="res://scenes/level_generation/room_data.gd" id="3_room_data_script"]
-[ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="4_scout"]
-[ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="5_tank"]
-[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="6_party_setup"]
-[ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="7_char_data_script"]
-[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="8_char1"]
-[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="9_char2"]
-[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="10_char3"]
-[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="11_char4"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_start_01.tres" id="12_start"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_combat_01.tres" id="13_c1"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_combat_02.tres" id="14_c2"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_combat_03.tres" id="15_c3"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_combat_04.tres" id="16_c4"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_01.tres" id="17_treasure"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_boss_01.tres" id="18_boss"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_01.tres" id="19_cor1"]
-[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_02.tres" id="20_cor2"]
-[ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="21_0k6p3"]
-[ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="22_w0ny2"]
-[ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="23_bfk81"]
-[ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="24_pd8jf"]
-[ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="25_o54k0"]
-[ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="26_u4jxp"]
-[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="27_w24rf"]
+[ext_resource type="Script" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="4_enemy_entry_script"]
+[ext_resource type="Resource" path="res://resources/enemies/es_stinger.tres" id="5_es_stinger"]
+[ext_resource type="Resource" path="res://resources/enemies/es_fighter.tres" id="6_es_fighter"]
+[ext_resource type="Resource" path="res://resources/enemies/es_colossus.tres" id="7_es_colossus"]
+[ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_party_setup"]
+[ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="9_char_data_script"]
+[ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_char1"]
+[ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="11_char2"]
+[ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="12_char3"]
+[ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="13_char4"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_start_01.tres" id="14_start"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_01.tres" id="15_c1"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_02.tres" id="16_c2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_03.tres" id="17_c3"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_04.tres" id="18_c4"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_05.tres" id="19_c5"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_06.tres" id="20_c6"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_01.tres" id="21_treasure"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_boss_01.tres" id="22_boss"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_01.tres" id="23_cor1"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_02.tres" id="24_cor2"]
+[ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="25_0k6p3"]
+[ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="26_w0ny2"]
+[ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="27_bfk81"]
+[ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="28_pd8jf"]
+[ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="29_o54k0"]
+[ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="30_u4jxp"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="31_w24rf"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bqido"]
-shader = ExtResource("25_o54k0")
+shader = ExtResource("29_o54k0")
 shader_parameter/scanline_count = 320.0
 shader_parameter/scanline_intensity = 0.15
 shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
 shader_parameter/scroll_speed = 0.0
 
+[sub_resource type="NavigationMesh" id="NavigationMesh_gen"]
+vertices = PackedVector3Array()
+cell_size = 0.25
+cell_height = 0.25
+agent_height = 2.0
+agent_radius = 2.0
+agent_max_climb = 1.5
+agent_max_slope = 45.0
+region_min_size = 4.0
+region_merge_size = 20.0
+edge_max_length = 12.0
+edge_max_error = 1.3
+vertices_per_polygon = 6.0
+detail_sample_distance = 6.0
+detail_sample_max_error = 1.0
+geometry_parsed_geometry_type = 1
+geometry_collision_mask = 1
+geometry_source_geometry_mode = 1
+geometry_source_group_name = &"navmesh_source"
+
+[sub_resource type="Environment" id="Environment_gen"]
+background_mode = 1
+background_color = Color(0.05, 0.05, 0.08, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.55, 0.65, 1)
+ambient_light_energy = 0.5
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.5
+glow_bloom = 0.1
+
 [node name="LevelGenerationTest" type="Node3D" unique_id=1117207563]
 
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=39977731]
+environment = SubResource("Environment_gen")
+
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=39977730]
-transform = Transform3D(1, 0, 0, 0, 0.7071068, -0.7071068, 0, 0.7071068, 0.7071068, 0, 10, 0)
+transform = Transform3D(1, 0, 0, 0, 0.7071068, -0.7071068, 0, 0.7071068, 0.7071068, 0, 40, 0)
 shadow_enabled = true
+directional_shadow_max_distance = 200.0
 
 [node name="PartySetup" type="Node" parent="." unique_id=705527996]
-script = ExtResource("6_party_setup")
-party_members = Array[ExtResource("7_char_data_script")]([ExtResource("8_char1"), ExtResource("9_char2"), ExtResource("10_char3"), ExtResource("11_char4")])
+script = ExtResource("8_party_setup")
+party_members = Array[ExtResource("9_char_data_script")]([ExtResource("10_char1"), ExtResource("11_char2"), ExtResource("12_char3"), ExtResource("13_char4")])
 
-[node name="LevelGenerator" type="Node" parent="." unique_id=864998062]
-script = ExtResource("1_lg")
-room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("12_start"), ExtResource("13_c1"), ExtResource("14_c2"), ExtResource("15_c3"), ExtResource("16_c4"), ExtResource("17_treasure"), ExtResource("18_boss"), ExtResource("19_cor1"), ExtResource("20_cor2")])
-enemy_pool = Array[PackedScene]([ExtResource("4_scout"), ExtResource("5_tank")])
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=39977732]
+navigation_mesh = SubResource("NavigationMesh_gen")
 
 [node name="RoomGridGenerator" type="Node" parent="." unique_id=531904483]
 script = ExtResource("2_grid")
+target_room_count = 9
+corridor_chance = 0.5
+boss_min_distance = 2
+
+[node name="LevelGenerator" type="Node" parent="." node_paths=PackedStringArray("grid_generator", "navigation_region") unique_id=864998062]
+script = ExtResource("1_lg")
+room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2")])
+current_stage = 1
+enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
+boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
+cell_size = Vector3(48, 0, 48)
+grid_generator = NodePath("../RoomGridGenerator")
+navigation_region = NodePath("../NavigationRegion3D")
+combat_threat_budget = 5
+corridor_threat_budget = 2
+boss_threat_budget = 13
+threat_per_stage = 2
+threat_hard_cap = 14
+random_seed = 0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1169866606]
 
-[node name="SettingsMenu" parent="CanvasLayer" unique_id=1398079986 instance=ExtResource("21_0k6p3")]
+[node name="SettingsMenu" parent="CanvasLayer" unique_id=1398079986 instance=ExtResource("25_0k6p3")]
 
 [node name="PauseMenu" type="Control" parent="CanvasLayer" unique_id=1648839761]
 layout_mode = 3
@@ -64,7 +120,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("22_w0ny2")
+script = ExtResource("26_w0ny2")
 settings_menu_path = NodePath("../SettingsMenu")
 
 [node name="Panel" type="Panel" parent="CanvasLayer/PauseMenu" unique_id=835444744]
@@ -122,7 +178,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("23_bfk81")
+script = ExtResource("27_bfk81")
 
 [node name="Panel" type="Panel" parent="CanvasLayer/DeathScreen" unique_id=2007994481]
 layout_mode = 1
@@ -183,7 +239,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("24_pd8jf")
+script = ExtResource("28_pd8jf")
 
 [node name="Panel" type="Panel" parent="CanvasLayer/WinScreen" unique_id=568472520]
 layout_mode = 1
@@ -244,6 +300,6 @@ offset_left = -2.0
 offset_bottom = 4.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("26_u4jxp")
+script = ExtResource("30_u4jxp")
 
-[node name="HUD" parent="CanvasLayer" unique_id=2088396334 instance=ExtResource("27_w24rf")]
+[node name="HUD" parent="CanvasLayer" unique_id=2088396334 instance=ExtResource("31_w24rf")]
