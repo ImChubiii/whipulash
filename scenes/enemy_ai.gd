@@ -1,7 +1,3 @@
-
-
-
-
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -438,6 +434,8 @@ func _ready() -> void:
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
 
+	_setup_slope_stability()
+
 	_zigzag_timer = zigzag_leg_time
 	if zigzag_random_phase:
 		# Zufaelliger Einstiegspunkt im Takt: sowohl die Phase als auch
@@ -475,6 +473,29 @@ func _ready() -> void:
 		health.died.connect(_on_died)
 		health.health_changed.connect(_on_health_changed)
 		_on_health_changed(health.current_health, health.max_health)
+
+## Haelt den Gegner auf Rampen am Boden.
+##
+## _physics_process() setzt velocity.y auf dem Boden jeden Frame auf 0. Beim
+## Laufen ABWAERTS reisst der Koerper dadurch vom Untergrund ab, sobald der
+## Hoehenverlust pro Frame groesser ist als floor_snap_length (Godot-Default
+## 0.1): der Gegner faellt, landet, huepft weiter die Rampe hinunter. In
+## diesem Zustand kann ein schneller Koerper duenne Geometrie durchschlagen.
+## Ein groesserer Snap klebt ihn an der Rampe fest, ohne die Sprunglogik zu
+## stoeren - Snapping greift ausschliesslich bei velocity.y <= 0.
+##
+## floor_max_angle wird ebenfalls angehoben: eine 6 Meter hohe Rampe auf
+## einem 20 Meter kurzen Korridor sind bereits ~17 Grad, und am Uebergang zum
+## Nachbarraum kommen Kanten dazu. Wird der Grenzwinkel ueberschritten, gilt
+## die Rampe fuer die Physik als WAND - der Gegner rutscht dann ab statt zu
+## laufen.
+func _setup_slope_stability() -> void:
+	floor_snap_length = maxf(floor_snap_length, 0.6)
+	floor_max_angle = maxf(floor_max_angle, deg_to_rad(55.0))
+	floor_stop_on_slope = true
+	floor_constant_speed = true
+	safe_margin = maxf(safe_margin, 0.02)
+
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():

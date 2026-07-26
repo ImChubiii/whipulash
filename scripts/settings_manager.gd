@@ -22,6 +22,7 @@ signal fullscreen_changed(is_fullscreen: bool)
 signal display_mode_changed(mode: int)
 signal vsync_changed(enabled: bool)
 signal fps_limit_changed(fps: int)
+signal fov_changed(value: float)
 signal keybind_changed(action: String)
 
 # Accessibility
@@ -42,6 +43,21 @@ signal minimap_setting_changed()
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
 const DEFAULT_WINDOWED_SIZE: Vector2i = Vector2i(1280, 720)
+
+# ============================================================================
+# SICHTFELD (FOV)
+# ============================================================================
+# Godots Kamera-Default ist 75. Fuer eine Third-Person-Kamera am Federarm ist
+# das zu eng: der Charakter frisst viel Bildflaeche und man verliert bei
+# schnellen Kaempfen die Uebersicht ueber flankierende Gegner. 90 als Start
+# gibt spuerbar mehr Peripherie, ohne PSX-typische Verzerrung an den Raendern.
+#
+# Die Grenzen leben hier und nicht im Einstellungsmenue, damit Slider-Range,
+# der Clamp beim Laden und der Clamp im Spieler garantiert dieselbe Quelle
+# haben.
+const FOV_MIN: float = 60.0
+const FOV_MAX: float = 120.0
+const FOV_DEFAULT: float = 90.0
 
 # Display Mode Enum
 const DISPLAY_MODE_WINDOWED: int = 0
@@ -169,6 +185,8 @@ var sfx_volume: float = 1.0
 var display_mode: int = DISPLAY_MODE_WINDOWED
 var vsync_enabled: bool = true
 var fps_limit: int = 144  # 0 = unlimited
+## Vertikales Sichtfeld der Spielerkamera in Grad.
+var fov: float = FOV_DEFAULT
 
 # --- General / HUD ---
 var hud_visible: bool = true
@@ -236,6 +254,7 @@ func _apply_all() -> void:
 	_apply_vsync(vsync_enabled)
 	_apply_fps_limit(fps_limit)
 	_apply_sensitivity_to_player()
+	_apply_fov_to_player()
 	_apply_crt_filter(crt_filter_enabled)
 	_apply_colorblind_mode(colorblind_mode)
 	minimap_setting_changed.emit()
@@ -249,10 +268,38 @@ func set_sensitivity(value: float) -> void:
 	sensitivity_changed.emit(mouse_sensitivity)
 	save_settings()
 
+## Ueber die Gruppe "player" statt find_child("Player"): der PartyManager
+## tauscht die Spieler-Instanz bei JEDEM Charakterwechsel komplett aus (alte
+## Instanz raus, neue rein). Ein per Namen gefundener Node ist danach
+## ungueltig, und find_child laeuft ausserdem bei jedem Aufruf den halben
+## Szenenbaum ab.
+##
+## Die Gruppe steht hier bewusst als String und nicht als
+## PartyManager.PLAYER_GROUP: die Reihenfolge, in der Autoloads initialisiert
+## werden, ist nicht garantiert - ein Zugriff auf ein anderes Autoload
+## waehrend _ready() kann ins Leere laufen.
 func _apply_sensitivity_to_player() -> void:
-	var player := get_tree().get_root().find_child("Player", true, false)
-	if player and "mouse_sensitivity" in player:
-		player.set("mouse_sensitivity", mouse_sensitivity)
+	for node in get_tree().get_nodes_in_group("player"):
+		if "mouse_sensitivity" in node:
+			node.set("mouse_sensitivity", mouse_sensitivity)
+
+# ============================================================================
+# Sichtfeld (FOV)
+# ============================================================================
+func set_fov(value: float) -> void:
+	fov = clampf(value, FOV_MIN, FOV_MAX)
+	_apply_fov_to_player()
+	fov_changed.emit(fov)
+	save_settings()
+
+## Der Spieler hoert zusaetzlich selbst auf fov_changed (siehe
+## player_base.gd). Dieser Push hier ist fuer den Fall, dass eine
+## Spieler-Instanz erst NACH dem Setzen des Werts entsteht bzw. beim
+## Spielstart aus _apply_all() heraus.
+func _apply_fov_to_player() -> void:
+	for node in get_tree().get_nodes_in_group("player"):
+		if node.has_method("set_camera_fov"):
+			node.set_camera_fov(fov)
 
 # ============================================================================
 # Audio
@@ -583,15 +630,18 @@ func reset_video_settings() -> void:
 	display_mode = DISPLAY_MODE_WINDOWED
 	vsync_enabled = true
 	fps_limit = 144
+	fov = FOV_DEFAULT
 
 	_apply_display_mode(display_mode)
 	_apply_vsync(vsync_enabled)
 	_apply_fps_limit(fps_limit)
+	_apply_fov_to_player()
 
 	display_mode_changed.emit(display_mode)
 	fullscreen_changed.emit(false)
 	vsync_changed.emit(vsync_enabled)
 	fps_limit_changed.emit(fps_limit)
+	fov_changed.emit(fov)
 	save_settings()
 
 
@@ -646,6 +696,7 @@ func save_settings() -> void:
 	config.set_value("display", "display_mode", display_mode)
 	config.set_value("display", "vsync", vsync_enabled)
 	config.set_value("display", "fps_limit", fps_limit)
+	config.set_value("display", "fov", fov)
 
 	config.set_value("general", "hud_visible", hud_visible)
 	for key in HUD_ELEMENTS.keys():
@@ -702,6 +753,11 @@ func load_settings() -> void:
 		display_mode = DISPLAY_MODE_FULLSCREEN if legacy_fs else DISPLAY_MODE_WINDOWED
 	vsync_enabled = config.get_value("display", "vsync", true)
 	fps_limit = config.get_value("display", "fps_limit", 144)
+
+	# clampf schon beim LADEN, nicht erst im Setter: eine von Hand editierte
+	# settings.cfg mit fov = 5 wuerde die Kamera sonst unbrauchbar machen,
+	# ohne dass irgendwo ein Fehler im Log steht.
+	fov = clampf(float(config.get_value("display", "fov", FOV_DEFAULT)), FOV_MIN, FOV_MAX)
 
 	hud_visible = config.get_value("general", "hud_visible", true)
 	for key in HUD_ELEMENTS.keys():

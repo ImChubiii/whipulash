@@ -13,6 +13,14 @@ signal hit_landed(target: Node)
 @export var damage_number_scene: PackedScene
 @export var debug_logging: bool = false
 
+# --- VFX ---
+## Effekt beim Aktivieren der Hitbox (Schlag-Trail / Swoosh).
+@export var swing_vfx: PackedScene
+## Effekt beim BESTAETIGTEN Treffer (Impact-Funken).
+@export var impact_vfx: PackedScene
+## Hoehe ueber dem Ziel-Pivot, auf der der Impact erscheint.
+@export var impact_height: float = 1.2
+
 @onready var visual: MeshInstance3D = get_node_or_null("Visual")
 
 var _already_hit: Array[Node] = []
@@ -26,6 +34,11 @@ func _debug(msg: String) -> void:
 func _ready() -> void:
 	monitoring = false
 	body_entered.connect(_on_body_entered)
+	# Der Impact haengt bewusst am eigenen hit_landed-Signal statt in
+	# _on_body_entered(): so bleibt die Treffer-Logik voellig unangetastet
+	# und der Effekt feuert garantiert erst NACH allen Filtern
+	# (Self-Damage, _already_hit, Health-Check).
+	hit_landed.connect(_on_hit_landed_vfx)
 	if visual:
 		visual.visible = false
 
@@ -36,6 +49,10 @@ func activate() -> void:
 	_debug("activate() aufgerufen. monitoring=%s, global_position=%s, owner=%s" % [monitoring, global_position, owner])
 	if visual:
 		visual.visible = true
+
+	if swing_vfx:
+		# Das Projekt nutzt +Z als "vorne", deshalb basis.z (nicht -basis.z).
+		VFX.spawn(swing_vfx, global_position, global_transform.basis.z)
 
 	# ROBUSTHEITS-FIX: body_entered feuert nur beim EINTRETEN in die Area.
 	# Steht der Spieler beim Aktivieren schon MITTEN in der Hitbox (genau
@@ -126,6 +143,25 @@ func _on_body_entered(body: Node3D) -> void:
 				_debug("  -> Knockback %.1f (Fallback: direkt auf velocity) auf '%s' angewendet" % [knockback_force, body.name])
 
 	_spawn_damage_number(body)
+
+
+func _on_hit_landed_vfx(target: Node) -> void:
+	if impact_vfx == null or not (target is Node3D):
+		return
+
+	var target_3d: Node3D = target as Node3D
+	var dir: Vector3 = target_3d.global_position - global_position
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		dir = global_transform.basis.z
+
+	# Auf halbem Weg zwischen Hitbox-Mitte und Ziel-Pivot: sieht bei
+	# grossen Gegnern (Colossus) deutlich besser aus als exakt im Pivot,
+	# der dort tief in der Koerpermitte liegt.
+	var spawn_pos: Vector3 = global_position.lerp(target_3d.global_position, 0.5)
+	spawn_pos.y = target_3d.global_position.y + impact_height
+
+	VFX.spawn(impact_vfx, spawn_pos, dir.normalized())
 
 
 func _spawn_damage_number(body: Node3D) -> void:
