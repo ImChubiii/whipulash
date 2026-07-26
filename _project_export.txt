@@ -6012,6 +6012,21 @@ class_name LavaHazard
 ##     falls ein body_entered-Signal verschluckt wird (passiert beim
 ##     Spawn/Instanziieren im selben Frame), findet der Poll den Body
 ##     trotzdem.
+##  4. NEU - "Lava macht zu spaet Schaden, wenn man reinspringt":
+##     Der Eintrittsschaden hing frueher AUSSCHLIESSLICH an _register(),
+##     also am Betreten des Trigger-VOLUMENS. Beim Sprung von oben feuert
+##     body_entered aber, waehrend die Fuesse noch UEBER der Oberflaeche
+##     sind -> starts_submerged = false, kein Schaden. Der Uebergang
+##     "jetzt wirklich drin" ein paar Frames spaeter hat dann nur die
+##     Optik gestartet und den Tick-Timer bei 0 losrechnen lassen: der
+##     erste Treffer kam erst nach vollen tick_interval Sekunden.
+##     Der Eintrittsschaden haengt jetzt am UEBERGANG, nicht am Volumen.
+##  5. NEU - Gameplay laeuft in _physics_process(): die Fusspunkte werden
+##     im Physik-Schritt aktualisiert. Ein Check in _process() arbeitet je
+##     nach Framerate mit veralteten Positionen.
+##  6. NEU - predict_falling_entry: bei hoher Fallgeschwindigkeit wird der
+##     Fusspunkt des naechsten Physik-Schritts vorausberechnet, damit ein
+##     schneller Sprung nicht ueber eine duenne Lache "hinwegspringt".
 
 enum HazardMode { POOL, SURFACE }
 
@@ -6064,6 +6079,12 @@ enum HazardMode { POOL, SURFACE }
 @export var submersion_tolerance: float = 0.3
 @export var surface_wade_tolerance: float = 0.9
 
+## Rechnet die im naechsten Physik-Schritt zurueckgelegte Fallstrecke mit
+## ein. Ohne das kann ein schneller Sprung von oben ueber eine duenne Lache
+## hinwegspringen: bei gravity = 40 liegen zwischen zwei Frames schnell mehr
+## Meter als die Toleranz breit ist.
+@export var predict_falling_entry: bool = true
+
 # --- VFX ---
 ## Zischen/Rauch, das bei JEDEM Schadens-Tick am getroffenen Koerper
 ## aufblitzt ("aetzend"). One-Shot-Szene, Root = GPUParticles3D.
@@ -6075,7 +6096,7 @@ enum HazardMode { POOL, SURFACE }
 @export var debug_logging: bool = false
 
 ## Sicherheits-Poll gegen verschluckte body_entered-Signale (Sekunden).
-@export var rescan_interval: float = 0.5
+@export var rescan_interval: float = 0.2
 
 @onready var visual: CSGBox3D = $LemonadeVisual
 @onready var trigger: Area3D = $LemonadeTrigger
@@ -6166,8 +6187,17 @@ func _effective_tolerance() -> float:
 	return submersion_tolerance
 
 
-func _is_body_submerged(body: Node3D) -> bool:
-	return _get_body_feet_y(body) <= _get_surface_top_world_y() + _effective_tolerance()
+## delta > 0: der Fusspunkt wird um die im naechsten Physik-Schritt
+## zurueckgelegte Fallstrecke vorausberechnet - siehe predict_falling_entry.
+func _is_body_submerged(body: Node3D, delta: float = 0.0) -> bool:
+	var feet_y: float = _get_body_feet_y(body)
+
+	if predict_falling_entry and delta > 0.0 and body is CharacterBody3D:
+		var vertical: float = (body as CharacterBody3D).velocity.y
+		if vertical < 0.0:
+			feet_y += vertical * delta
+
+	return feet_y <= _get_surface_top_world_y() + _effective_tolerance()
 
 
 ## FIX: CapsuleShape3D.height ist in Godot 4 die GESAMThoehe inklusive der
@@ -6194,18 +6224,22 @@ func _get_body_feet_y(body: Node3D) -> float:
 	return shape_node.global_position.y - half_height
 
 
+## Nur noch Optik. Das komplette Gameplay haengt in _physics_process() -
+## siehe Bugfix 5 im Kopfkommentar.
 func _process(delta: float) -> void:
 	if pulse_enabled and _material:
 		_pulse_time += delta * pulse_speed
 		var pulse: float = 1.0 + sin(_pulse_time) * pulse_amount
 		_material.emission_energy_multiplier = glow_energy * pulse
 
+
+func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 
 	_rescan_timer -= delta
 	if _rescan_timer <= 0.0:
-		_rescan_timer = rescan_interval
+		_rescan_timer = maxf(rescan_interval, 0.05)
 		_rescan_overlaps()
 
 	if _occupants.is_empty():
@@ -6217,11 +6251,20 @@ func _process(delta: float) -> void:
 			continue
 
 		var entry: Dictionary = _occupants[body]
-		var now_submerged: bool = _is_body_submerged(body)
+		var now_submerged: bool = _is_body_submerged(body, delta)
 		var was_submerged: bool = entry["submerged"]
 
 		if now_submerged and not was_submerged:
 			_start_submersion_effects(body)
+			# DER eigentliche Fix gegen "Schaden kommt zu spaet": der
+			# Eintrittsschaden haengt am UEBERGANG, nicht am Betreten des
+			# Trigger-Volumens. Wer von oben reinspringt, nimmt jetzt in
+			# genau dem Physik-Schritt Schaden, in dem die Fuesse die
+			# Oberflaeche durchstossen - vorher vergingen erst volle
+			# tick_interval Sekunden.
+			if damage_on_entry:
+				_damage_body(body)
+				entry["tick_timer"] = 0.0
 		elif was_submerged and not now_submerged:
 			_stop_submersion_effects(body)
 
@@ -6235,7 +6278,6 @@ func _process(delta: float) -> void:
 				_damage_body(body)
 
 		_occupants[body] = entry
-
 
 ## Sicherheitsnetz: body_entered kann verloren gehen, wenn Raum und
 ## Spieler im selben Frame instanziiert/verschoben werden.
@@ -6481,6 +6523,346 @@ shader_parameter/vertex_jitter_strength = 0.0
 shader_parameter/alpha_multiplier = 1.0
 shader_parameter/flash_color = Color(1, 0, 0, 1)
 shader_parameter/flash_strength = 0.0
+
+
+===== FILE: player_stats.gd =====
+
+extends Node
+class_name PlayerStats
+
+# ============================================================================
+# PlayerStats — die EINE Wahrheit ueber Schaden, Tempo, Glueck & Co.
+# ============================================================================
+#
+# WARUM PUSH STATT PULL:
+# Der naheliegende Weg waere, dass jeder Verbraucher (player_base.speed,
+# Hitbox.damage, CombatBase.dash_damage, Health.max_health) beim Benutzen
+# selbst hier nachfragt. Das haette bedeutet, in vier bestehende Skripte
+# jeweils mitten in die heisse Schleife einzugreifen — jede kuenftige
+# Aenderung an einem dieser Skripte haette das Stat-System wieder brechen
+# koennen.
+#
+# Stattdessen merkt sich diese Komponente beim Anhaengen EINMAL die
+# Basiswerte des Charakters und SCHREIBT bei jeder Aenderung die fertig
+# gerechneten Werte zurueck in die bestehenden Felder. player_base.gd,
+# combat_base.gd und primary_hitbox.gd bleiben dadurch voellig unangetastet
+# und rechnen weiter mit "ihrem" speed / damage — nur steht da jetzt der
+# modifizierte Wert drin.
+#
+# WICHTIG: Die Basiswerte werden pro SPIELER-INSTANZ gecached. Der
+# PartyManager tauscht die Instanz bei jedem Charakterwechsel komplett aus,
+# also bekommt jeder Charakter automatisch seine eigenen Basiswerte
+# (Ningning schlaegt weiter anders zu als Winter) und die Item-Boni legen
+# sich prozentual obendrauf.
+#
+# RECHENREGEL pro Stat:  ergebnis = (basis + summe_add) * produkt_mul
+# Additive Boni zuerst, dann multiplikative — sonst wuerde die Reihenfolge,
+# in der Items aufgesammelt werden, das Ergebnis veraendern.
+
+signal stats_changed
+
+const STAT_MAX_HEALTH: String = "max_health"
+const STAT_DAMAGE: String = "damage"
+const STAT_MOVE_SPEED: String = "move_speed"
+## Multiplikator auf Cooldowns. Kleiner = schneller. Wird intern invertiert
+## angeboten (get_attack_speed()), damit Items "+20 % Angriffstempo" sagen
+## koennen statt "-16,7 % Cooldown".
+const STAT_COOLDOWN: String = "cooldown"
+const STAT_LUCK: String = "luck"
+const STAT_PICKUP_RANGE: String = "pickup_range"
+## Multiplikator auf ankommenden Schaden aus Umgebungs-Hazards (Lava).
+const STAT_HAZARD_RESIST: String = "hazard_resist"
+## Multiplikator auf ALLEN ankommenden Schaden.
+const STAT_ARMOR: String = "armor"
+
+const ALL_STATS: PackedStringArray = [
+	STAT_MAX_HEALTH,
+	STAT_DAMAGE,
+	STAT_MOVE_SPEED,
+	STAT_COOLDOWN,
+	STAT_LUCK,
+	STAT_PICKUP_RANGE,
+	STAT_HAZARD_RESIST,
+	STAT_ARMOR,
+]
+
+## Anzeigenamen fuers HUD. Steht hier und nicht im Panel, damit ein neues
+## Stat nur an EINER Stelle nachgetragen werden muss.
+const STAT_LABELS: Dictionary = {
+	STAT_DAMAGE: "Schaden",
+	STAT_MOVE_SPEED: "Tempo",
+	STAT_COOLDOWN: "Angriffstempo",
+	STAT_LUCK: "Glueck",
+	STAT_PICKUP_RANGE: "Magnet",
+	STAT_ARMOR: "Ruestung",
+	STAT_HAZARD_RESIST: "Hitzeschutz",
+}
+
+@export var debug_logging: bool = false
+
+# --- Basiswerte, beim Anhaengen aus der Charakter-Instanz gelesen ---
+var _base_move_speed: float = 15.0
+var _base_max_health: float = 100.0
+var _base_primary_damage: float = 15.0
+var _base_secondary_damage: float = 30.0
+var _base_dash_damage: float = 12.0
+var _base_primary_cooldown: float = 0.4
+var _base_secondary_cooldown: float = 3.0
+var _base_pickup_range: float = 2.2
+
+# --- Modifikatoren: source_id -> { stat -> { "add": float, "mul": float } } ---
+var _modifiers: Dictionary = {}
+
+# --- Temporaere Buffs (laufen selbst ab), z.B. Mamas Kochloeffel ---
+var _timed_sources: Dictionary = {}  # source_id -> Restlaufzeit in Sekunden
+
+var _player: CharacterBody3D = null
+var _health: Health = null
+var _combat: CombatBase = null
+var _primary_hitbox: Hitbox = null
+var _secondary_hitbox: Hitbox = null
+
+var _cached: Dictionary = {}
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("[PlayerStats] %s" % msg)
+
+
+## Haengt die Komponente an einen Spieler und friert dessen Basiswerte ein.
+## Wird von ItemManager beim Spawn/Charakterwechsel aufgerufen.
+func bind_to_player(player: CharacterBody3D) -> void:
+	_player = player
+	if _player == null or not is_instance_valid(_player):
+		return
+
+	_health = _player.get_node_or_null("Health") as Health
+	_combat = _player.get_node_or_null("Combat") as CombatBase
+	_primary_hitbox = _player.get_node_or_null("CameraPivot/PrimaryHitbox") as Hitbox
+	_secondary_hitbox = _player.get_node_or_null("CameraPivot/SecondaryHitbox") as Hitbox
+
+	if "speed" in _player:
+		_base_move_speed = float(_player.get("speed"))
+	if _health:
+		_base_max_health = _health.max_health
+	if _primary_hitbox:
+		_base_primary_damage = _primary_hitbox.damage
+	if _secondary_hitbox:
+		_base_secondary_damage = _secondary_hitbox.damage
+	if _combat:
+		_base_dash_damage = _combat.dash_damage
+		_base_primary_cooldown = _combat.primary_cooldown
+		_base_secondary_cooldown = _combat.secondary_cooldown
+
+	_debug("An '%s' gebunden. Basis: speed=%.1f hp=%.0f dmg=%.0f/%.0f" % [
+		_player.name, _base_move_speed, _base_max_health,
+		_base_primary_damage, _base_secondary_damage
+	])
+
+	apply()
+
+
+# ============================================================================
+# Modifikatoren
+# ============================================================================
+# Jede Quelle (Item-ID, Buff-Name) haelt ihren eigenen Eintrag. Ein zweites
+# Exemplar desselben Items ueberschreibt seinen alten Eintrag NICHT, sondern
+# muss eine eigene Quellen-ID mitbringen ("rusty_cleaver#2") — sonst
+# stapeln sich Duplikate nicht.
+
+func add_modifier(source_id: String, stat: String, add_value: float = 0.0, mul_value: float = 1.0) -> void:
+	if not _modifiers.has(source_id):
+		_modifiers[source_id] = {}
+	var entry: Dictionary = _modifiers[source_id]
+	entry[stat] = {"add": add_value, "mul": mul_value}
+	_modifiers[source_id] = entry
+	apply()
+
+
+## Zeitlich begrenzter Buff. Laeuft in _process ab und raeumt sich selbst weg.
+func add_timed_modifier(source_id: String, stat: String, duration: float, add_value: float = 0.0, mul_value: float = 1.0) -> void:
+	add_modifier(source_id, stat, add_value, mul_value)
+	_timed_sources[source_id] = maxf(float(_timed_sources.get(source_id, 0.0)), duration)
+
+
+func remove_source(source_id: String) -> void:
+	var changed: bool = _modifiers.erase(source_id)
+	_timed_sources.erase(source_id)
+	if changed:
+		apply()
+
+
+func has_source(source_id: String) -> bool:
+	return _modifiers.has(source_id)
+
+
+func clear_all() -> void:
+	_modifiers.clear()
+	_timed_sources.clear()
+	apply()
+
+
+func _process(delta: float) -> void:
+	if _timed_sources.is_empty():
+		return
+
+	var expired: Array[String] = []
+	for source_id: String in _timed_sources.keys():
+		var remaining: float = float(_timed_sources[source_id]) - delta
+		if remaining <= 0.0:
+			expired.append(source_id)
+		else:
+			_timed_sources[source_id] = remaining
+
+	for source_id: String in expired:
+		_timed_sources.erase(source_id)
+		_modifiers.erase(source_id)
+		_debug("Zeit-Buff '%s' abgelaufen." % source_id)
+
+	if not expired.is_empty():
+		apply()
+
+
+# ============================================================================
+# Berechnung
+# ============================================================================
+func _default_base(stat: String) -> float:
+	match stat:
+		STAT_MAX_HEALTH:
+			return _base_max_health
+		STAT_MOVE_SPEED:
+			return _base_move_speed
+		STAT_PICKUP_RANGE:
+			return _base_pickup_range
+		STAT_LUCK:
+			return 0.0
+	# Alles Uebrige sind reine Faktoren und starten bei 1.0.
+	return 1.0
+
+
+func _compute(stat: String) -> float:
+	var total_add: float = 0.0
+	var total_mul: float = 1.0
+
+	for source_id: String in _modifiers.keys():
+		var entry: Dictionary = _modifiers[source_id]
+		if not entry.has(stat):
+			continue
+		var mod: Dictionary = entry[stat]
+		total_add += float(mod.get("add", 0.0))
+		total_mul *= float(mod.get("mul", 1.0))
+
+	return (_default_base(stat) + total_add) * total_mul
+
+
+## Fertig gerechneter Wert eines Stats.
+func get_stat(stat: String) -> float:
+	if _cached.has(stat):
+		return float(_cached[stat])
+	return _compute(stat)
+
+
+## Angriffstempo als "je hoeher desto schneller" — der Kehrwert des
+## Cooldown-Multiplikators. Nur fuer die Anzeige gedacht.
+func get_attack_speed() -> float:
+	var cd: float = maxf(get_stat(STAT_COOLDOWN), 0.05)
+	return 1.0 / cd
+
+
+## Neu rechnen UND in die bestehenden Komponenten zurueckschreiben.
+func apply() -> void:
+	_cached.clear()
+	for stat: String in ALL_STATS:
+		_cached[stat] = _compute(stat)
+
+	if _player == null or not is_instance_valid(_player):
+		stats_changed.emit()
+		return
+
+	# STAT_MOVE_SPEED traegt den Basiswert bereits in sich (siehe
+	# _default_base) — hier wird also der fertige Absolutwert geschrieben,
+	# NICHT noch einmal mit _base_move_speed multipliziert.
+	if "speed" in _player:
+		_player.set("speed", float(_cached[STAT_MOVE_SPEED]))
+
+	if _health:
+		_health.set_max_health(float(_cached[STAT_MAX_HEALTH]), false)
+		_health.incoming_damage_multiplier = float(_cached[STAT_ARMOR])
+
+	var damage_mul: float = float(_cached[STAT_DAMAGE])
+	if _primary_hitbox:
+		_primary_hitbox.damage = _base_primary_damage * damage_mul
+	if _secondary_hitbox:
+		_secondary_hitbox.damage = _base_secondary_damage * damage_mul
+
+	if _combat:
+		_combat.dash_damage = _base_dash_damage * damage_mul
+		var cd_mul: float = float(_cached[STAT_COOLDOWN])
+		_combat.primary_cooldown = _base_primary_cooldown * cd_mul
+		_combat.secondary_cooldown = _base_secondary_cooldown * cd_mul
+
+	stats_changed.emit()
+
+
+# ============================================================================
+# Bequeme Getter fuer HUD und Gameplay
+# ============================================================================
+func get_move_speed() -> float:
+	return get_stat(STAT_MOVE_SPEED)
+
+
+func get_damage_multiplier() -> float:
+	return get_stat(STAT_DAMAGE)
+
+
+func get_luck() -> float:
+	return get_stat(STAT_LUCK)
+
+
+func get_pickup_range() -> float:
+	return get_stat(STAT_PICKUP_RANGE)
+
+
+func get_hazard_resist() -> float:
+	return get_stat(STAT_HAZARD_RESIST)
+
+
+func get_player() -> CharacterBody3D:
+	return _player
+
+
+## Formatierter Anzeigewert fuers Stats-Panel. Faktoren werden als Prozent
+## gezeigt, absolute Werte als Zahl — sonst stuende im HUD "Tempo 1.15"
+## neben "Schaden 1.15" und niemand wuesste, was gemeint ist.
+func format_stat(stat: String) -> String:
+	var value: float = get_stat(stat)
+	match stat:
+		STAT_MOVE_SPEED:
+			return "%.1f" % value
+		STAT_MAX_HEALTH:
+			return "%.0f" % value
+		STAT_PICKUP_RANGE:
+			return "%.1f m" % value
+		STAT_LUCK:
+			return "%+.0f%%" % (value * 100.0)
+		STAT_COOLDOWN:
+			return "%.0f%%" % (get_attack_speed() * 100.0)
+		STAT_ARMOR, STAT_HAZARD_RESIST:
+			return "%.0f%%" % ((1.0 - value) * 100.0)
+	return "%.0f%%" % (value * 100.0)
+
+
+## Findet die Komponente am aktuell aktiven Spieler. Bequemer Einstieg fuer
+## Code, der nicht selbst mitverfolgt, welche Instanz gerade lebt.
+static func find_for(node: Node) -> PlayerStats:
+	if node == null:
+		return null
+	for player: Node in node.get_tree().get_nodes_in_group("player"):
+		var stats := player.get_node_or_null("PlayerStats")
+		if stats is PlayerStats:
+			return stats
+	return null
 
 
 ===== FILE: resources\char_1.tres =====
@@ -23668,6 +24050,534 @@ func _play_ready_flash() -> void:
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+===== FILE: scripts\bomb.gd =====
+
+extends RigidBody3D
+class_name Bomb
+
+# ============================================================================
+# Bomb — gezuendete Bombe: liegt herum, laesst sich schieben, explodiert.
+# ============================================================================
+# Baut sich wie Pickup komplett selbst auf, damit es keine bomb.tscn braucht.
+#
+# WARUM RIGIDBODY3D UND NICHT AREA3D/STATICBODY:
+# Die Bombe soll sich schieben lassen — vom Spieler UND von Gegnern. Das
+# geht nur mit echter Physik.
+#
+# ABER: CharacterBody3D schiebt RigidBody3D in Godot 4 NICHT automatisch.
+# move_and_slide() gleitet an der Bombe ab, ohne Impuls zu uebertragen.
+# Deshalb sitzt unten ein eigener Schiebe-Bereich (_push_area), der
+# ueberlappende CharacterBody3D-Nodes einsammelt und ihnen anhand ihrer
+# eigenen Geschwindigkeit einen passenden Impuls auf die Bombe uebersetzt.
+# Ohne diesen Umweg fuehlt sich die Bombe an wie ein festgeschraubter Stein.
+
+signal exploded(position: Vector3)
+
+@export var fuse_time: float = 2.0
+@export var damage: float = 50.0
+
+## Standardmaessig 2 x 2 Kacheln. Die Kachelgroesse haengt am Level-Setup —
+## bei 2,25 m pro Kachel entspricht ein Radius von 4,5 genau einem 2x2-Feld
+## um die Bombe herum. Notfalls hier nachziehen, nicht im Explosionscode.
+@export var explosion_radius: float = 4.5
+
+## Wie stark Getroffene weggeschoben werden.
+@export var knockback_force: float = 16.0
+
+## Wie stark der Spieler die Bombe wegschieben kann.
+@export var push_strength: float = 5.0
+@export var push_radius: float = 0.9
+
+## Ob die Explosion auch dem Spieler schadet. Klassisch: ja.
+@export var damages_player: bool = true
+## Anteil des Schadens, den der Spieler abbekommt.
+@export_range(0.0, 1.0) var self_damage_ratio: float = 0.5
+
+@export var debug_logging: bool = false
+
+var _fuse_remaining: float = 0.0
+var _exploded: bool = false
+var _mesh: MeshInstance3D = null
+var _push_area: Area3D = null
+var _blink_accumulator: float = 0.0
+
+## Wer die Bombe gelegt hat. Wird als Schadensquelle durchgereicht, damit
+## Health.last_damage_source (Richtung der Todesanimation) stimmt.
+var thrower: Node3D = null
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("[Bomb] %s" % msg)
+
+
+func _ready() -> void:
+	# Gruppe fuer Kettenreaktionen und den Magneten des Kompass-Items.
+	add_to_group("bombs")
+	_fuse_remaining = fuse_time
+
+	mass = 2.5
+	# Hohe lineare Daempfung: eine Bombe soll angeschoben ein Stueck rollen
+	# und dann liegenbleiben, nicht wie eine Bowlingkugel durch den Raum
+	# schiessen.
+	linear_damp = 3.0
+	angular_damp = 4.0
+	continuous_cd = true
+	contact_monitor = false
+
+	_build_collision()
+	_build_visual()
+	_build_push_area()
+
+
+func _build_collision() -> void:
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.32
+	shape.shape = sphere
+	add_child(shape)
+
+
+func _build_visual() -> void:
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.32
+	sphere.height = 0.64
+	sphere.radial_segments = 10
+	sphere.rings = 6
+
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(0.16, 0.16, 0.20)
+	material.emission_enabled = true
+	material.emission = Color(0.9, 0.25, 0.15)
+	material.emission_energy_multiplier = 0.0
+
+	_mesh = MeshInstance3D.new()
+	_mesh.mesh = sphere
+	# material_override statt surface_material_override — Vorrangregel.
+	_mesh.material_override = material
+	add_child(_mesh)
+
+
+func _build_push_area() -> void:
+	_push_area = Area3D.new()
+	_push_area.name = "PushArea"
+	# Alle Layer abhorchen: Spieler und Gegner liegen je nach Szene auf
+	# unterschiedlichen Ebenen, und eine zu enge Maske aeussert sich nicht
+	# als Fehler, sondern nur als "die Bombe laesst sich nicht schieben".
+	_push_area.collision_mask = 0xFFFFF
+	_push_area.monitoring = true
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = push_radius
+	shape.shape = sphere
+	_push_area.add_child(shape)
+	add_child(_push_area)
+
+
+func _physics_process(delta: float) -> void:
+	if _exploded:
+		return
+
+	_fuse_remaining -= delta
+	_update_blink(delta)
+	_apply_push_from_bodies()
+
+	if _fuse_remaining <= 0.0:
+		explode()
+
+
+## Das Blinken beschleunigt sich, je kuerzer die Zuendschnur wird — das ist
+## die einzige Information, die der Spieler ueber die Restzeit bekommt, und
+## sie muss aus dem Augenwinkel lesbar sein.
+func _update_blink(delta: float) -> void:
+	if _mesh == null or not (_mesh.material_override is StandardMaterial3D):
+		return
+
+	var progress: float = 1.0 - clampf(_fuse_remaining / maxf(fuse_time, 0.01), 0.0, 1.0)
+	var frequency: float = lerpf(3.0, 18.0, progress)
+	_blink_accumulator += delta * frequency
+
+	var pulse: float = (sin(_blink_accumulator * TAU) * 0.5 + 0.5)
+	var material: StandardMaterial3D = _mesh.material_override
+	material.emission_energy_multiplier = pulse * lerpf(1.0, 3.5, progress)
+
+
+## Uebersetzt die Eigenbewegung ueberlappender Charaktere in einen Impuls.
+## Nur wer sich AUF die Bombe zubewegt, schiebt sie — sonst wuerde ein
+## Gegner, der daneben herlaeuft, die Bombe seitlich wegsaugen.
+func _apply_push_from_bodies() -> void:
+	if _push_area == null:
+		return
+
+	for body: Node3D in _push_area.get_overlapping_bodies():
+		if not (body is CharacterBody3D):
+			continue
+
+		var character: CharacterBody3D = body as CharacterBody3D
+		var to_bomb: Vector3 = global_position - character.global_position
+		to_bomb.y = 0.0
+		if to_bomb.length() < 0.01:
+			continue
+		to_bomb = to_bomb.normalized()
+
+		var flat_velocity := Vector3(character.velocity.x, 0.0, character.velocity.z)
+		var closing_speed: float = flat_velocity.dot(to_bomb)
+		if closing_speed <= 0.1:
+			continue
+
+		apply_central_impulse(to_bomb * closing_speed * push_strength * get_physics_process_delta_time())
+
+
+# ============================================================================
+# Explosion
+# ============================================================================
+func explode() -> void:
+	if _exploded:
+		return
+	_exploded = true
+
+	var origin: Vector3 = global_position
+	_debug("Explosion bei %s (Radius %.1f)." % [origin, explosion_radius])
+
+	_damage_targets(origin)
+	_chain_other_bombs(origin)
+
+	exploded.emit(origin)
+
+	Juice.hit_stop(Juice.DURATION_EXPLOSION)
+	Juice.shake(0.9)
+
+	_spawn_flash(origin)
+	queue_free()
+
+
+func _damage_targets(origin: Vector3) -> void:
+	# Gegner
+	for node: Node in get_tree().get_nodes_in_group("enemies"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		_damage_one(node as Node3D, origin, damage)
+
+	# Spieler
+	if not damages_player:
+		return
+	for node: Node in get_tree().get_nodes_in_group("player"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		_damage_one(node as Node3D, origin, damage * self_damage_ratio)
+
+
+## Schaden faellt linear mit der Entfernung ab. Am Rand des Radius bleiben
+## noch 40 % uebrig: ein harter Cutoff fuehlt sich unfair an, weil man den
+## Radius im Spiel nicht sieht.
+func _damage_one(target: Node3D, origin: Vector3, full_damage: float) -> void:
+	var distance: float = target.global_position.distance_to(origin)
+	if distance > explosion_radius:
+		return
+
+	var health := target.find_child("Health", true, false) as Health
+	if health == null or not health.is_alive():
+		return
+
+	var falloff: float = lerpf(1.0, 0.4, clampf(distance / maxf(explosion_radius, 0.01), 0.0, 1.0))
+	health.take_damage(full_damage * falloff, thrower if thrower else self)
+
+	if target.get("is_heavy") == true:
+		return
+
+	var push: Vector3 = target.global_position - origin
+	push.y = 0.0
+	if push.length() < 0.01:
+		push = Vector3.FORWARD
+	push = push.normalized() * knockback_force * falloff
+
+	if target.has_method("apply_knockback"):
+		target.apply_knockback(push + Vector3.UP * 3.0)
+
+
+## Kettenreaktion: eine Explosion zuendet benachbarte Bomben sofort.
+## deferred, damit nicht mitten in der eigenen queue_free()-Runde eine
+## zweite Bombe dieselbe Liste veraendert.
+func _chain_other_bombs(origin: Vector3) -> void:
+	for node: Node in get_tree().get_nodes_in_group("bombs"):
+		if node == self or not is_instance_valid(node) or not (node is Bomb):
+			continue
+		var other: Bomb = node as Bomb
+		if other.global_position.distance_to(origin) > explosion_radius:
+			continue
+		other.trigger_now.call_deferred()
+
+
+## Zuendet sofort — fuer Kettenreaktionen und Skript-Ausloeser.
+func trigger_now() -> void:
+	if _exploded:
+		return
+	_fuse_remaining = 0.0
+	explode()
+
+
+## Kurzer, heller Blitz als Platzhalter fuer ein richtiges VFX. Sobald es
+## eine Partikelszene gibt, hier VFX.spawn() aufrufen und diese Funktion
+## loeschen.
+func _spawn_flash(origin: Vector3) -> void:
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		return
+
+	var sphere := SphereMesh.new()
+	sphere.radius = explosion_radius * 0.5
+	sphere.height = explosion_radius
+	sphere.radial_segments = 12
+	sphere.rings = 8
+
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(1.0, 0.75, 0.30, 0.65)
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	var flash := MeshInstance3D.new()
+	flash.mesh = sphere
+	flash.material_override = material
+	flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(flash)
+	flash.global_position = origin
+	flash.scale = Vector3.ONE * 0.3
+
+	var tween := flash.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(flash, "scale", Vector3.ONE * 1.15, 0.22)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.28)
+	tween.chain().tween_callback(flash.queue_free)
+
+
+func get_fuse_remaining() -> float:
+	return _fuse_remaining
+
+
+===== FILE: scripts\bomb_carrier.gd =====
+
+extends Node
+class_name BombCarrier
+
+# ============================================================================
+# BombCarrier — haengt zur Laufzeit am aktiven Spieler (siehe item_manager.gd)
+# und regelt Ausruesten, Ablegen und Werfen.
+# ============================================================================
+#
+# BEDIENUNG (Design-Vorgabe):
+#   X          -> Bombe ausruesten. Die Zuendschnur laeuft ab DIESEM Moment.
+#   X nochmal  -> Bombe vor sich ablegen.
+#   LMB        -> Bombe werfen.
+#
+# WARUM DIE ZUENDSCHNUR SCHON BEIM AUSRUESTEN LAEUFT:
+# Das ist die eigentliche Spielmechanik. Wer die Bombe zu lange in der Hand
+# haelt, sprengt sich selbst — genau dieser Druck macht die Entscheidung
+# "jetzt werfen oder noch eine halbe Sekunde zielen" interessant. Eine
+# Bombe, deren Timer erst beim Ablegen startet, ist nur eine Verzoegerung.
+#
+# LMB IST GLEICHZEITIG attack_primary. CombatBase POLLT diese Action mit
+# Input.is_action_pressed() — set_input_as_handled() greift dagegen nicht.
+# Deshalb wird das Combat-Node fuer die Dauer des Ausgeruestet-Zustands
+# stillgelegt (set_process(false)). Das ist derselbe Ansatz, den Godot
+# selbst fuer sich gegenseitig ausschliessende Zustaende empfiehlt, und er
+# kommt ohne einen Eingriff in combat_base.gd aus.
+
+signal bomb_equipped(fuse_remaining: float)
+signal bomb_released
+signal fuse_ticked(remaining: float)
+
+## Muss mit item_manager.gd -> BOMB_ACTION uebereinstimmen. Die Action wird
+## dort beim Start automatisch angelegt, falls sie im InputMap fehlt.
+const BOMB_ACTION: String = "bomb"
+
+## Wie weit vor dem Spieler eine abgelegte Bombe landet.
+@export var place_distance: float = 1.2
+## Wurfkraft nach vorne.
+@export var throw_force: float = 14.0
+## Zusaetzlicher Bogen nach oben, damit der Wurf nicht am Boden entlangschrammt.
+@export var throw_arc: float = 5.0
+## Zuendschnur — bewusst hier und nicht in bomb.gd, damit Items sie spaeter
+## verlaengern koennen, ohne die Bombe selbst zu kennen.
+@export var fuse_time: float = 2.0
+
+var _player: CharacterBody3D = null
+var _combat: CombatBase = null
+var _pivot: Node3D = null
+
+var _equipped: bool = false
+var _fuse_remaining: float = 0.0
+var _held_visual: Node3D = null
+
+
+func _ready() -> void:
+	_player = get_parent() as CharacterBody3D
+	if _player == null:
+		push_warning("BombCarrier: Elternknoten ist kein CharacterBody3D.")
+		return
+	_combat = _player.get_node_or_null("Combat") as CombatBase
+	_pivot = _player.get_node_or_null("CameraPivot") as Node3D
+
+
+func _exit_tree() -> void:
+	# Beim Charakterwechsel darf das Combat-Node nicht stillgelegt
+	# zurueckbleiben — sonst kann der neue Charakter nicht mehr angreifen.
+	_set_combat_enabled(true)
+
+
+func _process(delta: float) -> void:
+	if not _equipped:
+		return
+
+	_fuse_remaining -= delta
+	fuse_ticked.emit(_fuse_remaining)
+
+	if _fuse_remaining <= 0.0:
+		# In der Hand hochgegangen. Die Bombe wird trotzdem gespawnt, damit
+		# die Explosion ueber denselben Code laeuft wie sonst auch — sie
+		# zuendet nur sofort.
+		var bomb: Bomb = _release_bomb(Vector3.ZERO)
+		if bomb:
+			bomb.trigger_now.call_deferred()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _player == null or not is_instance_valid(_player):
+		return
+
+	if event.is_action_pressed(BOMB_ACTION):
+		if _equipped:
+			_place()
+		else:
+			_equip()
+		get_viewport().set_input_as_handled()
+		return
+
+	if _equipped and event.is_action_pressed("attack_primary"):
+		_throw()
+		get_viewport().set_input_as_handled()
+
+
+# ============================================================================
+# Zustaende
+# ============================================================================
+func _equip() -> void:
+	var items: Node = get_node_or_null("/root/Items")
+	if items == null or not items.consume_bomb():
+		return
+
+	_equipped = true
+	_fuse_remaining = fuse_time
+	_set_combat_enabled(false)
+	_build_held_visual()
+	bomb_equipped.emit(_fuse_remaining)
+
+
+func _place() -> void:
+	_release_bomb(Vector3.ZERO)
+
+
+func _throw() -> void:
+	var forward: Vector3 = _get_forward()
+	_release_bomb(forward * throw_force + Vector3.UP * throw_arc)
+
+
+## Erzeugt die echte Bombe in der Welt und beendet den Ausgeruestet-Zustand.
+func _release_bomb(impulse: Vector3) -> Bomb:
+	if not _equipped:
+		return null
+
+	_equipped = false
+	_set_combat_enabled(true)
+	_clear_held_visual()
+	bomb_released.emit()
+
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		return null
+
+	var bomb := Bomb.new()
+	bomb.fuse_time = fuse_time
+	bomb.thrower = _player
+	parent.add_child(bomb)
+
+	# Die Restlaufzeit aus der Hand wird uebernommen — sonst waere Halten
+	# risikofrei.
+	bomb.set("_fuse_remaining", maxf(_fuse_remaining, 0.05))
+
+	var forward: Vector3 = _get_forward()
+	bomb.global_position = _player.global_position + forward * place_distance + Vector3(0.0, 0.4, 0.0)
+
+	if impulse.length() > 0.01:
+		bomb.apply_central_impulse(impulse)
+
+	return bomb
+
+
+func _get_forward() -> Vector3:
+	if _pivot == null:
+		return -_player.global_transform.basis.z
+	var forward: Vector3 = -_pivot.global_transform.basis.z
+	forward.y = 0.0
+	if forward.length() < 0.01:
+		return Vector3.FORWARD
+	return forward.normalized()
+
+
+func _set_combat_enabled(enabled: bool) -> void:
+	if _combat == null or not is_instance_valid(_combat):
+		return
+	_combat.set_process(enabled)
+
+
+# ============================================================================
+# Bombe in der Hand
+# ============================================================================
+# Reine Sichtbarkeitshilfe: eine kleine Kugel ueber dem Kopf. Sobald es ein
+# Modell mit Hand-Bone gibt, hier durch einen BoneAttachment3D ersetzen.
+func _build_held_visual() -> void:
+	_clear_held_visual()
+
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.22
+	sphere.height = 0.44
+	sphere.radial_segments = 8
+	sphere.rings = 5
+
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(0.16, 0.16, 0.20)
+	material.emission_enabled = true
+	material.emission = Color(0.95, 0.3, 0.15)
+	material.emission_energy_multiplier = 1.5
+
+	var instance := MeshInstance3D.new()
+	instance.mesh = sphere
+	instance.material_override = material
+
+	_held_visual = Node3D.new()
+	_held_visual.name = "HeldBomb"
+	_held_visual.add_child(instance)
+	_player.add_child(_held_visual)
+	_held_visual.position = Vector3(0.0, 1.2, 0.0)
+
+
+func _clear_held_visual() -> void:
+	if _held_visual and is_instance_valid(_held_visual):
+		_held_visual.queue_free()
+	_held_visual = null
+
+
+func is_equipped() -> bool:
+	return _equipped
+
+
+func get_fuse_remaining() -> float:
+	return _fuse_remaining
+
+
 ===== FILE: scripts\character_data.gd =====
 
 extends Resource
@@ -23890,8 +24800,117 @@ class_name CombatBase
 @export var ability_q_cooldown: float = 6.0
 @export var ability_e_cooldown: float = 10.0
 
-@export var dash_speed: float = 30.0
+@export var dash_speed: float = 35.0
 @export var dash_duration: float = 0.4
+
+# ============================================================================
+# DASH-SCHADEN - nur beim DURCHdashen
+# ============================================================================
+# Ein normaler Area3D-Hitbox-Ansatz ("Schaden bei body_entered") waere hier
+# falsch: der wuerde schon ausloesen, wenn man den Gegner nur ANTIPPT oder
+# direkt vor ihm zum Stehen kommt. Gewollt ist ausdruecklich das DURCHqueren.
+#
+# Deshalb wird pro Gegner die VORZEICHEN-Umkehr entlang der Dash-Achse
+# ausgewertet:
+#
+#   along = dash_richtung (flach) . (gegner_pos - spieler_pos)
+#
+#   along > 0  -> Gegner ist VOR mir     -> als Kandidat vormerken
+#   along < 0  -> Gegner ist HINTER mir  -> ich bin durch ihn hindurch
+#
+# Erst dieser Wechsel loest den Schaden aus. Bleibt der Dash vorher stehen
+# (Wand, Dauer abgelaufen, Gegner weicht aus), passiert nichts. Zusaetzlich
+# muss der Gegner beim Durchqueren im Trefferfenster liegen (seitlich
+# dash_hit_radius, vertikal dash_hit_height_up/-_down) - sonst zaehlte ein
+# Vorbeirennen im Meterabstand als Treffer.
+#
+# Die Rechnung laeuft bewusst FLACH (X/Z): "durchdashen" ist eine
+# horizontale Bewegung, und dash_direction traegt bei einem Vorwaerts-Dash
+# die volle Blickneigung mit - die wuerde die Achse sonst verkippen.
+
+@export var dash_damage_enabled: bool = true
+@export var dash_damage: float = 12.0
+
+# --- Trefferfenster ("Hitbox" des Dashs) ------------------------------
+# Das Volumen ist ein Quader ENTLANG der Dash-Achse:
+#
+#            dash_hit_radius            Blick von oben
+#                  |
+#     +------------|------------+
+#     |            |            |
+#  ---o============>============|--->  Dash-Richtung
+#     |            |            |
+#     +------------|------------+
+#          Spieler         Ende der Bahn
+#
+# Es gibt KEINE Obergrenze fuer die Anzahl getroffener Gegner - jeder wird
+# einzeln verfolgt. Wer beim Dash mehr Gegner mitnehmen will, dreht
+# dash_hit_radius hoch; das Limit war nie die Anzahl, sondern die Breite.
+# dash_max_targets_per_dash existiert nur, falls man es bewusst DECKELN will.
+
+## Seitliche Reichweite quer zur Dash-Achse (halbe Korridorbreite).
+## 1.8 trifft praktisch nur, wen man frontal rammt. 2.5-3.5 nimmt eine
+## ganze Reihe mit, ab ~4.0 fuehlen sich Treffer geschenkt an.
+@export var dash_hit_radius: float = 2.6
+
+## Hoehenfenster, getrennt nach oben und unten.
+##
+## WARUM GETRENNT: Der Spieler-Ursprung sitzt in der Mitte seiner Kapsel,
+## der Gegner-Ursprung dagegen bei den FUESSEN. Ein Gegner auf demselben
+## Boden liegt dadurch rechnerisch rund 0.9 Meter UNTER dem Spieler - ein
+## symmetrisches Fenster verschenkt oben also Reichweite und braucht unten
+## unnoetig viel. dash_hit_vertical_offset verschiebt das Fenster zusaetzlich
+## als Ganzes, falls eure Kapselmasse abweichen.
+@export var dash_hit_height_up: float = 2.0
+@export var dash_hit_height_down: float = 3.0
+@export var dash_hit_vertical_offset: float = -0.5
+
+## 0 = unbegrenzt (Standard). Nur setzen, wenn ein Dash bewusst hoechstens
+## N Gegner treffen soll.
+@export var dash_max_targets_per_dash: int = 0
+## Wie weit hinter mir der Gegner sein muss, damit es als "durch" zaehlt.
+## Verhindert Treffer durch Zittern um den Nullpunkt.
+@export var dash_pierce_exit_distance: float = 0.3
+## Kulanz beim Dash-START: ein Gegner, der praktisch auf mir steht (along
+## leicht negativ), zaehlt trotzdem noch als Kandidat.
+@export var dash_entry_grace: float = 0.6
+
+@export var dash_hit_shake_strength: float = 0.25
+## Standardmaessig 0: ein Rueckstoss beim Durchqueren schiebt den Gegner
+## unkontrolliert weg und macht das Nachsetzen unberechenbar.
+@export var dash_knockback_force: float = 0.0
+## Ob ein Dash-Treffer die Combo hochzaehlt. Der Hit-Lock aus
+## _on_hit_landed() wird BEWUSST nicht ausgeloest - der wuerde den Dash
+## mitten in der Bewegung abbremsen.
+@export var dash_damage_counts_combo: bool = true
+@export var dash_damage_sets_target: bool = true
+
+## VFX, der bei einem Dash-TREFFER am Gegner aufblitzt. Getrennt von
+## dash_vfx (Startpuff) und dash_trail (Dauer-Emitter) - das ist der
+## Aufschlag, nicht die Bewegung. Leer lassen = kein Effekt.
+@export var dash_hit_vfx: PackedScene
+
+## Optionaler Override. Bleibt das Feld leer, wird die Szene von der
+## PrimaryHitbox uebernommen (dort ist sie bereits im Inspector gesetzt),
+## sonst der Pfad unten geladen.
+@export var dash_damage_number_scene: PackedScene
+@export var dash_debug_logging: bool = false
+
+## Zeichnet bei jedem Dash das tatsaechliche Trefferfenster als
+## halbtransparenten Quader in die Welt - der einzige praktikable Weg, die
+## Werte oben einzustellen, ohne zu raten. Fuer den Release ausschalten.
+@export var dash_debug_draw: bool = false
+@export var dash_debug_draw_duration: float = 0.8
+@export var dash_debug_color: Color = Color(1.0, 0.85, 0.1, 0.22)
+
+const DAMAGE_NUMBER_FALLBACK_PATH: String = "res://scenes/damage_number.tscn"
+
+## Gegner-InstanceID -> { "node": Node3D, "pending": bool, "done": bool }
+var _dash_pierce_state: Dictionary = {}
+var _dash_pierce_armed: bool = false
+var _dash_flat_direction: Vector3 = Vector3.ZERO
+var _dash_hit_count: int = 0
+var _cached_damage_number_scene: PackedScene = null
 
 # --- Signals, damit sich das UI-Cooldown-Icon dranhaengen kann ---
 signal primary_used
@@ -23900,6 +24919,8 @@ signal utility_used
 signal ability_q_used
 signal ability_e_used
 signal combo_changed(count: int)
+## Feuert, wenn ein Gegner DURCHdasht wurde - fuer VFX/Sound/HUD.
+signal dash_hit_landed(target: Node)
 # Generisches Signal fuers HUD: slot ist 0..4
 signal cooldown_started(slot: int, duration: float)
 
@@ -24219,6 +25240,296 @@ func get_dash_velocity(delta: float) -> Vector3:
 		return Vector3.ZERO
 
 	return _dash_direction * dash_speed
+
+
+# ============================================================================
+# Dash-Schaden: Durchquerungs-Erkennung
+# ============================================================================
+# Laeuft in _physics_process und NICHT in _process:
+#   1. Positionen werden im Physik-Schritt aktualisiert - ein Check im
+#      Render-Frame arbeitet je nach Framerate mit veralteten Daten und
+#      verpasst bei 30 Metern pro Sekunde ganze Gegner.
+#   2. Godot ruft _physics_process in Baumreihenfolge auf: der Player
+#      (Elternknoten) zuerst, dieses Combat-Node danach. Wir sehen hier also
+#      bereits die Positionen NACH move_and_slide() dieses Frames.
+#
+# Der armed-Zustand wird aus _is_dashing abgeleitet statt in _perform_utility
+# gesetzt: so funktioniert die Erkennung auch, wenn ein Charakter-Script
+# _perform_utility ueberschreibt und _is_dashing selbst setzt - und sie
+# ueberlebt jede spaetere Aenderung an der Dash-VFX-Logik darueber.
+func _physics_process(_delta: float) -> void:
+	if not dash_damage_enabled or player == null:
+		return
+
+	if _is_dashing:
+		if not _dash_pierce_armed:
+			_arm_dash_pierce()
+		_update_dash_pierce()
+	elif _dash_pierce_armed:
+		_dash_pierce_armed = false
+		_dash_pierce_state.clear()
+
+
+func _dash_debug(msg: String) -> void:
+	if dash_debug_logging:
+		print("[DashDamage] %s" % msg)
+
+
+## Nimmt beim Dash-Start eine Momentaufnahme auf: wer steht schon hinter mir?
+## Diese Gegner werden NICHT zu Kandidaten - man ist ja nicht durch sie
+## hindurch, man dasht von ihnen weg.
+func _arm_dash_pierce() -> void:
+	_dash_pierce_armed = true
+	_dash_pierce_state.clear()
+	_dash_hit_count = 0
+
+	_dash_flat_direction = Vector3(_dash_direction.x, 0.0, _dash_direction.z)
+	if _dash_flat_direction.length() < 0.01:
+		# Rein vertikaler Dash (Blick senkrecht nach oben/unten): es gibt
+		# keine sinnvolle horizontale Achse, also kein Dash-Schaden.
+		_dash_flat_direction = Vector3.ZERO
+		_dash_debug("Dash ohne horizontale Komponente - Schadenspruefung aus.")
+		return
+
+	_dash_flat_direction = _dash_flat_direction.normalized()
+
+	for enemy in _collect_dash_targets():
+		var along: float = _dash_along(enemy)
+		var id: int = enemy.get_instance_id()
+		# Kulanz: wer praktisch auf mir steht, zaehlt noch als "vor mir".
+		var pending: bool = along > -dash_entry_grace
+		_dash_pierce_state[id] = {"node": enemy, "pending": pending, "done": false}
+
+	_spawn_dash_debug_volume()
+
+	var pending_count: int = 0
+	for entry in _dash_pierce_state.values():
+		if entry["pending"]:
+			pending_count += 1
+	_dash_debug("Dash gestartet. %d Gegner im Fenster, davon %d vor mir (Radius %.1f, Hoehe +%.1f/-%.1f)." % [
+		_dash_pierce_state.size(), pending_count,
+		dash_hit_radius, dash_hit_height_up, dash_hit_height_down
+	])
+
+
+func _update_dash_pierce() -> void:
+	if _dash_flat_direction == Vector3.ZERO:
+		return
+	if dash_max_targets_per_dash > 0 and _dash_hit_count >= dash_max_targets_per_dash:
+		return
+
+	for enemy in _collect_dash_targets():
+		var id: int = enemy.get_instance_id()
+		var along: float = _dash_along(enemy)
+
+		if not _dash_pierce_state.has(id):
+			# Erst waehrend des Dashs in Reichweite gekommen. Nur vormerken,
+			# wenn er tatsaechlich noch VOR mir ist - taucht er direkt hinter
+			# mir auf, bin ich nicht durch ihn durchgelaufen.
+			_dash_pierce_state[id] = {
+				"node": enemy,
+				"pending": along > 0.0,
+				"done": false,
+			}
+			continue
+
+		var entry: Dictionary = _dash_pierce_state[id]
+		if entry["done"] or not entry["pending"]:
+			continue
+
+		# Vorzeichenwechsel entlang der Dash-Achse = durchquert.
+		if along < -dash_pierce_exit_distance:
+			entry["done"] = true
+			_dash_pierce_state[id] = entry
+			_dash_hit_count += 1
+			_apply_dash_damage(enemy)
+			if dash_max_targets_per_dash > 0 and _dash_hit_count >= dash_max_targets_per_dash:
+				_dash_debug("Trefferlimit %d erreicht - Rest dieses Dashs wird ignoriert." % dash_max_targets_per_dash)
+				return
+
+
+## Alle lebenden Gegner, die seitlich und vertikal im Trefferfenster liegen.
+## Der Seitenabstand wird zur ACHSE gemessen, nicht zum Spieler - sonst
+## wuerde ein Gegner weit vorne auf der Bahn schon rausfallen.
+func _collect_dash_targets() -> Array[Node3D]:
+	var result: Array[Node3D] = []
+	if _dash_flat_direction == Vector3.ZERO:
+		return result
+
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		var enemy: Node3D = node as Node3D
+		if enemy == player:
+			continue
+
+		var to_enemy: Vector3 = enemy.global_position - player.global_position
+
+		# Hoehenfenster asymmetrisch, siehe Kommentar bei dash_hit_height_up.
+		var vertical: float = to_enemy.y - dash_hit_vertical_offset
+		if vertical > dash_hit_height_up or vertical < -dash_hit_height_down:
+			continue
+
+		var flat := Vector3(to_enemy.x, 0.0, to_enemy.z)
+		var along: float = _dash_flat_direction.dot(flat)
+		var lateral: float = (flat - _dash_flat_direction * along).length()
+		if lateral > dash_hit_radius:
+			continue
+
+		var health: Node = enemy.find_child("Health", true, false)
+		if health == null or not (health is Health):
+			continue
+		if not (health as Health).is_alive():
+			continue
+
+		result.append(enemy)
+
+	return result
+
+
+func _dash_along(enemy: Node3D) -> float:
+	var to_enemy: Vector3 = enemy.global_position - player.global_position
+	return _dash_flat_direction.dot(Vector3(to_enemy.x, 0.0, to_enemy.z))
+
+
+func _apply_dash_damage(enemy: Node3D) -> void:
+	var health: Node = enemy.find_child("Health", true, false)
+	if health == null or not (health is Health):
+		return
+
+	# Quelle ist der SPIELER, nicht dieses Combat-Node: Health.last_damage_source
+	# steuert die Richtung der Todes-Animation, und die soll vom Spieler
+	# wegzeigen.
+	(health as Health).take_damage(dash_damage, player)
+	_dash_debug("%.0f Schaden an '%s' (durchgedasht)." % [dash_damage, enemy.name])
+
+	_spawn_dash_damage_number(enemy)
+	dash_hit_landed.emit(enemy)
+
+	# Treffer-VFX zeigt in Dash-Richtung: der Effekt soll mit der Bewegung
+	# wegspritzen, nicht dem Gegner entgegen.
+	if dash_hit_vfx:
+		VFX.spawn(dash_hit_vfx, enemy.global_position + Vector3(0.0, 1.0, 0.0), _dash_flat_direction)
+
+	if player.has_method("shake_camera"):
+		player.shake_camera(dash_hit_shake_strength)
+
+	if dash_damage_sets_target and player.has_method("set_target"):
+		player.set_target(enemy)
+
+	# BEWUSST NICHT _on_hit_landed(): das setzt den Hit-Lock, kappt das
+	# Aufwaerts-Momentum und wuerde den laufenden Dash mitten in der Bewegung
+	# ausbremsen. Nur der Combo-Zaehler wird uebernommen.
+	if dash_damage_counts_combo:
+		_combo_count += 1
+		_combo_timer = combo_window
+		combo_changed.emit(_combo_count)
+		if enemy != _last_hit_target:
+			_tilt_direction *= -1.0
+			_last_hit_target = enemy
+		if _combo_count >= 2 and player.has_method("play_combo_tilt"):
+			var tilt: float = min(_combo_count * combo_tilt_per_hit, combo_tilt_max) * _tilt_direction
+			player.play_combo_tilt(tilt)
+		_tilt_reset_timer = combo_tilt_reset_delay
+
+	if dash_knockback_force > 0.0 and enemy is CharacterBody3D:
+		if enemy.get("is_heavy") == true:
+			_dash_debug("Knockback ignoriert: '%s' ist ein schwerer Gegner." % enemy.name)
+		else:
+			var push_dir: Vector3 = _dash_flat_direction
+			if enemy.has_method("apply_knockback"):
+				enemy.apply_knockback(push_dir * dash_knockback_force)
+			else:
+				enemy.velocity += push_dir * dash_knockback_force
+
+
+## Zeichnet das Trefferfenster als halbtransparenten Quader in die Welt.
+##
+## Der Quader entspricht 1:1 dem, was _collect_dash_targets() prueft: Laenge
+## = dash_speed * dash_duration (die theoretische Bahn ohne Wandkollision),
+## Breite = 2 * dash_hit_radius, Hoehe = up + down, vertikal um
+## dash_hit_vertical_offset verschoben.
+##
+## BoxMesh liegt lokal mit seiner Laengsachse auf +Z, deshalb reicht ein
+## reiner Yaw um Y.
+func _spawn_dash_debug_volume() -> void:
+	if not dash_debug_draw or _dash_flat_direction == Vector3.ZERO or player == null:
+		return
+
+	var length: float = maxf(dash_speed * dash_duration, 0.1)
+	var height: float = maxf(dash_hit_height_up + dash_hit_height_down, 0.1)
+
+	var box := BoxMesh.new()
+	box.size = Vector3(dash_hit_radius * 2.0, height, length)
+
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.albedo_color = dash_debug_color
+
+	var gizmo := MeshInstance3D.new()
+	gizmo.name = "DashHitboxDebug"
+	gizmo.mesh = box
+	# material_override statt surface_material_override - Vorrangregel.
+	gizmo.material_override = mat
+	gizmo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		return
+	parent.add_child(gizmo)
+
+	var center: Vector3 = player.global_position \
+		+ _dash_flat_direction * (length * 0.5) \
+		+ Vector3.UP * (dash_hit_vertical_offset + (dash_hit_height_up - dash_hit_height_down) * 0.5)
+
+	var yaw: float = atan2(_dash_flat_direction.x, _dash_flat_direction.z)
+	gizmo.global_transform = Transform3D(Basis.IDENTITY.rotated(Vector3.UP, yaw), center)
+
+	# queue_free direkt als Callable verbinden statt ueber eine mehrzeilige
+	# Lambda: kuerzer, und der Timer haelt keine Referenz auf einen Closure,
+	# der einen bereits gefreeten Node einfaengt.
+	var timer := get_tree().create_timer(maxf(dash_debug_draw_duration, 0.05))
+	timer.timeout.connect(gizmo.queue_free)
+
+
+func _spawn_dash_damage_number(enemy: Node3D) -> void:
+	var scene: PackedScene = _resolve_damage_number_scene()
+	if scene == null:
+		push_warning("CombatBase: Keine damage_number_scene gefunden - Dash-Schadenszahl wird nicht angezeigt.")
+		return
+
+	var number: Node = scene.instantiate()
+	get_tree().current_scene.add_child(number)
+	(number as Node3D).global_position = enemy.global_position + Vector3(0.0, 1.8, 0.0)
+
+	if number.has_method("show_dash_damage"):
+		number.show_dash_damage(dash_damage)
+	elif number.has_method("show_damage"):
+		# Fallback fuer eine aeltere damage_number.gd ohne Dash-Variante:
+		# dann eben in Crit-Farbe statt gelb, aber nicht unsichtbar.
+		number.show_damage(dash_damage, true)
+
+
+## Die Szene ist an der PrimaryHitbox bereits im Inspector gesetzt - von dort
+## wird sie uebernommen, damit man sie nicht an einer zweiten Stelle pflegen
+## muss. Ergebnis wird gecached, der Pfad-Fallback laeuft also hoechstens
+## einmal pro Charakter-Instanz.
+func _resolve_damage_number_scene() -> PackedScene:
+	if dash_damage_number_scene != null:
+		return dash_damage_number_scene
+	if _cached_damage_number_scene != null:
+		return _cached_damage_number_scene
+
+	if primary_hitbox and primary_hitbox.damage_number_scene:
+		_cached_damage_number_scene = primary_hitbox.damage_number_scene
+	elif secondary_hitbox and secondary_hitbox.damage_number_scene:
+		_cached_damage_number_scene = secondary_hitbox.damage_number_scene
+	elif ResourceLoader.exists(DAMAGE_NUMBER_FALLBACK_PATH):
+		_cached_damage_number_scene = load(DAMAGE_NUMBER_FALLBACK_PATH)
+
+	return _cached_damage_number_scene
 
 func is_dashing() -> bool:
 	return _is_dashing
@@ -24743,6 +26054,155 @@ func set_visibility_range(begin: float, end: float) -> void:
 	apply()
 
 
+===== FILE: scripts\game_juice.gd =====
+
+extends Node
+
+# ============================================================================
+# Juice — Autoload fuer Hit-Stop, Freeze-Frames und Shake-Weiterleitung.
+# Muss unter Project Settings -> Autoload als "Juice" eingetragen sein.
+# ============================================================================
+#
+# HIT-STOP: Bei schweren Treffern wird Engine.time_scale fuer 0.05-0.08 s
+# fast auf 0 gezogen. Das ist der billigste und wirksamste Wucht-Verstaerker,
+# den es gibt — es kostet keine Animation, kein VFX, kein Sound.
+#
+# ZWEI FALLSTRICKE, die hier bewusst geloest sind:
+#
+# 1. Der Timer, der time_scale wieder hochsetzt, darf NICHT selbst
+#    zeitskaliert sein. get_tree().create_timer() laeuft standardmaessig in
+#    skalierter Zeit — bei time_scale = 0.0 wuerde er nie ablaufen und das
+#    Spiel bliebe fuer immer eingefroren. Deshalb das vierte Argument
+#    (ignore_time_scale = true).
+#
+# 2. Ueberlappende Hit-Stops. Trifft waehrend eines laufenden Stops ein
+#    zweiter Treffer, wird NICHT gestapelt (sonst friert eine Combo das Spiel
+#    sekundenlang ein), sondern nur die Restdauer verlaengert, gedeckelt bei
+#    max_hit_stop_duration.
+#
+# Ein pausiertes Spiel wird nie angefasst: process_mode ALWAYS sorgt zwar
+# dafuer, dass dieses Autoload weiterlaeuft, aber ein Hit-Stop waehrend
+# get_tree().paused wuerde beim Entpausieren einen falschen time_scale
+# hinterlassen.
+
+signal hit_stop_started(duration: float)
+signal hit_stop_ended
+
+## Global abschaltbar (z.B. fuer Barrierefreiheit oder Speedrun-Puristen).
+var hit_stop_enabled: bool = true
+
+## Obergrenze, damit sich Treffer in einer langen Combo nicht aufsummieren.
+var max_hit_stop_duration: float = 0.12
+
+## Voreinstellungen fuer die drei Wuchtklassen.
+const DURATION_LIGHT: float = 0.03
+const DURATION_HEAVY: float = 0.06
+const DURATION_EXPLOSION: float = 0.08
+
+## Nicht exakt 0.0: bei time_scale = 0.0 stehen auch alle Partikel und
+## Tweens komplett still, was den Frame "tot" wirken laesst. 0.02 haelt
+## minimale Restbewegung drin und liest sich als bewusster Effekt.
+const FROZEN_TIME_SCALE: float = 0.02
+
+var _remaining: float = 0.0
+var _is_active: bool = false
+var _scale_before: float = 1.0
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+
+## Kurzer Freeze-Frame. duration in ECHTEN Sekunden.
+func hit_stop(duration: float = DURATION_HEAVY) -> void:
+	if not hit_stop_enabled or duration <= 0.0:
+		return
+	if get_tree().paused:
+		return
+
+	if _is_active:
+		# Nicht stapeln, nur verlaengern — und hart deckeln.
+		_remaining = minf(_remaining + duration * 0.5, max_hit_stop_duration)
+		return
+
+	_scale_before = Engine.time_scale
+	_remaining = minf(duration, max_hit_stop_duration)
+	_is_active = true
+	Engine.time_scale = FROZEN_TIME_SCALE
+	hit_stop_started.emit(_remaining)
+
+
+func hit_stop_light() -> void:
+	hit_stop(DURATION_LIGHT)
+
+
+func hit_stop_heavy() -> void:
+	hit_stop(DURATION_HEAVY)
+
+
+func hit_stop_explosion() -> void:
+	hit_stop(DURATION_EXPLOSION)
+
+
+## Sofort aufraeumen — wird beim Szenenwechsel und beim Pausieren gebraucht,
+## sonst startet das naechste Level mit eingefrorener Zeit.
+func cancel() -> void:
+	if not _is_active:
+		return
+	_is_active = false
+	_remaining = 0.0
+	Engine.time_scale = _scale_before
+	hit_stop_ended.emit()
+
+
+func is_active() -> bool:
+	return _is_active
+
+
+# Der Countdown laeuft ueber _process mit delta aus der ECHTEN Zeit: bei
+# process_mode ALWAYS liefert Godot hier weiterhin unskaliertes delta ueber
+# get_process_delta_time() NICHT — deshalb wird bewusst die Systemzeit
+# genutzt statt delta, das mit time_scale schrumpft.
+var _last_ticks: int = 0
+
+
+func _process(_delta: float) -> void:
+	if not _is_active:
+		_last_ticks = Time.get_ticks_usec()
+		return
+
+	var now: int = Time.get_ticks_usec()
+	var real_delta: float = float(now - _last_ticks) / 1_000_000.0
+	_last_ticks = now
+
+	# Erster Frame nach dem Start kann durch einen Ladehaenger riesig sein.
+	real_delta = minf(real_delta, 0.1)
+
+	_remaining -= real_delta
+	if _remaining <= 0.0:
+		_is_active = false
+		Engine.time_scale = _scale_before
+		hit_stop_ended.emit()
+
+
+# ============================================================================
+# Shake-Weiterleitung
+# ============================================================================
+# Bomben, Explosionen und Umgebungsereignisse kennen den Spieler nicht und
+# sollen ihn auch nicht suchen muessen. shake() findet ihn ueber die Gruppe
+# "player" — dieselbe Gruppe, die auch SettingsManager benutzt.
+func shake(amount: float) -> void:
+	for player: Node in get_tree().get_nodes_in_group("player"):
+		if player.has_method("shake_camera"):
+			player.shake_camera(amount)
+
+
+## Kombi fuer schwere Treffer: erst einfrieren, dann wackeln.
+func impact(shake_amount: float = 0.5, stop_duration: float = DURATION_HEAVY) -> void:
+	hit_stop(stop_duration)
+	shake(shake_amount)
+
+
 ===== FILE: scripts\hack_prompt.gd =====
 
 extends CanvasLayer
@@ -24876,10 +26336,19 @@ func _key_name(events: Array) -> String:
 extends Node
 class_name Health
 
-# --- Signals: andere Nodes (UI, Sound, VFX) können darauf reagieren, ---
-# --- ohne dass diese Komponente wissen muss, WER zuhört. ---
+# --- Signals: andere Nodes (UI, Sound, VFX) koennen darauf reagieren, ---
+# --- ohne dass diese Komponente wissen muss, WER zuhoert. ---
 signal health_changed(current: float, max: float)
 signal died
+
+## NEU: feuert NUR bei tatsaechlich angekommenem Schaden (nach Invuln- und
+## Multiplikator-Filter). Items wie "Mamas Kochloeffel" oder ein
+## Trefferfeedback-System haengen sich hier dran, statt health_changed
+## abzuhoeren — das feuert auch beim Heilen und bei jedem Regen-Tick.
+signal damage_taken(amount: float, source: Node3D)
+
+## NEU: Start/Ende der Unverwundbarkeit, z.B. fuer ein Blink-VFX am Modell.
+signal invulnerability_changed(active: bool)
 
 @export var max_health: float = 100.0
 
@@ -24888,17 +26357,44 @@ signal died
 @export var regen_rate: float = 5.0       # HP pro Sekunde, sobald Regen aktiv ist
 @export var regen_delay: float = 3.0      # Sekunden Wartezeit nach dem letzten Treffer
 
+# ============================================================================
+# UNVERWUNDBARKEIT
+# ============================================================================
+# Wird ueber set_invulnerable(dauer) gesetzt und laeuft hier selbst ab. Das
+# gehoert bewusst in die Health-Komponente und nicht in den Aufrufer: sonst
+# muesste JEDE Schadensquelle (Hitbox, Lava, Bombe, Dash) den Zustand
+# einzeln pruefen, und die erste vergessene Stelle macht den Effekt wertlos.
+#
+# _invuln_timer < 0.0 bedeutet "unbegrenzt" (z.B. waehrend einer Cutscene) —
+# in dem Fall raeumt nur clear_invulnerable() wieder auf.
+var _invuln_timer: float = 0.0
+var _invuln_permanent: bool = false
+
+## Globaler Multiplikator auf ANKOMMENDEN Schaden. 1.0 = normal,
+## 0.25 = 75 % Reduktion (siehe Item "Saeurefeste Stiefel"). Wird von
+## PlayerStats gesetzt, nicht von Hand.
+var incoming_damage_multiplier: float = 1.0
+
 var current_health: float
 var _time_since_damage: float = 0.0
 
-# Merkt sich, WER/WAS zuletzt Schaden verursacht hat — z.B. für
-# richtungsabhängige Todes-Animationen (fällt weg vom Angreifer).
+# Merkt sich, WER/WAS zuletzt Schaden verursacht hat — z.B. fuer
+# richtungsabhaengige Todes-Animationen (faellt weg vom Angreifer).
 var last_damage_source: Node3D = null
+
 
 func _ready() -> void:
 	current_health = max_health
 
+
 func _process(delta: float) -> void:
+	if _invuln_timer > 0.0:
+		_invuln_timer -= delta
+		if _invuln_timer <= 0.0:
+			_invuln_timer = 0.0
+			if not _invuln_permanent:
+				invulnerability_changed.emit(false)
+
 	if not regen_enabled or not is_alive():
 		return
 
@@ -24907,24 +26403,86 @@ func _process(delta: float) -> void:
 	if _time_since_damage >= regen_delay and current_health < max_health:
 		heal(regen_rate * delta)
 
+
+## Verlaengert eine laufende Unverwundbarkeit, statt sie zu ueberschreiben:
+## zwei Effekte kurz hintereinander sollen sich nicht gegenseitig kuerzen.
+func set_invulnerable(duration: float) -> void:
+	var was_active: bool = is_invulnerable()
+	_invuln_timer = maxf(_invuln_timer, duration)
+	if not was_active:
+		invulnerability_changed.emit(true)
+
+
+func set_invulnerable_permanent(enabled: bool) -> void:
+	var was_active: bool = is_invulnerable()
+	_invuln_permanent = enabled
+	if is_invulnerable() != was_active:
+		invulnerability_changed.emit(is_invulnerable())
+
+
+func clear_invulnerable() -> void:
+	var was_active: bool = is_invulnerable()
+	_invuln_timer = 0.0
+	_invuln_permanent = false
+	if was_active:
+		invulnerability_changed.emit(false)
+
+
+func is_invulnerable() -> bool:
+	return _invuln_permanent or _invuln_timer > 0.0
+
+
 func take_damage(amount: float, source: Node3D = null) -> void:
 	if current_health <= 0.0:
 		return  # bereits tot, ignoriere weitere Treffer
 
-	current_health = max(current_health - amount, 0.0)
-	_time_since_damage = 0.0  # Regen-Timer zurücksetzen bei jedem Treffer
+	if is_invulnerable():
+		return
+
+	var effective: float = amount * maxf(incoming_damage_multiplier, 0.0)
+	if effective <= 0.0:
+		return
+
+	current_health = max(current_health - effective, 0.0)
+	_time_since_damage = 0.0  # Regen-Timer zuruecksetzen bei jedem Treffer
 	last_damage_source = source
 	health_changed.emit(current_health, max_health)
+	damage_taken.emit(effective, source)
 
 	if current_health <= 0.0:
 		died.emit()
 
+
 func heal(amount: float) -> void:
+	if amount <= 0.0:
+		return
 	current_health = min(current_health + amount, max_health)
 	health_changed.emit(current_health, max_health)
 
+
+## Hebt die Obergrenze an und nimmt den Zuwachs optional gleich als Heilung
+## mit. Ohne das zweite Argument steigt nur das Maximum — der Balken wird
+## also laenger, aber nicht voller.
+func set_max_health(value: float, heal_difference: bool = true) -> void:
+	var new_max: float = maxf(value, 1.0)
+	var difference: float = new_max - max_health
+	max_health = new_max
+
+	if heal_difference and difference > 0.0:
+		current_health += difference
+
+	current_health = clampf(current_health, 0.0, max_health)
+	health_changed.emit(current_health, max_health)
+
+
 func is_alive() -> bool:
 	return current_health > 0.0
+
+
+func get_health_percent() -> float:
+	if max_health <= 0.0:
+		return 0.0
+	return clampf(current_health / max_health, 0.0, 1.0)
 
 
 ===== FILE: scripts\health_bar_3d.gd =====
@@ -25302,6 +26860,1412 @@ func _play_combo_expire_animation() -> void:
 	)
 
 
+===== FILE: scripts\hud_extra.gd =====
+
+extends Node
+
+# ============================================================================
+# HudExtra — Autoload, das die neuen HUD-Elemente in JEDE Szene einhaengt.
+# Muss unter Project Settings -> Autoload als "HudExtra" stehen.
+# ============================================================================
+#
+# WARUM EIN AUTOLOAD STATT NODES IN hud.tscn:
+# hud.tscn wird nicht in jeder Szene benutzt (Testlevel, Menue-Szenen), und
+# jede Aenderung daran betrifft eine Datei, an der ohnehin schon viel
+# haengt. Ein eigener CanvasLayer ueber allem ist unabhaengig davon,
+# ueberlebt reload_current_scene() und braucht keinen einzigen Klick im
+# Editor.
+#
+# LAYER 10: hoch genug, um ueber dem normalen HUD zu liegen, aber unter
+# typischen Pause-/Death-Screens (die liegen meist bei 100+). Das
+# Reset-Overlay muss beim Abblenden das komplette Spiel verdecken, deshalb
+# sitzt es in einem eigenen, hoeheren Layer.
+
+const HUD_LAYER: int = 10
+const OVERLAY_LAYER: int = 128
+
+## Abstand der Panels zum Bildschirmrand.
+const MARGIN: float = 14.0
+## Wie weit das Stats-Panel unter dem oberen Rand beginnt. Bewusst so
+## gewaehlt, dass es NICHT mit der Minimap kollidiert, die links oben sitzt.
+const STATS_TOP_OFFSET: float = 250.0
+
+var hud_layer: CanvasLayer = null
+var overlay_layer: CanvasLayer = null
+
+var stats_panel: StatsPanel = null
+var item_hud: ItemDescriptionHud = null
+var reset_overlay: ResetOverlay = null
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_build_layers()
+
+
+func _build_layers() -> void:
+	hud_layer = CanvasLayer.new()
+	hud_layer.name = "HudExtraLayer"
+	hud_layer.layer = HUD_LAYER
+	add_child(hud_layer)
+
+	overlay_layer = CanvasLayer.new()
+	overlay_layer.name = "ResetLayer"
+	overlay_layer.layer = OVERLAY_LAYER
+	overlay_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(overlay_layer)
+
+	_build_stats_panel()
+	_build_item_hud()
+	_build_reset_overlay()
+
+
+## Links, unterhalb der Minimap.
+func _build_stats_panel() -> void:
+	stats_panel = StatsPanel.new()
+	stats_panel.name = "StatsPanel"
+	stats_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	stats_panel.grow_horizontal = Control.GROW_DIRECTION_END
+	stats_panel.grow_vertical = Control.GROW_DIRECTION_END
+	stats_panel.position = Vector2(MARGIN, STATS_TOP_OFFSET)
+	stats_panel.custom_minimum_size = Vector2(190.0, 0.0)
+	hud_layer.add_child(stats_panel)
+
+
+## Unten links, waechst nach oben.
+func _build_item_hud() -> void:
+	item_hud = ItemDescriptionHud.new()
+	item_hud.name = "ItemDescriptionHud"
+	item_hud.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	item_hud.grow_horizontal = Control.GROW_DIRECTION_END
+	# Nach OBEN wachsen: sonst schiebt eine laenger werdende Item-Liste den
+	# Block aus dem Bild heraus.
+	item_hud.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	item_hud.position = Vector2(MARGIN, -MARGIN)
+	item_hud.alignment = BoxContainer.ALIGNMENT_END
+	# Bewusst im normalen HUD-Layer und nicht im Overlay-Layer: das Item-HUD
+	# gehoert zum Spielbild und soll von der Reset-Abblende verdeckt werden.
+	hud_layer.add_child(item_hud)
+
+
+func _build_reset_overlay() -> void:
+	reset_overlay = ResetOverlay.new()
+	reset_overlay.name = "ResetOverlay"
+	overlay_layer.add_child(reset_overlay)
+
+
+## Blendet alle Zusatz-Elemente aus — z.B. fuer Screenshots oder Cutscenes.
+func set_extra_hud_visible(is_visible: bool) -> void:
+	if hud_layer:
+		hud_layer.visible = is_visible
+
+
+===== FILE: scripts\item_behaviours.gd =====
+
+extends Node
+class_name ItemBehaviours
+
+# ============================================================================
+# ItemBehaviours — hier steht, was die Items TATSAECHLICH tun.
+# ============================================================================
+# Wird von item_manager.gd als Kind erzeugt und haengt sich an dessen
+# Signale. Jeder Effekt liegt in einem eigenen, klar benannten Block. Items,
+# die nur Stat-Boni geben (Magnetischer Kompass, Saeurefeste Stiefel),
+# tauchen hier gar nicht auf — die erledigt ItemData.stat_modifiers.
+#
+# ALLE Zahlen liegen als Konstanten oben im jeweiligen Block, nicht mitten
+# im Code. Balancing soll man an einer Stelle drehen koennen, ohne die Logik
+# zu lesen.
+
+# --- 1. Mamas Kochloeffel ---
+const SPOON_DURATION: float = 0.75
+const SPOON_SPEED_MULTIPLIER: float = 1.5
+
+# --- 2. Rostiges Beil ---
+const CLEAVER_CHANCE: float = 0.30
+const BLEED_DURATION: float = 4.0
+const BLEED_TICK_INTERVAL: float = 1.0
+const BLEED_DAMAGE_PER_TICK: float = 5.0
+
+# --- 3. Statische Socke ---
+const SOCK_HITS_NEEDED: int = 6
+const SOCK_RADIUS: float = 6.0
+const SOCK_DAMAGE_MULTIPLIER: float = 2.0
+const SOCK_KNOCKBACK: float = 14.0
+
+# --- 4. Hoellenfeuer-Hoerner ---
+## Ab diesem Tempo (Einheiten/s, horizontal) zaehlt eine Beruehrung als Ramme.
+const HORNS_MIN_SPEED: float = 18.0
+const HORNS_CONTACT_RANGE: float = 2.0
+const HORNS_DAMAGE: float = 35.0
+const HORNS_KNOCKBACK: float = 18.0
+## Sperre pro Gegner, damit ein Durchlaufen nicht 60x pro Sekunde trifft.
+const HORNS_COOLDOWN_PER_TARGET: float = 0.8
+
+# --- 5. Heiliges Oel ---
+const OIL_SPAWN_INTERVAL: float = 0.2
+const OIL_LIFETIME: float = 3.0
+const OIL_RADIUS: float = 1.1
+const OIL_DAMAGE_PER_TICK: float = 3.0
+const OIL_TICK_INTERVAL: float = 0.5
+const OIL_SLOW_AMOUNT: float = 0.25
+## Erst ab diesem Tempo wird eine Spur gelegt — sonst pflastert Herumstehen
+## den halben Raum zu.
+const OIL_MIN_SPEED: float = 3.0
+
+# --- 6. Papas Starthilfekabel ---
+const CABLES_SPEED: float = 45.0
+const CABLES_DURATION: float = 0.28
+const CABLES_DAMAGE: float = 45.0
+const CABLES_STUN: float = 2.0
+const CABLES_HIT_RADIUS: float = 2.6
+
+var _items: Node = null
+
+# --- Laufzeit-Zustand ---
+var _sock_hit_count: int = 0
+var _horns_cooldowns: Dictionary = {}   # Gegner-InstanceID -> Restsperre
+var _oil_timer: float = 0.0
+var _cables_timer: float = 0.0
+var _cables_hit: Array[int] = []
+var _cables_direction: Vector3 = Vector3.ZERO
+
+
+func _ready() -> void:
+	_items = get_parent()
+	if _items == null:
+		return
+
+	_items.player_hit_enemy.connect(_on_player_hit_enemy)
+	_items.active_item_used.connect(_on_active_item_used)
+
+
+func _player() -> CharacterBody3D:
+	if _items == null:
+		return null
+	var p = _items.player
+	if p is CharacterBody3D and is_instance_valid(p):
+		return p
+	return null
+
+
+# ============================================================================
+# Treffer-Events
+# ============================================================================
+func _on_player_hit_enemy(target: Node3D, hitbox: Hitbox) -> void:
+	if _items.has_item(ItemCatalog.ID_WOODEN_SPOON):
+		_apply_wooden_spoon()
+
+	if _items.has_item(ItemCatalog.ID_RUSTY_CLEAVER):
+		_apply_rusty_cleaver(target)
+
+	if _items.has_item(ItemCatalog.ID_STATIC_SOCK):
+		_apply_static_sock(hitbox)
+
+	# --- Game Juice -----------------------------------------------------
+	# Der Hit-Stop haengt an der Wucht des Angriffs, nicht am Item: die
+	# SecondaryHitbox macht doppelten Schaden und bekommt deshalb den
+	# laengeren Freeze. Das ist der Grund, warum _on_hitbox_hit die Hitbox
+	# mitgibt statt nur das Ziel.
+	if hitbox != null and hitbox.name.begins_with("Secondary"):
+		Juice.hit_stop(Juice.DURATION_HEAVY)
+	else:
+		Juice.hit_stop(Juice.DURATION_LIGHT)
+
+
+# ----------------------------------------------------------------------------
+# 1. Mamas Kochloeffel — kurzer Schub + Unverwundbarkeit
+# ----------------------------------------------------------------------------
+func _apply_wooden_spoon() -> void:
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return
+
+	var health := player.get_node_or_null("Health") as Health
+	if health:
+		health.set_invulnerable(SPOON_DURATION)
+
+	if _items.stats:
+		_items.stats.add_timed_modifier(
+			"buff:wooden_spoon",
+			PlayerStats.STAT_MOVE_SPEED,
+			SPOON_DURATION,
+			0.0,
+			SPOON_SPEED_MULTIPLIER
+		)
+
+
+# ----------------------------------------------------------------------------
+# 2. Rostiges Beil — Blutung
+# ----------------------------------------------------------------------------
+# Nutzt bewusst den bestehenden StatusEffectManager statt einer eigenen
+# Coroutine: der Effekt laeuft dann automatisch mit ab, wenn der Gegner
+# stirbt oder der Raum zurueckgesetzt wird, und ist im Debug sichtbar wie
+# jeder andere Status auch.
+#
+# WICHTIG: enemy_ai.gd muss "bleed" in _on_status_effect_ticked kennen,
+# sonst tickt der Effekt ins Leere. Siehe README, Schritt 5.
+func _apply_rusty_cleaver(target: Node3D) -> void:
+	if randf() > CLEAVER_CHANCE:
+		return
+	if not target.has_method("apply_status_effect"):
+		return
+
+	target.apply_status_effect(
+		"bleed",
+		BLEED_DURATION,
+		BLEED_DAMAGE_PER_TICK,
+		_player(),
+		BLEED_TICK_INTERVAL
+	)
+
+
+# ----------------------------------------------------------------------------
+# 3. Statische Socke — Schockwelle bei jedem 6. Treffer
+# ----------------------------------------------------------------------------
+func _apply_static_sock(hitbox: Hitbox) -> void:
+	_sock_hit_count += 1
+	if _sock_hit_count < SOCK_HITS_NEEDED:
+		return
+
+	_sock_hit_count = 0
+
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return
+
+	var base_damage: float = hitbox.damage if hitbox != null else 15.0
+	var wave_damage: float = base_damage * SOCK_DAMAGE_MULTIPLIER
+	var origin: Vector3 = player.global_position
+
+	for node: Node in get_tree().get_nodes_in_group("enemies"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		var enemy: Node3D = node as Node3D
+		var offset: Vector3 = enemy.global_position - origin
+		if offset.length() > SOCK_RADIUS:
+			continue
+
+		var health := enemy.find_child("Health", true, false) as Health
+		if health == null or not health.is_alive():
+			continue
+
+		health.take_damage(wave_damage, player)
+
+		if enemy.get("is_heavy") == true:
+			continue
+
+		var push: Vector3 = Vector3(offset.x, 0.0, offset.z)
+		if push.length() < 0.01:
+			push = -player.global_transform.basis.z
+		push = push.normalized() * SOCK_KNOCKBACK
+
+		if enemy.has_method("apply_knockback"):
+			enemy.apply_knockback(push)
+		elif enemy is CharacterBody3D:
+			(enemy as CharacterBody3D).velocity += push
+
+	Juice.impact(0.6, Juice.DURATION_HEAVY)
+
+
+# ============================================================================
+# Pro-Frame-Effekte
+# ============================================================================
+func _physics_process(delta: float) -> void:
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return
+
+	_tick_horns_cooldowns(delta)
+
+	if _items.has_item(ItemCatalog.ID_BRIMSTONE_HORNS):
+		_process_brimstone_horns(player)
+
+	if _items.has_item(ItemCatalog.ID_HOLY_OIL):
+		_process_holy_oil(player, delta)
+
+	if _cables_timer > 0.0:
+		_process_jumper_cables(player, delta)
+
+
+func _tick_horns_cooldowns(delta: float) -> void:
+	if _horns_cooldowns.is_empty():
+		return
+	var expired: Array = []
+	for id in _horns_cooldowns.keys():
+		var remaining: float = float(_horns_cooldowns[id]) - delta
+		if remaining <= 0.0:
+			expired.append(id)
+		else:
+			_horns_cooldowns[id] = remaining
+	for id in expired:
+		_horns_cooldowns.erase(id)
+
+
+# ----------------------------------------------------------------------------
+# 4. Hoellenfeuer-Hoerner — Ramm-Attacke bei hohem Tempo
+# ----------------------------------------------------------------------------
+# Ausgewertet wird die HORIZONTALE Geschwindigkeit plus die Naehe zum
+# Gegner, nicht get_slide_collision(). Der Grund: eine Kollisionsabfrage
+# haette einen Eingriff in player_base._physics_process gebraucht, und
+# gegen einen Gegner, der selbst wegrennt, meldet move_and_slide je nach
+# Frame gar keine Kollision — die Ramme haette dann zufaellig ausgesetzt.
+func _process_brimstone_horns(player: CharacterBody3D) -> void:
+	var flat_velocity := Vector3(player.velocity.x, 0.0, player.velocity.z)
+	if flat_velocity.length() < HORNS_MIN_SPEED:
+		return
+
+	var direction: Vector3 = flat_velocity.normalized()
+
+	for node: Node in get_tree().get_nodes_in_group("enemies"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		var enemy: Node3D = node as Node3D
+		var id: int = enemy.get_instance_id()
+		if _horns_cooldowns.has(id):
+			continue
+
+		var offset: Vector3 = enemy.global_position - player.global_position
+		var flat_offset := Vector3(offset.x, 0.0, offset.z)
+		if flat_offset.length() > HORNS_CONTACT_RANGE:
+			continue
+		# Nur, wenn der Gegner tatsaechlich VOR mir liegt — sonst rammt man
+		# jemanden, an dem man gerade vorbeigelaufen ist.
+		if direction.dot(flat_offset.normalized()) < 0.3:
+			continue
+
+		var health := enemy.find_child("Health", true, false) as Health
+		if health == null or not health.is_alive():
+			continue
+
+		health.take_damage(HORNS_DAMAGE, player)
+		_horns_cooldowns[id] = HORNS_COOLDOWN_PER_TARGET
+
+		if enemy.get("is_heavy") != true:
+			var push: Vector3 = direction * HORNS_KNOCKBACK
+			if enemy.has_method("apply_knockback"):
+				enemy.apply_knockback(push)
+
+		Juice.impact(0.7, Juice.DURATION_HEAVY)
+
+
+# ----------------------------------------------------------------------------
+# 5. Heiliges Oel — Spur aus Pfuetzen
+# ----------------------------------------------------------------------------
+func _process_holy_oil(player: CharacterBody3D, delta: float) -> void:
+	var flat_speed: float = Vector3(player.velocity.x, 0.0, player.velocity.z).length()
+	if flat_speed < OIL_MIN_SPEED:
+		return
+
+	_oil_timer -= delta
+	if _oil_timer > 0.0:
+		return
+	_oil_timer = OIL_SPAWN_INTERVAL
+
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		return
+
+	var puddle := OilPuddle.new()
+	puddle.setup(OIL_RADIUS, OIL_LIFETIME, OIL_DAMAGE_PER_TICK, OIL_TICK_INTERVAL, OIL_SLOW_AMOUNT, player)
+	parent.add_child(puddle)
+	# Leicht ueber dem Boden, sonst z-fightet die Scheibe mit der Bodenplatte.
+	puddle.global_position = player.global_position + Vector3(0.0, -0.85, 0.0)
+
+
+# ----------------------------------------------------------------------------
+# 6. Papas Starthilfekabel — aktiver Stoss-Dash
+# ----------------------------------------------------------------------------
+func _on_active_item_used(item: ItemData) -> void:
+	if item.id != ItemCatalog.ID_JUMPER_CABLES:
+		return
+
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return
+
+	var combat := player.get_node_or_null("Combat") as CombatBase
+	var pivot := player.get_node_or_null("CameraPivot") as Node3D
+	if combat == null or pivot == null:
+		return
+
+	# Blickrichtung flach: ein Stoss-Dash soll nicht in den Boden zielen.
+	var forward: Vector3 = -pivot.global_transform.basis.z
+	forward.y = 0.0
+	if forward.length() < 0.01:
+		forward = Vector3.FORWARD
+	_cables_direction = forward.normalized()
+
+	# Der bestehende Dash-Zustand von CombatBase wird direkt gesetzt, statt
+	# eine eigene Bewegung zu bauen: player_base._physics_process fragt
+	# combat.is_dashing() bereits ab und uebernimmt dann die Dash-Velocity.
+	# So laeuft der Stoss ueber exakt denselben, getesteten Codepfad wie
+	# der normale Dash — inklusive Kamera-Federarm-Schutz.
+	combat.set("_dash_direction", _cables_direction)
+	combat.set("_dash_timer", CABLES_DURATION)
+	combat.set("_is_dashing", true)
+
+	if player.has_method("play_dash_fov_effect"):
+		player.play_dash_fov_effect()
+
+	_cables_timer = CABLES_DURATION
+	_cables_hit.clear()
+	Juice.shake(0.35)
+
+
+func _process_jumper_cables(player: CharacterBody3D, delta: float) -> void:
+	_cables_timer -= delta
+
+	for node: Node in get_tree().get_nodes_in_group("enemies"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		var enemy: Node3D = node as Node3D
+		var id: int = enemy.get_instance_id()
+		if id in _cables_hit:
+			continue
+
+		var offset: Vector3 = enemy.global_position - player.global_position
+		if Vector3(offset.x, 0.0, offset.z).length() > CABLES_HIT_RADIUS:
+			continue
+		if absf(offset.y) > 3.0:
+			continue
+
+		var health := enemy.find_child("Health", true, false) as Health
+		if health == null or not health.is_alive():
+			continue
+
+		_cables_hit.append(id)
+		health.take_damage(CABLES_DAMAGE, player)
+
+		if enemy.has_method("apply_stun"):
+			enemy.apply_stun(CABLES_STUN)
+		elif enemy.has_method("apply_status_effect"):
+			enemy.apply_status_effect("stun", CABLES_STUN, 1.0, player, 0.0)
+
+		Juice.impact(0.5, Juice.DURATION_HEAVY)
+
+	if _cables_timer <= 0.0:
+		_cables_hit.clear()
+
+
+# ============================================================================
+# Oel-Pfuetze
+# ============================================================================
+# Als verschachtelte Klasse statt eigener Datei: sie wird ausschliesslich
+# von diesem Item benutzt und braucht weder Szene noch Inspector-Werte.
+class OilPuddle extends Area3D:
+	var _lifetime: float = 3.0
+	var _damage: float = 3.0
+	var _tick_interval: float = 0.5
+	var _slow_amount: float = 0.25
+	var _source: Node3D = null
+	var _tick_timer: float = 0.0
+	var _age: float = 0.0
+	var _mesh: MeshInstance3D = null
+
+	func setup(radius: float, lifetime: float, damage: float, tick_interval: float, slow_amount: float, source: Node3D) -> void:
+		_lifetime = lifetime
+		_damage = damage
+		_tick_interval = tick_interval
+		_tick_timer = tick_interval
+		_slow_amount = slow_amount
+		_source = source
+
+		var shape := CollisionShape3D.new()
+		var cylinder := CylinderShape3D.new()
+		cylinder.radius = radius
+		cylinder.height = 0.6
+		shape.shape = cylinder
+		add_child(shape)
+
+		var cyl_mesh := CylinderMesh.new()
+		cyl_mesh.top_radius = radius
+		cyl_mesh.bottom_radius = radius
+		cyl_mesh.height = 0.06
+
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.albedo_color = Color(0.95, 0.90, 0.45, 0.55)
+
+		_mesh = MeshInstance3D.new()
+		_mesh.mesh = cyl_mesh
+		# material_override statt surface_material_override — Vorrangregel.
+		_mesh.material_override = material
+		_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_mesh)
+
+		monitoring = true
+		# Siehe bomb.gd: enge Masken fallen beim Testen nicht auf.
+		collision_mask = 0xFFFFF
+
+	func _physics_process(delta: float) -> void:
+		_age += delta
+		if _age >= _lifetime:
+			queue_free()
+			return
+
+		# Ausblenden statt hart verschwinden — sonst sieht die Spur aus wie
+		# ein Fehler in der Darstellung.
+		if _mesh and _mesh.material_override is StandardMaterial3D:
+			var fade: float = clampf(1.0 - _age / _lifetime, 0.0, 1.0)
+			var mat: StandardMaterial3D = _mesh.material_override
+			mat.albedo_color.a = 0.55 * fade
+
+		_tick_timer -= delta
+		if _tick_timer > 0.0:
+			return
+		_tick_timer = _tick_interval
+
+		for body: Node3D in get_overlapping_bodies():
+			if not body.is_in_group("enemies"):
+				continue
+			var health := body.find_child("Health", true, false) as Health
+			if health and health.is_alive():
+				health.take_damage(_damage, _source)
+			if body.has_method("apply_status_effect"):
+				body.apply_status_effect("slow", _tick_interval + 0.1, _slow_amount, _source, 0.0)
+
+
+===== FILE: scripts\item_catalog.gd =====
+
+extends RefCounted
+class_name ItemCatalog
+
+# ============================================================================
+# ItemCatalog — alle Items als Code statt als .tres-Dateien.
+# ============================================================================
+# BEWUSSTE ENTSCHEIDUNG: Items im Code zu definieren statt als Resource-
+# Dateien im Editor hat hier drei praktische Vorteile:
+#   * Ein neues Item ist ein Funktionsaufruf, kein Datei-Anlege-Ritual.
+#   * Balancing-Aenderungen sind im Git-Diff lesbar (eine .tres-Aenderung
+#     ist es nicht).
+#   * Es gibt keine kaputten Resource-Pfade, wenn Ordner umbenannt werden.
+#
+# Wer spaeter lieber im Inspector arbeitet, legt .tres-Dateien mit dem
+# Script item_data.gd an und laedt sie in load_external() dazu — der Rest
+# des Systems merkt keinen Unterschied.
+#
+# ICONS: bleiben hier leer. Sobald es Texturen gibt, in
+# ItemManager._build_catalog() nach dem Erzeugen zuweisen oder direkt
+# unten im jeweiligen Block per load("res://textures/items/...").
+
+const ID_WOODEN_SPOON: String = "wooden_spoon"
+const ID_RUSTY_CLEAVER: String = "rusty_cleaver"
+const ID_STATIC_SOCK: String = "static_sock"
+const ID_BRIMSTONE_HORNS: String = "brimstone_horns"
+const ID_HOLY_OIL: String = "holy_oil"
+const ID_JUMPER_CABLES: String = "jumper_cables"
+const ID_MAGNETIC_COMPASS: String = "magnetic_compass"
+const ID_ACID_BOOTS: String = "acid_boots"
+
+
+## Liefert alle Items als Array. Reihenfolge = Reihenfolge im Design-Dokument.
+static func build_all() -> Array[ItemData]:
+	var items: Array[ItemData] = []
+
+	# ------------------------------------------------------------------
+	# 1. Mamas Kochloeffel
+	# ------------------------------------------------------------------
+	var spoon := ItemData.create(
+		ID_WOODEN_SPOON,
+		"Mamas Kochloeffel",
+		"Schlag die Hitze zurueck",
+		"Ein Treffer auf einen Gegner gibt 0,75 s lang 1,5x Tempo und Unverwundbarkeit.",
+		ItemData.Kind.PASSIVE,
+		ItemData.Category.MELEE
+	)
+	spoon.pedestal_color = Color(0.85, 0.68, 0.42)
+	items.append(spoon)
+
+	# ------------------------------------------------------------------
+	# 2. Rostiges Beil
+	# ------------------------------------------------------------------
+	var cleaver := ItemData.create(
+		ID_RUSTY_CLEAVER,
+		"Rostiges Beil",
+		"Schwere Hiebe",
+		"30 % Chance, Bluten zuzufuegen: 4 s lang jede Sekunde Schaden.",
+		ItemData.Kind.PASSIVE,
+		ItemData.Category.MELEE
+	)
+	cleaver.pedestal_color = Color(0.72, 0.25, 0.20)
+	# Kleiner Grundschadensbonus, damit sich das Item auch ohne Prozzen lohnt.
+	cleaver.stat_modifiers = {
+		PlayerStats.STAT_DAMAGE: {"mul": 1.05},
+	}
+	items.append(cleaver)
+
+	# ------------------------------------------------------------------
+	# 3. Statische Socke
+	# ------------------------------------------------------------------
+	var sock := ItemData.create(
+		ID_STATIC_SOCK,
+		"Statische Socke",
+		"Ladung baut sich auf",
+		"Jeder 6. Treffer entlaedt eine Schockwelle: doppelter Schaden im Umkreis, Gegner werden zurueckgestossen.",
+		ItemData.Kind.PASSIVE,
+		ItemData.Category.MELEE
+	)
+	sock.pedestal_color = Color(0.55, 0.75, 0.98)
+	items.append(sock)
+
+	# ------------------------------------------------------------------
+	# 4. Hoellenfeuer-Hoerner
+	# ------------------------------------------------------------------
+	var horns := ItemData.create(
+		ID_BRIMSTONE_HORNS,
+		"Hoellenfeuer-Hoerner",
+		"Ramm sie!",
+		"Wer mit hohem Tempo in einen Gegner laeuft, loest eine Ramm-Attacke aus: hoher Kontaktschaden und Rueckstoss.",
+		ItemData.Kind.PASSIVE,
+		ItemData.Category.MOVEMENT
+	)
+	horns.pedestal_color = Color(0.90, 0.35, 0.15)
+	horns.stat_modifiers = {
+		PlayerStats.STAT_MOVE_SPEED: {"add": 1.0},
+	}
+	items.append(horns)
+
+	# ------------------------------------------------------------------
+	# 5. Heiliges Oel
+	# ------------------------------------------------------------------
+	var oil := ItemData.create(
+		ID_HOLY_OIL,
+		"Heiliges Oel",
+		"Hinterlasse eine Spur",
+		"Hinterlaesst beim Laufen eine Pfuetze. Gegner darin erleiden Schaden und werden 25 % verlangsamt.",
+		ItemData.Kind.PASSIVE,
+		ItemData.Category.MOVEMENT
+	)
+	oil.pedestal_color = Color(0.95, 0.90, 0.55)
+	items.append(oil)
+
+	# ------------------------------------------------------------------
+	# 6. Papas Starthilfekabel (AKTIV)
+	# ------------------------------------------------------------------
+	var cables := ItemData.create(
+		ID_JUMPER_CABLES,
+		"Papas Starthilfekabel",
+		"Zisch & Zap",
+		"Sofortiger Dash nach vorne. Durchquerte Gegner nehmen hohen Schaden und werden 2 s betaeubt.",
+		ItemData.Kind.ACTIVE,
+		ItemData.Category.MOVEMENT
+	)
+	cables.charge_rooms = 2
+	cables.pedestal_color = Color(0.40, 0.85, 0.95)
+	items.append(cables)
+
+	# ------------------------------------------------------------------
+	# 7. Magnetischer Kompass
+	# ------------------------------------------------------------------
+	var compass := ItemData.create(
+		ID_MAGNETIC_COMPASS,
+		"Magnetischer Kompass",
+		"Alles kommt zu dir",
+		"Zieht Muenzen, Herzen und abgelegte Bomben im Umkreis von 6 m automatisch an.",
+		ItemData.Kind.PASSIVE,
+		ItemData.Category.DEFENSE
+	)
+	compass.pedestal_color = Color(0.65, 0.70, 0.80)
+	compass.stat_modifiers = {
+		# 6 m absolut: der Basiswert liegt bei 2.2, also +3.8 additiv.
+		PlayerStats.STAT_PICKUP_RANGE: {"add": 3.8},
+	}
+	items.append(compass)
+
+	# ------------------------------------------------------------------
+	# 8. Saeurefeste Stiefel
+	# ------------------------------------------------------------------
+	var boots := ItemData.create(
+		ID_ACID_BOOTS,
+		"Saeurefeste Stiefel",
+		"Die Limonade beisst nicht mehr",
+		"75 % weniger Schaden durch saure Limonade und keine Verlangsamung mehr beim Durchwaten.",
+		ItemData.Kind.PASSIVE,
+		ItemData.Category.DEFENSE
+	)
+	boots.pedestal_color = Color(0.45, 0.90, 0.50)
+	boots.stat_modifiers = {
+		PlayerStats.STAT_HAZARD_RESIST: {"mul": 0.25},
+	}
+	items.append(boots)
+
+	return items
+
+
+## Optionaler Zusatz-Ladepfad fuer spaetere .tres-Items. Fehlt der Ordner,
+## passiert nichts — das ist kein Fehlerfall, sondern der Normalzustand,
+## solange alle Items aus dem Code kommen.
+static func load_external(directory: String = "res://resources/items") -> Array[ItemData]:
+	var result: Array[ItemData] = []
+	if not DirAccess.dir_exists_absolute(directory):
+		return result
+
+	var dir := DirAccess.open(directory)
+	if dir == null:
+		return result
+
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.ends_with(".tres"):
+			var res: Resource = load(directory.path_join(file_name))
+			if res is ItemData and (res as ItemData).id != "":
+				result.append(res)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+
+	return result
+
+
+===== FILE: scripts\item_data.gd =====
+
+extends Resource
+class_name ItemData
+
+# ============================================================================
+# ItemData — reine Beschreibung EINES Items. Enthaelt bewusst KEINE Logik.
+# ============================================================================
+# Was ein Item TUT, steht in item_behaviours.gd. Diese Trennung ist wichtig,
+# weil Items aus zwei sehr unterschiedlichen Quellen kommen koennen:
+# aus dem Code-Katalog (item_catalog.gd) oder spaeter aus .tres-Dateien, die
+# im Editor angelegt werden. Beide Wege liefern dasselbe ItemData-Objekt.
+
+enum Kind {
+	PASSIVE,   ## Wirkt dauerhaft, sobald es im Inventar liegt.
+	ACTIVE,    ## Muss aktiv ausgeloest werden, laedt ueber Raeume auf.
+}
+
+enum Category {
+	MELEE,      ## Nahkampf & Treffer-Effekte
+	MOVEMENT,   ## Bewegung & Ramm-Attacken
+	DEFENSE,    ## Defensive / Taktik
+	UTILITY,    ## Alles Uebrige
+}
+
+## Eindeutige ID. Wird von item_behaviours.gd zur Zuordnung benutzt und
+## darf sich nach dem Release NICHT mehr aendern (Speicherstaende, Runs).
+@export var id: String = ""
+@export var display_name: String = "Unbenanntes Item"
+
+## Der kursive Einzeiler unter dem Namen ("Schlag die Hitze zurueck").
+@export_multiline var flavor_text: String = ""
+
+## Die mechanische Erklaerung fuers HUD unten links.
+@export_multiline var description: String = ""
+
+@export var icon: Texture2D
+@export var kind: Kind = Kind.PASSIVE
+@export var category: Category = Category.UTILITY
+
+## Nur fuer ACTIVE: nach so vielen gecleareten Raeumen ist es wieder bereit.
+@export var charge_rooms: int = 2
+
+## Reine Stat-Boni, die ohne eigenen Code auskommen.
+## Format: { PlayerStats.STAT_* : { "add": float, "mul": float } }
+## Beispiel: { "damage": { "mul": 1.15 } } fuer +15 % Schaden.
+@export var stat_modifiers: Dictionary = {}
+
+## Farbe des schwebenden Sockel-Wuerfels im Raum. Rein kosmetisch.
+@export var pedestal_color: Color = Color(0.95, 0.85, 0.35)
+
+## Wie oft dasselbe Item in einem Run maximal droppen darf. 0 = unbegrenzt.
+@export var max_stacks: int = 1
+
+
+## Baut ein ItemData komplett im Code. Praktisch fuer den Katalog, damit
+## nicht fuer jedes Item eine .tres-Datei angelegt werden muss.
+static func create(
+		p_id: String,
+		p_name: String,
+		p_flavor: String,
+		p_description: String,
+		p_kind: Kind = Kind.PASSIVE,
+		p_category: Category = Category.UTILITY
+) -> ItemData:
+	var data := ItemData.new()
+	data.id = p_id
+	data.display_name = p_name
+	data.flavor_text = p_flavor
+	data.description = p_description
+	data.kind = p_kind
+	data.category = p_category
+	return data
+
+
+func is_active_item() -> bool:
+	return kind == Kind.ACTIVE
+
+
+func get_category_name() -> String:
+	match category:
+		Category.MELEE:
+			return "Nahkampf"
+		Category.MOVEMENT:
+			return "Bewegung"
+		Category.DEFENSE:
+			return "Defensive"
+	return "Sonstiges"
+
+
+===== FILE: scripts\item_description_hud.gd =====
+
+extends VBoxContainer
+class_name ItemDescriptionHud
+
+# ============================================================================
+# ItemDescriptionHud — unten links: Liste der gesammelten Items plus eine
+# ausfuehrliche Karte, sobald etwas Neues aufgenommen wurde.
+# ============================================================================
+# ZWEI EBENEN, WEIL ZWEI BEDUERFNISSE:
+#   * Beim Aufsammeln will man WISSEN, was das Ding tut -> grosse Karte mit
+#     Name, Flavour und Mechanik, blendet nach ein paar Sekunden aus.
+#   * Waehrend des Laufens will man nur SEHEN, was man hat -> kompakte
+#     Dauerliste darunter.
+# Eine einzige Anzeige haette entweder staendig den halben Bildschirm belegt
+# oder die Mechanik nie gezeigt.
+
+const HUD_ELEMENT: String = "items"
+
+## Wie lange die Detailkarte nach dem Aufsammeln stehen bleibt.
+@export var card_display_time: float = 6.0
+@export var card_fade_time: float = 0.6
+
+var _card: PanelContainer = null
+var _card_name: Label = null
+var _card_flavor: Label = null
+var _card_description: Label = null
+var _card_charge: Label = null
+
+var _list: VBoxContainer = null
+var _items: Node = null
+var _card_tween: Tween = null
+
+
+func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_theme_constant_override("separation", 6)
+
+	_build_card()
+	_build_list()
+
+	_items = get_node_or_null("/root/Items")
+	if _items:
+		_items.item_added.connect(_on_item_added)
+		_items.inventory_changed.connect(_refresh_list)
+		_items.active_item_charge_changed.connect(_on_charge_changed)
+		_refresh_list()
+
+	SettingsManager.hud_visible_changed.connect(_on_visibility_setting_changed)
+	SettingsManager.hud_element_visible_changed.connect(_on_element_setting_changed)
+	_apply_visibility()
+
+
+# ============================================================================
+# Aufbau
+# ============================================================================
+func _build_card() -> void:
+	_card = PanelContainer.new()
+	_card.custom_minimum_size = Vector2(340.0, 0.0)
+	_card.modulate.a = 0.0
+	_card.visible = false
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.07, 0.09, 0.88)
+	style.border_color = Color(0.98, 0.80, 0.22, 0.85)
+	style.set_border_width_all(1)
+	style.border_width_left = 3
+	style.set_corner_radius_all(3)
+	style.content_margin_left = 12.0
+	style.content_margin_right = 12.0
+	style.content_margin_top = 9.0
+	style.content_margin_bottom = 9.0
+	_card.add_theme_stylebox_override("panel", style)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 3)
+	_card.add_child(column)
+
+	_card_name = Label.new()
+	_card_name.add_theme_font_size_override("font_size", 15)
+	_card_name.add_theme_color_override("font_color", Color(0.98, 0.94, 0.80))
+	column.add_child(_card_name)
+
+	_card_flavor = Label.new()
+	_card_flavor.add_theme_font_size_override("font_size", 11)
+	_card_flavor.add_theme_color_override("font_color", Color(0.62, 0.66, 0.72))
+	_card_flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_card_flavor)
+
+	_card_description = Label.new()
+	_card_description.add_theme_font_size_override("font_size", 12)
+	_card_description.add_theme_color_override("font_color", Color(0.88, 0.88, 0.90))
+	_card_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_card_description)
+
+	_card_charge = Label.new()
+	_card_charge.add_theme_font_size_override("font_size", 11)
+	_card_charge.add_theme_color_override("font_color", Color(0.45, 0.85, 0.95))
+	_card_charge.visible = false
+	column.add_child(_card_charge)
+
+	add_child(_card)
+
+
+func _build_list() -> void:
+	_list = VBoxContainer.new()
+	_list.add_theme_constant_override("separation", 1)
+	add_child(_list)
+
+
+# ============================================================================
+# Detailkarte
+# ============================================================================
+func _on_item_added(item: ItemData) -> void:
+	show_item(item)
+
+
+## Auch von aussen aufrufbar — z.B. wenn der Spieler an einem Sockel steht
+## und das Item noch nicht genommen hat (Vorschau).
+func show_item(item: ItemData) -> void:
+	if item == null or _card == null:
+		return
+
+	_card_name.text = item.display_name
+	_card_flavor.text = "\u201c%s\u201d" % item.flavor_text if item.flavor_text != "" else ""
+	_card_flavor.visible = item.flavor_text != ""
+	_card_description.text = item.description
+
+	if item.is_active_item():
+		_card_charge.visible = true
+		_card_charge.text = "Aktiv \u2014 [C] \u00b7 laedt ueber %d Raeume" % item.charge_rooms
+	else:
+		_card_charge.visible = false
+
+	if _card_tween and _card_tween.is_valid():
+		_card_tween.kill()
+
+	_card.visible = true
+	_card.modulate.a = 1.0
+
+	_card_tween = create_tween()
+	_card_tween.tween_interval(card_display_time)
+	_card_tween.tween_property(_card, "modulate:a", 0.0, card_fade_time)
+	_card_tween.tween_callback(func() -> void: _card.visible = false)
+
+
+func _on_charge_changed(current: int, needed: int) -> void:
+	if _card == null or not _card.visible or not _card_charge.visible:
+		return
+	if current <= 0:
+		_card_charge.text = "Aktiv \u2014 [C] \u00b7 BEREIT"
+	else:
+		_card_charge.text = "Aktiv \u2014 [C] \u00b7 noch %d/%d Raeume" % [current, needed]
+
+
+# ============================================================================
+# Dauerliste
+# ============================================================================
+func _refresh_list() -> void:
+	if _list == null or _items == null:
+		return
+
+	for child: Node in _list.get_children():
+		child.queue_free()
+
+	# Gleiche Items zusammenfassen statt untereinander zu stapeln — mit drei
+	# Exemplaren desselben Items waere die Liste sonst schnell laenger als
+	# der Bildschirm.
+	var counts: Dictionary = {}
+	var order: Array[ItemData] = []
+	for item: ItemData in _items.inventory:
+		if counts.has(item.id):
+			counts[item.id] = int(counts[item.id]) + 1
+		else:
+			counts[item.id] = 1
+			order.append(item)
+
+	for item: ItemData in order:
+		var count: int = int(counts[item.id])
+		var label := Label.new()
+		label.text = item.display_name if count <= 1 else "%s  x%d" % [item.display_name, count]
+		label.add_theme_font_size_override("font_size", 11)
+		label.add_theme_color_override("font_color", Color(0.70, 0.72, 0.76))
+		_list.add_child(label)
+
+
+# ============================================================================
+# Sichtbarkeit
+# ============================================================================
+func _on_visibility_setting_changed(_visible: bool) -> void:
+	_apply_visibility()
+
+
+func _on_element_setting_changed(_element: String, _is_visible: bool) -> void:
+	_apply_visibility()
+
+
+func _apply_visibility() -> void:
+	visible = SettingsManager.hud_visible and SettingsManager.is_hud_element_visible(HUD_ELEMENT)
+
+
+===== FILE: scripts\item_manager.gd =====
+
+extends Node
+
+# ============================================================================
+# Items — Autoload: Inventar, Waehrungen und der Event-Verteiler fuer alle
+# Item-Effekte. Muss unter Project Settings -> Autoload als "Items" stehen.
+# ============================================================================
+#
+# WARUM EIN AUTOLOAD UND KEINE KOMPONENTE AM SPIELER:
+# Der PartyManager tauscht die Spieler-Instanz bei JEDEM Charakterwechsel
+# komplett aus. Ein Inventar, das am Spieler haengt, waere nach dem ersten
+# Wechsel weg. Items gehoeren dem RUN, nicht der Figur.
+#
+# WAS DIESES SCRIPT SONST NOCH TUT — und warum:
+# Es haengt bei jedem Charakterwechsel automatisch die Laufzeit-Komponenten
+# an die neue Spieler-Instanz (PlayerStats, BombCarrier) und verbindet sich
+# mit deren Hitboxen. Dadurch muss KEINE der vier Charakter-Szenen
+# angefasst werden — kein neuer Node im Inspector, kein vergessener Slot in
+# char_winter.tscn, der drei Wochen spaeter als Bug zurueckkommt.
+#
+# EVENT-VERTEILUNG: item_behaviours.gd haengt sich an die Signale unten.
+# Dieses Script kennt selbst KEINE Item-Regeln — genau wie
+# StatusEffectManager keine Spielregeln kennt.
+
+signal item_added(item: ItemData)
+signal inventory_changed
+signal coins_changed(amount: int)
+signal bombs_changed(amount: int)
+signal active_item_charge_changed(current: int, needed: int)
+
+## Der aktive Spieler hat einen Gegner getroffen (Primary/Secondary-Hitbox).
+signal player_hit_enemy(target: Node3D, hitbox: Hitbox)
+## Ein Raum wurde geleert.
+signal room_cleared(room: Node)
+## Der Spieler ist in eine neue Instanz gewechselt (oder frisch gespawnt).
+signal player_ready(player: CharacterBody3D)
+## Aktives Item wurde benutzt.
+signal active_item_used(item: ItemData)
+
+const USE_ITEM_ACTION: String = "use_item"
+const BOMB_ACTION: String = "bomb"
+
+## Startwerte eines Runs.
+const START_COINS: int = 0
+const START_BOMBS: int = 1
+
+var coins: int = START_COINS
+var bombs: int = START_BOMBS
+
+var inventory: Array[ItemData] = []
+var catalog: Array[ItemData] = []
+
+var active_item: ItemData = null
+var active_item_charge: int = 0
+
+var player: CharacterBody3D = null
+var stats: PlayerStats = null
+var bomb_carrier: Node = null
+
+var _behaviours: Node = null
+var _connected_hitboxes: Array[Hitbox] = []
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_PAUSABLE
+	_ensure_actions()
+	_build_catalog()
+	_spawn_behaviours()
+
+	# PartyManager ist selbst ein Autoload. Die Reihenfolge, in der Godot
+	# Autoloads initialisiert, ist nicht garantiert — deshalb wird die
+	# Verbindung deferred aufgebaut statt direkt hier.
+	_connect_party_manager.call_deferred()
+
+
+# ============================================================================
+# Eingabe-Actions selbst registrieren
+# ============================================================================
+# Bewusst hier statt in settings_manager.gd: dieses Feature soll sich
+# installieren lassen, ohne eine bestehende Datei anzufassen. Wer die Tasten
+# spaeter im Menue umlegbar machen will, traegt die beiden Actions
+# zusaetzlich in SettingsManager.REBINDABLE_ACTIONS und DEFAULT_KEYBINDS ein.
+func _ensure_actions() -> void:
+	if not InputMap.has_action(BOMB_ACTION):
+		InputMap.add_action(BOMB_ACTION)
+		var bomb_event := InputEventKey.new()
+		bomb_event.physical_keycode = KEY_X
+		InputMap.action_add_event(BOMB_ACTION, bomb_event)
+
+	if not InputMap.has_action(USE_ITEM_ACTION):
+		InputMap.add_action(USE_ITEM_ACTION)
+		var use_event := InputEventKey.new()
+		use_event.physical_keycode = KEY_C
+		InputMap.action_add_event(USE_ITEM_ACTION, use_event)
+
+
+func _build_catalog() -> void:
+	catalog = ItemCatalog.build_all()
+	for external: ItemData in ItemCatalog.load_external():
+		catalog.append(external)
+
+
+func _spawn_behaviours() -> void:
+	_behaviours = ItemBehaviours.new()
+	_behaviours.name = "ItemBehaviours"
+	add_child(_behaviours)
+
+
+# ============================================================================
+# Anbindung an den jeweils aktiven Spieler
+# ============================================================================
+func _connect_party_manager() -> void:
+	var party: Node = get_node_or_null("/root/PartyManager")
+	if party == null:
+		push_warning("Items: PartyManager nicht gefunden — Item-Effekte bleiben inaktiv.")
+		return
+
+	if party.has_signal("active_player_changed") \
+			and not party.active_player_changed.is_connected(bind_player):
+		party.active_player_changed.connect(bind_player)
+
+	# Falls der Spieler schon vor diesem Autoload gespawnt ist.
+	var existing = party.get("player")
+	if existing is CharacterBody3D and is_instance_valid(existing):
+		bind_player(existing)
+
+
+## Haengt alle Laufzeit-Komponenten an die neue Spieler-Instanz.
+func bind_player(new_player: CharacterBody3D) -> void:
+	_disconnect_hitboxes()
+
+	player = new_player
+	stats = null
+	bomb_carrier = null
+
+	if player == null or not is_instance_valid(player):
+		return
+
+	# --- PlayerStats -------------------------------------------------
+	stats = player.get_node_or_null("PlayerStats") as PlayerStats
+	if stats == null:
+		stats = PlayerStats.new()
+		stats.name = "PlayerStats"
+		player.add_child(stats)
+	stats.bind_to_player(player)
+
+	# --- BombCarrier -------------------------------------------------
+	bomb_carrier = player.get_node_or_null("BombCarrier")
+	if bomb_carrier == null:
+		bomb_carrier = BombCarrier.new()
+		bomb_carrier.name = "BombCarrier"
+		player.add_child(bomb_carrier)
+
+	_connect_hitboxes()
+	_reapply_all_item_stats()
+
+	player_ready.emit(player)
+
+
+func _connect_hitboxes() -> void:
+	for path: String in ["CameraPivot/PrimaryHitbox", "CameraPivot/SecondaryHitbox"]:
+		var hitbox := player.get_node_or_null(path) as Hitbox
+		if hitbox == null:
+			continue
+		# Eine gebundene Callable pro Hitbox: nur so weiss der Empfaenger
+		# spaeter, WELCHE Hitbox getroffen hat (Primary vs. Secondary
+		# entscheidet ueber die Wucht des Hit-Stops).
+		var callable := _on_hitbox_hit.bind(hitbox)
+		if not hitbox.hit_landed.is_connected(callable):
+			hitbox.hit_landed.connect(callable)
+		_connected_hitboxes.append(hitbox)
+
+
+func _disconnect_hitboxes() -> void:
+	# Die alte Instanz wird vom PartyManager freigegeben; Godot loest die
+	# Verbindungen dabei selbst. Der Array wird trotzdem geleert, damit
+	# keine ungueltigen Referenzen liegenbleiben.
+	_connected_hitboxes.clear()
+
+
+func _on_hitbox_hit(target: Node, hitbox: Hitbox) -> void:
+	if not (target is Node3D):
+		return
+	player_hit_enemy.emit(target as Node3D, hitbox)
+
+
+# ============================================================================
+# Inventar
+# ============================================================================
+func get_item_by_id(item_id: String) -> ItemData:
+	for item: ItemData in catalog:
+		if item.id == item_id:
+			return item
+	return null
+
+
+func has_item(item_id: String) -> bool:
+	for item: ItemData in inventory:
+		if item.id == item_id:
+			return true
+	return false
+
+
+func count_item(item_id: String) -> int:
+	var total: int = 0
+	for item: ItemData in inventory:
+		if item.id == item_id:
+			total += 1
+	return total
+
+
+func add_item(item: ItemData) -> bool:
+	if item == null:
+		return false
+	if item.max_stacks > 0 and count_item(item.id) >= item.max_stacks:
+		return false
+
+	inventory.append(item)
+
+	if item.is_active_item():
+		active_item = item
+		active_item_charge = item.charge_rooms
+		active_item_charge_changed.emit(active_item_charge, item.charge_rooms)
+
+	_apply_item_stats(item, inventory.size() - 1)
+
+	item_added.emit(item)
+	inventory_changed.emit()
+	return true
+
+
+func add_item_by_id(item_id: String) -> bool:
+	return add_item(get_item_by_id(item_id))
+
+
+## Stat-Boni eines Items an PlayerStats melden. Der Index wandert in die
+## Quellen-ID, damit ein zweites Exemplar desselben Items den Eintrag des
+## ersten nicht ueberschreibt.
+func _apply_item_stats(item: ItemData, index: int) -> void:
+	if stats == null or item.stat_modifiers.is_empty():
+		return
+
+	var source_id: String = "item:%s#%d" % [item.id, index]
+	for stat_name: String in item.stat_modifiers.keys():
+		var mod: Dictionary = item.stat_modifiers[stat_name]
+		stats.add_modifier(
+			source_id,
+			stat_name,
+			float(mod.get("add", 0.0)),
+			float(mod.get("mul", 1.0))
+		)
+
+
+## Nach einem Charakterwechsel haengen die Boni an der ALTEN PlayerStats-
+## Instanz. Deshalb wird beim Binden alles frisch aufgetragen.
+func _reapply_all_item_stats() -> void:
+	if stats == null:
+		return
+	for i: int in range(inventory.size()):
+		_apply_item_stats(inventory[i], i)
+
+
+## Alles zuruecksetzen — beim Start eines neuen Runs aufrufen.
+func reset_run() -> void:
+	inventory.clear()
+	active_item = null
+	active_item_charge = 0
+	coins = START_COINS
+	bombs = START_BOMBS
+	if stats:
+		stats.clear_all()
+		stats.apply()
+	inventory_changed.emit()
+	coins_changed.emit(coins)
+	bombs_changed.emit(bombs)
+
+
+# ============================================================================
+# Waehrungen
+# ============================================================================
+func add_coins(amount: int) -> void:
+	coins = maxi(coins + amount, 0)
+	coins_changed.emit(coins)
+
+
+func spend_coins(amount: int) -> bool:
+	if coins < amount:
+		return false
+	coins -= amount
+	coins_changed.emit(coins)
+	return true
+
+
+func add_bombs(amount: int) -> void:
+	bombs = maxi(bombs + amount, 0)
+	bombs_changed.emit(bombs)
+
+
+func consume_bomb() -> bool:
+	if bombs <= 0:
+		return false
+	bombs -= 1
+	bombs_changed.emit(bombs)
+	return true
+
+
+# ============================================================================
+# Raum-Events
+# ============================================================================
+## Wird von LootManager aufgerufen, sobald ein Raum geleert ist.
+func notify_room_cleared(room: Node) -> void:
+	if active_item != null and active_item_charge > 0:
+		active_item_charge -= 1
+		active_item_charge_changed.emit(active_item_charge, active_item.charge_rooms)
+	room_cleared.emit(room)
+
+
+func is_active_item_ready() -> bool:
+	return active_item != null and active_item_charge <= 0
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not event.is_action_pressed(USE_ITEM_ACTION):
+		return
+	use_active_item()
+
+
+func use_active_item() -> void:
+	if not is_active_item_ready():
+		return
+	if player == null or not is_instance_valid(player):
+		return
+
+	active_item_charge = active_item.charge_rooms
+	active_item_charge_changed.emit(active_item_charge, active_item.charge_rooms)
+	active_item_used.emit(active_item)
+
+
+## Aktuelle Combo des Spielers. LootManager nutzt sie fuer den Glueck-Bonus;
+## das HUD zeigt sie an. Liefert 0, wenn gerade kein Spieler existiert.
+func get_combo_count() -> int:
+	if player == null or not is_instance_valid(player):
+		return 0
+	var combat := player.get_node_or_null("Combat") as CombatBase
+	if combat == null:
+		return 0
+	return combat.get_combo_count()
+
+
+func get_luck() -> float:
+	if stats == null:
+		return 0.0
+	return stats.get_luck()
+
+
 ===== FILE: scripts\leaderboard_manager.gd =====
 
 extends Node
@@ -25558,6 +28522,244 @@ func _on_scores_downloaded(_message: String, _leaderboard_handle: int, result: A
 
 	entries_ready.emit(records, scope)
 	_finish_op()
+
+
+===== FILE: scripts\loot_manager.gd =====
+
+extends Node
+
+# ============================================================================
+# Loot — Autoload: wuerfelt Drops aus, sobald ein Raum geleert ist.
+# Muss unter Project Settings -> Autoload als "Loot" stehen.
+# ============================================================================
+#
+# WIE ES SICH AN DIE RAEUME HAENGT:
+# Nicht ueber den LevelGenerator, sondern ueber SceneTree.node_added. Der
+# Grund ist Robustheit: der Generator baut Raeume, aber Testlevel und
+# handgebaute Szenen (level_01.tscn, nav_test_level.tscn) enthalten
+# RoomInstances direkt in der Szenendatei. Wer sich nur beim Generator
+# anmeldet, bekommt in genau diesen Szenen nie einen Drop — und merkt es
+# beim Testen nicht, weil dort ohnehin selten aufgeraeumt wird.
+# node_added deckt beide Faelle ab und braucht keine Aenderung an
+# level_generator.gd.
+#
+# DETERMINISTISCHER ZUFALL:
+# Die Drops haengen NICHT am globalen RNG. Der laeuft laut det_rng.gd auch
+# fuer Screen-Shake und Schadenszahlen, ist also nach ein paar Minuten
+# Spielzeit voellig unvorhersehbar weit gelaufen. Ein Seed auf dem
+# Leaderboard waere damit wertlos: zwei Laeufe mit identischem Seed
+# haetten unterschiedliches Loot. Stattdessen bekommt jeder Raum einen
+# eigenen, aus Run-Seed + Rasterposition abgeleiteten RNG.
+
+signal loot_dropped(kind: int, position: Vector3)
+
+## Grundchance auf ueberhaupt einen Drop, bevor Glueck und Combo dazukommen.
+const BASE_DROP_CHANCE: float = 0.78
+
+## Gewichte der Verbrauchsgueter. Werden intern normalisiert — die Zahlen
+## entsprechen 1:1 der Design-Vorgabe (40 / 30 / 15).
+const WEIGHT_COIN: float = 40.0
+const WEIGHT_HEAL: float = 30.0
+const WEIGHT_BOMB: float = 15.0
+
+## Glueck-Bonus pro Combo-Stufe zum Zeitpunkt des Raum-Clears.
+const LUCK_PER_COMBO_STEP: float = 0.002
+
+## Obergrenze der Gesamt-Dropchance. 100 % wuerde den Zufall komplett
+## entwerten und Loot zur Selbstverstaendlichkeit machen.
+const MAX_DROP_CHANCE: float = 0.95
+
+## Wie viele Drops ein Raum maximal ausspuckt.
+@export var max_drops_per_room: int = 1
+
+## Standardmaessig AN, bis das System verifiziert ist. Danach auf false.
+@export var debug_logging: bool = true
+
+var _handled_rooms: Dictionary = {}  # InstanceID -> true
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("[Loot] %s" % msg)
+
+
+func _ready() -> void:
+	get_tree().node_added.connect(_on_node_added)
+	# Raeume, die es beim Start dieses Autoloads schon gab, nachtragen.
+	_scan_existing.call_deferred()
+
+
+func _scan_existing() -> void:
+	var root: Node = get_tree().root
+	if root == null:
+		return
+	_scan_recursive(root)
+
+
+func _scan_recursive(node: Node) -> void:
+	_on_node_added(node)
+	for child: Node in node.get_children():
+		_scan_recursive(child)
+
+
+func _on_node_added(node: Node) -> void:
+	if not (node is RoomInstance):
+		return
+	var room: RoomInstance = node as RoomInstance
+	if room.room_cleared.is_connected(_on_room_cleared):
+		return
+	room.room_cleared.connect(_on_room_cleared)
+
+
+func _on_room_cleared(room: RoomInstance) -> void:
+	# room_cleared kann laut room_instance.gd aus zwei Stellen feuern
+	# (regulaeres Herunterzaehlen und Watchdog). Ohne diese Sperre koennte
+	# ein Raum doppelt droppen.
+	var id: int = room.get_instance_id()
+	if _handled_rooms.has(id):
+		return
+	_handled_rooms[id] = true
+
+	var items: Node = get_node_or_null("/root/Items")
+	if items:
+		items.notify_room_cleared(room)
+
+	_roll_drops(room)
+
+
+# ============================================================================
+# Wuerfeln
+# ============================================================================
+func _roll_drops(room: RoomInstance) -> void:
+	var rng: RandomNumberGenerator = _make_rng(room)
+	var chance: float = _get_drop_chance()
+
+	_debug("Raum %s gecleared. Dropchance %.1f%%." % [room.grid_position, chance * 100.0])
+
+	for i: int in range(max_drops_per_room):
+		if rng.randf() > chance:
+			_debug("  -> kein Drop.")
+			continue
+
+		var kind: int = _pick_kind(rng)
+		var spawn_position: Vector3 = _pick_position(room, rng, i)
+		_spawn_pickup(kind, spawn_position)
+		_debug("  -> Drop %s bei %s." % [Pickup.Kind.keys()[kind], spawn_position])
+
+
+## Gesamt-Dropchance aus Grundwert, Glueck-Stat und aktueller Combo.
+func _get_drop_chance() -> float:
+	var items: Node = get_node_or_null("/root/Items")
+	if items == null:
+		return BASE_DROP_CHANCE
+
+	var luck: float = items.get_luck()
+	var combo_bonus: float = float(items.get_combo_count()) * LUCK_PER_COMBO_STEP
+
+	return clampf(BASE_DROP_CHANCE + luck + combo_bonus, 0.0, MAX_DROP_CHANCE)
+
+
+func _pick_kind(rng: RandomNumberGenerator) -> int:
+	var total: float = WEIGHT_COIN + WEIGHT_HEAL + WEIGHT_BOMB
+	var roll: float = rng.randf() * total
+
+	if roll < WEIGHT_COIN:
+		return Pickup.Kind.COIN
+	if roll < WEIGHT_COIN + WEIGHT_HEAL:
+		return Pickup.Kind.HEAL
+	return Pickup.Kind.BOMB
+
+
+## Bevorzugt einen LootSpawnPoint-Marker: der ist von Hand gesetzt und liegt
+## garantiert auf begehbarem Boden.
+##
+## WARUM DER FALLBACK NICHT get_room_center() IST:
+## Aktuell haben nur room_treasure_01 und room_boss_01 ueberhaupt Marker —
+## saemtliche Combat- und Korridor-Raeume nicht. get_room_center() liefert
+## bei leerer Markerliste aber den Raum-URSPRUNG zurueck, nicht die Mitte
+## (siehe room_instance.gd). Der liegt je nach Prefab in einer Ecke oder
+## unter dem Boden, und der Drop waere unsichtbar — ohne Fehlermeldung,
+## also praktisch nicht auffindbar.
+##
+## Deshalb wird ersatzweise beim SPIELER abgelegt: er hat den Raum gerade
+## geleert, steht also zwangslaeufig auf begehbarem Boden und sieht den
+## Drop sofort. Der kleine Zufallsversatz verhindert, dass mehrere Drops
+## exakt uebereinander landen.
+func _pick_position(room: RoomInstance, rng: RandomNumberGenerator, index: int) -> Vector3:
+	var points: Array[Marker3D] = room.loot_spawn_points
+	if not points.is_empty():
+		var marker: Marker3D = points[(rng.randi_range(0, points.size() - 1) + index) % points.size()]
+		return marker.global_position + Vector3(0.0, 0.6, 0.0)
+
+	var player: Node3D = _find_player()
+	if player:
+		var offset := Vector3(
+			rng.randf_range(-1.6, 1.6),
+			0.0,
+			rng.randf_range(-1.6, 1.6)
+		)
+		return player.global_position + offset + Vector3(0.0, 0.4, 0.0)
+
+	return room.get_room_center() + Vector3(0.0, 0.6, 0.0)
+
+
+func _find_player() -> Node3D:
+	for node: Node in get_tree().get_nodes_in_group("player"):
+		if node is Node3D and is_instance_valid(node):
+			return node as Node3D
+	return null
+
+
+func _spawn_pickup(kind: int, spawn_position: Vector3) -> void:
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		return
+
+	var pickup: Pickup = Pickup.create(kind)
+	parent.add_child(pickup)
+	pickup.global_position = spawn_position
+
+	loot_dropped.emit(kind, spawn_position)
+
+
+# ============================================================================
+# Deterministischer RNG pro Raum
+# ============================================================================
+func _make_rng(room: RoomInstance) -> RandomNumberGenerator:
+	var base_seed: int = _get_run_seed()
+	var salt: String = "loot:%d:%d:%d" % [
+		room.grid_position.x,
+		room.grid_position.y,
+		_get_current_stage()
+	]
+	return DetRng.make(DetRng.derive(base_seed, salt))
+
+
+func _get_run_seed() -> int:
+	var generator: Node = _find_generator()
+	if generator and generator.has_method("get_run_seed"):
+		return generator.get_run_seed()
+	return 0
+
+
+func _get_current_stage() -> int:
+	var generator: Node = _find_generator()
+	if generator and generator.has_method("get_current_stage"):
+		return generator.get_current_stage()
+	return 1
+
+
+func _find_generator() -> Node:
+	var found: Array = get_tree().get_nodes_in_group("level_generator")
+	if not found.is_empty():
+		return found[0]
+	return null
+
+
+## Beim Start eines neuen Runs aufrufen, sonst haelt der Manager Raeume aus
+## dem alten Lauf fuer bereits abgehandelt.
+func reset_run() -> void:
+	_handled_rooms.clear()
 
 
 ===== FILE: scripts\minimap.gd =====
@@ -27358,6 +30560,355 @@ func _on_quit_pressed() -> void:
 	get_tree().quit()
 
 
+===== FILE: scripts\pickup.gd =====
+
+extends Area3D
+class_name Pickup
+
+# ============================================================================
+# Pickup — alles, was am Boden liegt und aufgesammelt werden kann.
+# ============================================================================
+# BAUT SEIN AUSSEHEN SELBST. Es gibt bewusst KEINE pickup.tscn:
+#   * Vier Varianten (Muenze, Herz, Bombe, Item-Sockel) in einer Szene haetten
+#     entweder vier deaktivierte Modelle im Baum oder vier fast identische
+#     Szenendateien bedeutet.
+#   * Der LootManager spawnt Pickups zur Laufzeit an Marker-Positionen. Eine
+#     Szene haette dort nur einen weiteren Ressourcenpfad eingefuehrt, der
+#     kaputtgehen kann.
+# Wer spaeter richtige Modelle will, weist mesh_override im Inspector zu
+# oder ersetzt _build_visual().
+
+signal collected(kind: int, pickup: Pickup)
+
+enum Kind {
+	COIN,   ## Waehrung
+	HEAL,   ## +heal_amount HP
+	BOMB,   ## +1 Bombe im Inventar
+	ITEM,   ## Sockel mit einem ItemData — muss aktiv genommen werden
+}
+
+@export var kind: Kind = Kind.COIN
+@export var coin_value: int = 1
+@export var heal_amount: float = 30.0
+@export var bomb_amount: int = 1
+
+## Optionales fertiges Modell. Bleibt es leer, wird die Form unten gebaut.
+@export var mesh_override: Mesh
+
+## Wie hoch/schnell das Pickup schwebt.
+@export var bob_height: float = 0.18
+@export var bob_speed: float = 2.2
+@export var spin_speed: float = 1.6
+
+## Ab dieser Naehe wird eingesammelt. Der Magnetradius kommt dagegen aus
+## PlayerStats (Magnetischer Kompass erhoeht ihn).
+@export var collect_distance: float = 1.1
+@export var magnet_speed: float = 9.0
+
+## Kurze Sperre nach dem Spawn: sonst saugt der Magnet ein Pickup ein, bevor
+## der Spieler ueberhaupt sieht, dass etwas gedroppt ist.
+@export var arm_delay: float = 0.35
+
+## Nur fuer Kind.ITEM.
+var item_data: ItemData = null
+
+var _time: float = 0.0
+var _base_y: float = 0.0
+var _armed: bool = false
+var _age: float = 0.0
+var _collected: bool = false
+var _visual: Node3D = null
+var _prompt: Label3D = null
+
+
+func _ready() -> void:
+	_base_y = global_position.y
+	monitoring = true
+	monitorable = false
+	# Layer 0 lassen und nur die Maske setzen waere hier falsch: wir pruefen
+	# die Distanz selbst in _physics_process, weil der Magnet ohnehin jeden
+	# Frame rechnet. Die Area dient nur als Traeger fuer die Kollisionsform.
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = collect_distance
+	shape.shape = sphere
+	add_child(shape)
+
+	_build_visual()
+
+	if kind == Kind.ITEM:
+		_build_prompt()
+
+
+## Bequemer Konstruktor fuer den LootManager.
+static func create(pickup_kind: Kind) -> Pickup:
+	var pickup := Pickup.new()
+	pickup.kind = pickup_kind
+	pickup.name = "Pickup_%s" % Kind.keys()[pickup_kind]
+	return pickup
+
+
+static func create_item(data: ItemData) -> Pickup:
+	var pickup := Pickup.create(Kind.ITEM)
+	pickup.item_data = data
+	return pickup
+
+
+# ============================================================================
+# Darstellung
+# ============================================================================
+func _build_visual() -> void:
+	_visual = Node3D.new()
+	_visual.name = "Visual"
+	add_child(_visual)
+
+	if mesh_override != null:
+		var custom := MeshInstance3D.new()
+		custom.mesh = mesh_override
+		custom.material_override = _make_material(_color_for_kind())
+		_visual.add_child(custom)
+		return
+
+	match kind:
+		Kind.COIN:
+			_build_coin()
+		Kind.HEAL:
+			_build_cross()
+		Kind.BOMB:
+			_build_bomb()
+		Kind.ITEM:
+			_build_pedestal()
+
+
+func _color_for_kind() -> Color:
+	match kind:
+		Kind.COIN:
+			return Color(0.98, 0.80, 0.22)
+		Kind.HEAL:
+			return Color(0.30, 0.95, 0.40)
+		Kind.BOMB:
+			return Color(0.20, 0.20, 0.24)
+		Kind.ITEM:
+			return item_data.pedestal_color if item_data else Color(0.95, 0.85, 0.35)
+	return Color.WHITE
+
+
+## Unshaded + volle Farbe: PSX-Optik lebt von flachen, gesaettigten Flaechen,
+## und ein Pickup soll in einem dunklen Dungeon von weitem lesbar sein.
+func _make_material(color: Color, emission: float = 0.6) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = color
+	material.emission_enabled = true
+	material.emission = color
+	material.emission_energy_multiplier = emission
+	return material
+
+
+func _build_coin() -> void:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.28
+	mesh.bottom_radius = 0.28
+	mesh.height = 0.07
+	mesh.radial_segments = 10  # bewusst grob: PSX-Look
+
+	var instance := MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.material_override = _make_material(_color_for_kind())
+	# Hochkant, damit sich die Muenze beim Drehen zeigt statt zu liegen.
+	instance.rotation_degrees.x = 90.0
+	_visual.add_child(instance)
+
+
+func _build_cross() -> void:
+	var color: Color = _color_for_kind()
+	var material := _make_material(color, 0.9)
+
+	for i: int in range(2):
+		var box := BoxMesh.new()
+		box.size = Vector3(0.55, 0.18, 0.12) if i == 0 else Vector3(0.18, 0.55, 0.12)
+		var instance := MeshInstance3D.new()
+		instance.mesh = box
+		instance.material_override = material
+		_visual.add_child(instance)
+
+
+func _build_bomb() -> void:
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.26
+	sphere.height = 0.52
+	sphere.radial_segments = 10
+	sphere.rings = 6
+
+	var instance := MeshInstance3D.new()
+	instance.mesh = sphere
+	instance.material_override = _make_material(_color_for_kind(), 0.15)
+	_visual.add_child(instance)
+
+	# Zuendschnur, damit die Kugel nicht wie ein Stein aussieht.
+	var fuse := CylinderMesh.new()
+	fuse.top_radius = 0.03
+	fuse.bottom_radius = 0.03
+	fuse.height = 0.22
+	var fuse_instance := MeshInstance3D.new()
+	fuse_instance.mesh = fuse
+	fuse_instance.material_override = _make_material(Color(0.75, 0.62, 0.35), 0.2)
+	fuse_instance.position = Vector3(0.0, 0.32, 0.0)
+	_visual.add_child(fuse_instance)
+
+
+func _build_pedestal() -> void:
+	var box := BoxMesh.new()
+	box.size = Vector3(0.5, 0.5, 0.5)
+	var instance := MeshInstance3D.new()
+	instance.mesh = box
+	instance.material_override = _make_material(_color_for_kind(), 1.0)
+	instance.rotation_degrees = Vector3(0.0, 45.0, 35.0)
+	_visual.add_child(instance)
+
+
+func _build_prompt() -> void:
+	_prompt = Label3D.new()
+	_prompt.text = "[F]"
+	_prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_prompt.no_depth_test = true
+	_prompt.pixel_size = 0.006
+	_prompt.position = Vector3(0.0, 0.9, 0.0)
+	_prompt.modulate = Color(1.0, 1.0, 1.0, 0.85)
+	_prompt.visible = false
+	add_child(_prompt)
+
+
+# ============================================================================
+# Bewegung, Magnet, Einsammeln
+# ============================================================================
+func _physics_process(delta: float) -> void:
+	if _collected:
+		return
+
+	_age += delta
+	if not _armed and _age >= arm_delay:
+		_armed = true
+
+	_time += delta
+	if _visual:
+		_visual.position.y = sin(_time * bob_speed) * bob_height
+		_visual.rotate_y(spin_speed * delta)
+
+	var player: Node3D = _find_player()
+	if player == null:
+		return
+
+	var distance: float = global_position.distance_to(player.global_position)
+
+	if kind == Kind.ITEM:
+		_update_item_prompt(distance, player)
+		return
+
+	if not _armed:
+		return
+
+	# --- Magnet ------------------------------------------------------
+	# Der Radius kommt aus PlayerStats, damit der Magnetische Kompass ihn
+	# einfach anheben kann, ohne dass das Pickup das Item kennen muss.
+	var magnet_range: float = _get_magnet_range()
+	if distance <= magnet_range and distance > collect_distance:
+		var to_player: Vector3 = (player.global_position - global_position)
+		# Auf Bauchhoehe zielen statt auf die Fuesse: sonst kriecht die
+		# Muenze am Boden entlang und bleibt an Kanten haengen.
+		to_player.y += 0.6
+		var step: float = magnet_speed * delta * clampf(1.0 - distance / maxf(magnet_range, 0.01), 0.35, 1.0) * 3.0
+		global_position += to_player.normalized() * step
+		return
+
+	if distance <= collect_distance:
+		_collect(player)
+
+
+func _update_item_prompt(distance: float, player: Node3D) -> void:
+	if _prompt:
+		_prompt.visible = distance <= 2.5
+
+	if distance > 2.5:
+		return
+	if not Input.is_action_just_pressed("interact"):
+		return
+	_collect(player)
+
+
+func _get_magnet_range() -> float:
+	var stats := _get_stats()
+	if stats == null:
+		return 2.2
+	return stats.get_pickup_range()
+
+
+func _get_stats() -> PlayerStats:
+	var items: Node = get_node_or_null("/root/Items")
+	if items == null:
+		return null
+	var stats = items.stats
+	if stats is PlayerStats:
+		return stats
+	return null
+
+
+func _find_player() -> Node3D:
+	var players: Array = get_tree().get_nodes_in_group("player")
+	for node: Node in players:
+		if node is Node3D and is_instance_valid(node):
+			return node as Node3D
+	return null
+
+
+func _collect(player: Node3D) -> void:
+	if _collected:
+		return
+	_collected = true
+
+	var items: Node = get_node_or_null("/root/Items")
+
+	match kind:
+		Kind.COIN:
+			if items:
+				items.add_coins(coin_value)
+		Kind.HEAL:
+			var health := player.get_node_or_null("Health") as Health
+			if health:
+				health.heal(heal_amount)
+		Kind.BOMB:
+			if items:
+				items.add_bombs(bomb_amount)
+		Kind.ITEM:
+			if items and item_data:
+				if not items.add_item(item_data):
+					# Maximale Stapelzahl erreicht — Sockel bleibt stehen.
+					_collected = false
+					return
+
+	collected.emit(kind, self)
+	_play_collect_feedback()
+
+
+## Kurzes Aufploppen statt sofortigem Verschwinden. Ohne das fuehlt sich
+## Einsammeln an, als waere das Pickup nie da gewesen.
+func _play_collect_feedback() -> void:
+	set_deferred("monitoring", false)
+	if _prompt:
+		_prompt.visible = false
+	if _visual == null:
+		queue_free()
+		return
+
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_visual, "scale", Vector3.ONE * 1.6, 0.12)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_visual, "position:y", _visual.position.y + 0.7, 0.18)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_callback(queue_free)
+
+
 ===== FILE: scripts\pit_floor.gd =====
 
 @tool
@@ -28682,6 +32233,201 @@ func _spawn_damage_number(body: Node3D) -> void:
 	number.show_damage(damage)
 
 
+===== FILE: scripts\reset_overlay.gd =====
+
+extends Control
+class_name ResetOverlay
+
+# ============================================================================
+# ResetOverlay — "R" gedrueckt halten blendet ab und startet das Level neu.
+# ============================================================================
+#
+# WARUM HALTEN STATT DRUECKEN:
+# Ein Neustart auf Tastendruck ist in einem Spiel mit Speedrun-Timer eine
+# Falle: R liegt direkt neben den Bewegungstasten. Das Halten macht den
+# Abbruch zu einer bewussten Entscheidung, und die 1,5 Sekunden Abblende
+# sind gleichzeitig das Zeitfenster, in dem man es sich anders ueberlegen
+# kann.
+#
+# DAS VORSCHAU-FENSTER:
+# Waehrend gehalten wird, steht der Seed des naechsten Runs auf dem Bild.
+# Wer ihn kennt, kann entscheiden, ob sich der Neustart lohnt — loslassen
+# bricht ab, weiter halten startet neu. Der Seed wird EINMAL beim Beginn
+# des Haltens gezogen und dann festgehalten: ein pro Frame neu gewuerfelter
+# Wert waere als Vorschau wertlos.
+#
+# Der Input wird ueber Input.is_action_pressed() GEPOLLT statt ueber
+# _unhandled_input, weil es hier um einen Haltezustand geht und nicht um ein
+# Ereignis. Ein losgelassenes R soll sofort abbrechen, auch wenn in dem
+# Frame gar kein Input-Event ankommt.
+
+## Sekunden, die R gehalten werden muss.
+@export var hold_duration: float = 1.5
+## Ab wann die Vorschau eingeblendet wird (Anteil der Haltedauer).
+@export_range(0.0, 1.0) var preview_threshold: float = 0.25
+
+const RESET_ACTION: String = "reset"
+
+var _hold_time: float = 0.0
+var _preview_seed_code: String = ""
+var _is_restarting: bool = false
+
+var _fade: ColorRect = null
+var _preview_box: PanelContainer = null
+var _preview_label: Label = null
+var _hint_label: Label = null
+
+
+func _ready() -> void:
+	# Der Neustart soll auch aus dem Pausenmenue heraus funktionieren, und
+	# die Abblende darf beim Wechsel nicht einfrieren.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	_build_ui()
+
+
+func _build_ui() -> void:
+	_fade = ColorRect.new()
+	_fade.color = Color(0.0, 0.0, 0.0, 0.0)
+	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_fade)
+
+	_preview_box = PanelContainer.new()
+	_preview_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_preview_box.visible = false
+	_preview_box.set_anchors_preset(Control.PRESET_CENTER)
+	_preview_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_preview_box.grow_vertical = Control.GROW_DIRECTION_BOTH
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.05, 0.06, 0.80)
+	style.border_color = Color(0.98, 0.80, 0.22, 0.75)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(3)
+	style.content_margin_left = 22.0
+	style.content_margin_right = 22.0
+	style.content_margin_top = 14.0
+	style.content_margin_bottom = 14.0
+	_preview_box.add_theme_stylebox_override("panel", style)
+
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 4)
+	_preview_box.add_child(column)
+
+	var title := Label.new()
+	title.text = "NAECHSTER RUN"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 11)
+	title.add_theme_color_override("font_color", Color(0.60, 0.63, 0.68))
+	column.add_child(title)
+
+	_preview_label = Label.new()
+	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_preview_label.add_theme_font_size_override("font_size", 30)
+	_preview_label.add_theme_color_override("font_color", Color(0.98, 0.85, 0.35))
+	column.add_child(_preview_label)
+
+	_hint_label = Label.new()
+	_hint_label.text = "loslassen zum Abbrechen"
+	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint_label.add_theme_font_size_override("font_size", 11)
+	_hint_label.add_theme_color_override("font_color", Color(0.55, 0.58, 0.62))
+	column.add_child(_hint_label)
+
+	add_child(_preview_box)
+
+
+func _process(delta: float) -> void:
+	if _is_restarting:
+		return
+	if not InputMap.has_action(RESET_ACTION):
+		return
+
+	if not Input.is_action_pressed(RESET_ACTION):
+		_cancel()
+		return
+
+	if _hold_time <= 0.0:
+		_begin_hold()
+
+	_hold_time += delta
+	var progress: float = clampf(_hold_time / maxf(hold_duration, 0.01), 0.0, 1.0)
+
+	# Quadratisch statt linear: die Abblende soll spaet richtig zupacken,
+	# damit das Bild waehrend der Entscheidungsphase noch lesbar bleibt.
+	_fade.color.a = progress * progress
+	_preview_box.visible = progress >= preview_threshold
+
+	if progress >= 1.0:
+		_restart()
+
+
+func _begin_hold() -> void:
+	_preview_seed_code = _peek_next_seed_code()
+	_preview_label.text = _preview_seed_code
+
+
+func _cancel() -> void:
+	if _hold_time <= 0.0:
+		return
+	_hold_time = 0.0
+	_preview_box.visible = false
+
+	# Sanft aufblenden statt hart auf 0: ein abrupter Sprung sieht aus wie
+	# ein Darstellungsfehler.
+	var tween := create_tween()
+	tween.tween_property(_fade, "color:a", 0.0, 0.18)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _restart() -> void:
+	_is_restarting = true
+	_fade.color.a = 1.0
+
+	# Aufraeumen, bevor die Szene neu geladen wird: ein laufender Hit-Stop
+	# wuerde sonst mit eingefrorenem Engine.time_scale in den neuen Run
+	# uebernommen, und Loot/Items wuerden Zustaende aus dem alten Lauf
+	# behalten.
+	Juice.cancel()
+
+	var items: Node = get_node_or_null("/root/Items")
+	if items and items.has_method("reset_run"):
+		items.reset_run()
+
+	var loot: Node = get_node_or_null("/root/Loot")
+	if loot and loot.has_method("reset_run"):
+		loot.reset_run()
+
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	get_tree().reload_current_scene()
+
+	# Nach dem Reload existiert dieses Overlay weiter (es haengt in einem
+	# Autoload-CanvasLayer), also selbst zuruecksetzen.
+	_hold_time = 0.0
+	_is_restarting = false
+	_preview_box.visible = false
+	_fade.color.a = 0.0
+
+
+## Zieht den Seed-Code, den der naechste Run bekommen wuerde. Faellt auf
+## einen frisch gewuerfelten Wert zurueck, wenn kein Generator da ist.
+func _peek_next_seed_code() -> String:
+	var generators: Array = get_tree().get_nodes_in_group("level_generator")
+	if not generators.is_empty():
+		var generator: Node = generators[0]
+		if generator.has_method("get_run_seed"):
+			# Derselbe Ableitungsweg wie im Generator: aus dem aktuellen
+			# Seed plus einem festen Salt wird der Folge-Seed bestimmt.
+			var next_seed: int = DetRng.derive(generator.get_run_seed(), "restart")
+			return DetRng.seed_to_code(absi(next_seed) % DetRng.MAX_SEED)
+
+	return DetRng.seed_to_code(DetRng.random_seed_value())
+
+
 ===== FILE: scripts\run_record.gd =====
 
 extends RefCounted
@@ -29890,6 +33636,214 @@ func load_settings() -> void:
 		if event is InputEvent:
 			InputMap.action_erase_events(action)
 			InputMap.action_add_event(action, event)
+
+
+===== FILE: scripts\stats_panel.gd =====
+
+extends PanelContainer
+class_name StatsPanel
+
+# ============================================================================
+# StatsPanel — Dauer-Anzeige der Spieler-Stats an der linken Bildschirmseite.
+# ============================================================================
+# Baut seine Zeilen im Code auf, damit keine weitere .tscn gepflegt werden
+# muss und ein neues Stat nur einen Eintrag in ROWS kostet.
+#
+# Es wird NICHT jeden Frame neu gezeichnet: das Panel haengt an
+# PlayerStats.stats_changed und an den Waehrungs-Signalen des ItemManagers.
+# Nur die Combo laeuft ueber _process, weil sie sich ohnehin staendig
+# aendert und kein eigenes "hat sich geaendert"-Signal mit Zahlenwert hat,
+# das haeufig genug feuert.
+
+## Schluessel fuer SettingsManager.is_hud_element_visible().
+const HUD_ELEMENT: String = "stats"
+
+## Reihenfolge und Auswahl der angezeigten Stats.
+const ROWS: Array = [
+	PlayerStats.STAT_DAMAGE,
+	PlayerStats.STAT_MOVE_SPEED,
+	PlayerStats.STAT_COOLDOWN,
+	PlayerStats.STAT_LUCK,
+	PlayerStats.STAT_PICKUP_RANGE,
+	PlayerStats.STAT_ARMOR,
+]
+
+const LABEL_COLOR: Color = Color(0.72, 0.74, 0.78)
+const VALUE_COLOR: Color = Color(0.96, 0.94, 0.88)
+const ACCENT_COLOR: Color = Color(0.98, 0.80, 0.22)
+
+var _rows: Dictionary = {}       # stat -> Label (Wertspalte)
+var _coin_label: Label = null
+var _bomb_label: Label = null
+var _combo_label: Label = null
+var _stats: PlayerStats = null
+var _items: Node = null
+var _last_combo: int = -1
+
+
+func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_build_ui()
+
+	_items = get_node_or_null("/root/Items")
+	if _items:
+		_items.coins_changed.connect(_on_coins_changed)
+		_items.bombs_changed.connect(_on_bombs_changed)
+		_items.player_ready.connect(_on_player_ready)
+		_on_coins_changed(_items.coins)
+		_on_bombs_changed(_items.bombs)
+		if _items.stats:
+			_bind_stats(_items.stats)
+
+	SettingsManager.hud_visible_changed.connect(_on_visibility_setting_changed)
+	SettingsManager.hud_element_visible_changed.connect(_on_element_setting_changed)
+	_apply_visibility()
+
+
+# ============================================================================
+# Aufbau
+# ============================================================================
+func _build_ui() -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.06, 0.07, 0.72)
+	style.border_color = Color(0.25, 0.27, 0.30, 0.9)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(3)
+	style.content_margin_left = 10.0
+	style.content_margin_right = 12.0
+	style.content_margin_top = 8.0
+	style.content_margin_bottom = 8.0
+	add_theme_stylebox_override("panel", style)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 2)
+	add_child(column)
+
+	column.add_child(_make_header("STATS"))
+	column.add_child(_make_separator())
+
+	# --- Waehrungen ---------------------------------------------------
+	_coin_label = _add_row(column, "Muenzen", ACCENT_COLOR)
+	_bomb_label = _add_row(column, "Bomben", Color(0.85, 0.55, 0.45))
+	column.add_child(_make_separator())
+
+	# --- Stats --------------------------------------------------------
+	for stat: String in ROWS:
+		var label_text: String = String(PlayerStats.STAT_LABELS.get(stat, stat))
+		_rows[stat] = _add_row(column, label_text, VALUE_COLOR)
+
+	column.add_child(_make_separator())
+	_combo_label = _add_row(column, "Combo", Color(0.98, 0.45, 0.35))
+
+
+func _make_header(text: String) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 11)
+	label.add_theme_color_override("font_color", Color(0.55, 0.58, 0.62))
+	return label
+
+
+func _make_separator() -> HSeparator:
+	var separator := HSeparator.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.25, 0.27, 0.30, 0.55)
+	style.content_margin_top = 3.0
+	style.content_margin_bottom = 3.0
+	separator.add_theme_stylebox_override("separator", style)
+	return separator
+
+
+## Eine Zeile "Beschriftung ........ Wert". Der Spacer in der Mitte haelt
+## die Werte rechtsbuendig, ohne dass eine feste Panelbreite noetig waere.
+func _add_row(parent: VBoxContainer, label_text: String, value_color: Color) -> Label:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+
+	var name_label := Label.new()
+	name_label.text = label_text
+	name_label.add_theme_font_size_override("font_size", 12)
+	name_label.add_theme_color_override("font_color", LABEL_COLOR)
+	row.add_child(name_label)
+
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.custom_minimum_size = Vector2(24.0, 0.0)
+	row.add_child(spacer)
+
+	var value_label := Label.new()
+	value_label.text = "-"
+	value_label.add_theme_font_size_override("font_size", 12)
+	value_label.add_theme_color_override("font_color", value_color)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(value_label)
+
+	parent.add_child(row)
+	return value_label
+
+
+# ============================================================================
+# Datenanbindung
+# ============================================================================
+func _on_player_ready(_player: CharacterBody3D) -> void:
+	if _items and _items.stats:
+		_bind_stats(_items.stats)
+
+
+func _bind_stats(stats: PlayerStats) -> void:
+	if _stats and is_instance_valid(_stats) and _stats.stats_changed.is_connected(_refresh_stats):
+		_stats.stats_changed.disconnect(_refresh_stats)
+
+	_stats = stats
+	if _stats:
+		_stats.stats_changed.connect(_refresh_stats)
+	_refresh_stats()
+
+
+func _refresh_stats() -> void:
+	if _stats == null or not is_instance_valid(_stats):
+		return
+	for stat: String in _rows.keys():
+		(_rows[stat] as Label).text = _stats.format_stat(stat)
+
+
+func _on_coins_changed(amount: int) -> void:
+	if _coin_label:
+		_coin_label.text = str(amount)
+
+
+func _on_bombs_changed(amount: int) -> void:
+	if _bomb_label:
+		_bomb_label.text = str(amount)
+
+
+func _process(_delta: float) -> void:
+	if _items == null or _combo_label == null:
+		return
+	var combo: int = _items.get_combo_count()
+	if combo == _last_combo:
+		return
+	_last_combo = combo
+	_combo_label.text = ("x%d" % combo) if combo > 1 else "-"
+
+
+# ============================================================================
+# Sichtbarkeit
+# ============================================================================
+# Gleiche Regel wie in hud.gd: Master-Schalter UND Einzelschalter muessen
+# beide true sein. is_hud_element_visible() liefert fuer unbekannte
+# Schluessel true zurueck — das Panel funktioniert also auch, solange
+# "stats" noch nicht in SettingsManager.HUD_ELEMENTS eingetragen ist.
+func _on_visibility_setting_changed(_visible: bool) -> void:
+	_apply_visibility()
+
+
+func _on_element_setting_changed(_element: String, _is_visible: bool) -> void:
+	_apply_visibility()
+
+
+func _apply_visibility() -> void:
+	visible = SettingsManager.hud_visible and SettingsManager.is_hud_element_visible(HUD_ELEMENT)
 
 
 ===== FILE: scripts\status_effect_manager.gd =====

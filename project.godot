@@ -26,6 +26,10 @@ PartyManager="*uid://bkpbaujgouiwg"
 SteamManager="*uid://bjgm7cyxksuqe"
 LeaderboardManager="*uid://eehxkf4mihmq"
 VFX="*uid://dmnltpdascg2c"
+Juice="*uid://d366sudmnp73u"
+Items="*uid://vkdd47uykpas"
+Loot="*uid://b1etjb81qmrf7"
+HudExtra="*uid://bys4sieyin6ky"
 
 [display]
 
