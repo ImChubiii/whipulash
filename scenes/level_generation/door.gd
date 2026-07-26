@@ -118,6 +118,8 @@ const INTERACT_ACTION := "interact"
 var _locked: bool = true
 var _closed_y: float = 0.0
 var _open_y: float = 0.0
+## Erst true, nachdem _ready() _closed_y/_open_y einmal berechnet hat.
+var _base_ready: bool = false
 var _effective_open_height: float = 0.0
 var _effective_speed: float = 1.0
 
@@ -153,6 +155,7 @@ func _ready() -> void:
 
 	_closed_y = position.y
 	_open_y = _closed_y + _effective_open_height
+	_base_ready = true
 	_collision.disabled = not _locked
 
 	_apply_kind_visuals()
@@ -309,6 +312,58 @@ func _measure_door_height() -> float:
 	if shape is SphereShape3D:
 		return (shape as SphereShape3D).radius * 2.0 * y_scale
 	return 4.0
+
+
+## BUGFIX "Tuer versinkt im Rampenboden / Durchgang offen trotz VERRIEGELT":
+##
+## _closed_y wird in _ready() aus position.y gelesen. _ready() laeuft
+## waehrend add_child() im LevelGenerator - also BEVOR
+## RoomInstance.configure_slope() die Tuer auf der hohen Seite eines
+## Rampen-Korridors um rise Meter anhebt. Die Tuer wird zwar korrekt
+## versetzt, aber _process() faehrt sie im selben Frame wieder auf das
+## alte (tiefe) _closed_y zurueck - sie verschwindet in der Rampe und der
+## Durchgang steht offen, obwohl das Tuer-Protokoll "VERRIEGELT" meldet.
+##
+## Genau das erzeugt im Log das Muster: Korridor (-2, 0) verriegelt beide
+## Tueren und hat 2 aktive Gegner, der Spieler steht trotzdem schon im
+## Bossraum (-3, 0).
+##
+## shift_base_height() zieht die Ruhe- UND die Offen-Hoehe mit und muss
+## IMMER aufgerufen werden, wenn die Tuer nach _ready() vertikal versetzt
+## wird.
+func shift_base_height(delta: float) -> void:
+	if is_zero_approx(delta):
+		return
+	if not _base_ready:
+		# _ready() liest position.y sowieso erst noch - dort landet der
+		# Versatz dann automatisch mit drin.
+		position.y += delta
+		return
+
+	_closed_y += delta
+	_open_y += delta
+	position.y = _closed_y if _locked else _open_y
+
+
+## Absolute Ruhehoehe setzen (Alternative zu shift_base_height, falls die
+## Zielhoehe bekannt ist statt der Differenz).
+func set_base_height(new_closed_y: float) -> void:
+	shift_base_height(new_closed_y - _closed_y)
+
+
+## Ruhehoehe (geschlossen) der Tuer in Raum-lokalen Koordinaten.
+##
+## Wird von RoomInstance._build_door_lintel() gebraucht: der Tuersturz muss
+## von der Oberkante des GESCHLOSSENEN Blatts bis zur Decke reichen.
+## position.y taugt dafuer nicht - eine offene Tuer steht
+## _effective_open_height (Blatthoehe + open_clearance) hoeher, der Sturz
+## waere dann viel zu kurz und der Spalt bliebe offen.
+##
+## Vor _ready() ist _closed_y noch nicht gefuellt; dann ist position.y die
+## korrekte Antwort, weil die Tuer bis dahin unbewegt auf ihrer
+## Szenen-Position steht.
+func get_base_height() -> float:
+	return _closed_y if _base_ready else position.y
 
 
 func set_locked(locked: bool) -> void:

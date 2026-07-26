@@ -28,6 +28,16 @@ signal collected
 
 @export var pickup_radius: float = 3.0
 
+## --- Bodensuche ----------------------------------------------------------
+## Statt blind auf der uebergebenen Y-Hoehe zu landen, tastet die Trophaee
+## einmalig nach unten und legt sich auf die erste getroffene Flaeche.
+@export var snap_to_floor: bool = true
+@export var floor_probe_up: float = 4.0
+@export var floor_probe_down: float = 40.0
+@export var floor_clearance: float = 0.15
+## Nur Welt-Geometrie (Layer 1 = Default/Static) abtasten.
+@export_flags_3d_physics var floor_probe_mask: int = 1
+
 ## --- Optik ---------------------------------------------------------------
 @export var trophy_color: Color = Color(1.0, 0.82, 0.22)
 @export var emission_energy: float = 2.4
@@ -54,13 +64,84 @@ var _collected: bool = false
 var _landed: bool = false
 var _bob_time: float = 0.0
 var _rest_y: float = 0.0
+var _drop_started: bool = false
 
 
+## BUGFIX "Trophaee liegt unter dem Boden":
+##
+## Der LevelGenerator instanziiert die Trophaee, haengt sie per add_child()
+## ein und setzt ERST DANACH global_position. add_child() loest _ready()
+## aber SOFORT aus - zu diesem Zeitpunkt steht die Trophaee noch auf
+## (0, 0, 0). Frueher wurde hier direkt _rest_y = global_position.y
+## gelesen (also 0.0) und der Fall-Tween sofort gestartet. Der Tween
+## animiert "global_position:y" und ueberschreibt damit jede Positionierung,
+## die der Generator danach vornimmt - die Trophaee landet immer auf
+## Welt-Y 0.
+##
+## Sichtbar wird das nur, wenn der Bossraum NICHT auf Hoehenstufe 0 liegt:
+## bei elevation = 1 (Welt-Y 6.0) faellt die Trophaee 6 Meter unter den
+## Bossraumboden. Das Log meldete trotzdem "gespawnt bei (-144.0, 6.3, 0.0)",
+## weil dort die GEWOLLTE Position steht, nicht die, auf der der Tween endet.
+##
+## Fix: Der Fall startet nicht mehr blind in _ready(), sondern entweder
+## explizit ueber start_drop_at() (Generator-Weg) oder - falls die Szene
+## von Hand ins Level gesetzt wurde - im naechsten Frame, wenn die
+## Position garantiert steht.
 func _ready() -> void:
-	_rest_y = global_position.y
 	_build_visuals()
 	_build_pickup_area()
+	call_deferred("_autostart_drop")
+
+
+## Setzt die Zielposition UND startet den Fall. Vom LevelGenerator nach
+## add_child() aufzurufen. Ersetzt das fruehere "global_position setzen und
+## hoffen, dass _ready() schon durch ist".
+func start_drop_at(world_position: Vector3) -> void:
+	if _drop_started:
+		return
+	_drop_started = true
+
+	var target: Vector3 = world_position
+	if snap_to_floor:
+		target = _snapped_to_floor(world_position)
+
+	global_position = target
+	_rest_y = target.y
 	_play_drop()
+
+
+## Fallback fuer von Hand platzierte Trophaeen: laeuft einen Frame nach
+## _ready(), also nachdem der Editor/Parent die Transform gesetzt hat.
+func _autostart_drop() -> void:
+	if _drop_started:
+		return
+	start_drop_at(global_position)
+
+
+## Sucht den echten Boden unter der Zielposition. Schuetzt gegen Rampen,
+## Podeste und leicht verschobene Raum-Urspruenge - ohne den Raycast
+## wuerde die Trophaee bei jeder Bodenhoehe != Raum-Ursprung wieder
+## daneben landen. Findet der Strahl nichts, bleibt die uebergebene
+## Position unveraendert.
+func _snapped_to_floor(from_position: Vector3) -> Vector3:
+	var space := get_world_3d().direct_space_state
+	if space == null:
+		return from_position
+
+	var query := PhysicsRayQueryParameters3D.create(
+		from_position + Vector3(0.0, floor_probe_up, 0.0),
+		from_position - Vector3(0.0, floor_probe_down, 0.0)
+	)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.collision_mask = floor_probe_mask
+
+	var hit: Dictionary = space.intersect_ray(query)
+	if hit.is_empty():
+		return from_position
+
+	var point: Vector3 = hit["position"]
+	return Vector3(from_position.x, point.y + floor_clearance, from_position.z)
 
 
 func _build_visuals() -> void:
@@ -221,3 +302,5 @@ func _show_win_screen() -> void:
 		win_screen.show_win()
 	else:
 		push_warning("VictoryTrophy: Konnte keinen Node namens 'WinScreen' finden.")
+
+

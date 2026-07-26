@@ -23,6 +23,8 @@ config/icon="res://icon.svg"
 
 SettingsManager="*uid://cgyvs40ry7wt8"
 PartyManager="*uid://bkpbaujgouiwg"
+SteamManager="*uid://bjgm7cyxksuqe"
+LeaderboardManager="*uid://eehxkf4mihmq"
 
 [display]
 

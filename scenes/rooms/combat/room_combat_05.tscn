@@ -1,9 +1,12 @@
-[gd_scene load_steps=25 format=3]
+
+
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -72,6 +75,10 @@ room_height = 14.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -358,3 +365,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.0, 0.5, 14.0)
 
 [node name="Enemy7" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.0, 0.5, 14.0)
+
+[node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.0, 0.5, -8.0)
+
+[node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.0, 0.5, 8.0)
+
+[node name="Enemy10" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.0, 0.5, -8.0)
+
+[node name="Enemy11" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.0, 0.5, 8.0)

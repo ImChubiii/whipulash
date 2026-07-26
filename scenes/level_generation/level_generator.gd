@@ -1,3 +1,7 @@
+
+
+
+
 extends Node
 class_name LevelGenerator
 
@@ -47,9 +51,42 @@ const DIR_OFFSETS := {
 @export var corridor_threat_budget: int = 2
 @export var boss_threat_budget: int = 12
 @export var threat_per_stage: int = 2
+
+## --- Stage-Skalierung der Gegnerstaerke -------------------------------
+## threat_per_stage erhoeht bisher NUR die Anzahl. Ein Stinger in Etage 5
+## hatte damit exakt dieselben 25 HP und 6 Schaden wie in Etage 1 - es
+## wurden eben nur mehr davon. Weil der Spieler bis dahin staerker ist,
+## fuehlen sich spaetere Etagen dadurch leichter an statt schwerer.
+##
+## Die Werte sind Zuwachs PRO ETAGE ab Etage 2:
+##   0.30 = Etage 1: 100 %, Etage 2: 130 %, Etage 3: 160 % ...
+## Der Deckel verhindert, dass ein langer Run in absurde Zahlen laeuft.
+@export var enemy_health_per_stage: float = 0.30
+@export var enemy_damage_per_stage: float = 0.18
+@export var enemy_scaling_cap: float = 4.0
 @export var threat_hard_cap: int = 14
 
+## Eigener Deckel fuer den Bossraum. Ohne den wuerde threat_hard_cap (14)
+## drei Colossus a 10 Threat sofort abwuergen - der dritte passt schlicht
+## nicht mehr ins Budget. Den globalen Cap dafuer hochzuziehen ist keine
+## Option: er begrenzt auch normale Kampfraeume in spaeteren Stages.
+@export var boss_threat_hard_cap: int = 40
+
 @export var navigation_region: NavigationRegion3D
+
+## --- Fog of War auf der Minimap ---------------------------------------
+## Die schematische Grid-Karte blendet unbekannte Raeume schon aus. Die
+## 3D-Minimap zeigte dagegen die KOMPLETTE Etage, weil sie einfach eine
+## zweite Kamera auf dieselbe Welt ist. Mit diesem Schalter werden Raeume,
+## die weder betreten noch direkt hinter einer Tuer eines betretenen
+## Raums liegen, fuer die Minimap-Kamera ausgeblendet - siehe
+## RoomInstance.MINIMAP_HIDDEN_LAYER.
+@export var minimap_fog_enabled: bool = true
+
+## Startwert fuer den ganzen Run. 0 = beim Start einmal wuerfeln.
+## Der TATSAECHLICH benutzte Wert steht danach in get_run_seed() und wird
+## mit auf das Steam-Leaderboard geschrieben - nur so laesst sich ein
+## fremder Run nachspielen.
 @export var random_seed: int = 0
 
 ## --- Sieg-Trophaee ----------------------------------------------------
@@ -61,6 +98,21 @@ const DIR_OFFSETS := {
 ## Laden zu zerreissen.
 @export var victory_trophy_scene_path: String = "res://scenes/victory_trophy.tscn"
 @export var spawn_victory_trophy: bool = true
+
+## --- Rueckweg-Garantie nach dem Bosskampf -----------------------------
+## Ein Durchgang besteht aus ZWEI Tueren - eine in jedem Raum. Beide
+## muessen offen sein. Haengt der Nachbarraum noch in einem verriegelten
+## Kampfzustand (Spieler ist rausgekommen, ohne ihn zu clearen), bleibt
+## der Spieler nach dem Bosskampf im Bossraum stehen, obwohl dessen eigene
+## Tuer sauber aufgeht. Im Tuer-Protokoll steht das dann als
+## "offen, aber Gegenseite ist HACK GESPERRT -> Durchgang trotzdem
+## blockiert".
+##
+## RoomInstance.reset_when_player_escapes verhindert diesen Zustand
+## normalerweise schon. Das hier ist die zweite Sicherung: nach dem
+## Boss-Clear werden die Tueren des Bossraums UND die jeweilige Gegenseite
+## beim Nachbarn bedingungslos geoeffnet.
+@export var unlock_boss_exit_on_clear: bool = true
 ## Hoehe ueber dem Raumboden, auf der die Trophaee liegen bleibt.
 @export var victory_trophy_ground_offset: float = 0.3
 
@@ -79,6 +131,8 @@ const DIR_OFFSETS := {
 signal stage_generated(stage: int, room_count: int)
 signal map_updated
 signal stage_cleared(stage: int)
+## Feuert einmal, sobald der Run-Seed feststeht (HUD/Seed-Anzeige).
+signal run_seed_ready(run_seed: int, seed_code: String)
 
 var _used_unique_rooms: Array[RoomData] = []
 var _instances: Dictionary = {}
@@ -86,6 +140,13 @@ var _current_layout: Dictionary = {}
 var _map_cells: Dictionary = {}
 var _current_room: Vector2i = Vector2i.ZERO
 var _stage_cleared: bool = false
+
+## Der wirklich verwendete Run-Seed (nie 0, sobald _ready() durch ist).
+var _run_seed: int = 0
+## RNG fuer die Raumauswahl. Bewusst getrennt vom Layout-RNG des
+## RoomGridGenerators und vom Spawn-RNG der Raeume, damit eine Aenderung
+## an einem der drei die anderen beiden nicht verschiebt.
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -109,10 +170,18 @@ func _ready() -> void:
 
 	add_to_group(GENERATOR_GROUP)
 
-	if random_seed != 0:
-		seed(random_seed)
-	else:
-		randomize()
+	# Run-Seed festnageln. Frueher wurde hier seed()/randomize() auf den
+	# GLOBALEN RNG angewandt - das reicht fuer verifizierbare Runs nicht,
+	# weil derselbe globale RNG auch von Screen-Shake, Schadenszahlen und
+	# Gegner-KI benutzt wird (siehe det_rng.gd). Stattdessen bekommen
+	# Layout, Raumauswahl und Gegner-Rolls eigene, abgeleitete RNGs.
+	_run_seed = random_seed if random_seed != 0 else DetRng.random_seed_value()
+	_rng.seed = DetRng.derive(_run_seed, "roompick")
+	# Der globale RNG bleibt fuer reine Optik zustaendig und wird bewusst
+	# unabhaengig vom Run-Seed gewuerfelt.
+	randomize()
+	print("[LevelGenerator] Run-Seed: %d (Code: %s)" % [_run_seed, DetRng.seed_to_code(_run_seed)])
+	run_seed_ready.emit(_run_seed, DetRng.seed_to_code(_run_seed))
 
 	if grid_generator == null:
 		grid_generator = get_parent().get_node_or_null("RoomGridGenerator") as RoomGridGenerator
@@ -138,6 +207,17 @@ func get_current_room() -> Vector2i:
 
 func get_current_stage() -> int:
 	return current_stage
+
+
+## Der tatsaechlich verwendete Run-Seed - Grundlage fuer den
+## Leaderboard-Eintrag und die Seed-Anzeige im HUD.
+func get_run_seed() -> int:
+	return _run_seed
+
+
+## Teilbarer Kurzcode desselben Seeds ("4F2K9").
+func get_run_seed_code() -> String:
+	return DetRng.seed_to_code(_run_seed)
 
 func is_stage_cleared() -> bool:
 	return _stage_cleared
@@ -173,7 +253,7 @@ func get_room_type_name(type: int) -> String:
 # --- Generierung ----------------------------------------------------
 
 func generate_new_stage() -> void:
-	_current_layout = grid_generator.generate_layout()
+	_current_layout = grid_generator.generate_layout(_run_seed)
 	print("[LevelGenerator] Layout generiert: %d Zellen" % _current_layout.size())
 	_instantiate_layout(_current_layout)
 
@@ -214,11 +294,20 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		if cell.slope_delta != 0 and room.has_method("configure_slope"):
 			room.configure_slope(cell.slope_low_dir, cell.slope_delta * elevation_step)
 
+		# Jeder Raum bekommt seinen EIGENEN, aus Position und Stage
+		# abgeleiteten Spawn-Seed. Wichtig: der Gegner-Roll passiert erst
+		# beim BETRETEN des Raums. Haetten alle Raeume einen gemeinsamen
+		# RNG, haenge das Ergebnis an der Reihenfolge, in der der Spieler
+		# die Map ablaeuft - und der Seed waere wertlos.
+		room.set_spawn_seed(DetRng.derive(_run_seed, "spawn:%d:%d:%d" % [grid_pos.x, grid_pos.y, current_stage]))
+
 		var table: Array[EnemySpawnEntry] = _table_for_type(cell.room_type)
 		var budget: int = _budget_for_type(cell.room_type)
 		room.prepare_enemies(table, budget, current_stage)
 
 		room.debug_doors = debug_doors
+		room.enemy_health_multiplier = get_enemy_health_multiplier()
+		room.enemy_damage_multiplier = get_enemy_damage_multiplier()
 		room.room_entered.connect(_on_room_entered)
 		room.room_cleared.connect(_on_room_cleared)
 
@@ -234,7 +323,12 @@ func _instantiate_layout(layout: Dictionary) -> void:
 
 	_apply_door_kinds(layout)
 
-	print("[LevelGenerator] %d/%d Raeume instanziert." % [_instances.size(), layout.size()])
+	_refresh_minimap_fog()
+
+	print("[LevelGenerator] %d/%d Raeume instanziert. Gegner-Skalierung: HP x%.2f, Schaden x%.2f" % [
+		_instances.size(), layout.size(),
+		get_enemy_health_multiplier(), get_enemy_damage_multiplier()
+	])
 	_rebake_navigation()
 	stage_generated.emit(current_stage, _instances.size())
 	map_updated.emit()
@@ -323,6 +417,7 @@ func _on_room_entered(room: RoomInstance) -> void:
 	_current_room = room.grid_position
 	if _map_cells.has(room.grid_position):
 		_map_cells[room.grid_position]["visited"] = true
+	_refresh_minimap_fog()
 	map_updated.emit()
 
 
@@ -333,6 +428,8 @@ func _on_room_cleared(room: RoomInstance) -> void:
 			_stage_cleared = true
 			stage_cleared.emit(current_stage)
 			print("[LevelGenerator] Stage %d gecleared (Bossraum bei %s)." % [current_stage, room.grid_position])
+			if unlock_boss_exit_on_clear:
+				_force_open_boss_exits(room)
 			if spawn_victory_trophy:
 				_spawn_victory_trophy(room)
 
@@ -344,10 +441,31 @@ func _on_room_cleared(room: RoomInstance) -> void:
 		if _current_layout[neighbor_pos].room_type == RoomData.RoomType.BOSS:
 			room.set_door_hack_enabled(dir, true)
 
+	_refresh_minimap_fog()
 	map_updated.emit()
 
 	if debug_doors and debug_doors_on_clear:
 		print_door_report("nach Clear von %s" % room.grid_position)
+
+## Oeffnet nach dem Bosskampf jeden Durchgang des Bossraums auf BEIDEN
+## Seiten. Der Nachbarraum darf danach weiterhin seine eigenen Gegner
+## haben - der Spieler kann dann eben zurueck in einen laufenden Kampf,
+## was deutlich besser ist als festzustecken.
+func _force_open_boss_exits(room: RoomInstance) -> void:
+	for dir in DIR_KEYS:
+		if room.get_door_state(dir) == RoomInstance.DoorState.NONE:
+			continue
+
+		room.force_unlock_door(dir)
+
+		var neighbor_pos: Vector2i = room.grid_position + DIR_OFFSETS[dir]
+		if not _instances.has(neighbor_pos):
+			continue
+		var neighbor: RoomInstance = _instances[neighbor_pos]
+		if not is_instance_valid(neighbor):
+			continue
+		neighbor.force_unlock_door(OPPOSITE_DIR[dir])
+
 
 ## Laesst die goldene Sieg-Trophaee in die Mitte des Bossraums fallen.
 ## Wird als Kind der aktuellen Szene (nicht des Raums) eingehaengt, damit
@@ -371,9 +489,78 @@ func _spawn_victory_trophy(room: RoomInstance) -> void:
 
 	var center: Vector3 = room.get_room_center()
 	center.y += victory_trophy_ground_offset
-	trophy.global_position = center
 
-	print("[LevelGenerator] Sieg-Trophaee gespawnt bei %s." % center)
+	# BUGFIX "Trophaee liegt unter dem Boden":
+	# Frueher stand hier nur trophy.global_position = center. Das kam zu
+	# SPAET - add_child() hat _ready() der Trophaee bereits ausgeloest, die
+	# hat sich (0, 0, 0) als Landepunkt gemerkt und ihren Fall-Tween auf
+	# "global_position:y -> 0.0" gestartet. Der Tween ueberschreibt die
+	# Zuweisung hier im naechsten Frame wieder. Liegt der Bossraum auf einer
+	# Hoehenstufe > 0 (hier Welt-Y 6.0), landet die Trophaee entsprechend
+	# 6 Meter unter dem Bossraumboden.
+	#
+	# start_drop_at() setzt Position UND Landehoehe in einem Rutsch und
+	# startet den Fall erst danach.
+	if trophy.has_method("start_drop_at"):
+		trophy.start_drop_at(center)
+	else:
+		trophy.global_position = center
+
+	print("[LevelGenerator] Sieg-Trophaee gespawnt bei %s (Raum %s, Bodenhoehe %.1f)." % [center, room.grid_position, room.global_position.y])
+
+
+## Faktor auf Health.max_health jedes gespawnten Gegners dieser Etage.
+func get_enemy_health_multiplier() -> float:
+	return clampf(1.0 + enemy_health_per_stage * float(current_stage - 1), 1.0, enemy_scaling_cap)
+
+
+## Faktor auf die damage jeder Hitbox eines gespawnten Gegners.
+func get_enemy_damage_multiplier() -> float:
+	return clampf(1.0 + enemy_damage_per_stage * float(current_stage - 1), 1.0, enemy_scaling_cap)
+
+
+# ============================================================================
+# Fog of War (3D-Minimap)
+# ============================================================================
+
+## Sichtbar ist ein Raum, wenn er betreten wurde ODER wenn von einem
+## betretenen Nachbarraum ein ECHTER Durchgang zu ihm fuehrt. "Echt"
+## heisst beidseitig: beide Raeume muessen auf der gemeinsamen Seite eine
+## Tuer haben. Ohne diese Pruefung wuerde ein Raum aufgedeckt, der im
+## Grid zwar nebenan liegt, aber gar nicht verbunden ist.
+##
+## Bewusst dieselbe Regel wie im Grid-Overlay (minimap_rooms.gd), damit
+## schematische Karte und 3D-Ansicht nicht unterschiedlich viel verraten.
+func is_room_revealed(grid: Vector2i) -> bool:
+	if not _map_cells.has(grid):
+		return false
+	if bool(_map_cells[grid].get("visited", false)):
+		return true
+
+	for dir in DIR_KEYS:
+		var neighbor: Vector2i = grid + DIR_OFFSETS[dir]
+		if not _map_cells.has(neighbor):
+			continue
+		if not bool(_map_cells[neighbor].get("visited", false)):
+			continue
+		if get_door_state(grid, dir) == RoomInstance.DoorState.NONE:
+			continue
+		if get_door_state(neighbor, OPPOSITE_DIR[dir]) == RoomInstance.DoorState.NONE:
+			continue
+		return true
+
+	return false
+
+
+## Schiebt jeden Raum auf den passenden Visual-Layer. RoomInstance
+## verwirft Aufrufe ohne Zustandswechsel selbst, der Durchlauf ist also
+## billig genug fuer jedes Betreten/Clearen.
+func _refresh_minimap_fog() -> void:
+	for grid_pos in _instances.keys():
+		var room: RoomInstance = _instances[grid_pos]
+		if not is_instance_valid(room):
+			continue
+		room.set_minimap_revealed(not minimap_fog_enabled or is_room_revealed(grid_pos))
 
 
 # ============================================================================
@@ -399,6 +586,7 @@ func print_door_report(reason: String = "") -> void:
 
 	var problems: Array[String] = []
 	var closed: Array[String] = []
+	var hack_gates: Array[String] = []
 
 	var sorted_keys: Array = _instances.keys()
 	sorted_keys.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
@@ -468,7 +656,22 @@ func print_door_report(reason: String = "") -> void:
 					"" if room.is_cleared() else "  (Raum noch nicht gecleared: %d Gegner)" % room.get_active_enemy_count()
 				])
 			if neighbor_exists and state == RoomInstance.DoorState.OPEN and neighbor_state != RoomInstance.DoorState.OPEN and neighbor_state != RoomInstance.DoorState.NONE:
-				problems.append("Raum %s %s: offen, aber Gegenseite in %s ist %s -> Durchgang trotzdem blockiert." % [grid_pos, dir.to_upper(), neighbor_pos, RoomInstance.door_state_name(neighbor_state)])
+				var neighbor_is_hack: bool = (
+					neighbor_state == RoomInstance.DoorState.HACK_READY
+					or neighbor_state == RoomInstance.DoorState.HACK_LOCKED
+				)
+				if neighbor_is_hack:
+					# KEIN Fehler, sondern das gewollte Verhalten eines
+					# Sonderraums: die Innenseite ist per hack_exempt offen,
+					# die Aussenseite verlangt den Hack. Frueher landete
+					# genau dieses Paar in den AUFFAELLIGKEITEN und hat das
+					# Protokoll bei jedem Boss-/Tresorraum rot gefaerbt.
+					hack_gates.append("Raum %s [%s] %s -> Gegenseite in %s: %s" % [
+						grid_pos, type_name, dir.to_upper(), neighbor_pos,
+						RoomInstance.door_state_name(neighbor_state)
+					])
+				else:
+					problems.append("Raum %s %s: offen, aber Gegenseite in %s ist %s -> Durchgang trotzdem blockiert." % [grid_pos, dir.to_upper(), neighbor_pos, RoomInstance.door_state_name(neighbor_state)])
 			# EINSPERR-FALLE: Sonderraum, dessen einziger Ausgang gehackt
 			# werden muesste. set_locked(false) wuerde dort beim Clear
 			# abgelehnt -> Spieler sitzt fest.
@@ -481,6 +684,12 @@ func print_door_report(reason: String = "") -> void:
 		print("      keine")
 	for c in closed:
 		print("      %s" % c)
+
+	print("  --- HACK-SPERREN (%d) ---" % hack_gates.size())
+	if hack_gates.is_empty():
+		print("      keine")
+	for h in hack_gates:
+		print("      %s" % h)
 
 	print("  --- AUFFAELLIGKEITEN (%d) ---" % problems.size())
 	if problems.is_empty():
@@ -523,7 +732,9 @@ func _budget_for_type(type: int) -> int:
 			base = boss_threat_budget
 		_:
 			return 0
-	return clampi(base + (current_stage - 1) * threat_per_stage, 0, threat_hard_cap)
+
+	var cap: int = boss_threat_hard_cap if type == RoomData.RoomType.BOSS else threat_hard_cap
+	return clampi(base + (current_stage - 1) * threat_per_stage, 0, cap)
 
 # --- Navigation ------------------------------------------------------
 
@@ -580,9 +791,9 @@ func _weighted_pick(candidates: Array[RoomData]) -> RoomData:
 	for c in candidates:
 		total_weight += c.spawn_weight
 	if total_weight <= 0.0:
-		return candidates.pick_random()
+		return DetRng.pick(candidates, _rng) as RoomData
 
-	var roll: float = randf() * total_weight
+	var roll: float = _rng.randf() * total_weight
 	var accumulated: float = 0.0
 	for c in candidates:
 		accumulated += c.spawn_weight

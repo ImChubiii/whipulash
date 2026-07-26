@@ -143,6 +143,12 @@ func _ready() -> void:
 	map_camera.near = 0.1
 	map_camera.far = map_height * 2.0
 
+	# Fog of War: Raeume, die noch nicht aufgedeckt sind, haengt der
+	# LevelGenerator auf RoomInstance.MINIMAP_HIDDEN_LAYER um. NUR diese
+	# Kamera streicht den Layer aus ihrer cull_mask - die Spielerkamera
+	# bleibt unangetastet und zeigt die Welt vollstaendig.
+	map_camera.set_cull_mask_value(RoomInstance.MINIMAP_HIDDEN_LAYER, false)
+
 	sub_viewport.own_world_3d = false
 	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	sub_viewport.transparent_bg = minimap_transparent_background
@@ -446,6 +452,57 @@ func _update_camera_position() -> void:
 	)
 
 
+## Setzt den Spielerpfeil auf die Bildschirmposition des Spielers.
+##
+## BUGFIX "Pfeil bleibt beim Verschieben der Grosskarte in der Mitte":
+## Der Pfeil haengt als eigenes Control mittig im MapContainer. Auf der
+## KLEINEN Karte stimmt das, weil _update_camera_position() die Kamera
+## exakt ueber den Spieler setzt - die Mitte IST der Spieler. Auf der
+## grossen Karte kommt _big_map_pan dazu: die Kamera schaut woanders hin,
+## der Pfeil klebte aber weiter in der Mitte und zeigte damit dauerhaft
+## die falsche Position an.
+##
+## unproject_position() rechnet die Weltposition in Pixel IM SubViewport
+## um. Das beruecksichtigt Zoom (map_camera.size), Pan und - falls
+## rotate_with_player an ist - auch die Kameradrehung, ohne dass hier
+## irgendetwas davon nachgerechnet werden muss. Anschliessend wird nur
+## noch auf die (gestreckte) Containergroesse skaliert.
+func _update_player_arrow_position() -> void:
+	if player_arrow == null or not player_arrow.visible:
+		return
+	if player == null or not is_instance_valid(player):
+		return
+
+	var viewport_size: Vector2 = Vector2(sub_viewport.size)
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+
+	var box_size: Vector2 = sub_viewport_container.size
+	var in_viewport: Vector2 = map_camera.unproject_position(player.global_position)
+	var in_box: Vector2 = sub_viewport_container.position + in_viewport * (box_size / viewport_size)
+
+	# Ausserhalb des Rahmens an den Rand klemmen und abdunkeln, statt den
+	# Pfeil verschwinden zu lassen - so bleibt erkennbar, in welche
+	# Richtung der eigene Standort liegt.
+	var half: Vector2 = player_arrow.size * 0.5
+	var min_point: Vector2 = sub_viewport_container.position + half
+	var max_point: Vector2 = sub_viewport_container.position + box_size - half
+	var clamped := Vector2(
+		clampf(in_box.x, min_point.x, max_point.x),
+		clampf(in_box.y, min_point.y, max_point.y)
+	)
+	player_arrow.modulate.a = 1.0 if clamped.is_equal_approx(in_box) else 0.45
+
+	# Der Pfeil sitzt an den Mittelankern (anchors_preset 8). Deshalb wird
+	# der VERSATZ ZUR MITTE ueber die Offsets gesetzt und nicht position -
+	# sonst rechnen Anker und position gegeneinander und der Pfeil zittert.
+	var delta: Vector2 = clamped - map_container.size * 0.5
+	player_arrow.offset_left = delta.x - half.x
+	player_arrow.offset_top = delta.y - half.y
+	player_arrow.offset_right = delta.x + half.x
+	player_arrow.offset_bottom = delta.y + half.y
+
+
 ## --- Oeffentliche API fuer pause_menu.gd ------------------------------
 ## ESC soll ZUERST nur die Grosskarte schliessen und erst beim NAECHSTEN
 ## Druck die Pause oeffnen.
@@ -568,6 +625,8 @@ func _process(delta: float) -> void:
 	else:
 		map_camera.rotation.y = 0.0
 		player_arrow.rotation = -camera_yaw
+
+	_update_player_arrow_position()
 
 	if coord_label.visible:
 		var pos: Vector3 = player.global_position

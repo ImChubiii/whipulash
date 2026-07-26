@@ -1,3 +1,7 @@
+
+
+
+
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -101,6 +105,98 @@ func get_display_name() -> String:
 # --- Sanfte Separation von anderen Gegnern ---
 @export var separation_radius: float = 6.0
 @export var separation_strength: float = 5.0
+
+## --- Zickzack-Verfolgung (Scout/Stinger) ------------------------------
+## Ein Gegner, der schnurgerade auf den Spieler zulaeuft, ist trivial zu
+## treffen und fuehlt sich wie ein Zielobjekt an, nicht wie ein Jaeger.
+##
+## MUSTER: zick - stehen - zack - stehen. Der Gegner setzt also einen
+## schraegen Sprint an, friert kurz ein, und setzt dann schraeg in die
+## ANDERE Richtung an. Das Einfrieren ist der eigentliche Trick: es macht
+## den naechsten Richtungswechsel unvorhersehbar, weil man waehrend der
+## Pause nicht sieht, wohin es weitergeht.
+##
+## Der Ausschlag wird kurz vor dem Ziel ausgeblendet - sonst zieht der
+## Gegner im letzten Meter dauernd am Spieler vorbei und kommt nie in
+## attack_range. In der Pausenphase gilt dasselbe: innerhalb von
+## zigzag_min_distance wird NICHT mehr angehalten, sonst bliebe er direkt
+## vor dem Spieler stehen statt zuzuschlagen.
+##
+## Standard AUS, damit traege Typen (Fighter, Colossus) unveraendert
+## geradeaus laufen. Einschalten in der jeweiligen Gegner-Szene.
+@export var zigzag_enabled: bool = false
+
+## Seitlicher Ausschlag eines Beins. 55 Grad heisst: gut die Haelfte der
+## Geschwindigkeit geht in die Seitwaertsbewegung (cos 55 = 0.57 Vortrieb).
+## Ueber 70 Grad kommt er praktisch nicht mehr naeher.
+@export_range(0.0, 80.0) var zigzag_angle_degrees: float = 55.0
+
+## Wie lange EIN schraeges Bein laeuft, bevor angehalten wird.
+@export var zigzag_leg_time: float = 0.35
+
+## Standzeit zwischen zwei Beinen.
+@export var zigzag_pause_time: float = 0.4
+
+## Wie hart in der Pause abgebremst wird. Hoch = schlagartiger Stopp,
+## niedrig = ausrollen. Deutlich ueber movement_acceleration setzen,
+## damit die Pause auch als Pause gelesen wird.
+@export var zigzag_brake_acceleration: float = 90.0
+
+## Ab hier laeuft er schnurgerade durch und pausiert nicht mehr.
+@export var zigzag_min_distance: float = 3.5
+
+## Ab dieser Entfernung ist der Ausschlag voll ausgefahren. Dazwischen
+## wird linear geblendet.
+@export var zigzag_fade_distance: float = 10.0
+
+## Ab welchem Ausschlags-Anteil ueberhaupt noch pausiert wird.
+##
+## WARUM: Bei 0.32 s Bein und 0.4 s Pause ist der Gegner nur 44 % der Zeit
+## in Bewegung, und davon geht bei 58 Grad noch die Haelfte zur Seite. Ein
+## fliehender Spieler waere damit schlicht schneller und der Stinger holt
+## nie auf. Unterhalb dieser Schwelle laeuft er deshalb durch (der Winkel
+## wird ohnehin schon ausgeblendet) und pausiert erst wieder, wenn er
+## Abstand hat.
+@export_range(0.0, 1.0) var zigzag_pause_min_amount: float = 0.45
+
+## --- Fokus-Verlust ----------------------------------------------------
+## Eine Horde, in der jeder Gegner exakt dasselbe tut, liest sich als EIN
+## Schwarm - egal wie viele es sind. Sobald einzelne aber zwischendurch
+## das Interesse verlieren, kurz woanders hinlaufen und dann wieder
+## andocken, zerfaellt die Formation in viele eigenstaendige Nervensaegen.
+##
+## Waehrend der Ablenkung greift der Gegner NICHT an und schaut in seine
+## Laufrichtung statt zum Spieler - das ist der sichtbare Unterschied zu
+## "verfolgt dich gerade".
+##
+## Ein laufender Angriff wird nie unterbrochen: der Wuerfel laeuft nur,
+## solange _is_attacking false ist. Sonst wuerden Telegraph und Hitbox
+## mitten in der Animation abbrechen.
+@export var focus_loss_enabled: bool = false
+
+## Erwartete Aussetzer pro Sekunde. 0.35 heisst grob: alle drei Sekunden
+## einer. Wird ueber eine Poisson-Verteilung in eine Pro-Frame-Chance
+## umgerechnet, damit das Ergebnis NICHT von der Bildrate abhaengt.
+@export var focus_loss_chance_per_second: float = 0.35
+
+@export var focus_loss_duration_min: float = 0.5
+@export var focus_loss_duration_max: float = 1.4
+
+## Tempo waehrend der Ablenkung, als Anteil der normalen Geschwindigkeit.
+@export_range(0.0, 1.0) var focus_loss_wander_speed_factor: float = 0.5
+
+var _focus_lost_timer: float = 0.0
+var _wander_direction: Vector3 = Vector3.ZERO
+
+## Zufaelliger Startpunkt im Takt pro Instanz. Ohne das laeuft eine ganze
+## Gruppe im Gleichschritt und sieht aus wie eine Marschformation.
+@export var zigzag_random_phase: bool = true
+
+## Taktphasen: 0 = Bein nach rechts, 1 = Pause, 2 = Bein nach links,
+## 3 = Pause. Ungerade Indizes sind also immer Pausen.
+var _zigzag_phase_index: int = 0
+var _zigzag_timer: float = 0.0
+var _zigzag_holding: bool = false
 
 # Sauberer Ausstieg aus einem angefangenen Angriff: Telegraph aus, kurzer
 # Cooldown, zurueck ins Verfolgen. Wird NICHT aufgerufen, wenn der Gegner
@@ -342,6 +438,13 @@ func _ready() -> void:
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
 
+	_zigzag_timer = zigzag_leg_time
+	if zigzag_random_phase:
+		# Zufaelliger Einstiegspunkt im Takt: sowohl die Phase als auch
+		# die Restzeit darin, sonst starten alle gleichzeitig ihr Bein.
+		_zigzag_phase_index = randi() % 4
+		_zigzag_timer = randf() * (zigzag_pause_time if _zigzag_is_pause() else zigzag_leg_time)
+
 	_debug("_ready(). attack_hitbox=%s | telegraph_inner=%s | telegraph_outer=%s | nav_agent=%s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
 
 	var shape_node := _get_collision_shape_node()
@@ -397,29 +500,38 @@ func _physics_process(delta: float) -> void:
 	var distance: float = global_position.distance_to(_player.global_position)
 	var previous_state: State = _state
 
-	match _state:
-		State.IDLE:
-			velocity.x = 0.0
-			velocity.z = 0.0
-			if distance <= detection_range:
-				_state = State.CHASE
+	_update_focus(delta, distance)
 
-		State.CHASE:
-			if distance <= attack_range:
-				_state = State.ATTACK
-			elif distance > detection_range * 1.5:
-				_state = State.IDLE
-			else:
-				_move_towards_player(delta)
+	if _focus_lost_timer > 0.0:
+		# Abgelenkt: kein Angriff, eigene Laufrichtung. Der Zustand bleibt
+		# formal CHASE, damit der Gegner nach dem Aussetzer nahtlos
+		# weiterverfolgt statt erst wieder in IDLE zu fallen.
+		_state = State.CHASE
+		_wander_step(delta)
+	else:
+		match _state:
+			State.IDLE:
+				velocity.x = 0.0
+				velocity.z = 0.0
+				if distance <= detection_range:
+					_state = State.CHASE
 
-		State.ATTACK:
-			velocity.x = 0.0
-			velocity.z = 0.0
-			_face_player(delta)
-			if distance > attack_range * 1.3 and not _is_attacking:
-				_state = State.CHASE
-			elif _attack_timer <= 0.0 and not _is_attacking and _is_facing_player():
-				_do_attack()
+			State.CHASE:
+				if distance <= attack_range:
+					_state = State.ATTACK
+				elif distance > detection_range * 1.5:
+					_state = State.IDLE
+				else:
+					_move_towards_player(delta)
+
+			State.ATTACK:
+				velocity.x = 0.0
+				velocity.z = 0.0
+				_face_player(delta)
+				if distance > attack_range * 1.3 and not _is_attacking:
+					_state = State.CHASE
+				elif _attack_timer <= 0.0 and not _is_attacking and _is_facing_player():
+					_do_attack()
 
 	if _state != previous_state:
 		_debug("State-Wechsel: %s -> %s (Distanz %.2f, attack_range %.2f)" % [State.keys()[previous_state], State.keys()[_state], distance, attack_range])
@@ -583,6 +695,24 @@ func _move_towards_player(delta: float) -> void:
 		dir.y = 0.0
 		dir = dir.normalized()
 
+	# VOR den Kanten- und Hindernis-Pruefungen ausweichen: die pruefen
+	# dir, und geprueft werden muss die Richtung, in die der Gegner
+	# tatsaechlich laeuft - sonst testet er den Boden neben seinem Weg.
+	if zigzag_enabled and _player != null:
+		var zigzag_angle: float = _zigzag_step(delta)
+		if _zigzag_holding:
+			# Pausenphase: stehen bleiben, aber weiter den Spieler
+			# anschauen. Frueher Ausstieg, weil Kanten- und
+			# Hindernis-Pruefung fuer einen stehenden Gegner sinnlos sind.
+			var hold_x: float = velocity.x - _knockback_velocity.x
+			var hold_z: float = velocity.z - _knockback_velocity.z
+			velocity.x = move_toward(hold_x, 0.0, zigzag_brake_acceleration * delta)
+			velocity.z = move_toward(hold_z, 0.0, zigzag_brake_acceleration * delta)
+			_waiting_at_ledge = false
+			_face_player(delta)
+			return
+		dir = dir.rotated(Vector3.UP, zigzag_angle)
+
 	_waiting_at_ledge = false
 
 	# --- Ledge-Logik: NUR relevant ohne gueltigen NavMesh-Pfad ---
@@ -627,6 +757,99 @@ func _move_towards_player(delta: float) -> void:
 	velocity.x = move_toward(residual_x, target_velocity_x, movement_acceleration * delta)
 	velocity.z = move_toward(residual_z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
+
+## Wuerfelt den Aussetzer aus bzw. zaehlt einen laufenden herunter.
+func _update_focus(delta: float, distance: float) -> void:
+	if not focus_loss_enabled:
+		return
+
+	if _focus_lost_timer > 0.0:
+		_focus_lost_timer = maxf(_focus_lost_timer - delta, 0.0)
+		return
+
+	# Nicht mitten im Angriff und nicht, solange der Spieler ausser
+	# Reichweite ist - sonst "vergisst" ein Gegner den Spieler, den er
+	# ohnehin nicht verfolgt.
+	if _is_attacking or _state == State.IDLE or distance > detection_range:
+		return
+
+	# Poisson: aus einer Rate pro Sekunde eine Chance fuer GENAU diesen
+	# Frame machen. Eine feste Chance pro Frame haenge sonst an der
+	# Bildrate - bei 144 fps setzten die Gegner mehr als doppelt so oft
+	# aus wie bei 60.
+	var chance: float = 1.0 - exp(-maxf(focus_loss_chance_per_second, 0.0) * delta)
+	if randf() >= chance:
+		return
+
+	_focus_lost_timer = randf_range(focus_loss_duration_min, maxf(focus_loss_duration_max, focus_loss_duration_min))
+	_wander_direction = _random_ground_direction()
+	if telegraph_outer:
+		telegraph_outer.visible = false
+	_debug("Fokus verloren fuer %.2fs." % _focus_lost_timer)
+
+
+## Laufen waehrend der Ablenkung: eigene Richtung, gedrosseltes Tempo,
+## Blick in die Laufrichtung.
+func _wander_step(delta: float) -> void:
+	_waiting_at_ledge = false
+
+	# Nicht in Gruben oder von Plattformen laufen - die Kantenpruefung des
+	# normalen Verfolgens laeuft hier ja nicht mit.
+	if _wander_direction.length_squared() < 0.001 or _is_ledge_ahead(_wander_direction):
+		_wander_direction = _random_ground_direction()
+		velocity.x = move_toward(velocity.x - _knockback_velocity.x, 0.0, movement_acceleration * delta)
+		velocity.z = move_toward(velocity.z - _knockback_velocity.z, 0.0, movement_acceleration * delta)
+		return
+
+	var effective_speed: float = get_effective_move_speed() * focus_loss_wander_speed_factor
+	var residual_x: float = velocity.x - _knockback_velocity.x
+	var residual_z: float = velocity.z - _knockback_velocity.z
+	velocity.x = move_toward(residual_x, _wander_direction.x * effective_speed, movement_acceleration * delta)
+	velocity.z = move_toward(residual_z, _wander_direction.z * effective_speed, movement_acceleration * delta)
+
+	var target_rotation: float = atan2(_wander_direction.x, _wander_direction.z)
+	rotation.y = lerp_angle(rotation.y, target_rotation, delta * 6.0)
+
+
+func _random_ground_direction() -> Vector3:
+	var angle: float = randf() * TAU
+	return Vector3(sin(angle), 0.0, cos(angle))
+
+
+## Schaltet den Zickzack-Takt weiter und liefert den Ausweichwinkel des
+## aktuellen Beins. Setzt nebenbei _zigzag_holding, wenn gerade eine
+## Pausenphase laeuft.
+##
+## Die Blickrichtung bleibt unberuehrt (_face_player laeuft weiter auf den
+## Spieler) - der Gegner schaut einen also an, waehrend er seitlich
+## versetzt naeher kommt oder kurz einfriert.
+func _zigzag_step(delta: float) -> float:
+	# Nah am Ziel: kein Ausschlag, keine Pause. Sonst bliebe der Gegner
+	# direkt vor dem Spieler stehen, statt in attack_range zu gehen.
+	var distance: float = global_position.distance_to(_player.global_position)
+	var span: float = maxf(zigzag_fade_distance - zigzag_min_distance, 0.01)
+	var amount: float = clampf((distance - zigzag_min_distance) / span, 0.0, 1.0)
+	if amount <= 0.0:
+		_zigzag_holding = false
+		return 0.0
+
+	_zigzag_timer -= delta
+	if _zigzag_timer <= 0.0:
+		_zigzag_phase_index = (_zigzag_phase_index + 1) % 4
+		_zigzag_timer = zigzag_pause_time if _zigzag_is_pause() else zigzag_leg_time
+
+	_zigzag_holding = _zigzag_is_pause() and amount >= zigzag_pause_min_amount
+	if _zigzag_holding:
+		return 0.0
+
+	# Phase 0 schlaegt nach rechts aus, Phase 2 nach links.
+	var side: float = 1.0 if _zigzag_phase_index == 0 else -1.0
+	return deg_to_rad(zigzag_angle_degrees) * side * amount
+
+
+func _zigzag_is_pause() -> bool:
+	return (_zigzag_phase_index % 2) == 1
+
 
 func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:
 	var space_state := get_world_3d().direct_space_state

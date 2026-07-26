@@ -97,6 +97,13 @@ func get_time_string() -> String:
 	return format_time(_elapsed)
 
 
+## Laufzeit in ganzen Millisekunden - das Format, das das Steam-Leaderboard
+## als int32-Score erwartet. Bewusst abgerundet statt gerundet: eine Zeit
+## darf durch das Hochladen nicht besser werden, als sie gelaufen wurde.
+func get_elapsed_ms() -> int:
+	return int(floor(maxf(_elapsed, 0.0) * 1000.0))
+
+
 ## Format: Sekunden mit zwei Nachkommastellen ("42.17"). Minuten werden
 ## NUR vorangestellt, sobald es welche gibt ("1.42.17").
 ##
@@ -111,3 +118,5 @@ static func format_time(seconds: float) -> String:
 	if minutes > 0:
 		return "%d.%02d.%02d" % [minutes, secs, cs]
 	return "%d.%02d" % [secs, cs]
+
+

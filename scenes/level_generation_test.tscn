@@ -4,9 +4,9 @@
 [ext_resource type="Script" uid="uid://cektwwmfbufkr" path="res://scenes/level_generation/room_grid_generator.gd" id="2_grid"]
 [ext_resource type="Script" uid="uid://b13fmywklr32" path="res://scenes/level_generation/room_data.gd" id="3_room_data_script"]
 [ext_resource type="Script" uid="uid://cvv6ttrhxcdyi" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="4_enemy_entry_script"]
-[ext_resource type="Resource" path="res://resources/enemies/es_stinger.tres" id="5_es_stinger"]
-[ext_resource type="Resource" path="res://resources/enemies/es_fighter.tres" id="6_es_fighter"]
-[ext_resource type="Resource" path="res://resources/enemies/es_colossus.tres" id="7_es_colossus"]
+[ext_resource type="Resource" uid="uid://bf01nc6q3fscg" path="res://resources/enemies/es_stinger.tres" id="5_es_stinger"]
+[ext_resource type="Resource" uid="uid://cfgrjjfnk1k08" path="res://resources/enemies/es_fighter.tres" id="6_es_fighter"]
+[ext_resource type="Resource" uid="uid://diggh6vr41r5e" path="res://resources/enemies/es_colossus.tres" id="7_es_colossus"]
 [ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_party_setup"]
 [ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="9_char_data_script"]
 [ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_char1"]
@@ -90,7 +90,11 @@ room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), E
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")
-boss_threat_budget = 13
+combat_threat_budget = 16
+corridor_threat_budget = 6
+boss_threat_budget = 40
+threat_per_stage = 4
+threat_hard_cap = 28
 navigation_region = NodePath("../NavigationRegion3D")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1169866606]

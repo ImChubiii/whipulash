@@ -1,3 +1,5 @@
+
+
 extends CharacterBody3D
 class_name PlayerBase
 
@@ -237,6 +239,52 @@ var _tilt_tween: Tween
 @export var dash_fov_boost: float = 25.0
 @export var dash_fov_ramp_up_time: float = 0.08
 @export var dash_fov_ramp_down_time: float = 0.35
+
+# --- Kamera-Federarm --------------------------------------------------
+# BUGFIX 1 "beim Dash zoomt die Kamera in den Spieler rein":
+#
+# SpringArm3D zieht seine Kinder heran, sobald der Cast auf Geometrie
+# trifft, und setzt sie dabei OHNE JEDE DAEMPFUNG. Ohne zugewiesene shape
+# castet er nur einen haarduennen Strahl - waehrend eines Dashs legt der
+# Arm pro Frame mehrere Meter zurueck, und steht der Strahl auch nur einen
+# einzigen Frame in Wand oder Boden, springt die Kamera auf Laenge 0.
+#
+# BUGFIX 2 "die Kamera geht beim Dashen durch Waende":
+#
+# Der erste Versuch war, die Kollision waehrend des Dashs komplett
+# abzuschalten. Das beseitigt zwar das Reinzoomen, laesst die Kamera aber
+# durch Waende fahren - schlechter Tausch. Die Kollision bleibt deshalb
+# jetzt AN; stattdessen wird die Laengenaenderung gedaempft:
+#
+#   * Kugel statt Strahl als Cast-Form, plus Ausschluss des eigenen
+#     Koerpers (Godot schliesst das Elternobjekt NICHT automatisch aus).
+#   * Die Kamera wird nicht mehr vom Federarm gesetzt, sondern jeden
+#     Frame selbst auf get_hit_length() zugefahren - REIN schnell, RAUS
+#     langsam. Ein einzelner Fehltreffer verschiebt die Kamera dadurch
+#     hoechstens um pull_speed/60 Einheiten statt sofort auf 0, und echte
+#     Waende schieben sie trotzdem sauber heran.
+#
+# dash_camera_ignore_collision bleibt als Notschalter erhalten, ist aber
+# bewusst AUS.
+@export var dash_camera_ignore_collision: bool = false
+@export var dash_camera_probe_radius: float = 0.35
+@export var dash_camera_margin: float = 0.2
+
+## Wie schnell die Kamera herangezogen wird, wenn etwas im Weg ist
+## (Einheiten pro Sekunde). Hoch genug, dass eine echte Wand die Kamera
+## rechtzeitig einholt - niedrig genug, dass ein Cast-Aussetzer von ein,
+## zwei Frames praktisch unsichtbar bleibt.
+@export var camera_spring_pull_speed: float = 22.0
+
+## Wie schnell sie wieder herausfaehrt. Deutlich langsamer, sonst pumpt
+## die Kamera an jeder Tuerkante.
+@export var camera_spring_return_speed: float = 7.0
+
+## -1 = kein Backup aktiv. Die echte Maske wird beim Dash-Start
+## gesichert, damit ein spaeter geaenderter Layer nicht verlorengeht.
+var _spring_arm_mask_backup: int = -1
+var _camera_spring_current: float = -1.0
+var _dash_fov_tween: Tween
 var _base_fov: float = 75.0
 
 # --- Buoyancy ---
@@ -270,6 +318,13 @@ func _ready() -> void:
 	combat.setup(self)
 	_base_fov = camera.fov
 	_pre_large_enemy_zoom = spring_arm.spring_length
+	_setup_camera_probe()
+	_camera_spring_current = spring_arm.spring_length
+
+	# Die Tuerzustands-Platten der Raeume liegen auf einem Layer, den NUR
+	# die Minimap-Kamera rendern soll. Ohne diese Zeile schweben sie im
+	# Spiel sichtbar ueber den Durchgaengen.
+	camera.set_cull_mask_value(RoomInstance.MINIMAP_ONLY_LAYER, false)
 
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
@@ -366,6 +421,11 @@ func _process(delta: float) -> void:
 
 	camera.rotation.z = deg_to_rad(_combo_tilt_degrees + shake_roll_degrees)
 
+	# NACH dem Shake: der Federarm setzt seine Kinder im internen
+	# Physics-Notification, also VOR diesem _process. Was hier geschrieben
+	# wird, gewinnt fuer den gerenderten Frame.
+	_update_camera_spring(delta)
+
 func shake_camera(amount: float) -> void:
 	if not SettingsManager.screen_shake_enabled:
 		return
@@ -385,11 +445,65 @@ func reset_combo_tilt() -> void:
 	_tilt_tween.tween_property(self, "_combo_tilt_degrees", 0.0, 0.6)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
+## Macht den Federarm gegen schnelle Bewegung unempfindlich. Siehe den
+## Kommentar bei dash_camera_ignore_collision.
+func _setup_camera_probe() -> void:
+	if spring_arm == null:
+		return
+	if spring_arm.shape == null:
+		var probe := SphereShape3D.new()
+		probe.radius = maxf(dash_camera_probe_radius, 0.05)
+		spring_arm.shape = probe
+	spring_arm.margin = maxf(spring_arm.margin, dash_camera_margin)
+	# Der eigene Koerper darf den Arm niemals einziehen. Godot schliesst
+	# das Elternobjekt NICHT automatisch aus.
+	spring_arm.add_excluded_object(get_rid())
+
+
+## Schaltet die Kollision des Federarms fuer die Dauer des Dashs ab und
+## danach exakt auf den vorherigen Wert zurueck. Laeuft jeden Frame ganz
+## oben in _physics_process, also auch dann, wenn der Dash durch Tod,
+## Stun oder Szenenwechsel abbricht.
+## Faehrt die Kamera gedaempft auf die vom Federarm ermittelte Laenge zu,
+## statt sie ihn hart setzen zu lassen. Siehe Kommentarblock oben.
+func _update_camera_spring(delta: float) -> void:
+	if spring_arm == null or camera == null:
+		return
+
+	var target: float = spring_arm.get_hit_length()
+	if _camera_spring_current < 0.0:
+		_camera_spring_current = target
+
+	var speed: float = camera_spring_pull_speed if target < _camera_spring_current else camera_spring_return_speed
+	_camera_spring_current = move_toward(_camera_spring_current, target, speed * delta)
+	camera.position = Vector3(0.0, 0.0, _camera_spring_current)
+
+
+func _update_dash_camera_guard() -> void:
+	if not dash_camera_ignore_collision or spring_arm == null:
+		return
+
+	var dashing: bool = combat != null and combat.is_dashing()
+	if dashing:
+		if _spring_arm_mask_backup < 0:
+			_spring_arm_mask_backup = spring_arm.collision_mask
+			spring_arm.collision_mask = 0
+	elif _spring_arm_mask_backup >= 0:
+		spring_arm.collision_mask = _spring_arm_mask_backup
+		_spring_arm_mask_backup = -1
+
+
+## Der Tween wird gemerkt und beim naechsten Dash abgeraeumt. Ohne das
+## laufen bei zwei schnell aufeinanderfolgenden Dashs zwei Tweens
+## gleichzeitig auf camera.fov und ueberschreiben sich gegenseitig - das
+## Sichtfeld bleibt dann auf einem Zwischenwert haengen.
 func play_dash_fov_effect() -> void:
-	var tween := create_tween()
-	tween.tween_property(camera, "fov", _base_fov + dash_fov_boost, dash_fov_ramp_up_time)\
+	if _dash_fov_tween and _dash_fov_tween.is_valid():
+		_dash_fov_tween.kill()
+	_dash_fov_tween = create_tween()
+	_dash_fov_tween.tween_property(camera, "fov", _base_fov + dash_fov_boost, dash_fov_ramp_up_time)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(camera, "fov", _base_fov, dash_fov_ramp_down_time)\
+	_dash_fov_tween.tween_property(camera, "fov", _base_fov, dash_fov_ramp_down_time)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -421,6 +535,7 @@ func _physics_process(delta: float) -> void:
 	# eines Dashs weiterlaufen, sonst friert die Immunitaet mitten im
 	# Ausweichmanoever ein und der naechste Treffer stunnt wieder voll.
 	_tick_stun_guard(delta)
+	_update_dash_camera_guard()
 
 	if combat.is_dashing():
 		velocity = combat.get_dash_velocity(delta)
@@ -568,3 +683,5 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			velocity.z = 0.0
 			break
+
+

@@ -6521,49 +6521,44 @@ player_scene = ExtResource("2_scene")
 
 ===== FILE: resources\enemies\es_colossus.tres =====
 
-[gd_resource type="Resource" script_class="EnemySpawnEntry" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="EnemySpawnEntry" format=3 uid="uid://diggh6vr41r5e"]
 
-[ext_resource type="Script" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cvv6ttrhxcdyi" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://6agdektsj4x3" path="res://scenes/tank_dummy.tscn" id="2_scene"]
 
 [resource]
 script = ExtResource("1_script")
 scene = ExtResource("2_scene")
 display_name = "Colossus"
-weight = 1.0
 threat_cost = 10
-min_stage = 1
-guaranteed_count = 1
-max_per_room = 1
+max_per_room = 3
 min_room_height = 20.0
-min_spawn_spacing = 14.0
+guaranteed_count = 3
+min_spawn_spacing = 11.0
 
 
 ===== FILE: resources\enemies\es_fighter.tres =====
 
-[gd_resource type="Resource" script_class="EnemySpawnEntry" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="EnemySpawnEntry" format=3 uid="uid://cfgrjjfnk1k08"]
 
-[ext_resource type="Script" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cvv6ttrhxcdyi" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="2_scene"]
 
 [resource]
 script = ExtResource("1_script")
 scene = ExtResource("2_scene")
 display_name = "Fighter"
-weight = 1.0
 threat_cost = 3
-min_stage = 1
-guaranteed_count = 0
-max_per_room = 2
+max_per_room = 5
 min_room_height = 12.0
-min_spawn_spacing = 9.0
+min_spawn_spacing = 6.0
 
 
 ===== FILE: resources\enemies\es_stinger.tres =====
 
-[gd_resource type="Resource" script_class="EnemySpawnEntry" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="EnemySpawnEntry" format=3 uid="uid://bf01nc6q3fscg"]
 
-[ext_resource type="Script" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cvv6ttrhxcdyi" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://cwmv27hs3y0ng" path="res://scenes/scout_dummy.tscn" id="2_scene"]
 
 [resource]
@@ -6571,11 +6566,7 @@ script = ExtResource("1_script")
 scene = ExtResource("2_scene")
 display_name = "Stinger"
 weight = 3.0
-threat_cost = 1
-min_stage = 1
-guaranteed_count = 0
-max_per_room = 6
-min_room_height = 0.0
+max_per_room = 12
 min_spawn_spacing = 3.0
 
 
@@ -7495,6 +7486,8 @@ height = 6.0
 
 ===== FILE: scenes\enemy_ai.gd =====
 
+
+
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -7598,6 +7591,48 @@ func get_display_name() -> String:
 # --- Sanfte Separation von anderen Gegnern ---
 @export var separation_radius: float = 6.0
 @export var separation_strength: float = 5.0
+
+## --- Zickzack-Verfolgung (Scout/Stinger) ------------------------------
+## Ein Gegner, der schnurgerade auf den Spieler zulaeuft, ist trivial zu
+## treffen und fuehlt sich wie ein Zielobjekt an, nicht wie ein Jaeger.
+## Der Stinger weicht deshalb waehrend der Verfolgung seitlich aus: die
+## Laufrichtung wird um einen pendelnden Winkel um die Y-Achse gedreht.
+##
+## Der Ausschlag wird kurz vor dem Ziel ausgeblendet - sonst zieht der
+## Gegner im letzten Meter dauernd am Spieler vorbei und kommt nie in
+## attack_range.
+##
+## Standard AUS, damit traege Typen (Fighter, Colossus) unveraendert
+## geradeaus laufen. Einschalten in der jeweiligen Gegner-Szene.
+@export var zigzag_enabled: bool = false
+
+enum ZigzagWave { TRIANGLE, SINE, SQUARE }
+## TRIANGLE = klassischer Zickzack (gleichmaessiges Pendeln, klare Kanten)
+## SINE     = weiches Schlaengeln
+## SQUARE   = harte Richtungswechsel, wirkt am aggressivsten
+@export var zigzag_waveform: ZigzagWave = ZigzagWave.TRIANGLE
+
+## Maximaler seitlicher Ausschlag. Ueber ~50 Grad kommt der Gegner kaum
+## noch vorwaerts (cos 50 = 0.64 der Vortriebsgeschwindigkeit).
+@export_range(0.0, 70.0) var zigzag_angle_degrees: float = 38.0
+
+## Richtungswechsel pro Sekunde.
+@export var zigzag_frequency: float = 2.2
+
+## Ab hier laeuft er schnurgerade auf den Spieler zu (voller Ausschlag
+## wuerde den Angriff verhindern).
+@export var zigzag_min_distance: float = 3.5
+
+## Ab dieser Entfernung ist der Ausschlag voll ausgefahren. Dazwischen
+## wird linear geblendet.
+@export var zigzag_fade_distance: float = 9.0
+
+## Zufaellige Startphase pro Instanz. Ohne das pendelt eine ganze Gruppe
+## im Gleichschritt und sieht aus wie eine Marschformation.
+@export var zigzag_random_phase: bool = true
+
+var _zigzag_time: float = 0.0
+var _zigzag_phase: float = 0.0
 
 # Sauberer Ausstieg aus einem angefangenen Angriff: Telegraph aus, kurzer
 # Cooldown, zurueck ins Verfolgen. Wird NICHT aufgerufen, wenn der Gegner
@@ -7838,6 +7873,9 @@ func _ready() -> void:
 	_refresh_player_reference()
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
+
+	if zigzag_random_phase:
+		_zigzag_phase = randf() * TAU
 
 	_debug("_ready(). attack_hitbox=%s | telegraph_inner=%s | telegraph_outer=%s | nav_agent=%s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
 
@@ -8080,6 +8118,11 @@ func _move_towards_player(delta: float) -> void:
 		dir.y = 0.0
 		dir = dir.normalized()
 
+	# VOR den Kanten- und Hindernis-Pruefungen ausweichen: die pruefen
+	# dir, und geprueft werden muss die Richtung, in die der Gegner
+	# tatsaechlich laeuft - sonst testet er den Boden neben seinem Weg.
+	dir = _apply_zigzag(dir, delta)
+
 	_waiting_at_ledge = false
 
 	# --- Ledge-Logik: NUR relevant ohne gueltigen NavMesh-Pfad ---
@@ -8124,6 +8167,45 @@ func _move_towards_player(delta: float) -> void:
 	velocity.x = move_toward(residual_x, target_velocity_x, movement_acceleration * delta)
 	velocity.z = move_toward(residual_z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
+
+## Dreht die Laufrichtung um einen pendelnden Winkel um die Y-Achse.
+## Die Blickrichtung bleibt davon unberuehrt (_face_player laeuft
+## weiterhin auf den Spieler) - der Gegner schaut einen also an, waehrend
+## er seitlich versetzt naeher kommt.
+func _apply_zigzag(dir: Vector3, delta: float) -> Vector3:
+	if not zigzag_enabled:
+		return dir
+	if dir.length_squared() < 0.0001 or _player == null:
+		return dir
+
+	_zigzag_time += delta
+
+	# Ausschlag zwischen zigzag_min_distance und zigzag_fade_distance
+	# linear hochblenden.
+	var distance: float = global_position.distance_to(_player.global_position)
+	var span: float = maxf(zigzag_fade_distance - zigzag_min_distance, 0.01)
+	var amount: float = clampf((distance - zigzag_min_distance) / span, 0.0, 1.0)
+	if amount <= 0.0:
+		return dir
+
+	var angle: float = deg_to_rad(zigzag_angle_degrees) * _zigzag_wave() * amount
+	return dir.rotated(Vector3.UP, angle)
+
+
+## Liefert den aktuellen Pendelwert in [-1, 1].
+func _zigzag_wave() -> float:
+	var phase: float = _zigzag_time * TAU * maxf(zigzag_frequency, 0.01) + _zigzag_phase
+	match zigzag_waveform:
+		ZigzagWave.SINE:
+			return sin(phase)
+		ZigzagWave.SQUARE:
+			return 1.0 if sin(phase) >= 0.0 else -1.0
+	# TRIANGLE: aus dem normierten Phasenanteil ein Dreieck bauen.
+	var t: float = fmod(phase / TAU, 1.0)
+	if t < 0.0:
+		t += 1.0
+	return 4.0 * absf(t - 0.5) - 1.0
+
 
 func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:
 	var space_state := get_world_3d().direct_space_state
@@ -11329,6 +11411,8 @@ const INTERACT_ACTION := "interact"
 var _locked: bool = true
 var _closed_y: float = 0.0
 var _open_y: float = 0.0
+## Erst true, nachdem _ready() _closed_y/_open_y einmal berechnet hat.
+var _base_ready: bool = false
 var _effective_open_height: float = 0.0
 var _effective_speed: float = 1.0
 
@@ -11364,6 +11448,7 @@ func _ready() -> void:
 
 	_closed_y = position.y
 	_open_y = _closed_y + _effective_open_height
+	_base_ready = true
 	_collision.disabled = not _locked
 
 	_apply_kind_visuals()
@@ -11520,6 +11605,58 @@ func _measure_door_height() -> float:
 	if shape is SphereShape3D:
 		return (shape as SphereShape3D).radius * 2.0 * y_scale
 	return 4.0
+
+
+## BUGFIX "Tuer versinkt im Rampenboden / Durchgang offen trotz VERRIEGELT":
+##
+## _closed_y wird in _ready() aus position.y gelesen. _ready() laeuft
+## waehrend add_child() im LevelGenerator - also BEVOR
+## RoomInstance.configure_slope() die Tuer auf der hohen Seite eines
+## Rampen-Korridors um rise Meter anhebt. Die Tuer wird zwar korrekt
+## versetzt, aber _process() faehrt sie im selben Frame wieder auf das
+## alte (tiefe) _closed_y zurueck - sie verschwindet in der Rampe und der
+## Durchgang steht offen, obwohl das Tuer-Protokoll "VERRIEGELT" meldet.
+##
+## Genau das erzeugt im Log das Muster: Korridor (-2, 0) verriegelt beide
+## Tueren und hat 2 aktive Gegner, der Spieler steht trotzdem schon im
+## Bossraum (-3, 0).
+##
+## shift_base_height() zieht die Ruhe- UND die Offen-Hoehe mit und muss
+## IMMER aufgerufen werden, wenn die Tuer nach _ready() vertikal versetzt
+## wird.
+func shift_base_height(delta: float) -> void:
+	if is_zero_approx(delta):
+		return
+	if not _base_ready:
+		# _ready() liest position.y sowieso erst noch - dort landet der
+		# Versatz dann automatisch mit drin.
+		position.y += delta
+		return
+
+	_closed_y += delta
+	_open_y += delta
+	position.y = _closed_y if _locked else _open_y
+
+
+## Absolute Ruhehoehe setzen (Alternative zu shift_base_height, falls die
+## Zielhoehe bekannt ist statt der Differenz).
+func set_base_height(new_closed_y: float) -> void:
+	shift_base_height(new_closed_y - _closed_y)
+
+
+## Ruhehoehe (geschlossen) der Tuer in Raum-lokalen Koordinaten.
+##
+## Wird von RoomInstance._build_door_lintel() gebraucht: der Tuersturz muss
+## von der Oberkante des GESCHLOSSENEN Blatts bis zur Decke reichen.
+## position.y taugt dafuer nicht - eine offene Tuer steht
+## _effective_open_height (Blatthoehe + open_clearance) hoeher, der Sturz
+## waere dann viel zu kurz und der Spalt bliebe offen.
+##
+## Vor _ready() ist _closed_y noch nicht gefuellt; dann ist position.y die
+## korrekte Antwort, weil die Tuer bis dahin unbewegt auf ihrer
+## Szenen-Position steht.
+func get_base_height() -> float:
+	return _closed_y if _base_ready else position.y
 
 
 func set_locked(locked: bool) -> void:
@@ -11822,6 +11959,8 @@ func is_allowed(stage: int, room_height: float) -> bool:
 
 ===== FILE: scenes\level_generation\level_generator.gd =====
 
+
+
 extends Node
 class_name LevelGenerator
 
@@ -11873,7 +12012,27 @@ const DIR_OFFSETS := {
 @export var threat_per_stage: int = 2
 @export var threat_hard_cap: int = 14
 
+## Eigener Deckel fuer den Bossraum. Ohne den wuerde threat_hard_cap (14)
+## drei Colossus a 10 Threat sofort abwuergen - der dritte passt schlicht
+## nicht mehr ins Budget. Den globalen Cap dafuer hochzuziehen ist keine
+## Option: er begrenzt auch normale Kampfraeume in spaeteren Stages.
+@export var boss_threat_hard_cap: int = 40
+
 @export var navigation_region: NavigationRegion3D
+
+## --- Fog of War auf der Minimap ---------------------------------------
+## Die schematische Grid-Karte blendet unbekannte Raeume schon aus. Die
+## 3D-Minimap zeigte dagegen die KOMPLETTE Etage, weil sie einfach eine
+## zweite Kamera auf dieselbe Welt ist. Mit diesem Schalter werden Raeume,
+## die weder betreten noch direkt hinter einer Tuer eines betretenen
+## Raums liegen, fuer die Minimap-Kamera ausgeblendet - siehe
+## RoomInstance.MINIMAP_HIDDEN_LAYER.
+@export var minimap_fog_enabled: bool = true
+
+## Startwert fuer den ganzen Run. 0 = beim Start einmal wuerfeln.
+## Der TATSAECHLICH benutzte Wert steht danach in get_run_seed() und wird
+## mit auf das Steam-Leaderboard geschrieben - nur so laesst sich ein
+## fremder Run nachspielen.
 @export var random_seed: int = 0
 
 ## --- Sieg-Trophaee ----------------------------------------------------
@@ -11885,6 +12044,21 @@ const DIR_OFFSETS := {
 ## Laden zu zerreissen.
 @export var victory_trophy_scene_path: String = "res://scenes/victory_trophy.tscn"
 @export var spawn_victory_trophy: bool = true
+
+## --- Rueckweg-Garantie nach dem Bosskampf -----------------------------
+## Ein Durchgang besteht aus ZWEI Tueren - eine in jedem Raum. Beide
+## muessen offen sein. Haengt der Nachbarraum noch in einem verriegelten
+## Kampfzustand (Spieler ist rausgekommen, ohne ihn zu clearen), bleibt
+## der Spieler nach dem Bosskampf im Bossraum stehen, obwohl dessen eigene
+## Tuer sauber aufgeht. Im Tuer-Protokoll steht das dann als
+## "offen, aber Gegenseite ist HACK GESPERRT -> Durchgang trotzdem
+## blockiert".
+##
+## RoomInstance.reset_when_player_escapes verhindert diesen Zustand
+## normalerweise schon. Das hier ist die zweite Sicherung: nach dem
+## Boss-Clear werden die Tueren des Bossraums UND die jeweilige Gegenseite
+## beim Nachbarn bedingungslos geoeffnet.
+@export var unlock_boss_exit_on_clear: bool = true
 ## Hoehe ueber dem Raumboden, auf der die Trophaee liegen bleibt.
 @export var victory_trophy_ground_offset: float = 0.3
 
@@ -11903,6 +12077,8 @@ const DIR_OFFSETS := {
 signal stage_generated(stage: int, room_count: int)
 signal map_updated
 signal stage_cleared(stage: int)
+## Feuert einmal, sobald der Run-Seed feststeht (HUD/Seed-Anzeige).
+signal run_seed_ready(run_seed: int, seed_code: String)
 
 var _used_unique_rooms: Array[RoomData] = []
 var _instances: Dictionary = {}
@@ -11910,6 +12086,13 @@ var _current_layout: Dictionary = {}
 var _map_cells: Dictionary = {}
 var _current_room: Vector2i = Vector2i.ZERO
 var _stage_cleared: bool = false
+
+## Der wirklich verwendete Run-Seed (nie 0, sobald _ready() durch ist).
+var _run_seed: int = 0
+## RNG fuer die Raumauswahl. Bewusst getrennt vom Layout-RNG des
+## RoomGridGenerators und vom Spawn-RNG der Raeume, damit eine Aenderung
+## an einem der drei die anderen beiden nicht verschiebt.
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -11933,10 +12116,18 @@ func _ready() -> void:
 
 	add_to_group(GENERATOR_GROUP)
 
-	if random_seed != 0:
-		seed(random_seed)
-	else:
-		randomize()
+	# Run-Seed festnageln. Frueher wurde hier seed()/randomize() auf den
+	# GLOBALEN RNG angewandt - das reicht fuer verifizierbare Runs nicht,
+	# weil derselbe globale RNG auch von Screen-Shake, Schadenszahlen und
+	# Gegner-KI benutzt wird (siehe det_rng.gd). Stattdessen bekommen
+	# Layout, Raumauswahl und Gegner-Rolls eigene, abgeleitete RNGs.
+	_run_seed = random_seed if random_seed != 0 else DetRng.random_seed_value()
+	_rng.seed = DetRng.derive(_run_seed, "roompick")
+	# Der globale RNG bleibt fuer reine Optik zustaendig und wird bewusst
+	# unabhaengig vom Run-Seed gewuerfelt.
+	randomize()
+	print("[LevelGenerator] Run-Seed: %d (Code: %s)" % [_run_seed, DetRng.seed_to_code(_run_seed)])
+	run_seed_ready.emit(_run_seed, DetRng.seed_to_code(_run_seed))
 
 	if grid_generator == null:
 		grid_generator = get_parent().get_node_or_null("RoomGridGenerator") as RoomGridGenerator
@@ -11962,6 +12153,17 @@ func get_current_room() -> Vector2i:
 
 func get_current_stage() -> int:
 	return current_stage
+
+
+## Der tatsaechlich verwendete Run-Seed - Grundlage fuer den
+## Leaderboard-Eintrag und die Seed-Anzeige im HUD.
+func get_run_seed() -> int:
+	return _run_seed
+
+
+## Teilbarer Kurzcode desselben Seeds ("4F2K9").
+func get_run_seed_code() -> String:
+	return DetRng.seed_to_code(_run_seed)
 
 func is_stage_cleared() -> bool:
 	return _stage_cleared
@@ -11997,7 +12199,7 @@ func get_room_type_name(type: int) -> String:
 # --- Generierung ----------------------------------------------------
 
 func generate_new_stage() -> void:
-	_current_layout = grid_generator.generate_layout()
+	_current_layout = grid_generator.generate_layout(_run_seed)
 	print("[LevelGenerator] Layout generiert: %d Zellen" % _current_layout.size())
 	_instantiate_layout(_current_layout)
 
@@ -12038,6 +12240,13 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		if cell.slope_delta != 0 and room.has_method("configure_slope"):
 			room.configure_slope(cell.slope_low_dir, cell.slope_delta * elevation_step)
 
+		# Jeder Raum bekommt seinen EIGENEN, aus Position und Stage
+		# abgeleiteten Spawn-Seed. Wichtig: der Gegner-Roll passiert erst
+		# beim BETRETEN des Raums. Haetten alle Raeume einen gemeinsamen
+		# RNG, haenge das Ergebnis an der Reihenfolge, in der der Spieler
+		# die Map ablaeuft - und der Seed waere wertlos.
+		room.set_spawn_seed(DetRng.derive(_run_seed, "spawn:%d:%d:%d" % [grid_pos.x, grid_pos.y, current_stage]))
+
 		var table: Array[EnemySpawnEntry] = _table_for_type(cell.room_type)
 		var budget: int = _budget_for_type(cell.room_type)
 		room.prepare_enemies(table, budget, current_stage)
@@ -12057,6 +12266,8 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		}
 
 	_apply_door_kinds(layout)
+
+	_refresh_minimap_fog()
 
 	print("[LevelGenerator] %d/%d Raeume instanziert." % [_instances.size(), layout.size()])
 	_rebake_navigation()
@@ -12147,6 +12358,7 @@ func _on_room_entered(room: RoomInstance) -> void:
 	_current_room = room.grid_position
 	if _map_cells.has(room.grid_position):
 		_map_cells[room.grid_position]["visited"] = true
+	_refresh_minimap_fog()
 	map_updated.emit()
 
 
@@ -12157,6 +12369,8 @@ func _on_room_cleared(room: RoomInstance) -> void:
 			_stage_cleared = true
 			stage_cleared.emit(current_stage)
 			print("[LevelGenerator] Stage %d gecleared (Bossraum bei %s)." % [current_stage, room.grid_position])
+			if unlock_boss_exit_on_clear:
+				_force_open_boss_exits(room)
 			if spawn_victory_trophy:
 				_spawn_victory_trophy(room)
 
@@ -12168,10 +12382,31 @@ func _on_room_cleared(room: RoomInstance) -> void:
 		if _current_layout[neighbor_pos].room_type == RoomData.RoomType.BOSS:
 			room.set_door_hack_enabled(dir, true)
 
+	_refresh_minimap_fog()
 	map_updated.emit()
 
 	if debug_doors and debug_doors_on_clear:
 		print_door_report("nach Clear von %s" % room.grid_position)
+
+## Oeffnet nach dem Bosskampf jeden Durchgang des Bossraums auf BEIDEN
+## Seiten. Der Nachbarraum darf danach weiterhin seine eigenen Gegner
+## haben - der Spieler kann dann eben zurueck in einen laufenden Kampf,
+## was deutlich besser ist als festzustecken.
+func _force_open_boss_exits(room: RoomInstance) -> void:
+	for dir in DIR_KEYS:
+		if room.get_door_state(dir) == RoomInstance.DoorState.NONE:
+			continue
+
+		room.force_unlock_door(dir)
+
+		var neighbor_pos: Vector2i = room.grid_position + DIR_OFFSETS[dir]
+		if not _instances.has(neighbor_pos):
+			continue
+		var neighbor: RoomInstance = _instances[neighbor_pos]
+		if not is_instance_valid(neighbor):
+			continue
+		neighbor.force_unlock_door(OPPOSITE_DIR[dir])
+
 
 ## Laesst die goldene Sieg-Trophaee in die Mitte des Bossraums fallen.
 ## Wird als Kind der aktuellen Szene (nicht des Raums) eingehaengt, damit
@@ -12195,9 +12430,68 @@ func _spawn_victory_trophy(room: RoomInstance) -> void:
 
 	var center: Vector3 = room.get_room_center()
 	center.y += victory_trophy_ground_offset
-	trophy.global_position = center
 
-	print("[LevelGenerator] Sieg-Trophaee gespawnt bei %s." % center)
+	# BUGFIX "Trophaee liegt unter dem Boden":
+	# Frueher stand hier nur trophy.global_position = center. Das kam zu
+	# SPAET - add_child() hat _ready() der Trophaee bereits ausgeloest, die
+	# hat sich (0, 0, 0) als Landepunkt gemerkt und ihren Fall-Tween auf
+	# "global_position:y -> 0.0" gestartet. Der Tween ueberschreibt die
+	# Zuweisung hier im naechsten Frame wieder. Liegt der Bossraum auf einer
+	# Hoehenstufe > 0 (hier Welt-Y 6.0), landet die Trophaee entsprechend
+	# 6 Meter unter dem Bossraumboden.
+	#
+	# start_drop_at() setzt Position UND Landehoehe in einem Rutsch und
+	# startet den Fall erst danach.
+	if trophy.has_method("start_drop_at"):
+		trophy.start_drop_at(center)
+	else:
+		trophy.global_position = center
+
+	print("[LevelGenerator] Sieg-Trophaee gespawnt bei %s (Raum %s, Bodenhoehe %.1f)." % [center, room.grid_position, room.global_position.y])
+
+
+# ============================================================================
+# Fog of War (3D-Minimap)
+# ============================================================================
+
+## Sichtbar ist ein Raum, wenn er betreten wurde ODER wenn von einem
+## betretenen Nachbarraum ein ECHTER Durchgang zu ihm fuehrt. "Echt"
+## heisst beidseitig: beide Raeume muessen auf der gemeinsamen Seite eine
+## Tuer haben. Ohne diese Pruefung wuerde ein Raum aufgedeckt, der im
+## Grid zwar nebenan liegt, aber gar nicht verbunden ist.
+##
+## Bewusst dieselbe Regel wie im Grid-Overlay (minimap_rooms.gd), damit
+## schematische Karte und 3D-Ansicht nicht unterschiedlich viel verraten.
+func is_room_revealed(grid: Vector2i) -> bool:
+	if not _map_cells.has(grid):
+		return false
+	if bool(_map_cells[grid].get("visited", false)):
+		return true
+
+	for dir in DIR_KEYS:
+		var neighbor: Vector2i = grid + DIR_OFFSETS[dir]
+		if not _map_cells.has(neighbor):
+			continue
+		if not bool(_map_cells[neighbor].get("visited", false)):
+			continue
+		if get_door_state(grid, dir) == RoomInstance.DoorState.NONE:
+			continue
+		if get_door_state(neighbor, OPPOSITE_DIR[dir]) == RoomInstance.DoorState.NONE:
+			continue
+		return true
+
+	return false
+
+
+## Schiebt jeden Raum auf den passenden Visual-Layer. RoomInstance
+## verwirft Aufrufe ohne Zustandswechsel selbst, der Durchlauf ist also
+## billig genug fuer jedes Betreten/Clearen.
+func _refresh_minimap_fog() -> void:
+	for grid_pos in _instances.keys():
+		var room: RoomInstance = _instances[grid_pos]
+		if not is_instance_valid(room):
+			continue
+		room.set_minimap_revealed(not minimap_fog_enabled or is_room_revealed(grid_pos))
 
 
 # ============================================================================
@@ -12223,6 +12517,7 @@ func print_door_report(reason: String = "") -> void:
 
 	var problems: Array[String] = []
 	var closed: Array[String] = []
+	var hack_gates: Array[String] = []
 
 	var sorted_keys: Array = _instances.keys()
 	sorted_keys.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
@@ -12292,7 +12587,22 @@ func print_door_report(reason: String = "") -> void:
 					"" if room.is_cleared() else "  (Raum noch nicht gecleared: %d Gegner)" % room.get_active_enemy_count()
 				])
 			if neighbor_exists and state == RoomInstance.DoorState.OPEN and neighbor_state != RoomInstance.DoorState.OPEN and neighbor_state != RoomInstance.DoorState.NONE:
-				problems.append("Raum %s %s: offen, aber Gegenseite in %s ist %s -> Durchgang trotzdem blockiert." % [grid_pos, dir.to_upper(), neighbor_pos, RoomInstance.door_state_name(neighbor_state)])
+				var neighbor_is_hack: bool = (
+					neighbor_state == RoomInstance.DoorState.HACK_READY
+					or neighbor_state == RoomInstance.DoorState.HACK_LOCKED
+				)
+				if neighbor_is_hack:
+					# KEIN Fehler, sondern das gewollte Verhalten eines
+					# Sonderraums: die Innenseite ist per hack_exempt offen,
+					# die Aussenseite verlangt den Hack. Frueher landete
+					# genau dieses Paar in den AUFFAELLIGKEITEN und hat das
+					# Protokoll bei jedem Boss-/Tresorraum rot gefaerbt.
+					hack_gates.append("Raum %s [%s] %s -> Gegenseite in %s: %s" % [
+						grid_pos, type_name, dir.to_upper(), neighbor_pos,
+						RoomInstance.door_state_name(neighbor_state)
+					])
+				else:
+					problems.append("Raum %s %s: offen, aber Gegenseite in %s ist %s -> Durchgang trotzdem blockiert." % [grid_pos, dir.to_upper(), neighbor_pos, RoomInstance.door_state_name(neighbor_state)])
 			# EINSPERR-FALLE: Sonderraum, dessen einziger Ausgang gehackt
 			# werden muesste. set_locked(false) wuerde dort beim Clear
 			# abgelehnt -> Spieler sitzt fest.
@@ -12305,6 +12615,12 @@ func print_door_report(reason: String = "") -> void:
 		print("      keine")
 	for c in closed:
 		print("      %s" % c)
+
+	print("  --- HACK-SPERREN (%d) ---" % hack_gates.size())
+	if hack_gates.is_empty():
+		print("      keine")
+	for h in hack_gates:
+		print("      %s" % h)
 
 	print("  --- AUFFAELLIGKEITEN (%d) ---" % problems.size())
 	if problems.is_empty():
@@ -12347,7 +12663,9 @@ func _budget_for_type(type: int) -> int:
 			base = boss_threat_budget
 		_:
 			return 0
-	return clampi(base + (current_stage - 1) * threat_per_stage, 0, threat_hard_cap)
+
+	var cap: int = boss_threat_hard_cap if type == RoomData.RoomType.BOSS else threat_hard_cap
+	return clampi(base + (current_stage - 1) * threat_per_stage, 0, cap)
 
 # --- Navigation ------------------------------------------------------
 
@@ -12404,9 +12722,9 @@ func _weighted_pick(candidates: Array[RoomData]) -> RoomData:
 	for c in candidates:
 		total_weight += c.spawn_weight
 	if total_weight <= 0.0:
-		return candidates.pick_random()
+		return DetRng.pick(candidates, _rng) as RoomData
 
-	var roll: float = randf() * total_weight
+	var roll: float = _rng.randf() * total_weight
 	var accumulated: float = 0.0
 	for c in candidates:
 		accumulated += c.spawn_weight
@@ -12549,8 +12867,27 @@ class RoomCell:
 
 @export var boss_min_distance: int = 2
 
+## Sentinel fuer "keine Zelle gefunden". Vector2i kann nicht null sein,
+## und Vector2i.ZERO ist der Startraum - also ein Wert, der im Grid
+## niemals vorkommen kann.
+const INVALID_POS := Vector2i(2147483647, 2147483647)
 
-func generate_layout() -> Dictionary:
+## Eigener RNG statt der globalen randf()/randi()/shuffle(). Siehe
+## det_rng.gd fuer die ausfuehrliche Begruendung: der globale RNG wird
+## von Screen-Shake, Schadenszahlen und Gegner-KI mitbenutzt und ist
+## deshalb fuer reproduzierbare Layouts unbrauchbar.
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
+
+## run_seed = 0 bedeutet "egal" - dann wird einmalig gewuerfelt. Der
+## LevelGenerator reicht hier immer den echten Run-Seed durch, damit
+## derselbe Code dasselbe Layout erzeugt.
+func generate_layout(run_seed: int = 0) -> Dictionary:
+	if run_seed == 0:
+		_rng.randomize()
+	else:
+		_rng.seed = DetRng.derive(run_seed, "layout")
+
 	var cells: Dictionary = {}
 
 	var start_cell := RoomCell.new()
@@ -12569,9 +12906,9 @@ func generate_layout() -> Dictionary:
 			push_warning("RoomGridGenerator: Abbruch nach %d Iterationen - Layout evtl. kleiner als target_room_count." % guard)
 			break
 
-		var current: Vector2i = frontier[randi() % frontier.size()]
+		var current: Vector2i = frontier[_rng.randi_range(0, frontier.size() - 1)]
 		var directions: Array = DIRECTION_OFFSETS.keys()
-		directions.shuffle()
+		DetRng.shuffle(directions, _rng)
 
 		var expanded: bool = false
 		for dir in directions:
@@ -12607,44 +12944,94 @@ func _link_neighbors(cells: Dictionary, from_pos: Vector2i, to_pos: Vector2i, di
 	to_cell.exit_flags |= DIRECTION_FLAG[OPPOSITE[dir]]
 
 
+## Boss und Tresor duerfen NUR in echten Sackgassen liegen.
+##
+## WARUM: Ein Sonderraum wird von aussen ueber eine Hack-Tuer betreten.
+## Die Innenseite ist per hack_exempt freigestellt, damit man wieder
+## rauskommt. Hat der Raum aber ZWEI Ausgaenge, dann steht am zweiten von
+## aussen eine Hack-Tuer, die nur freischaltet, wenn der Raum DAHINTER
+## gecleared wird - im Tuer-Protokoll landet das als
+## "offen, aber Gegenseite ist HACK BEREIT -> Durchgang trotzdem blockiert".
+## Aus Spielersicht: eine Tuer, die sich nicht oeffnen laesst.
+##
+## Die alte Fassung hat das nur BEVORZUGT und ist im Zweifel auf den
+## entferntesten Raum ausgewichen - egal mit wie vielen Ausgaengen. Jetzt
+## wird eine Sackgasse notfalls ANGEBAUT. Das Layout bekommt dadurch
+## ein bis zwei Zellen mehr als target_room_count; das ist gewollt und
+## deutlich besser als ein Sonderraum mit Durchgangsverkehr.
 func _place_special_rooms(cells: Dictionary) -> void:
-	var dead_ends: Array[Vector2i] = []
+	var boss_pos: Vector2i = _reserve_dead_end(cells, boss_min_distance, [])
+	if boss_pos == INVALID_POS:
+		# Zweiter Versuch ohne Mindestabstand - lieber ein naher Boss als
+		# ein Boss mitten im Durchgangsverkehr.
+		boss_pos = _reserve_dead_end(cells, 1, [])
+
+	if boss_pos != INVALID_POS:
+		cells[boss_pos].room_type = RoomData.RoomType.BOSS
+	else:
+		push_warning("RoomGridGenerator: Keine Sackgasse fuer den Bossraum gefunden und keine anbaubar - Layout ohne Boss!")
+
+	var treasure_pos: Vector2i = _reserve_dead_end(cells, 1, [boss_pos])
+	if treasure_pos != INVALID_POS:
+		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
+
+
+## Liefert eine Zelle mit GENAU EINEM Ausgang, die mindestens
+## min_distance Schritte vom Start entfernt ist. Existiert keine, wird
+## eine neue Zelle an die entfernteste passende Zelle angebaut.
+## Rueckgabe INVALID_POS, wenn beides scheitert.
+func _reserve_dead_end(cells: Dictionary, min_distance: int, exclude: Array) -> Vector2i:
+	# 1) Vorhandene Sackgassen, die weiteste zuerst.
+	var candidates: Array[Vector2i] = []
 	for pos in cells.keys():
-		if pos == Vector2i.ZERO:
+		if pos == Vector2i.ZERO or exclude.has(pos):
 			continue
 		var cell: RoomCell = cells[pos]
-		if _count_flags(cell.exit_flags) == 1:
-			dead_ends.append(pos)
+		if cell.room_type != RoomData.RoomType.COMBAT:
+			continue
+		if _count_flags(cell.exit_flags) != 1:
+			continue
+		if _manhattan(pos) < min_distance:
+			continue
+		candidates.append(pos)
 
-	dead_ends.sort_custom(func(a, b): return _manhattan(a) > _manhattan(b))
+	if not candidates.is_empty():
+		candidates.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+			return _manhattan(a) > _manhattan(b)
+		)
+		return candidates[0]
 
-	var boss_pos: Vector2i = Vector2i.ZERO
-	var boss_found: bool = false
+	# 2) Nichts Passendes da -> eine Sackgasse anbauen. Anker ist die
+	#    entfernteste Zelle mit einem freien Nachbarplatz. Sonderraeume
+	#    scheiden als Anker aus, sonst haetten sie hinterher zwei Ausgaenge.
+	var anchors: Array = cells.keys()
+	anchors.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		return _manhattan(a) > _manhattan(b)
+	)
 
-	for pos in dead_ends:
-		if _manhattan(pos) >= boss_min_distance:
-			boss_pos = pos
-			boss_found = true
-			break
+	for anchor in anchors:
+		var anchor_cell: RoomCell = cells[anchor]
+		if anchor_cell.room_type == RoomData.RoomType.BOSS or anchor_cell.room_type == RoomData.RoomType.TREASURE:
+			continue
 
-	if not boss_found:
-		var farthest: int = -1
-		for pos in cells.keys():
-			if pos == Vector2i.ZERO:
+		var directions: Array = DIRECTION_OFFSETS.keys()
+		DetRng.shuffle(directions, _rng)
+
+		for dir in directions:
+			var new_pos: Vector2i = anchor + DIRECTION_OFFSETS[dir]
+			if cells.has(new_pos) or exclude.has(new_pos):
 				continue
-			var d: int = _manhattan(pos)
-			if d > farthest:
-				farthest = d
-				boss_pos = pos
-				boss_found = true
+			if _manhattan(new_pos) < min_distance:
+				continue
 
-	if boss_found:
-		cells[boss_pos].room_type = RoomData.RoomType.BOSS
-		dead_ends.erase(boss_pos)
+			var new_cell := RoomCell.new()
+			new_cell.grid_pos = new_pos
+			new_cell.room_type = RoomData.RoomType.COMBAT
+			cells[new_pos] = new_cell
+			_link_neighbors(cells, anchor, new_pos, dir)
+			return new_pos
 
-	if not dead_ends.is_empty():
-		var treasure_pos: Vector2i = dead_ends[randi() % dead_ends.size()]
-		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
+	return INVALID_POS
 
 
 ## Durchgangszellen (genau 2 gegenueberliegende Verbindungen) werden zu
@@ -12665,11 +13052,11 @@ func _place_corridors(cells: Dictionary) -> void:
 		if is_straight_through:
 			candidates.append(pos)
 
-	candidates.shuffle()
+	DetRng.shuffle(candidates, _rng)
 
 	var made: int = 0
 	for pos in candidates:
-		if randf() < corridor_chance:
+		if _rng.randf() < corridor_chance:
 			cells[pos].room_type = RoomData.RoomType.CORRIDOR
 			made += 1
 
@@ -12701,8 +13088,8 @@ func _plan_elevations(cells: Dictionary) -> void:
 
 		var outgoing_elev: int = cell.elevation
 
-		if cell.room_type == RoomData.RoomType.CORRIDOR and job["from"] != "" and randf() < slope_chance:
-			var delta: int = 1 if randf() < 0.5 else -1
+		if cell.room_type == RoomData.RoomType.CORRIDOR and job["from"] != "" and _rng.randf() < slope_chance:
+			var delta: int = 1 if _rng.randf() < 0.5 else -1
 			var target: int = cell.elevation + delta
 			if target <= max_elevation and target >= min_elevation:
 				cell.slope_delta = delta
@@ -12757,6 +13144,17 @@ const _DIR_VECTOR := {
 }
 
 const NAV_SOURCE_GROUP := "navmesh_source"
+
+## Visual-Layer, auf den ein vom Fog-of-War verdeckter Raum umgehaengt
+## wird.
+##
+## WARUM UEBER LAYER UND NICHT UEBER visible:
+## visible = false wuerde den Raum auch in der Hauptansicht ausblenden.
+## Die Minimap ist aber nur eine zweite Kamera auf DIESELBE Welt. Also
+## bekommt jede Geometrie eines verdeckten Raums einen Layer, den
+## ausschliesslich die Minimap-Kamera aus ihrer cull_mask streicht - die
+## Spielerkamera (Standard-cull_mask = alle 20 Layer) sieht ihn weiter.
+const MINIMAP_HIDDEN_LAYER: int = 20
 
 ## Zustand EINES Durchgangs - Grundlage fuer die Minimap-Synchronisation.
 ##
@@ -12863,6 +13261,26 @@ enum DoorState {
 @export var wall_cap_epsilon: float = 0.03
 @export var wall_cap_material_path: String = "res://materials/psx_material.tres"
 
+## --- Tuersturz ---------------------------------------------------------
+## Zwischen Tuer-Oberkante und Decke klafft in JEDER Raum-Szene ein Loch:
+## die Wandsegmente sind room_height hoch (14, im Bossraum 24), das
+## Tuerblatt aber nur 10. Bei 48er-Raeumen an einem 48er-Grid stossen zwei
+## Aussenwaende deckungsgleich aneinander, die Loecher liegen uebereinander
+## - man sieht in den Nachbarraum. Die Decke kaschiert nichts, die sitzt
+## exakt an der OBERKANTE des Lochs.
+##
+## Der Sturz wird zur Laufzeit aus der Tuer-eigenen CollisionShape3D und
+## room_height abgeleitet, NICHT aus festen Zahlen - er ueberlebt damit
+## jede Raum-Skalierung und passt auch auf den 24 Meter hohen Bossraum.
+##
+## Er haengt unter "DoorLintels" statt direkt am Root, damit
+## _build_wall_caps() ihn nicht als "Wall*" einsammelt: eine Minimap-Kappe
+## quer ueber dem Durchgang wuerde die Oeffnung als Wand darstellen.
+@export var build_door_lintels: bool = true
+@export var door_lintel_thickness: float = 1.0
+@export var door_lintel_collision: bool = true
+@export var door_lintel_material_path: String = "res://materials/psx_material.tres"
+
 var grid_position: Vector2i = Vector2i.ZERO
 
 var enemy_spawn_points: Array[Marker3D] = []
@@ -12879,20 +13297,68 @@ signal room_entered(room: RoomInstance)
 ## Wie oft der Watchdog nach verwaisten Gegner-Zaehlern sucht (Sekunden).
 @export var enemy_watchdog_interval: float = 1.0
 
+## --- Anti-Einsperr-Reset ----------------------------------------------
+## Ein Raum verriegelt seine Tueren, sobald der Spieler ihn scharf
+## schaltet. Schafft es der Spieler trotzdem hinaus (Tuer noch in der
+## Schliessanimation, Knockback, Rampen-Bug), bleibt der Raum fuer immer
+## "nicht gecleared" - und beide Tueren bleiben zu. Weil ein Durchgang
+## aus ZWEI Tueren besteht (eine pro Raum), sperrt so ein haengender Raum
+## auch den NACHBARN ein. Genau das passiert im Log: der Spieler raeumt
+## den Boss, will zurueck und steht vor Korridor (-2, 0), der noch
+## 2 lebende Gegner und zwei geschlossene Tueren hat.
+##
+## Fix: Ist der Spieler laenger als escape_grace_time komplett ausserhalb
+## des Raums, wird der Raum zurueckgesetzt - Gegner verschwinden, Tueren
+## gehen auf, und beim naechsten Betreten startet der Kampf frisch.
+@export var reset_when_player_escapes: bool = true
+@export var escape_grace_time: float = 0.75
+## Wie weit die Anwesenheits-Zone ueber den Raumrand hinausragt. Etwas
+## Puffer verhindert, dass ein Spieler, der im Tuerrahmen steht, faelschlich
+## als "draussen" gilt.
+@export var presence_margin: float = 2.0
+
 var _is_cleared: bool = false
 var _active_enemies: int = 0
+
+## BUGFIX "Raum bleibt nach einem RESET fuer immer verriegelt":
+##
+## reset_room() ruft queue_free() auf alle Gegner und leert im selben
+## Moment _counted_dead_enemies. Die tree_exited-Signale der gerade
+## gefreeten Gegner feuern aber ERST IM NAECHSTEN FRAME - und laufen dann
+## in ein leeres Dedup-Dict. _active_enemies rutscht dadurch ins Negative,
+## die Bedingung "_active_enemies <= 0 and not _is_cleared" greift, und der
+## Raum setzt sich selbst faelschlich auf CLEARED.
+##
+## Beim naechsten Betreten spawnen die Gegner zwar wieder und _lock_exits(true)
+## verriegelt korrekt - aber _is_cleared steht bereits auf true, also wird
+## beim letzten Kill NIE MEHR entriegelt. Der Raum ist dicht, obwohl leer.
+##
+## Fix: jede Spawn-Welle bekommt eine Generationsnummer mit. Rueckmeldungen
+## aus einer aelteren Welle werden verworfen, statt in den Zaehler der
+## neuen zu laufen.
+var _spawn_generation: int = 0
 ## instance_id -> true. Verhindert Doppelzaehlung, siehe _register_enemy_gone().
 var _counted_dead_enemies: Dictionary = {}
 var _watchdog_timer: float = 0.0
 var _requires_clear: bool = false
 
 var _entry_trigger: Area3D = null
+var _presence_area: Area3D = null
+var _escape_timer: float = 0.0
 var _has_entered: bool = false
 ## Laeuft, solange der Spieler im Trigger steht. Verlaesst er ihn vorher,
 ## wird der Timer verworfen und der Raum bleibt inaktiv.
 var _dwell_timer: float = 0.0
 var _dwell_body: Node3D = null
 var _enemies_spawned: bool = false
+
+## Eigener Spawn-RNG. Wird vom LevelGenerator aus Run-Seed + Grid-Position
+## abgeleitet, BEVOR der Raum betreten wird. Dadurch ist die
+## Gegner-Zusammensetzung dieses Raums unabhaengig davon, wann und in
+## welcher Reihenfolge der Spieler ihn betritt - Voraussetzung dafuer,
+## dass ein Seed auf dem Leaderboard einen Run wirklich reproduziert.
+var _spawn_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _spawn_seed_set: bool = false
 
 var _pending_entries: Array[EnemySpawnEntry] = []
 var _pending_budget: int = 0
@@ -12904,13 +13370,30 @@ var _spawned_enemies: Array[Node3D] = []
 ## brauchen wir aber weiterhin zum Einfaerben.
 var _doors_by_dir: Dictionary = {}
 
+## dir -> StaticBody3D des Tuersturzes. Wird von configure_slope() zum
+## gezielten Neubau der angehobenen Seite gebraucht.
+var _lintels_by_dir: Dictionary = {}
+
+## Fog-of-War-Zustand. null-Zustand ueber _minimap_state_known, damit der
+## erste Aufruf immer durchlaeuft (auch wenn er "true" setzt).
+var _minimap_revealed: bool = true
+var _minimap_state_known: bool = false
+
+## Ob der Spieler GERADE im Eintritts-Trigger steht. Getrennt von
+## _has_entered: das ist eine Einmal-Sperre fuer das Gegner-Spawnen, die
+## Anwesenheit muss dagegen bei JEDEM Betreten neu gemeldet werden.
+var _inside_entry_trigger: bool = false
+
 
 func _ready() -> void:
 	add_to_group(NAV_SOURCE_GROUP)
 	_collect_markers()
 	_setup_entry_trigger()
+	_setup_presence_area()
 	if build_ceiling:
 		_build_ceiling()
+	if build_door_lintels:
+		_build_door_lintels()
 	if wall_cap_enabled:
 		_build_wall_caps()
 
@@ -13063,6 +13546,163 @@ func _build_wall_caps() -> void:
 		child.add_child(cap)
 
 
+## Blendet den kompletten Raum auf der Minimap ein oder aus.
+##
+## Wird vom LevelGenerator getrieben (siehe _refresh_minimap_fog dort).
+## Der urspruengliche Layer jeder Geometrie wird einmalig als Meta
+## gesichert, damit das Einblenden ihn exakt wiederherstellt statt
+## pauschal Layer 1 zu erzwingen.
+func set_minimap_revealed(revealed: bool) -> void:
+	if _minimap_state_known and revealed == _minimap_revealed:
+		return
+	_minimap_revealed = revealed
+	_minimap_state_known = true
+	_apply_minimap_layer(self, revealed)
+
+
+func _apply_minimap_layer(node: Node, revealed: bool) -> void:
+	for child in node.get_children():
+		if child is VisualInstance3D:
+			var visual: VisualInstance3D = child as VisualInstance3D
+			if not visual.has_meta("minimap_base_layers"):
+				visual.set_meta("minimap_base_layers", visual.layers)
+			if revealed:
+				visual.layers = int(visual.get_meta("minimap_base_layers"))
+			else:
+				visual.layers = 1 << (MINIMAP_HIDDEN_LAYER - 1)
+		_apply_minimap_layer(child, revealed)
+
+
+## Baut ueber JEDEN in der Szene vorhandenen Durchgang einen Sturz - auch
+## ueber Richtungen, die das Layout gar nicht benutzt. Deren Tuer bleibt
+## zwar dauerhaft verriegelt (apply_exit_flags duennt nur exit_points aus,
+## _lock_exits iteriert danach ueber genau dieses Dict), der Spalt darueber
+## waere aber trotzdem offen.
+func _build_door_lintels() -> void:
+	for dir in _doors_by_dir.keys():
+		_build_door_lintel(dir)
+
+
+## Baut den Sturz einer einzelnen Richtung neu. Ein bereits vorhandener
+## wird vorher entfernt, damit configure_slope() die angehobene Seite
+## einfach nochmal anstossen kann.
+func _build_door_lintel(dir: String) -> void:
+	if not _doors_by_dir.has(dir):
+		return
+	var door: Node3D = _doors_by_dir[dir] as Node3D
+	if not is_instance_valid(door):
+		return
+
+	var holder: Node3D = get_node_or_null("DoorLintels") as Node3D
+	if holder == null:
+		holder = Node3D.new()
+		holder.name = "DoorLintels"
+		add_child(holder)
+
+	var lintel_name: String = "Lintel%s" % dir.capitalize()
+	if _lintels_by_dir.has(dir):
+		var old: Node = _lintels_by_dir[dir]
+		if is_instance_valid(old):
+			old.queue_free()
+		_lintels_by_dir.erase(dir)
+
+	var collision := door.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if collision == null or not (collision.shape is BoxShape3D):
+		push_warning("RoomInstance (%s): Tuer '%s' hat keine BoxShape3D - Sturz uebersprungen." % [name, dir])
+		return
+
+	var leaf: Vector3 = (collision.shape as BoxShape3D).size
+
+	# Geschlossene Ruhehoehe, nicht die aktuelle - siehe
+	# Door.get_base_height(). Eine offene Tuer steht Blatthoehe +
+	# open_clearance hoeher, der Sturz waere dann viel zu kurz.
+	var closed_y: float = door.position.y
+	if door is Door:
+		closed_y = (door as Door).get_base_height()
+
+	var leaf_top: float = closed_y + leaf.y * 0.5
+	var gap: float = room_height - leaf_top
+	if gap <= 0.01:
+		return
+
+	# Duenne Achse = Wandachse. Die breite Achse uebernimmt exakt die
+	# Blattbreite, die per Konstruktion der Wandluecke entspricht
+	# (Wandsegmente 19 bei +/-14.5 -> Luecke 10, Blatt 10).
+	var box_size: Vector3
+	if leaf.x >= leaf.z:
+		box_size = Vector3(leaf.x, gap, door_lintel_thickness)
+	else:
+		box_size = Vector3(door_lintel_thickness, gap, leaf.z)
+
+	var body := StaticBody3D.new()
+	body.name = lintel_name
+	body.position = Vector3(door.position.x, leaf_top + gap * 0.5, door.position.z)
+	holder.add_child(body)
+
+	var box_mesh := BoxMesh.new()
+	box_mesh.size = box_size
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "MeshInstance3D"
+	mesh_instance.mesh = box_mesh
+	# material_override statt surface_material_override - Vorrangregel.
+	mesh_instance.material_override = _load_lintel_material()
+	body.add_child(mesh_instance)
+
+	if door_lintel_collision:
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = box_size
+		shape.shape = box
+		body.add_child(shape)
+	else:
+		body.collision_layer = 0
+
+	_lintels_by_dir[dir] = body
+
+
+## Der Sturz wird NICHT umgefaerbt, deshalb reicht die geteilte Resource
+## direkt - kein duplicate() noetig (anders als bei Decke und Wandkappe,
+## die den albedo_color-Shaderparameter veraendern und ohne Kopie jedes
+## andere Zimmer mit einfaerben wuerden).
+func _load_lintel_material() -> Material:
+	var base := load(door_lintel_material_path)
+	if base is Material:
+		return base as Material
+	push_warning("RoomInstance: door_lintel_material_path '%s' nicht gefunden - Sturz faellt auf Flatcolor zurueck." % door_lintel_material_path)
+	var fallback := StandardMaterial3D.new()
+	fallback.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fallback.albedo_color = Color(0.12, 0.13, 0.12)
+	return fallback
+
+
+## Schaltet die flache Bodenplatte des Raumes ab und liefert deren
+## Material zurueck, damit die Rampe genauso aussieht.
+##
+## Es werden ALLE Mesh- und Collider-Kinder des "Floor"-Nodes erfasst,
+## nicht nur "MeshInstance3D"/"CollisionShape3D": haengt dort pit_floor.gd,
+## besteht der Boden zur Laufzeit aus mehreren generierten Gen_*-Segmenten.
+func _disable_flat_floor() -> Material:
+	var material: Material = null
+	var floor_body := get_node_or_null("Floor") as StaticBody3D
+	if floor_body == null:
+		return material
+
+	for child in floor_body.get_children():
+		if child is MeshInstance3D:
+			var mesh_child: MeshInstance3D = child as MeshInstance3D
+			if material == null:
+				if mesh_child.material_override != null:
+					material = mesh_child.material_override
+				elif mesh_child.get_surface_override_material_count() > 0:
+					material = mesh_child.get_surface_override_material(0)
+			mesh_child.visible = false
+		elif child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = true
+
+	return material
+
+
 ## Baut im Inneren eines Korridors eine Rampe, die rise Meter ueberwindet.
 ## low_dir zeigt zur tiefer liegenden Eingangsseite; die Tuer und der
 ## ExitPoint auf der Gegenseite werden um rise angehoben.
@@ -13079,6 +13719,21 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	var length: float = room_footprint.y if absf(axis.z) > 0.5 else room_footprint.x
 	var width: float = room_footprint.x if absf(axis.z) > 0.5 else room_footprint.y
 
+	# BUGFIX "Korridore haben keinen absteigenden Boden":
+	#
+	# Die Rampe wird ZUSAETZLICH zur flachen Bodenplatte gebaut. Bei einer
+	# STEIGUNG faellt das nicht auf - die Rampe liegt dann ueber der Platte
+	# und gewinnt. Bei einem GEFAELLE laeuft sie von 0 auf -rise nach unten,
+	# liegt also UNTER der Platte (y -1..0): der Spieler laeuft die ganze
+	# Ganglaenge auf der Platte weiter und faellt am Ende einen ungefederten
+	# Absatz von rise Metern in den naechsten Raum. Genau deshalb wirken nur
+	# die abwaerts fuehrenden Korridore kaputt.
+	#
+	# Sobald eine Rampe existiert, IST sie der Boden - die Platte wird
+	# abgeschaltet und gibt ihr Material an die Rampe weiter (sonst rendert
+	# die Rampe im Godot-Standardgrau statt im PSX-Material).
+	var floor_material: Material = _disable_flat_floor()
+
 	var ramp := StaticBody3D.new()
 	ramp.name = "SlopeRamp"
 	add_child(ramp)
@@ -13093,6 +13748,9 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.name = "MeshInstance3D"
 	mesh_instance.mesh = box_mesh
+	if floor_material != null:
+		# material_override statt surface_material_override - Vorrangregel.
+		mesh_instance.material_override = floor_material
 	ramp.add_child(mesh_instance)
 
 	var shape := CollisionShape3D.new()
@@ -13105,10 +13763,30 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	# hohen Ende. -0.5 auf Y, weil die Box 1.0 dick ist.
 	ramp.position = Vector3(0.0, rise * 0.5 - 0.5, 0.0)
 
+	# BUGFIX "Ost/West-Rampen sind flach -> 6 Meter hohe Wand statt
+	# Durchgang":
+	#
+	# Frueher stand hier fuer die X-Achse rotation = Vector3(0, PI/2, angle).
+	# Godot interpretiert Node3D.rotation in der Euler-Reihenfolge YXZ, die
+	# Gesamtdrehung ist also Ry * Rx * Rz. Die Laengsachse der Rampen-Box ist
+	# lokal +Z - und eine Drehung UM Z laesst genau diese Achse unveraendert.
+	# Der Winkel landete damit komplett im Leeren: die Ost/West-Rampe blieb
+	# waagerecht, waehrend der Raum dahinter trotzdem eine volle Hoehenstufe
+	# hoeher abgesetzt wurde. Ergebnis im Spiel: ein Gang, der vor einer
+	# glatten Wand endet - "Raum hat keinen freien Durchgang".
+	#
+	# Korrekt ist Pitch um X (kippt +Z nach oben) und danach Yaw um Y (dreht
+	# die gekippte Achse auf Ost/West). In YXZ-Reihenfolge ist das
+	# Vector3(pitch, yaw, 0) - der dritte Wert MUSS 0 bleiben.
+	var pitch: float = 0.0
+	var yaw: float = 0.0
 	if absf(axis.z) > 0.5:
-		ramp.rotation = Vector3(-angle * signf(axis.z), 0.0, 0.0)
+		yaw = 0.0
+		pitch = -angle * signf(axis.z)
 	else:
-		ramp.rotation = Vector3(0.0, PI * 0.5, angle * signf(axis.x))
+		yaw = PI * 0.5
+		pitch = -angle * signf(axis.x)
+	ramp.rotation = Vector3(pitch, yaw, 0.0)
 
 	# Tuer + ExitPoint auf der hohen Seite mit anheben, sonst steht die
 	# Tuer im Boden bzw. der naechste Raum haengt in der Luft.
@@ -13118,7 +13796,19 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	if _doors_by_dir.has(high_dir):
 		var door: Node3D = _doors_by_dir[high_dir]
 		if is_instance_valid(door):
-			door.position.y += rise
+			# NICHT nur position.y verschieben: die Tuer merkt sich in
+			# _ready() ihre Ruhehoehe und faehrt sonst im naechsten Frame
+			# wieder nach unten. Siehe Door.shift_base_height().
+			if door is Door:
+				(door as Door).shift_base_height(rise)
+			else:
+				door.position.y += rise
+
+	# Der Sturz haengt an der Tuer-Oberkante. Nach dem Anheben muss er neu
+	# gebaut werden - sonst ueberlappt er das Blatt um rise Meter und oben
+	# bleibt ein ebenso hoher Spalt offen.
+	if build_door_lintels:
+		_build_door_lintel(high_dir)
 
 
 func _opposite(dir: String) -> String:
@@ -13186,6 +13876,99 @@ func _setup_entry_trigger() -> void:
 	_entry_trigger.body_exited.connect(_on_entry_trigger_body_exited)
 
 
+## Zweite, RAUMGROSSE Zone. Der EntryTrigger sitzt bewusst tief in der
+## Raummitte (Anti-Baiting) und taugt deshalb NICHT, um zu erkennen, ob der
+## Spieler den Raum verlassen hat - wer an der Wand kaempft, steht auch
+## nicht im EntryTrigger. Die Presence-Area deckt den ganzen Raum plus
+## presence_margin ab und beantwortet nur eine Frage: ist der Spieler noch
+## irgendwo hier drin?
+func _setup_presence_area() -> void:
+	if not reset_when_player_escapes:
+		return
+
+	_presence_area = Area3D.new()
+	_presence_area.name = "PresenceArea"
+	_presence_area.collision_layer = 0
+	_presence_area.collision_mask = 0b101
+	_presence_area.monitoring = true
+	_presence_area.monitorable = false
+	add_child(_presence_area)
+
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(
+		room_footprint.x + presence_margin * 2.0,
+		maxf(room_height, 1.0) + presence_margin * 2.0,
+		room_footprint.y + presence_margin * 2.0
+	)
+	shape.shape = box
+	shape.position = Vector3(0.0, box.size.y * 0.5 - presence_margin, 0.0)
+	_presence_area.add_child(shape)
+
+
+func _player_is_present() -> bool:
+	if _presence_area == null:
+		return true
+	for body in _presence_area.get_overlapping_bodies():
+		if body is Node3D and body.is_in_group(PartyManager.PLAYER_GROUP):
+			return true
+	return false
+
+
+## Setzt einen verriegelten, nicht gecleart en Raum komplett zurueck.
+## Gegner verschwinden, der Zaehler wird geleert, die Tueren gehen auf und
+## _enemies_spawned faellt zurueck auf false - beim naechsten Betreten
+## startet der Kampf also frisch statt in einem halb toten Zustand.
+func reset_room() -> void:
+	for enemy in _spawned_enemies:
+		if is_instance_valid(enemy):
+			enemy.queue_free()
+	_spawned_enemies.clear()
+	_counted_dead_enemies.clear()
+	_active_enemies = 0
+
+	# Neue Welle: alles, was von der alten noch nachfeuert, ist ab jetzt
+	# ungueltig.
+	_spawn_generation += 1
+
+	# Der Raum ist NICHT gecleared, er wurde nur verlassen. Ohne das
+	# Zuruecksetzen bliebe ein faelschlich gesetztes _is_cleared stehen und
+	# der Raum wuerde beim naechsten Durchgang nie wieder entriegeln.
+	_is_cleared = false
+
+	_enemies_spawned = false
+	_has_entered = false
+	# Nicht _inside_entry_trigger zuruecksetzen: der Spieler ist beim Reset
+	# per Definition DRAUSSEN, die naechste steigende Flanke kommt also
+	# ohnehin von selbst. Ein erzwungenes false wuerde nur eine doppelte
+	# Meldung erzeugen.
+	_dwell_timer = 0.0
+	_dwell_body = null
+	_escape_timer = 0.0
+
+	_lock_exits(false)
+
+	if debug_doors:
+		print("[Room %s] RESET - Spieler hat den verriegelten Raum verlassen, Tueren wieder offen." % grid_position)
+
+
+## Entriegelt eine Tuer bedingungslos - auch eine noch nicht gehackte
+## Hack-Tuer. Notausgang fuer den LevelGenerator, wenn eine Sperre den
+## Rueckweg blockieren wuerde.
+func force_unlock_door(dir: String) -> void:
+	if not _doors_by_dir.has(dir):
+		return
+	var door: Node = _doors_by_dir[dir]
+	if not is_instance_valid(door):
+		return
+	if door.has_method("force_unlock"):
+		door.force_unlock()
+	elif door.has_method("set_locked"):
+		door.set_locked(false)
+	if debug_doors:
+		print("[Room %s] Tuer '%s' -> ZWANGS-ENTRIEGELT (danach: %s)" % [grid_position, dir, door_state_name(get_door_state(dir))])
+
+
 ## Der Dwell-Check laeuft bewusst in _physics_process statt ueber
 ## body_entered: So wird auch der Fall abgedeckt, dass der Spieler beim
 ## Laden des Raumes BEREITS im Trigger steht (body_entered feuert dann nie).
@@ -13204,10 +13987,24 @@ func _physics_process(delta: float) -> void:
 		_watchdog_timer = maxf(enemy_watchdog_interval, 0.1)
 		_watchdog_check()
 
+	# BUGFIX "Blinken auf der Grid-Karte bleibt am zuletzt geclearten Raum
+	# haengen":
+	#
+	# room_entered wurde frueher NUR aus on_player_entered() gefeuert, und
+	# das laeuft wegen der _has_entered-Sperre genau EINMAL pro Raum. Wer
+	# in einen bereits geclearten Raum zurueckgeht, meldet sich damit nie
+	# wieder an - _current_room im LevelGenerator zeigt weiter auf den
+	# zuletzt NEU betretenen Raum, und das Overlay markiert den falschen.
+	#
+	# Die Anwesenheit wird deshalb jetzt jeden Frame geprueft und bei jeder
+	# steigenden Flanke gemeldet. _has_entered bleibt reine Spawn-Sperre.
+	var player: Node3D = _find_player_inside()
+	_update_entry_presence(player != null)
+
 	if _has_entered:
+		_check_escape(delta)
 		return
 
-	var player: Node3D = _find_player_inside()
 	if player == null:
 		_dwell_timer = 0.0
 		_dwell_body = null
@@ -13223,6 +14020,39 @@ func _physics_process(delta: float) -> void:
 		on_player_entered()
 
 
+## Meldet die steigende Flanke "Spieler ist im Eintritts-Trigger". Der
+## Eintritts-Trigger ist dafuer das richtige Volumen: er sitzt mittig im
+## Raum und ueberlappt - anders als die PresenceArea, die den Grundriss um
+## presence_margin aufblaeht - NICHT mit dem Nachbarraum. Sonst wuerde die
+## Markierung im Tuerrahmen zwischen zwei Raeumen hin und her springen.
+func _update_entry_presence(inside: bool) -> void:
+	if inside == _inside_entry_trigger:
+		return
+	_inside_entry_trigger = inside
+	if inside:
+		room_entered.emit(self)
+
+
+## Zaehlt hoch, solange der Spieler ausserhalb der Presence-Area ist, und
+## setzt den Raum zurueck, sobald escape_grace_time ueberschritten ist.
+## Laeuft nur fuer Raeume, die gerade wirklich verriegelt sind.
+func _check_escape(delta: float) -> void:
+	if not reset_when_player_escapes:
+		return
+	if _is_cleared or not _requires_clear or not _enemies_spawned:
+		_escape_timer = 0.0
+		return
+
+	if _player_is_present():
+		_escape_timer = 0.0
+		return
+
+	_escape_timer += delta
+	if _escape_timer >= maxf(escape_grace_time, 0.05):
+		_escape_timer = 0.0
+		reset_room()
+
+
 func _find_player_inside() -> Node3D:
 	for body in _entry_trigger.get_overlapping_bodies():
 		if body is Node3D and body.is_in_group(PartyManager.PLAYER_GROUP):
@@ -13236,7 +14066,20 @@ func _on_entry_trigger_body_exited(body: Node) -> void:
 		_dwell_body = null
 
 
+## Vom LevelGenerator vor prepare_enemies() aufzurufen.
+func set_spawn_seed(seed_value: int) -> void:
+	_spawn_rng.seed = seed_value
+	_spawn_seed_set = true
+
+
 func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage: int) -> void:
+	if not _spawn_seed_set:
+		# Ohne gesetzten Seed (z.B. Raum von Hand in ein Testlevel
+		# gesetzt) faellt der Raum auf echten Zufall zurueck - nur dann
+		# ist der Run eben nicht reproduzierbar.
+		_spawn_rng.randomize()
+		_spawn_seed_set = true
+
 	_pending_stage = stage
 	var usable: Array[EnemySpawnEntry] = []
 	for e in entries:
@@ -13298,8 +14141,8 @@ func _weighted_pick_entry(candidates: Array[EnemySpawnEntry]) -> EnemySpawnEntry
 	for c in candidates:
 		total += maxf(c.weight, 0.0)
 	if total <= 0.0:
-		return candidates.pick_random()
-	var roll: float = randf() * total
+		return DetRng.pick(candidates, _spawn_rng) as EnemySpawnEntry
+	var roll: float = _spawn_rng.randf() * total
 	var acc: float = 0.0
 	for c in candidates:
 		acc += maxf(c.weight, 0.0)
@@ -13318,7 +14161,7 @@ func _spawn_prepared_enemies() -> void:
 	mix.sort_custom(func(a, b): return a.threat_cost > b.threat_cost)
 
 	var free_points: Array[Marker3D] = enemy_spawn_points.duplicate()
-	free_points.shuffle()
+	DetRng.shuffle(free_points, _spawn_rng)
 	var taken_positions: Array[Vector3] = []
 
 	for entry in mix:
@@ -13384,15 +14227,16 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	# ignoriert. tree_exited ist dabei das Sicherheitsnetz, das JEDEN
 	# Verschwinde-Weg abdeckt.
 	var enemy_id: int = enemy.get_instance_id()
+	var generation: int = _spawn_generation
 
 	if enemy.has_signal("died"):
-		enemy.connect("died", _register_enemy_gone.bind(enemy_id))
+		enemy.connect("died", _register_enemy_gone.bind(enemy_id, generation))
 
 	var health_node := enemy.find_child("Health", true, false)
 	if health_node and health_node.has_signal("died"):
-		health_node.died.connect(_register_enemy_gone.bind(enemy_id))
+		health_node.died.connect(_register_enemy_gone.bind(enemy_id, generation))
 
-	enemy.tree_exited.connect(_register_enemy_gone.bind(enemy_id))
+	enemy.tree_exited.connect(_register_enemy_gone.bind(enemy_id, generation))
 
 
 func apply_exit_flags(required_flags: int) -> void:
@@ -13406,12 +14250,19 @@ func apply_exit_flags(required_flags: int) -> void:
 ## ihn feuern. Ohne die Deduplizierung wuerde ein Gegner, der sowohl
 ## died ALS AUCH tree_exited ausloest, doppelt zaehlen und der Raum
 ## koennte sich verfrueht als leer melden.
-func _register_enemy_gone(enemy_id: int) -> void:
+func _register_enemy_gone(enemy_id: int, generation: int = -1) -> void:
+	# Nachzuegler aus einer abgeraeumten Welle ignorieren - siehe
+	# _spawn_generation. -1 heisst "ohne Generation verbunden" und wird
+	# aus Kompatibilitaet weiterhin akzeptiert.
+	if generation != -1 and generation != _spawn_generation:
+		return
 	if _counted_dead_enemies.has(enemy_id):
 		return
 	_counted_dead_enemies[enemy_id] = true
 
-	_active_enemies -= 1
+	# Nie unter 0 - ein negativer Zaehler wuerde den Raum beim naechsten
+	# Kill sofort als leer melden.
+	_active_enemies = maxi(_active_enemies - 1, 0)
 	if debug_doors:
 		print("[Room %s] Gegner entfernt - noch %d aktiv." % [grid_position, _active_enemies])
 
@@ -13527,7 +14378,14 @@ func get_door_report() -> Array:
 
 ## Weltposition der Raummitte auf Bodenhoehe - z.B. fuer den Spawn der
 ## Sieg-Trophaee im Bossraum.
+##
+## Bevorzugt den ersten LootSpawnPoint-Marker: der ist von Hand gesetzt und
+## liegt garantiert auf begehbarem Boden. Der reine Raum-Ursprung kann in
+## Raeumen mit zentralem Lava-Pool, Loch oder Podest daneben liegen.
 func get_room_center() -> Vector3:
+	for marker in loot_spawn_points:
+		if is_instance_valid(marker):
+			return marker.global_position
 	return global_position
 
 
@@ -13562,8 +14420,11 @@ func _lock_exits(locked: bool) -> void:
 			])
 
 
+## Wird EINMALIG nach Ablauf der Verweilzeit gerufen und startet den
+## Kampf. Das room_entered-Signal kommt NICHT mehr von hier, sondern aus
+## _update_entry_presence() - sonst wuerde es beim Rueckkehren in einen
+## geclearten Raum fehlen.
 func on_player_entered() -> void:
-	room_entered.emit(self)
 	if _is_cleared or _enemies_spawned or not _requires_clear:
 		return
 	_enemies_spawned = true
@@ -13579,9 +14440,9 @@ func on_player_entered() -> void:
 [ext_resource type="Script" uid="uid://cektwwmfbufkr" path="res://scenes/level_generation/room_grid_generator.gd" id="2_grid"]
 [ext_resource type="Script" uid="uid://b13fmywklr32" path="res://scenes/level_generation/room_data.gd" id="3_room_data_script"]
 [ext_resource type="Script" uid="uid://cvv6ttrhxcdyi" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="4_enemy_entry_script"]
-[ext_resource type="Resource" path="res://resources/enemies/es_stinger.tres" id="5_es_stinger"]
-[ext_resource type="Resource" path="res://resources/enemies/es_fighter.tres" id="6_es_fighter"]
-[ext_resource type="Resource" path="res://resources/enemies/es_colossus.tres" id="7_es_colossus"]
+[ext_resource type="Resource" uid="uid://bf01nc6q3fscg" path="res://resources/enemies/es_stinger.tres" id="5_es_stinger"]
+[ext_resource type="Resource" uid="uid://cfgrjjfnk1k08" path="res://resources/enemies/es_fighter.tres" id="6_es_fighter"]
+[ext_resource type="Resource" uid="uid://diggh6vr41r5e" path="res://resources/enemies/es_colossus.tres" id="7_es_colossus"]
 [ext_resource type="Script" uid="uid://d3hrtxklnoj4q" path="res://scripts/party_setup.gd" id="8_party_setup"]
 [ext_resource type="Script" uid="uid://pi415mq3g4lj" path="res://scripts/character_data.gd" id="9_char_data_script"]
 [ext_resource type="Resource" uid="uid://bcharset001" path="res://resources/char_1.tres" id="10_char1"]
@@ -13665,7 +14526,11 @@ room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), E
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")
-boss_threat_budget = 13
+combat_threat_budget = 16
+corridor_threat_budget = 6
+boss_threat_budget = 40
+threat_per_stage = 4
+threat_hard_cap = 28
 navigation_region = NodePath("../NavigationRegion3D")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1169866606]
@@ -14511,12 +15376,15 @@ script = ExtResource("5_qlg0r")
 
 ===== FILE: scenes\rooms\boss\room_boss_01.tscn =====
 
-[gd_scene load_steps=15 format=3]
+
+
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -14555,6 +15423,10 @@ room_height = 24.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -14756,30 +15628,50 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 0.0, 0.0)
 [node name="EnemySpawnPoints" type="Node3D" parent="."]
 
 [node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -12.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -15.0)
 
 [node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.0, 0.5, -17.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.0, 0.5, -5.0)
 
 [node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 0.5, -17.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.0, 0.5, -5.0)
 
 [node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.0, 0.5, 17.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.0, 0.5, 6.0)
 
 [node name="Enemy5" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 0.5, 17.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.0, 0.5, 6.0)
 
 [node name="Enemy6" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 17.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 15.0)
+
+[node name="Enemy7" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.0, 0.5, 0.0)
+
+[node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, 0.0)
 
 [node name="LootSpawnPoints" type="Node3D" parent="."]
 
 [node name="Loot1" type="Marker3D" parent="LootSpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 0.0)
 
+[node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0.5, -10.0)
+
+[node name="Enemy10" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.5, -10.0)
+
+[node name="Enemy11" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0.5, 12.0)
+
+[node name="Enemy12" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.5, 12.0)
+
 
 ===== FILE: scenes\rooms\combat\room_combat_01.tscn =====
+
+
 
 [gd_scene load_steps=14 format=3]
 
@@ -14998,15 +15890,36 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0, 0.5, -15.0)
 [node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.61, 0.5, -10.61)
 
+[node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 0.0)
+
+[node name="Enemy10" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 0.5, -18.0)
+
+[node name="Enemy11" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 0.5, 18.0)
+
+[node name="Enemy12" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 0.5, -18.0)
+
+[node name="Enemy13" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 0.5, 18.0)
+
+[node name="Enemy14" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 0.5, -8.0)
+
 
 ===== FILE: scenes\rooms\combat\room_combat_02.tscn =====
 
-[gd_scene load_steps=17 format=3]
+
+
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -15051,6 +15964,10 @@ room_height = 14.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -15285,8 +16202,34 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 0.5, -18.0)
 [node name="Enemy6" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 0.5, 18.0)
 
+[node name="Enemy7" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 0.5, 18.0)
+
+[node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 0.0)
+
+[node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 0.5, -18.0)
+
+[node name="Enemy10" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.0, 0.5, -6.0)
+
+[node name="Enemy11" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.0, 0.5, 6.0)
+
+[node name="Enemy12" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, -10.0)
+
+[node name="Enemy13" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, 8.0)
+
+[node name="Enemy14" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 0.5, -8.0)
+
 
 ===== FILE: scenes\rooms\combat\room_combat_03.tscn =====
+
+
 
 [gd_scene load_steps=24 format=3]
 
@@ -15625,15 +16568,36 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.9, 0.0)
 [node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.0, 2.9, 0.0)
 
+[node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.0, 0.5, 0.0)
+
+[node name="Enemy10" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 0.5, -6.0)
+
+[node name="Enemy11" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 0.5, 6.0)
+
+[node name="Enemy12" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0.5, -12.0)
+
+[node name="Enemy13" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0.5, 12.0)
+
+[node name="Enemy14" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.5, -12.0)
+
 
 ===== FILE: scenes\rooms\combat\room_combat_04.tscn =====
 
-[gd_scene load_steps=17 format=3]
+
+
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -15678,6 +16642,10 @@ room_height = 14.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -15962,15 +16930,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.06, 0.5, -11.97)
 [node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.05, 0.5, -4.89)
 
+[node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 0.0)
+
 
 ===== FILE: scenes\rooms\combat\room_combat_05.tscn =====
 
-[gd_scene load_steps=25 format=3]
+
+
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -16039,6 +17013,10 @@ room_height = 14.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -16326,15 +17304,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.0, 0.5, 14.0)
 [node name="Enemy7" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.0, 0.5, 14.0)
 
+[node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.0, 0.5, -8.0)
+
+[node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.0, 0.5, 8.0)
+
+[node name="Enemy10" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.0, 0.5, -8.0)
+
+[node name="Enemy11" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.0, 0.5, 8.0)
+
 
 ===== FILE: scenes\rooms\combat\room_combat_06.tscn =====
 
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -16415,6 +17406,10 @@ room_height = 14.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -16678,7 +17673,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.0, 0.5, 14.0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, 0.0)
 
 [node name="Enemy7" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 0.5, 0.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 0.5, -18.0)
+
+[node name="Enemy8" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -16.0)
+
+[node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 16.0)
+
+[node name="Enemy10" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, -10.0)
+
+[node name="Enemy11" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, 10.0)
+
+[node name="Enemy12" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.5, -18.0)
+
+[node name="Enemy13" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.5, 18.0)
+
+[node name="Enemy14" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0, 0.5, -6.0)
 
 
 ===== FILE: scenes\rooms\combat\room_corridor_01.tscn =====
@@ -17227,7 +18243,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.0, 0.5, 0.0)
 
 ===== FILE: scenes\rooms\corridor\room_corridor_01.tscn =====
 
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
@@ -17245,18 +18261,6 @@ size = Vector3(5, 14.0, 1)
 [sub_resource type="BoxShape3D" id="wall_ns_shape"]
 size = Vector3(5, 14.0, 1)
 
-[sub_resource type="BoxMesh" id="wall_ns_full_mesh"]
-size = Vector3(20.0, 14.0, 1)
-
-[sub_resource type="BoxShape3D" id="wall_ns_full_shape"]
-size = Vector3(20.0, 14.0, 1)
-
-[sub_resource type="BoxMesh" id="wall_ew_mesh"]
-size = Vector3(1, 14.0, 19)
-
-[sub_resource type="BoxShape3D" id="wall_ew_shape"]
-size = Vector3(1, 14.0, 19)
-
 [sub_resource type="BoxMesh" id="wall_ew_full_mesh"]
 size = Vector3(1, 14.0, 48.0)
 
@@ -17268,12 +18272,6 @@ size = Vector3(10, 10, 0.8)
 
 [sub_resource type="BoxShape3D" id="door_ns_shape"]
 size = Vector3(10, 10, 0.8)
-
-[sub_resource type="BoxMesh" id="door_ew_mesh"]
-size = Vector3(0.8, 10, 10)
-
-[sub_resource type="BoxShape3D" id="door_ew_shape"]
-size = Vector3(0.8, 10, 10)
 
 [node name="RoomRoot" type="Node3D"]
 script = ExtResource("room_script")
@@ -17393,10 +18391,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 0.0)
 [node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 14.0)
 
+[node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0, 0.5, -8.0)
+
+[node name="Enemy5" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0, 0.5, 6.0)
+
+[node name="Enemy6" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 0.5, -8.0)
+
 
 ===== FILE: scenes\rooms\corridor\room_corridor_02.tscn =====
 
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
@@ -17407,12 +18414,6 @@ size = Vector3(48.0, 1, 20.0)
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
 size = Vector3(48.0, 1, 20.0)
-
-[sub_resource type="BoxMesh" id="wall_ns_mesh"]
-size = Vector3(19, 14.0, 1)
-
-[sub_resource type="BoxShape3D" id="wall_ns_shape"]
-size = Vector3(19, 14.0, 1)
 
 [sub_resource type="BoxMesh" id="wall_ns_full_mesh"]
 size = Vector3(48.0, 14.0, 1)
@@ -17425,18 +18426,6 @@ size = Vector3(1, 14.0, 5)
 
 [sub_resource type="BoxShape3D" id="wall_ew_shape"]
 size = Vector3(1, 14.0, 5)
-
-[sub_resource type="BoxMesh" id="wall_ew_full_mesh"]
-size = Vector3(1, 14.0, 20.0)
-
-[sub_resource type="BoxShape3D" id="wall_ew_full_shape"]
-size = Vector3(1, 14.0, 20.0)
-
-[sub_resource type="BoxMesh" id="door_ns_mesh"]
-size = Vector3(10, 10, 0.8)
-
-[sub_resource type="BoxShape3D" id="door_ns_shape"]
-size = Vector3(10, 10, 0.8)
 
 [sub_resource type="BoxMesh" id="door_ew_mesh"]
 size = Vector3(0.8, 10, 10)
@@ -17561,6 +18550,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 0.0)
 
 [node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.0, 0.5, 0.0)
+
+[node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0.5, -4.0)
+
+[node name="Enemy5" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0.5, 4.0)
+
+[node name="Enemy6" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, -4.0)
 
 
 ===== FILE: scenes\rooms\room_start_01.tscn =====
@@ -18281,6 +19279,12 @@ reticle_scale = 0.3
 camera_lock_multiplier = 0.3
 separation_radius = 1.0
 separation_strength = 3.0
+zigzag_enabled = true
+zigzag_waveform = 0
+zigzag_angle_degrees = 42.0
+zigzag_frequency = 2.4
+zigzag_min_distance = 3.5
+zigzag_fade_distance = 10.0
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
@@ -21489,6 +22493,13 @@ var _time_label: Label = null
 var _blur_overlay: ColorRect = null
 var _pause_menu: PauseMenu = null
 
+## Leaderboard-Block wird - wie das Zeit-Label - zur Laufzeit gebaut,
+## damit keine der Level-Szenen angefasst werden muss.
+var _seed_label: Label = null
+var _board_title: Label = null
+var _board_list: VBoxContainer = null
+var _own_record: RunRecord = null
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -21503,7 +22514,12 @@ func _ready() -> void:
 	_pause_menu = get_parent().get_node_or_null("PauseMenu") as PauseMenu
 	_fix_panel_background()
 
-	_build_time_label()
+	_build_time_label()	
+	_build_leaderboard_block()
+
+	LeaderboardManager.submit_finished.connect(_on_submit_finished)
+	LeaderboardManager.entries_ready.connect(_on_entries_ready)
+	LeaderboardManager.unavailable.connect(_on_leaderboard_unavailable)
 
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -21522,6 +22538,125 @@ func _build_time_label() -> void:
 	_time_label.text = ""
 	box.add_child(_time_label)
 	box.move_child(_time_label, 1)
+
+
+## Seed-Zeile + Ueberschrift + Liste. Die Liste bleibt leer, bis Steam
+## antwortet - ein Platzhalter verhindert, dass der Block beim Aufpoppen
+## in der Hoehe springt.
+func _build_leaderboard_block() -> void:
+	var box := get_node_or_null("Panel/VBoxContainer") as VBoxContainer
+	if box == null:
+		return
+
+	_seed_label = Label.new()
+	_seed_label.name = "SeedLabel"
+	_seed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_seed_label.add_theme_font_size_override("font_size", 18)
+	_seed_label.modulate = Color(0.72, 0.72, 0.78)
+	_seed_label.text = ""
+	box.add_child(_seed_label)
+	box.move_child(_seed_label, 2)
+
+	_board_title = Label.new()
+	_board_title.name = "BoardTitle"
+	_board_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_board_title.add_theme_font_size_override("font_size", 20)
+	_board_title.text = ""
+	box.add_child(_board_title)
+	box.move_child(_board_title, 3)
+
+	_board_list = VBoxContainer.new()
+	_board_list.name = "BoardList"
+	_board_list.add_theme_constant_override("separation", 2)
+	box.add_child(_board_list)
+	box.move_child(_board_list, 4)
+
+
+## Sammelt alles, was den Run beschreibt. Der LevelGenerator wird ueber
+## seine Gruppe gesucht, nicht ueber einen festen Pfad - der WinScreen
+## kennt den Aufbau der Level-Szene nicht.
+func _build_own_record() -> RunRecord:
+	var time_ms: int = 0
+	for node in get_tree().get_nodes_in_group(RunTimer.RUN_TIMER_GROUP):
+		if node is RunTimer:
+			time_ms = (node as RunTimer).get_elapsed_ms()
+			break
+
+	var run_seed: int = 0
+	var stage: int = 1
+	var rooms_cleared: int = 0
+
+	var generators: Array[Node] = get_tree().get_nodes_in_group(LevelGenerator.GENERATOR_GROUP)
+	if not generators.is_empty() and generators[0] is LevelGenerator:
+		var gen: LevelGenerator = generators[0] as LevelGenerator
+		run_seed = gen.get_run_seed()
+		stage = gen.get_current_stage()
+		for cell in gen.get_map_cells().values():
+			if bool(cell.get("cleared", false)):
+				rooms_cleared += 1
+
+	var character: int = PartyManager.get_active_index()
+
+	return RunRecord.create(time_ms, run_seed, character, stage, rooms_cleared)
+
+
+func _on_submit_finished(success: bool, is_new_best: bool) -> void:
+	if _board_title == null:
+		return
+	if not success:
+		_board_title.text = "BESTENLISTE - UPLOAD FEHLGESCHLAGEN"
+		return
+	_board_title.text = "NEUE BESTZEIT - BESTENLISTE" if is_new_best else "BESTENLISTE"
+
+
+func _on_leaderboard_unavailable(reason: String) -> void:
+	if _board_title:
+		_board_title.text = "BESTENLISTE OFFLINE"
+	if _board_list:
+		_clear_board_list()
+		var info := Label.new()
+		info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		info.add_theme_font_size_override("font_size", 14)
+		info.modulate = Color(0.6, 0.6, 0.65)
+		info.text = reason
+		_board_list.add_child(info)
+
+
+func _on_entries_ready(records: Array, _scope: String) -> void:
+	if _board_list == null:
+		return
+	_clear_board_list()
+
+	var own_id: int = SteamManager.get_steam_id()
+	for record in records:
+		var rec: RunRecord = record as RunRecord
+		if rec == null:
+			continue
+
+		var row := Label.new()
+		row.add_theme_font_size_override("font_size", 16)
+		row.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+		# Eintraege aus aelteren Builds werden markiert statt versteckt -
+		# sonst wirkt das Brett nach jedem Patch kaputt.
+		var suffix: String = "" if rec.is_current_build() else "  (alter Build)"
+		row.text = "%2d.  %-10s  Seed %s%s" % [
+			rec.global_rank, rec.get_time_string(), rec.get_seed_code(), suffix
+		]
+
+		if rec.steam_id == own_id and own_id != 0:
+			row.modulate = Color(1.0, 0.82, 0.22)
+		elif not rec.is_current_build():
+			row.modulate = Color(0.55, 0.55, 0.6)
+
+		_board_list.add_child(row)
+
+
+func _clear_board_list() -> void:
+	if _board_list == null:
+		return
+	for child in _board_list.get_children():
+		child.queue_free()
 
 
 ## Stoppt den Speedrun-Timer und liefert die Endzeit. Ueber die Gruppe
@@ -21561,6 +22696,17 @@ func show_win() -> void:
 	var run_time: String = _stop_and_read_run_timer()
 	if _time_label:
 		_time_label.text = ("ZEIT: %s" % run_time) if run_time != "" else ""
+
+	# Reihenfolge ist wichtig: erst den Timer stoppen, DANN den Record
+	# bauen - sonst laeuft die Zeit waehrend des Uploads weiter.
+	_own_record = _build_own_record()
+	if _seed_label:
+		_seed_label.text = "SEED: %s" % _own_record.get_seed_code()
+
+	if _board_title:
+		_board_title.text = "BESTENLISTE"
+	LeaderboardManager.submit_run(_own_record)
+	LeaderboardManager.request_top()
 
 	if _blur_overlay:
 		_blur_overlay.visible = true
@@ -22004,12 +23150,6 @@ func _on_hit_landed(target: Node) -> void:
 
 	_tilt_reset_timer = combo_tilt_reset_delay
 
-# ============================================================================
-# ERSETZE in scripts/combat_base.gd die Funktion _process(delta) durch diese.
-# Einzige Aenderung: der Grosskarten-Block direkt nach dem Stun-Check.
-# Diese Datei NICHT ins Projekt kopieren.
-# ============================================================================
-
 func _process(delta: float) -> void:
 	# Solange der Player gestunnt ist (z.B. von einem schnellen,
 	# nervigen Gegner getroffen), werden weder Angriffe noch Dash
@@ -22078,7 +23218,8 @@ func _process(delta: float) -> void:
 	if InputMap.has_action("ability_secondary") \
 			and Input.is_action_just_pressed("ability_secondary") and _ability_e_timer <= 0.0:
 		_do_ability_e()
-		func _do_primary() -> void:
+
+func _do_primary() -> void:
 	var cd: float = _get_effective_primary_cooldown()
 	_primary_timer = cd
 	primary_used.emit()
@@ -22481,6 +23622,124 @@ func _on_restart_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+===== FILE: scripts\det_rng.gd =====
+
+extends RefCounted
+class_name DetRng
+
+## Deterministische Zufalls-Helfer fuer verifizierbare Speedruns.
+##
+## WARUM DAS NOETIG IST:
+## Godots globale Funktionen randf(), randi(), Array.shuffle() und
+## Array.pick_random() greifen ALLE auf denselben globalen RNG zu. In
+## Lemonade zieht daran aber nicht nur die Levelgenerierung, sondern auch:
+##   - player_base.gd  -> randf_range() pro Frame fuer den Screen-Shake
+##   - damage_number.gd -> randf_range() bei JEDER Schadenszahl
+##   - enemy_ai.gd     -> randf_range() fuer Tempo-Varianz und Ausweichen
+##
+## Folge: RoomInstance._spawn_prepared_enemies() wird erst ausgefuehrt,
+## wenn der Spieler den Raum betritt - der globale RNG ist zu dem
+## Zeitpunkt schon zigtausend Aufrufe weit gelaufen, und WIE weit haengt
+## davon ab, wie oft der Spieler getroffen wurde und wie lange die Kamera
+## gewackelt hat. Zwei Laeufe mit identischem Seed erzeugen dadurch
+## garantiert unterschiedliche Gegner-Zusammensetzungen.
+##
+## Ein Seed auf dem Leaderboard waere damit reine Dekoration: niemand
+## koennte den Run nachspielen. Deshalb bekommen Layout, Raumauswahl und
+## Gegner-Rolls jeweils EIGENE RandomNumberGenerator-Instanzen, die aus
+## dem Run-Seed abgeleitet werden. Der globale RNG bleibt fuer Optik
+## (Shake, Partikel, Schadenszahlen) zustaendig und darf dort ruhig
+## weiterlaufen - er beeinflusst dann nichts Spielrelevantes mehr.
+
+## Zeichen fuer den teilbaren Seed-Code. I und O fehlen bewusst: die
+## verwechselt jeder mit 1 und 0, sobald der Code aus einem Stream
+## abgetippt wird.
+const ALPHABET: String = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+
+## Obergrenze fuer Run-Seeds. Muss in einen int32 passen, weil Steam die
+## Leaderboard-Details als PackedInt32Array uebertraegt.
+const MAX_SEED: int = 2147483646
+
+
+## Fertig geseedete RNG-Instanz.
+static func make(seed_value: int) -> RandomNumberGenerator:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	return rng
+
+
+## Leitet aus einem Basis-Seed und einem Text-Salt einen neuen Seed ab.
+##
+## Benutzt eine SplitMix64-artige Durchmischung statt einer simplen
+## Addition: benachbarte Salts ("spawn:(0,0)" und "spawn:(0,1)") sollen
+## weit auseinander liegende Seeds liefern, sonst haetten benachbarte
+## Raeume sichtbar aehnliche Gegner-Rolls.
+static func derive(base_seed: int, salt: String) -> int:
+	var x: int = base_seed ^ (hash(salt) * 0x9E3779B97F4A7C15)
+	x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9
+	x = (x ^ (x >> 27)) * 0x94D049BB133111EB
+	x = x ^ (x >> 31)
+	return x
+
+
+## Fisher-Yates ueber einen ANGEGEBENEN RNG. Array.shuffle() waere hier
+## unbrauchbar, weil es zwingend den globalen RNG benutzt.
+static func shuffle(array: Array, rng: RandomNumberGenerator) -> void:
+	for i in range(array.size() - 1, 0, -1):
+		var j: int = rng.randi_range(0, i)
+		var tmp: Variant = array[i]
+		array[i] = array[j]
+		array[j] = tmp
+
+
+## Ersatz fuer Array.pick_random() mit eigenem RNG.
+static func pick(array: Array, rng: RandomNumberGenerator) -> Variant:
+	if array.is_empty():
+		return null
+	return array[rng.randi_range(0, array.size() - 1)]
+
+
+## Frischer, zufaelliger Run-Seed im gueltigen int32-Bereich.
+static func random_seed_value() -> int:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	return rng.randi_range(1, MAX_SEED)
+
+
+## Seed -> teilbarer Code ("4F2K9"). Kuerzer und vorlesbarer als die
+## Dezimalzahl, was fuer Daily-Seeds und Stream-Overlays der Punkt ist.
+static func seed_to_code(seed_value: int) -> String:
+	var value: int = clampi(absi(seed_value), 0, MAX_SEED)
+	if value == 0:
+		return "0"
+
+	var base: int = ALPHABET.length()
+	var out: String = ""
+	while value > 0:
+		out = ALPHABET[value % base] + out
+		value /= base
+	return out
+
+
+## Code -> Seed. Liefert 0, wenn der Code ungueltige Zeichen enthaelt -
+## der Aufrufer behandelt 0 dann als "kein Seed angegeben".
+static func code_to_seed(code: String) -> int:
+	var cleaned: String = code.strip_edges().to_upper().replace("-", "")
+	if cleaned.is_empty():
+		return 0
+
+	var base: int = ALPHABET.length()
+	var value: int = 0
+	for i in range(cleaned.length()):
+		var index: int = ALPHABET.find(cleaned[i])
+		if index < 0:
+			return 0
+		value = value * base + index
+		if value > MAX_SEED:
+			return 0
+	return value
 
 
 ===== FILE: scripts\dungeon_atmosphere.gd =====
@@ -23160,6 +24419,264 @@ func _play_combo_expire_animation() -> void:
 	)
 
 
+===== FILE: scripts\leaderboard_manager.gd =====
+
+extends Node
+
+## Autoload "LeaderboardManager" - Steam-Leaderboards fuer Lemonade.
+##
+## WARUM EINE WARTESCHLANGE:
+## Die Steam-API erlaubt pro Leaderboard immer nur EINE laufende
+## Operation. Wer Upload und Download gleichzeitig anstoesst, bekommt
+## still verworfene Callbacks - typisch dafuer ist ein Leaderboard, das
+## "manchmal" leer bleibt. Deshalb laeuft hier alles strikt seriell:
+## Handle suchen -> hochladen -> herunterladen -> anzeigen.
+##
+## ZWEI BRETTER:
+##   ALLTIME  - jeder Run, Seed steht in den Details (nachspielbar)
+##   DAILY    - alle Spieler bekommen denselben Seed des Tages; erst hier
+##              werden Zeiten wirklich direkt vergleichbar, weil das
+##              Layout identisch ist
+##
+## Ohne Steam (Addon fehlt, Client aus, Offline) meldet sich der Manager
+## einmal ueber unavailable() und tut danach schlicht nichts. Das Spiel
+## laeuft normal weiter.
+
+signal submit_finished(success: bool, is_new_best: bool)
+signal entries_ready(records: Array, scope: String)
+signal unavailable(reason: String)
+
+## Steam-Konstanten. Bewusst als Rohwerte, weil auf Steam.XY nicht
+## zugegriffen werden kann, ohne das Projekt ohne Addon unlesbar zu
+## machen - siehe steam_manager.gd.
+const SORT_ASCENDING: int = 1              ## kleinere Zeit = besser
+const DISPLAY_TIME_MILLISECONDS: int = 3
+const REQUEST_GLOBAL: int = 0
+const REQUEST_GLOBAL_AROUND_USER: int = 1
+const REQUEST_FRIENDS: int = 2
+
+const SCOPE_ALLTIME: String = "alltime"
+const SCOPE_DAILY: String = "daily"
+
+## Namen der Bretter. Werden bei Bedarf angelegt (findOrCreateLeaderboard),
+## damit du sie nicht fuer jeden Tag von Hand im Partnerportal pflegen
+## musst.
+@export var alltime_board_name: String = "LEMONADE_ANY_PERCENT"
+@export var daily_board_prefix: String = "LEMONADE_DAILY_"
+
+## Muss vor dem Download gesetzt werden, sonst liefert Steam die Details
+## (und damit den Seed) gar nicht erst mit.
+@export var details_max: int = RunRecord.DETAIL_COUNT
+
+@export var default_entry_count: int = 10
+
+enum _Op { NONE, FIND, UPLOAD, DOWNLOAD }
+
+var _steam: Object = null
+var _handles: Dictionary = {}          ## scope -> leaderboard handle
+var _queue: Array[Dictionary] = []
+var _current: Dictionary = {}
+var _op: int = _Op.NONE
+var _signals_connected: bool = false
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+
+func _ensure_ready() -> bool:
+	if not SteamManager.is_available():
+		unavailable.emit("Steam nicht verfuegbar - Leaderboard uebersprungen.")
+		return false
+
+	if _signals_connected:
+		return true
+
+	_steam = SteamManager.get_steam()
+	_connect("leaderboard_find_result", _on_find_result)
+	_connect("leaderboard_score_uploaded", _on_score_uploaded)
+	_connect("leaderboard_scores_downloaded", _on_scores_downloaded)
+
+	if _steam.has_method("setLeaderboardDetailsMax"):
+		_steam.call("setLeaderboardDetailsMax", details_max)
+
+	_signals_connected = true
+	return true
+
+
+## Defensiv verbinden: GodotSteam hat Signalnamen ueber die Versionen
+## mehrfach angepasst. Ein fehlendes Signal soll eine Warnung geben, nicht
+## das Spiel beim Start abschiessen.
+func _connect(signal_name: String, callable: Callable) -> void:
+	if not _steam.has_signal(signal_name):
+		push_warning("[LeaderboardManager] GodotSteam kennt kein Signal '%s' - Leaderboard bleibt unvollstaendig. GodotSteam-Version pruefen." % signal_name)
+		return
+	if _steam.is_connected(signal_name, callable):
+		return
+	_steam.connect(signal_name, callable)
+
+
+# --- Oeffentliche API ---------------------------------------------------
+
+## Seed des Tages. Aus dem UTC-Datum abgeleitet, damit weltweit alle
+## denselben Lauf bekommen - lokale Zeitzonen wuerden sonst zwei
+## verschiedene "Heute" erzeugen.
+static func get_daily_seed() -> int:
+	var utc: Dictionary = Time.get_datetime_dict_from_system(true)
+	var key: String = "%04d-%02d-%02d" % [utc["year"], utc["month"], utc["day"]]
+	return absi(DetRng.derive(20260101, key)) % DetRng.MAX_SEED + 1
+
+
+static func get_daily_key() -> String:
+	var utc: Dictionary = Time.get_datetime_dict_from_system(true)
+	return "%04d%02d%02d" % [utc["year"], utc["month"], utc["day"]]
+
+
+func get_daily_board_name() -> String:
+	return daily_board_prefix + get_daily_key()
+
+
+func board_name_for(scope: String) -> String:
+	return get_daily_board_name() if scope == SCOPE_DAILY else alltime_board_name
+
+
+## Laedt einen abgeschlossenen Run hoch. keep_best sorgt dafuer, dass eine
+## schlechtere Zeit den eigenen Rekord nicht ueberschreibt.
+func submit_run(record: RunRecord, scope: String = SCOPE_ALLTIME) -> void:
+	if record == null or not record.is_plausible():
+		submit_finished.emit(false, false)
+		return
+	if not _ensure_ready():
+		submit_finished.emit(false, false)
+		return
+
+	_enqueue({"op": _Op.UPLOAD, "scope": scope, "record": record})
+
+
+## Holt die weltweite Top-Liste.
+func request_top(count: int = 0, scope: String = SCOPE_ALLTIME) -> void:
+	if not _ensure_ready():
+		return
+	var n: int = count if count > 0 else default_entry_count
+	_enqueue({"op": _Op.DOWNLOAD, "scope": scope, "type": REQUEST_GLOBAL, "start": 1, "end": n})
+
+
+## Holt die Eintraege rund um den eigenen Rang - der interessantere Blick,
+## sobald man nicht mehr in den Top 10 steht.
+func request_around_user(spread: int = 4, scope: String = SCOPE_ALLTIME) -> void:
+	if not _ensure_ready():
+		return
+	_enqueue({"op": _Op.DOWNLOAD, "scope": scope, "type": REQUEST_GLOBAL_AROUND_USER, "start": -spread, "end": spread})
+
+
+func request_friends(count: int = 0, scope: String = SCOPE_ALLTIME) -> void:
+	if not _ensure_ready():
+		return
+	var n: int = count if count > 0 else default_entry_count
+	_enqueue({"op": _Op.DOWNLOAD, "scope": scope, "type": REQUEST_FRIENDS, "start": 1, "end": n})
+
+
+# --- Warteschlange ------------------------------------------------------
+
+func _enqueue(job: Dictionary) -> void:
+	_queue.append(job)
+	_pump()
+
+
+func _pump() -> void:
+	if _op != _Op.NONE:
+		return
+	if _queue.is_empty():
+		return
+
+	_current = _queue.pop_front()
+	var scope: String = _current.get("scope", SCOPE_ALLTIME)
+
+	# Handle fehlt noch -> erst suchen, Job wieder vorne einreihen.
+	if not _handles.has(scope):
+		_queue.push_front(_current)
+		_op = _Op.FIND
+		_current = {"op": _Op.FIND, "scope": scope}
+		_steam.call("findOrCreateLeaderboard", board_name_for(scope), SORT_ASCENDING, DISPLAY_TIME_MILLISECONDS)
+		return
+
+	var handle: int = _handles[scope]
+	match int(_current["op"]):
+		_Op.UPLOAD:
+			_op = _Op.UPLOAD
+			var record: RunRecord = _current["record"]
+			_steam.call("uploadLeaderboardScore", record.time_ms, true, record.to_details(), handle)
+		_Op.DOWNLOAD:
+			_op = _Op.DOWNLOAD
+			_steam.call("downloadLeaderboardEntries", int(_current["start"]), int(_current["end"]), int(_current["type"]), handle)
+		_:
+			_finish_op()
+
+
+func _finish_op() -> void:
+	_op = _Op.NONE
+	_current = {}
+	_pump()
+
+
+# --- Steam-Callbacks ----------------------------------------------------
+
+func _on_find_result(leaderboard_handle: int, found: int) -> void:
+	if _op != _Op.FIND:
+		return
+
+	var scope: String = _current.get("scope", SCOPE_ALLTIME)
+	if found == 0 or leaderboard_handle == 0:
+		push_warning("[LeaderboardManager] Leaderboard '%s' konnte nicht gefunden/angelegt werden." % board_name_for(scope))
+		# Passende Jobs verwerfen, sonst sucht der Manager endlos weiter.
+		_queue = _queue.filter(func(j: Dictionary) -> bool: return j.get("scope", "") != scope)
+		unavailable.emit("Leaderboard '%s' nicht verfuegbar." % board_name_for(scope))
+		_finish_op()
+		return
+
+	_handles[scope] = leaderboard_handle
+	print("[LeaderboardManager] Leaderboard '%s' bereit (Handle %d)." % [board_name_for(scope), leaderboard_handle])
+	_finish_op()
+
+
+func _on_score_uploaded(success: int, _leaderboard_handle: int, this_score: Dictionary) -> void:
+	if _op != _Op.UPLOAD:
+		return
+
+	var ok: bool = success == 1
+	var improved: bool = bool(this_score.get("score_changed", false))
+	if ok:
+		print("[LeaderboardManager] Zeit hochgeladen: %d ms, neuer Rang %s (vorher %s)." % [
+			int(this_score.get("score", 0)),
+			str(this_score.get("global_rank_new", "?")),
+			str(this_score.get("global_rank_previous", "?"))
+		])
+	else:
+		push_warning("[LeaderboardManager] Upload fehlgeschlagen.")
+
+	submit_finished.emit(ok, improved)
+	_finish_op()
+
+
+func _on_scores_downloaded(_message: String, _leaderboard_handle: int, result: Array) -> void:
+	if _op != _Op.DOWNLOAD:
+		return
+
+	var scope: String = _current.get("scope", SCOPE_ALLTIME)
+	var records: Array = []
+	for entry in result:
+		if entry is Dictionary:
+			var rec: RunRecord = RunRecord.from_entry(entry)
+			records.append(rec)
+
+	records.sort_custom(func(a: RunRecord, b: RunRecord) -> bool:
+		return a.time_ms < b.time_ms
+	)
+
+	entries_ready.emit(records, scope)
+	_finish_op()
+
+
 ===== FILE: scripts\minimap.gd =====
 
 extends Control
@@ -23306,6 +24823,12 @@ func _ready() -> void:
 	map_camera.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
 	map_camera.near = 0.1
 	map_camera.far = map_height * 2.0
+
+	# Fog of War: Raeume, die noch nicht aufgedeckt sind, haengt der
+	# LevelGenerator auf RoomInstance.MINIMAP_HIDDEN_LAYER um. NUR diese
+	# Kamera streicht den Layer aus ihrer cull_mask - die Spielerkamera
+	# bleibt unangetastet und zeigt die Welt vollstaendig.
+	map_camera.set_cull_mask_value(RoomInstance.MINIMAP_HIDDEN_LAYER, false)
 
 	sub_viewport.own_world_3d = false
 	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -23610,6 +25133,57 @@ func _update_camera_position() -> void:
 	)
 
 
+## Setzt den Spielerpfeil auf die Bildschirmposition des Spielers.
+##
+## BUGFIX "Pfeil bleibt beim Verschieben der Grosskarte in der Mitte":
+## Der Pfeil haengt als eigenes Control mittig im MapContainer. Auf der
+## KLEINEN Karte stimmt das, weil _update_camera_position() die Kamera
+## exakt ueber den Spieler setzt - die Mitte IST der Spieler. Auf der
+## grossen Karte kommt _big_map_pan dazu: die Kamera schaut woanders hin,
+## der Pfeil klebte aber weiter in der Mitte und zeigte damit dauerhaft
+## die falsche Position an.
+##
+## unproject_position() rechnet die Weltposition in Pixel IM SubViewport
+## um. Das beruecksichtigt Zoom (map_camera.size), Pan und - falls
+## rotate_with_player an ist - auch die Kameradrehung, ohne dass hier
+## irgendetwas davon nachgerechnet werden muss. Anschliessend wird nur
+## noch auf die (gestreckte) Containergroesse skaliert.
+func _update_player_arrow_position() -> void:
+	if player_arrow == null or not player_arrow.visible:
+		return
+	if player == null or not is_instance_valid(player):
+		return
+
+	var viewport_size: Vector2 = Vector2(sub_viewport.size)
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+
+	var box_size: Vector2 = sub_viewport_container.size
+	var in_viewport: Vector2 = map_camera.unproject_position(player.global_position)
+	var in_box: Vector2 = sub_viewport_container.position + in_viewport * (box_size / viewport_size)
+
+	# Ausserhalb des Rahmens an den Rand klemmen und abdunkeln, statt den
+	# Pfeil verschwinden zu lassen - so bleibt erkennbar, in welche
+	# Richtung der eigene Standort liegt.
+	var half: Vector2 = player_arrow.size * 0.5
+	var min_point: Vector2 = sub_viewport_container.position + half
+	var max_point: Vector2 = sub_viewport_container.position + box_size - half
+	var clamped := Vector2(
+		clampf(in_box.x, min_point.x, max_point.x),
+		clampf(in_box.y, min_point.y, max_point.y)
+	)
+	player_arrow.modulate.a = 1.0 if clamped.is_equal_approx(in_box) else 0.45
+
+	# Der Pfeil sitzt an den Mittelankern (anchors_preset 8). Deshalb wird
+	# der VERSATZ ZUR MITTE ueber die Offsets gesetzt und nicht position -
+	# sonst rechnen Anker und position gegeneinander und der Pfeil zittert.
+	var delta: Vector2 = clamped - map_container.size * 0.5
+	player_arrow.offset_left = delta.x - half.x
+	player_arrow.offset_top = delta.y - half.y
+	player_arrow.offset_right = delta.x + half.x
+	player_arrow.offset_bottom = delta.y + half.y
+
+
 ## --- Oeffentliche API fuer pause_menu.gd ------------------------------
 ## ESC soll ZUERST nur die Grosskarte schliessen und erst beim NAECHSTEN
 ## Druck die Pause oeffnen.
@@ -23732,6 +25306,8 @@ func _process(delta: float) -> void:
 	else:
 		map_camera.rotation.y = 0.0
 		player_arrow.rotation = -camera_yaw
+
+	_update_player_arrow_position()
 
 	if coord_label.visible:
 		var pos: Vector3 = player.global_position
@@ -23865,7 +25441,12 @@ const OPPOSITE_DIR := {
 @export var overlay_rotation_degrees: float = -90.0
 
 ## --- Farbschema -------------------------------------------------------
-@export var color_background: Color = Color(0.05, 0.06, 0.05, 0.72)
+## KEIN color_background mehr: das Grid hatte fruerher eine eigene,
+## unabhaengige Hintergrundflaeche - das war die dritte Deckkraft neben
+## Frame und 3D-Ansicht und erzeugte den sichtbaren "Kasten im Kasten".
+## Das Overlay zeichnet jetzt nur noch Zellen/Durchgaenge/Text; der
+## EINE Frame-Hintergrund (minimap.gd, Einstellung "Deckkraft") scheint
+## darunter durch.
 @export var color_unexplored: Color = Color(0.35, 0.38, 0.32, 0.45)
 @export var color_combat: Color = Color(0.62, 0.64, 0.58, 0.95)
 @export var color_corridor: Color = Color(0.45, 0.47, 0.42, 0.95)
@@ -23949,8 +25530,6 @@ func _draw() -> void:
 	var current: Vector2i = _generator.get_current_room()
 	var pitch: float = cell_px + gap_px
 	var center := size * 0.5
-
-	draw_rect(Rect2(Vector2.ZERO, size), color_background, true)
 
 	# --- Durchgaenge zuerst, damit die Raumquadrate spaeter sauber
 	# darueber gezeichnet werden und den ueberschuessigen Teil der
@@ -26045,6 +27624,144 @@ func _spawn_damage_number(body: Node3D) -> void:
 	number.show_damage(damage)
 
 
+===== FILE: scripts\run_record.gd =====
+
+extends RefCounted
+class_name RunRecord
+
+## Ein abgeschlossener Speedrun-Lauf in der Form, in der er auf das
+## Steam-Leaderboard geht.
+##
+## STEAM-FORMAT:
+## Ein Leaderboard-Eintrag besteht aus genau EINEM int32-Score plus einem
+## optionalen PackedInt32Array ("details", max. 64 Werte). Alles, was den
+## Run verifizierbar macht, muss also in int32 passen.
+##
+##   score       = Laufzeit in MILLISEKUNDEN (aufsteigend sortiert)
+##   details[0]  = Format-Version dieses Records
+##   details[1]  = Run-Seed
+##   details[2]  = Build-Nummer des Spiels
+##   details[3]  = Charakter-Index
+##   details[4]  = erreichte Stage
+##   details[5]  = geclearte Raeume
+##   details[6]  = Pruefsumme
+##
+## WARUM MILLISEKUNDEN UND NICHT SEKUNDEN:
+## Steam sortiert nach int32. Sekunden waeren fuer einen Run, der auf
+## Hundertstel entschieden wird, viel zu grob; RunTimer rechnet ohnehin
+## intern in Hundertsteln. int32 reicht fuer 24 Tage Laufzeit.
+##
+## WARUM DIE BUILD-NUMMER MITMUSS:
+## Aendert sich Dash-Geschwindigkeit, Bossleben oder die Raumgroesse, sind
+## alte Zeiten nicht mehr vergleichbar. Mit der Build-Nummer im Eintrag
+## kann die Anzeige veraltete Runs markieren oder ausblenden, statt das
+## ganze Leaderboard wegwerfen zu muessen.
+
+const FORMAT_VERSION: int = 1
+
+## Bei JEDER Aenderung hochzaehlen, die Laufzeiten beeinflusst
+## (Movement, Schaden, Raumgroesse, Gegner-Budget).
+const BUILD_NUMBER: int = 1
+
+const DETAIL_COUNT: int = 7
+
+var time_ms: int = 0
+var run_seed: int = 0
+var build_number: int = BUILD_NUMBER
+var character_index: int = 0
+var stage_reached: int = 1
+var rooms_cleared: int = 0
+var format_version: int = FORMAT_VERSION
+
+## Nur bei heruntergeladenen Eintraegen gefuellt.
+var steam_id: int = 0
+var persona_name: String = ""
+var global_rank: int = 0
+
+
+static func create(p_time_ms: int, p_seed: int, p_character: int, p_stage: int, p_rooms: int) -> RunRecord:
+	var rec := RunRecord.new()
+	rec.time_ms = maxi(p_time_ms, 0)
+	rec.run_seed = p_seed
+	rec.character_index = p_character
+	rec.stage_reached = p_stage
+	rec.rooms_cleared = p_rooms
+	return rec
+
+
+## Packt die Zusatzdaten in das Steam-Detail-Array.
+func to_details() -> PackedInt32Array:
+	var details := PackedInt32Array()
+	details.resize(DETAIL_COUNT)
+	details[0] = format_version
+	details[1] = run_seed
+	details[2] = build_number
+	details[3] = character_index
+	details[4] = stage_reached
+	details[5] = rooms_cleared
+	details[6] = _checksum()
+	return details
+
+
+## Liest einen heruntergeladenen Eintrag zurueck. Faellt bei zu kurzen
+## oder fremden Detail-Arrays auf Standardwerte zurueck, statt zu crashen -
+## auf einem Live-Leaderboard liegen immer auch Eintraege aus aelteren
+## Builds.
+static func from_entry(entry: Dictionary) -> RunRecord:
+	var rec := RunRecord.new()
+	rec.time_ms = int(entry.get("score", 0))
+	rec.steam_id = int(entry.get("steam_id", 0))
+	rec.global_rank = int(entry.get("global_rank", 0))
+
+	var details: Array = []
+	var raw: Variant = entry.get("details", [])
+	if raw is PackedInt32Array or raw is Array:
+		details = Array(raw)
+
+	if details.size() >= 7:
+		rec.format_version = int(details[0])
+		rec.run_seed = int(details[1])
+		rec.build_number = int(details[2])
+		rec.character_index = int(details[3])
+		rec.stage_reached = int(details[4])
+		rec.rooms_cleared = int(details[5])
+
+	return rec
+
+
+## Wurde der Eintrag mit dem aktuellen Spielstand aufgestellt?
+func is_current_build() -> bool:
+	return build_number == BUILD_NUMBER
+
+
+## Plausibilitaetspruefung. Faengt KEINE gezielte Manipulation ab (der
+## Client kennt die Formel), aber jeden kaputten oder aus einer anderen
+## Version stammenden Eintrag - und genau darum geht es hier.
+func is_plausible() -> bool:
+	if time_ms <= 0:
+		return false
+	if run_seed <= 0 or run_seed > DetRng.MAX_SEED:
+		return false
+	if stage_reached < 1 or rooms_cleared < 0:
+		return false
+	return true
+
+
+func get_seed_code() -> String:
+	return DetRng.seed_to_code(run_seed)
+
+
+func get_time_string() -> String:
+	return RunTimer.format_time(float(time_ms) / 1000.0)
+
+
+func _checksum() -> int:
+	var raw: String = "%d|%d|%d|%d|%d|%d" % [
+		time_ms, run_seed, build_number, character_index, stage_reached, rooms_cleared
+	]
+	return absi(hash(raw)) % 2147483647
+
+
 ===== FILE: scripts\run_timer.gd =====
 
 extends Control
@@ -26146,6 +27863,13 @@ func get_time_string() -> String:
 	return format_time(_elapsed)
 
 
+## Laufzeit in ganzen Millisekunden - das Format, das das Steam-Leaderboard
+## als int32-Score erwartet. Bewusst abgerundet statt gerundet: eine Zeit
+## darf durch das Hochladen nicht besser werden, als sie gelaufen wurde.
+func get_elapsed_ms() -> int:
+	return int(floor(maxf(_elapsed, 0.0) * 1000.0))
+
+
 ## Format: Sekunden mit zwei Nachkommastellen ("42.17"). Minuten werden
 ## NUR vorangestellt, sobald es welche gibt ("1.42.17").
 ##
@@ -26160,6 +27884,143 @@ static func format_time(seconds: float) -> String:
 	if minutes > 0:
 		return "%d.%02d.%02d" % [minutes, secs, cs]
 	return "%d.%02d" % [secs, cs]
+
+
+
+
+===== FILE: scripts\seed_button.gd =====
+
+extends Button
+class_name SeedButton
+
+## Zeigt den Run-Seed an und legt ihn beim Anklicken in die Zwischenablage.
+##
+## WARUM EIN BUTTON UND KEIN LABEL:
+## Ein Label kann keine Klicks empfangen. Der Button laeuft flat, ohne
+## Fokusrahmen und ohne Hover-Verschiebung - optisch ist er von einem Label
+## nicht zu unterscheiden, reagiert aber auf die Maus.
+##
+## WO ER FUNKTIONIERT:
+## player_base.gd haelt die Maus waehrend des Spiels auf
+## MOUSE_MODE_CAPTURED. Ein Klick kommt also NUR dort an, wo der Cursor
+## sichtbar ist - Pausenmenue, grosse Karte [M], Death- und Win-Screen.
+## Im normalen HUD ist derselbe Node trotzdem sinnvoll: er zeigt den Seed
+## an, er ist dort eben nur nicht klickbar. Das ist kein Fehler.
+##
+## WOHER DER SEED KOMMT:
+## Der LevelGenerator traegt sich in die Gruppe "level_generator" ein und
+## feuert run_seed_ready(seed, code). Beides wird abgedeckt: existiert der
+## Generator beim _ready() dieses Buttons schon, wird der Wert direkt
+## abgefragt; sonst wartet der Button auf das Signal. Ohne diese doppelte
+## Absicherung bliebe die Anzeige je nach Knoten-Reihenfolge in der Szene
+## mal leer und mal nicht.
+
+const GENERATOR_GROUP := "level_generator"
+
+## Text vor dem Seed. Leer lassen fuer die nackte Zahl.
+@export var label_prefix: String = "SEED  "
+
+## true  = der kurze, teilbare Code ("4F2K9") wird angezeigt UND kopiert.
+## false = die rohe Zahl (2147481234). Der Code ist fuer Leaderboard und
+##         Weitergabe gedacht, die Zahl fuer das Feld LevelGenerator.random_seed.
+@export var use_seed_code: bool = true
+
+## Wird nach dem Kopieren kurz statt des Seeds angezeigt.
+@export var feedback_text: String = "KOPIERT!"
+@export var feedback_duration: float = 1.2
+
+## Text, solange noch kein Seed bekannt ist.
+@export var placeholder_text: String = "SEED  ----"
+
+var _seed_value: int = 0
+var _seed_code: String = ""
+var _feedback_timer: float = 0.0
+
+
+func _ready() -> void:
+	flat = true
+	focus_mode = Control.FOCUS_NONE
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	# Im Pausenmenue laeuft der Baum nicht - ohne das bliebe "KOPIERT!"
+	# stehen, bis der Spieler weiterspielt.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+
+	text = placeholder_text
+	tooltip_text = "Klicken kopiert den Seed in die Zwischenablage"
+
+	if not pressed.is_connected(_on_pressed):
+		pressed.connect(_on_pressed)
+
+	set_process(false)
+	_hook_generator()
+
+
+## Sucht den Generator und haengt sich an. Laeuft der Generator schon,
+## wird der Seed sofort uebernommen - sonst wartet der Button auf das
+## Signal.
+func _hook_generator() -> void:
+	var generators: Array[Node] = get_tree().get_nodes_in_group(GENERATOR_GROUP)
+	if generators.is_empty():
+		# Der Generator kann sich erst spaeter eintragen (eigene Szene,
+		# spaeter instanziiert). Einmal pro Frame nachsehen, bis er da ist.
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+		generators = get_tree().get_nodes_in_group(GENERATOR_GROUP)
+		if generators.is_empty():
+			push_warning("SeedButton (%s): Kein Node in der Gruppe '%s' - Seed bleibt leer." % [name, GENERATOR_GROUP])
+			return
+
+	var generator: Node = generators[0]
+
+	if generator.has_signal("run_seed_ready") and not generator.is_connected("run_seed_ready", _on_run_seed_ready):
+		generator.connect("run_seed_ready", _on_run_seed_ready)
+
+	# Nachziehen, falls run_seed_ready schon gefeuert hat.
+	if generator.has_method("get_run_seed"):
+		var value: int = generator.get_run_seed()
+		if value != 0:
+			var code: String = ""
+			if generator.has_method("get_run_seed_code"):
+				code = generator.get_run_seed_code()
+			_on_run_seed_ready(value, code)
+
+
+func _on_run_seed_ready(run_seed: int, seed_code: String) -> void:
+	_seed_value = run_seed
+	_seed_code = seed_code
+	_refresh_text()
+
+
+func _refresh_text() -> void:
+	if _seed_value == 0:
+		text = placeholder_text
+		return
+	text = label_prefix + get_copy_string()
+
+
+## Was tatsaechlich in die Zwischenablage geht.
+func get_copy_string() -> String:
+	if use_seed_code and _seed_code != "":
+		return _seed_code
+	return str(_seed_value)
+
+
+func _on_pressed() -> void:
+	if _seed_value == 0:
+		return
+	DisplayServer.clipboard_set(get_copy_string())
+	text = feedback_text
+	_feedback_timer = feedback_duration
+	set_process(true)
+
+
+func _process(delta: float) -> void:
+	_feedback_timer -= delta
+	if _feedback_timer <= 0.0:
+		set_process(false)
+		_refresh_text()
 
 
 ===== FILE: scripts\settings_manager.gd =====
@@ -27047,6 +28908,142 @@ func _process(delta: float) -> void:
 		_debug("Effekt '%s' abgelaufen" % id)
 
 
+===== FILE: scripts\steam_manager.gd =====
+
+extends Node
+
+## Autoload "SteamManager" - einzige Stelle im Projekt, die GodotSteam
+## direkt anfasst.
+##
+## WARUM UEBER Engine.get_singleton() STATT DIREKT UEBER "Steam":
+## Wuerde hier "Steam.steamInit()" stehen, waere das ein PARSE-Fehler,
+## sobald das GodotSteam-Addon fehlt - das ganze Projekt liesse sich dann
+## nicht mehr oeffnen, auch nicht zum Arbeiten am Combat. Ueber
+## Engine.get_singleton("Steam") und .call() bleibt der Code gueltiges
+## GDScript, egal ob die Extension da ist. Ohne Steam laeuft das Spiel
+## normal weiter, nur eben ohne Leaderboard.
+##
+## ACHTUNG ZUM EDITOR-BUILD:
+## Dein Log meldet "Godot Engine v4.7.1.stable.steam.a13da4feb". Das
+## ".steam" ist der DISTRIBUTOR-Tag der Godot-Version aus dem Steam-Shop -
+## es bedeutet NICHT, dass GodotSteam installiert ist. Ob die Extension
+## wirklich vorhanden ist, sagt dir beim Start die Zeile
+## "[SteamManager] ...". Steht dort "GodotSteam nicht gefunden", musst du
+## das Addon erst installieren (godotsteam GDExtension, Godot 4.x).
+##
+## DEV-SETUP:
+##   1. GodotSteam GDExtension nach res://addons/godotsteam/ entpacken
+##   2. steam_appid.txt mit der App-ID neben die Projektdatei legen
+##      (480 = Spacewar, funktioniert zum Testen ohne eigene App)
+##   3. Steam-Client muss laufen und eingeloggt sein
+##   4. Autoload eintragen: SteamManager -> res://scripts/steam_manager.gd
+##
+## EHRLICHER HINWEIS ZUR MANIPULATIONSSICHERHEIT:
+## Steam-Leaderboards werden vom CLIENT beschrieben. Wer den Prozess
+## manipuliert, kann jede Zeit hochladen - das gilt fuer jedes Spiel mit
+## Client-Upload. Der mitgeschriebene Seed macht Runs NACHSPIELBAR und
+## damit menschlich pruefbar; er macht sie nicht faelschungssicher. Fuer
+## harte Verifikation braeuchtest du serverseitiges Replay.
+
+signal steam_ready(steam_id: int, persona_name: String)
+signal steam_failed(reason: String)
+
+## App-ID fuer die Entwicklung. 480 ist Valves oeffentliches Testspiel
+## "Spacewar" - damit laesst sich die komplette Leaderboard-Pipeline
+## testen, bevor eine eigene App existiert.
+@export var fallback_app_id: int = 480
+
+## Manche GodotSteam-Versionen pumpen die Callbacks selbst, andere nicht.
+## Doppeltes Aufrufen schadet nicht, fehlendes Aufrufen laesst jede
+## Leaderboard-Antwort still verhungern - deshalb per Default an.
+@export var pump_callbacks: bool = true
+
+var _steam: Object = null
+var _available: bool = false
+var _steam_id: int = 0
+var _persona_name: String = ""
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_try_init()
+
+
+func _process(_delta: float) -> void:
+	if not _available or not pump_callbacks:
+		return
+	if _steam.has_method("run_callbacks"):
+		_steam.call("run_callbacks")
+
+
+func _try_init() -> void:
+	if not Engine.has_singleton("Steam"):
+		_fail("GodotSteam nicht gefunden - Leaderboard ist deaktiviert. (Addon fehlt oder ist nicht aktiviert.)")
+		return
+
+	_steam = Engine.get_singleton("Steam")
+
+	var result: Dictionary = {}
+	if _steam.has_method("steamInitEx"):
+		result = _steam.call("steamInitEx", fallback_app_id, false)
+	elif _steam.has_method("steamInit"):
+		# Aeltere Signatur liefert ebenfalls ein Dictionary mit "status".
+		result = _steam.call("steamInit", true)
+	else:
+		_fail("GodotSteam-Singleton ohne steamInit/steamInitEx - Version zu alt?")
+		return
+
+	var status: int = int(result.get("status", -1))
+	# 0 = k_ESteamAPIInitResult_OK
+	if status != 0:
+		_fail("Steam-Init fehlgeschlagen (status %d): %s" % [status, str(result.get("verbal", "kein Text"))])
+		return
+
+	_available = true
+	if _steam.has_method("getSteamID"):
+		_steam_id = int(_steam.call("getSteamID"))
+	if _steam.has_method("getPersonaName"):
+		_persona_name = str(_steam.call("getPersonaName"))
+
+	print("[SteamManager] Verbunden als '%s' (SteamID %d)." % [_persona_name, _steam_id])
+	steam_ready.emit(_steam_id, _persona_name)
+
+
+func _fail(reason: String) -> void:
+	_available = false
+	_steam = null
+	print("[SteamManager] %s" % reason)
+	steam_failed.emit(reason)
+
+
+# --- Oeffentliche API ---------------------------------------------------
+
+func is_available() -> bool:
+	return _available and _steam != null
+
+
+## Direkter Zugriff auf das Singleton fuer den LeaderboardManager. Bewusst
+## kein globaler Alias: alles andere im Projekt soll NICHT selbst mit
+## Steam reden.
+func get_steam() -> Object:
+	return _steam
+
+
+func get_steam_id() -> int:
+	return _steam_id
+
+
+func get_persona_name() -> String:
+	return _persona_name
+
+
+## Prueft, ob eine bestimmte GodotSteam-Methode existiert. Die API hat
+## sich ueber die Versionen mehrfach umbenannt - lieber vorher fragen als
+## im Spiel eine Fehlermeldung pro Frame produzieren.
+func has_api(method_name: String) -> bool:
+	return is_available() and _steam.has_method(method_name)
+
+
 ===== FILE: scripts\victory_trophy.gd =====
 
 extends Node3D
@@ -27079,6 +29076,16 @@ signal collected
 
 @export var pickup_radius: float = 3.0
 
+## --- Bodensuche ----------------------------------------------------------
+## Statt blind auf der uebergebenen Y-Hoehe zu landen, tastet die Trophaee
+## einmalig nach unten und legt sich auf die erste getroffene Flaeche.
+@export var snap_to_floor: bool = true
+@export var floor_probe_up: float = 4.0
+@export var floor_probe_down: float = 40.0
+@export var floor_clearance: float = 0.15
+## Nur Welt-Geometrie (Layer 1 = Default/Static) abtasten.
+@export_flags_3d_physics var floor_probe_mask: int = 1
+
 ## --- Optik ---------------------------------------------------------------
 @export var trophy_color: Color = Color(1.0, 0.82, 0.22)
 @export var emission_energy: float = 2.4
@@ -27105,13 +29112,84 @@ var _collected: bool = false
 var _landed: bool = false
 var _bob_time: float = 0.0
 var _rest_y: float = 0.0
+var _drop_started: bool = false
 
 
+## BUGFIX "Trophaee liegt unter dem Boden":
+##
+## Der LevelGenerator instanziiert die Trophaee, haengt sie per add_child()
+## ein und setzt ERST DANACH global_position. add_child() loest _ready()
+## aber SOFORT aus - zu diesem Zeitpunkt steht die Trophaee noch auf
+## (0, 0, 0). Frueher wurde hier direkt _rest_y = global_position.y
+## gelesen (also 0.0) und der Fall-Tween sofort gestartet. Der Tween
+## animiert "global_position:y" und ueberschreibt damit jede Positionierung,
+## die der Generator danach vornimmt - die Trophaee landet immer auf
+## Welt-Y 0.
+##
+## Sichtbar wird das nur, wenn der Bossraum NICHT auf Hoehenstufe 0 liegt:
+## bei elevation = 1 (Welt-Y 6.0) faellt die Trophaee 6 Meter unter den
+## Bossraumboden. Das Log meldete trotzdem "gespawnt bei (-144.0, 6.3, 0.0)",
+## weil dort die GEWOLLTE Position steht, nicht die, auf der der Tween endet.
+##
+## Fix: Der Fall startet nicht mehr blind in _ready(), sondern entweder
+## explizit ueber start_drop_at() (Generator-Weg) oder - falls die Szene
+## von Hand ins Level gesetzt wurde - im naechsten Frame, wenn die
+## Position garantiert steht.
 func _ready() -> void:
-	_rest_y = global_position.y
 	_build_visuals()
 	_build_pickup_area()
+	call_deferred("_autostart_drop")
+
+
+## Setzt die Zielposition UND startet den Fall. Vom LevelGenerator nach
+## add_child() aufzurufen. Ersetzt das fruehere "global_position setzen und
+## hoffen, dass _ready() schon durch ist".
+func start_drop_at(world_position: Vector3) -> void:
+	if _drop_started:
+		return
+	_drop_started = true
+
+	var target: Vector3 = world_position
+	if snap_to_floor:
+		target = _snapped_to_floor(world_position)
+
+	global_position = target
+	_rest_y = target.y
 	_play_drop()
+
+
+## Fallback fuer von Hand platzierte Trophaeen: laeuft einen Frame nach
+## _ready(), also nachdem der Editor/Parent die Transform gesetzt hat.
+func _autostart_drop() -> void:
+	if _drop_started:
+		return
+	start_drop_at(global_position)
+
+
+## Sucht den echten Boden unter der Zielposition. Schuetzt gegen Rampen,
+## Podeste und leicht verschobene Raum-Urspruenge - ohne den Raycast
+## wuerde die Trophaee bei jeder Bodenhoehe != Raum-Ursprung wieder
+## daneben landen. Findet der Strahl nichts, bleibt die uebergebene
+## Position unveraendert.
+func _snapped_to_floor(from_position: Vector3) -> Vector3:
+	var space := get_world_3d().direct_space_state
+	if space == null:
+		return from_position
+
+	var query := PhysicsRayQueryParameters3D.create(
+		from_position + Vector3(0.0, floor_probe_up, 0.0),
+		from_position - Vector3(0.0, floor_probe_down, 0.0)
+	)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.collision_mask = floor_probe_mask
+
+	var hit: Dictionary = space.intersect_ray(query)
+	if hit.is_empty():
+		return from_position
+
+	var point: Vector3 = hit["position"]
+	return Vector3(from_position.x, point.y + floor_clearance, from_position.z)
 
 
 func _build_visuals() -> void:
@@ -27272,6 +29350,8 @@ func _show_win_screen() -> void:
 		win_screen.show_win()
 	else:
 		push_warning("VictoryTrophy: Konnte keinen Node namens 'WinScreen' finden.")
+
+
 
 
 ===== FILE: scripts\zone_marker.gd =====

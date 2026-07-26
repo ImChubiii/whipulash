@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
@@ -16,18 +16,6 @@ size = Vector3(5, 14.0, 1)
 [sub_resource type="BoxShape3D" id="wall_ns_shape"]
 size = Vector3(5, 14.0, 1)
 
-[sub_resource type="BoxMesh" id="wall_ns_full_mesh"]
-size = Vector3(20.0, 14.0, 1)
-
-[sub_resource type="BoxShape3D" id="wall_ns_full_shape"]
-size = Vector3(20.0, 14.0, 1)
-
-[sub_resource type="BoxMesh" id="wall_ew_mesh"]
-size = Vector3(1, 14.0, 19)
-
-[sub_resource type="BoxShape3D" id="wall_ew_shape"]
-size = Vector3(1, 14.0, 19)
-
 [sub_resource type="BoxMesh" id="wall_ew_full_mesh"]
 size = Vector3(1, 14.0, 48.0)
 
@@ -39,12 +27,6 @@ size = Vector3(10, 10, 0.8)
 
 [sub_resource type="BoxShape3D" id="door_ns_shape"]
 size = Vector3(10, 10, 0.8)
-
-[sub_resource type="BoxMesh" id="door_ew_mesh"]
-size = Vector3(0.8, 10, 10)
-
-[sub_resource type="BoxShape3D" id="door_ew_shape"]
-size = Vector3(0.8, 10, 10)
 
 [node name="RoomRoot" type="Node3D"]
 script = ExtResource("room_script")
@@ -163,3 +145,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 0.0)
 
 [node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 14.0)
+
+[node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0, 0.5, -8.0)
+
+[node name="Enemy5" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0, 0.5, 6.0)
+
+[node name="Enemy6" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 0.5, -8.0)

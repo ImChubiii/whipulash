@@ -1,3 +1,5 @@
+
+
 extends Node
 class_name RoomGridGenerator
 
@@ -80,8 +82,27 @@ class RoomCell:
 
 @export var boss_min_distance: int = 2
 
+## Sentinel fuer "keine Zelle gefunden". Vector2i kann nicht null sein,
+## und Vector2i.ZERO ist der Startraum - also ein Wert, der im Grid
+## niemals vorkommen kann.
+const INVALID_POS := Vector2i(2147483647, 2147483647)
 
-func generate_layout() -> Dictionary:
+## Eigener RNG statt der globalen randf()/randi()/shuffle(). Siehe
+## det_rng.gd fuer die ausfuehrliche Begruendung: der globale RNG wird
+## von Screen-Shake, Schadenszahlen und Gegner-KI mitbenutzt und ist
+## deshalb fuer reproduzierbare Layouts unbrauchbar.
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
+
+## run_seed = 0 bedeutet "egal" - dann wird einmalig gewuerfelt. Der
+## LevelGenerator reicht hier immer den echten Run-Seed durch, damit
+## derselbe Code dasselbe Layout erzeugt.
+func generate_layout(run_seed: int = 0) -> Dictionary:
+	if run_seed == 0:
+		_rng.randomize()
+	else:
+		_rng.seed = DetRng.derive(run_seed, "layout")
+
 	var cells: Dictionary = {}
 
 	var start_cell := RoomCell.new()
@@ -100,9 +121,9 @@ func generate_layout() -> Dictionary:
 			push_warning("RoomGridGenerator: Abbruch nach %d Iterationen - Layout evtl. kleiner als target_room_count." % guard)
 			break
 
-		var current: Vector2i = frontier[randi() % frontier.size()]
+		var current: Vector2i = frontier[_rng.randi_range(0, frontier.size() - 1)]
 		var directions: Array = DIRECTION_OFFSETS.keys()
-		directions.shuffle()
+		DetRng.shuffle(directions, _rng)
 
 		var expanded: bool = false
 		for dir in directions:
@@ -138,44 +159,136 @@ func _link_neighbors(cells: Dictionary, from_pos: Vector2i, to_pos: Vector2i, di
 	to_cell.exit_flags |= DIRECTION_FLAG[OPPOSITE[dir]]
 
 
+## Boss und Tresor duerfen NUR in echten Sackgassen liegen.
+##
+## WARUM: Ein Sonderraum wird von aussen ueber eine Hack-Tuer betreten.
+## Die Innenseite ist per hack_exempt freigestellt, damit man wieder
+## rauskommt. Hat der Raum aber ZWEI Ausgaenge, dann steht am zweiten von
+## aussen eine Hack-Tuer, die nur freischaltet, wenn der Raum DAHINTER
+## gecleared wird - im Tuer-Protokoll landet das als
+## "offen, aber Gegenseite ist HACK BEREIT -> Durchgang trotzdem blockiert".
+## Aus Spielersicht: eine Tuer, die sich nicht oeffnen laesst.
+##
+## Die alte Fassung hat das nur BEVORZUGT und ist im Zweifel auf den
+## entferntesten Raum ausgewichen - egal mit wie vielen Ausgaengen. Jetzt
+## wird eine Sackgasse notfalls ANGEBAUT. Das Layout bekommt dadurch
+## ein bis zwei Zellen mehr als target_room_count; das ist gewollt und
+## deutlich besser als ein Sonderraum mit Durchgangsverkehr.
 func _place_special_rooms(cells: Dictionary) -> void:
-	var dead_ends: Array[Vector2i] = []
+	var boss_pos: Vector2i = _reserve_dead_end(cells, boss_min_distance, [])
+	if boss_pos == INVALID_POS:
+		# Zweiter Versuch ohne Mindestabstand - lieber ein naher Boss als
+		# ein Boss mitten im Durchgangsverkehr.
+		boss_pos = _reserve_dead_end(cells, 1, [])
+
+	if boss_pos != INVALID_POS:
+		cells[boss_pos].room_type = RoomData.RoomType.BOSS
+	else:
+		push_warning("RoomGridGenerator: Keine Sackgasse fuer den Bossraum gefunden und keine anbaubar - Layout ohne Boss!")
+
+	# Boss und Tresor duerfen nicht am SELBEN Raum haengen.
+	#
+	# Beide sind zwar korrekt je eine Sackgasse, aber wenn ihr einziger
+	# Nachbar derselbe Raum ist, steht der Spieler in einer Vorkammer mit
+	# zwei Sondertueren nebeneinander. Der Tresor fuehlt sich dann nicht
+	# wie ein eigener Abstecher an, sondern wie eine zweite Tuer im
+	# Bossvorraum - genau das war der Fall im Layout mit Boss (-1, 3) und
+	# Tresor (-2, 2), die sich beide (-1, 2) teilen.
+	var forbidden_anchors: Array[Vector2i] = []
+	if boss_pos != INVALID_POS:
+		var boss_anchor: Vector2i = _connected_neighbor(cells, boss_pos)
+		if boss_anchor != INVALID_POS:
+			forbidden_anchors.append(boss_anchor)
+
+	var treasure_pos: Vector2i = _reserve_dead_end(cells, 1, [boss_pos], forbidden_anchors)
+	if treasure_pos == INVALID_POS and not forbidden_anchors.is_empty():
+		# Lieber ein Tresor am Bossvorraum als gar keiner.
+		treasure_pos = _reserve_dead_end(cells, 1, [boss_pos], [])
+	if treasure_pos != INVALID_POS:
+		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
+
+
+## Der EINZIGE Nachbar einer Sackgasse. Fuer Zellen mit mehreren
+## Ausgaengen wird der erste gefundene geliefert - dort ist der Begriff
+## ohnehin nicht sinnvoll.
+func _connected_neighbor(cells: Dictionary, pos: Vector2i) -> Vector2i:
+	if not cells.has(pos):
+		return INVALID_POS
+	var cell: RoomCell = cells[pos]
+	for dir in DIRECTION_OFFSETS.keys():
+		if cell.exit_flags & DIRECTION_FLAG[dir] == 0:
+			continue
+		var neighbor: Vector2i = pos + DIRECTION_OFFSETS[dir]
+		if cells.has(neighbor):
+			return neighbor
+	return INVALID_POS
+
+
+## Liefert eine Zelle mit GENAU EINEM Ausgang, die mindestens
+## min_distance Schritte vom Start entfernt ist. Existiert keine, wird
+## eine neue Zelle an die entfernteste passende Zelle angebaut.
+## forbidden_anchors verbietet Sackgassen, deren einziger Nachbar bereits
+## einen anderen Sonderraum bedient.
+##
+## Rueckgabe INVALID_POS, wenn beides scheitert.
+func _reserve_dead_end(cells: Dictionary, min_distance: int, exclude: Array, forbidden_anchors: Array = []) -> Vector2i:
+	# 1) Vorhandene Sackgassen, die weiteste zuerst.
+	var candidates: Array[Vector2i] = []
 	for pos in cells.keys():
-		if pos == Vector2i.ZERO:
+		if pos == Vector2i.ZERO or exclude.has(pos):
 			continue
 		var cell: RoomCell = cells[pos]
-		if _count_flags(cell.exit_flags) == 1:
-			dead_ends.append(pos)
+		if cell.room_type != RoomData.RoomType.COMBAT:
+			continue
+		if _count_flags(cell.exit_flags) != 1:
+			continue
+		if _manhattan(pos) < min_distance:
+			continue
+		# Nicht an denselben Raum haengen wie ein bereits gesetzter
+		# Sonderraum.
+		if not forbidden_anchors.is_empty() and forbidden_anchors.has(_connected_neighbor(cells, pos)):
+			continue
+		candidates.append(pos)
 
-	dead_ends.sort_custom(func(a, b): return _manhattan(a) > _manhattan(b))
+	if not candidates.is_empty():
+		candidates.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+			return _manhattan(a) > _manhattan(b)
+		)
+		return candidates[0]
 
-	var boss_pos: Vector2i = Vector2i.ZERO
-	var boss_found: bool = false
+	# 2) Nichts Passendes da -> eine Sackgasse anbauen. Anker ist die
+	#    entfernteste Zelle mit einem freien Nachbarplatz. Sonderraeume
+	#    scheiden als Anker aus, sonst haetten sie hinterher zwei Ausgaenge.
+	var anchors: Array = cells.keys()
+	anchors.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		return _manhattan(a) > _manhattan(b)
+	)
 
-	for pos in dead_ends:
-		if _manhattan(pos) >= boss_min_distance:
-			boss_pos = pos
-			boss_found = true
-			break
+	for anchor in anchors:
+		var anchor_cell: RoomCell = cells[anchor]
+		if anchor_cell.room_type == RoomData.RoomType.BOSS or anchor_cell.room_type == RoomData.RoomType.TREASURE:
+			continue
+		if forbidden_anchors.has(anchor):
+			continue
 
-	if not boss_found:
-		var farthest: int = -1
-		for pos in cells.keys():
-			if pos == Vector2i.ZERO:
+		var directions: Array = DIRECTION_OFFSETS.keys()
+		DetRng.shuffle(directions, _rng)
+
+		for dir in directions:
+			var new_pos: Vector2i = anchor + DIRECTION_OFFSETS[dir]
+			if cells.has(new_pos) or exclude.has(new_pos):
 				continue
-			var d: int = _manhattan(pos)
-			if d > farthest:
-				farthest = d
-				boss_pos = pos
-				boss_found = true
+			if _manhattan(new_pos) < min_distance:
+				continue
 
-	if boss_found:
-		cells[boss_pos].room_type = RoomData.RoomType.BOSS
-		dead_ends.erase(boss_pos)
+			var new_cell := RoomCell.new()
+			new_cell.grid_pos = new_pos
+			new_cell.room_type = RoomData.RoomType.COMBAT
+			cells[new_pos] = new_cell
+			_link_neighbors(cells, anchor, new_pos, dir)
+			return new_pos
 
-	if not dead_ends.is_empty():
-		var treasure_pos: Vector2i = dead_ends[randi() % dead_ends.size()]
-		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
+	return INVALID_POS
 
 
 ## Durchgangszellen (genau 2 gegenueberliegende Verbindungen) werden zu
@@ -196,11 +309,11 @@ func _place_corridors(cells: Dictionary) -> void:
 		if is_straight_through:
 			candidates.append(pos)
 
-	candidates.shuffle()
+	DetRng.shuffle(candidates, _rng)
 
 	var made: int = 0
 	for pos in candidates:
-		if randf() < corridor_chance:
+		if _rng.randf() < corridor_chance:
 			cells[pos].room_type = RoomData.RoomType.CORRIDOR
 			made += 1
 
@@ -232,8 +345,8 @@ func _plan_elevations(cells: Dictionary) -> void:
 
 		var outgoing_elev: int = cell.elevation
 
-		if cell.room_type == RoomData.RoomType.CORRIDOR and job["from"] != "" and randf() < slope_chance:
-			var delta: int = 1 if randf() < 0.5 else -1
+		if cell.room_type == RoomData.RoomType.CORRIDOR and job["from"] != "" and _rng.randf() < slope_chance:
+			var delta: int = 1 if _rng.randf() < 0.5 else -1
 			var target: int = cell.elevation + delta
 			if target <= max_elevation and target >= min_elevation:
 				cell.slope_delta = delta
@@ -260,3 +373,5 @@ func _count_flags(flags: int) -> int:
 		if flags & (1 << i) != 0:
 			count += 1
 	return count
+
+
