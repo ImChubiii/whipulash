@@ -4,6 +4,16 @@ extends Node
 # SettingsManager — Autoload-Singleton für alle persistenten Spieleinstellungen.
 # Speichert/lädt in user://settings.cfg (ConfigFile). Muss unter Project Settings
 # -> Autoload als "SettingsManager" eingetragen sein.
+#
+# ÄNDERUNGEN GEGENÜBER DER VORVERSION:
+#  - ENTFERNT: minimap_grid_scale und minimap_big_map_zoom. Der Grosskarten-
+#    Zoom laeuft jetzt ueber das Mausrad (siehe minimap.gd) — ein Regler
+#    dafuer ist doppelte Bedienung fuer dieselbe Sache.
+#  - NEU: minimap_show_player_arrow.
+#  - ZUSAMMENGELEGT: es gibt nur noch EINE Minimap-Deckkraft
+#    (minimap_opacity) fuer Flaeche und Rahmen.
+#  - NEU: Reset pro Seite (reset_general/video/audio/controls) statt nur
+#    "alles zuruecksetzen".
 # ============================================================================
 
 signal sensitivity_changed(value: float)
@@ -22,9 +32,12 @@ signal colorblind_mode_changed(mode: int)
 # General
 signal hud_visible_changed(visible: bool)
 signal minimap_rotate_with_player_changed(enabled: bool)
-## Modulare HUD-Elemente: wird fuer JEDES einzelne Element gefeuert.
-## element ist eine der HUD_ELEMENT_* Konstanten weiter unten.
 signal hud_element_visible_changed(element: String, is_visible: bool)
+
+## Sammelsignal fuer ALLE Minimap-Werte. minimap.gd reagiert darauf mit
+## einem vollstaendigen _apply_minimap_settings() — kein Wert kann dadurch
+## "vergessen" werden.
+signal minimap_setting_changed()
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
@@ -36,10 +49,6 @@ const DISPLAY_MODE_FULLSCREEN: int = 1
 const DISPLAY_MODE_BORDERLESS: int = 2
 
 # --- Modulare HUD-Elemente ---------------------------------------------
-# Der Master-Schalter hud_visible blendet das komplette HUD aus. Zusaetzlich
-# laesst sich jedes Element einzeln abschalten. Beides ist UND-verknuepft:
-# ein Element ist nur sichtbar, wenn hud_visible == true UND sein eigener
-# Schalter true ist.
 const HUD_ELEMENT_MINIMAP: String = "minimap"
 const HUD_ELEMENT_PARTY: String = "party"
 const HUD_ELEMENT_ABILITIES: String = "abilities"
@@ -47,7 +56,6 @@ const HUD_ELEMENT_KEYBINDS: String = "keybinds"
 const HUD_ELEMENT_TIMER: String = "timer"
 const HUD_ELEMENT_COMBO: String = "combo"
 
-# Reihenfolge = Reihenfolge im Einstellungsmenue. Wert = Anzeigename.
 const HUD_ELEMENTS: Dictionary = {
 	HUD_ELEMENT_MINIMAP: "Minimap",
 	HUD_ELEMENT_PARTY: "Charakter-Status / Portraits",
@@ -62,6 +70,36 @@ const COLORBLIND_OFF: int = 0
 const COLORBLIND_PROTANOPIA: int = 1
 const COLORBLIND_DEUTERANOPIA: int = 2
 const COLORBLIND_TRITANOPIA: int = 3
+
+# ============================================================================
+# MINIMAP — Grenzwerte
+# ============================================================================
+# Die Grenzen leben hier und nicht im Einstellungsmenue, damit Slider-Range
+# und der Clamp beim Laden aus der Config garantiert dieselbe Quelle haben.
+
+const MINIMAP_ZOOM_MIN: float = 0.4
+const MINIMAP_ZOOM_MAX: float = 3.0
+const MINIMAP_ZOOM_DEFAULT: float = 1.0
+
+const MINIMAP_UI_SCALE_MIN: float = 0.6
+const MINIMAP_UI_SCALE_MAX: float = 1.8
+const MINIMAP_UI_SCALE_DEFAULT: float = 1.0
+
+## Deckkraft der Minimap-Flaeche UND ihres Rahmens. Es gibt bewusst nur
+## noch diesen EINEN Wert: frueher hatten Frame, 3D-Ansicht und Raum-Grid
+## je einen eigenen Alphawert, was drei unterschiedlich durchsichtige
+## Flaechen uebereinander ergab (der "Kasten im Kasten"). Der Default 0.82
+## entspricht dem Wert, der bisher fest in hud.tscn (StyleBoxFlat_mapframe)
+## stand.
+const MINIMAP_OPACITY_MIN: float = 0.0
+const MINIMAP_OPACITY_MAX: float = 1.0
+const MINIMAP_OPACITY_DEFAULT: float = 0.82
+
+## Platzierung des schematischen Raum-Grids. Werte decken sich 1:1 mit
+## minimap.gd -> OverlayPlacement.
+const MINIMAP_GRID_BELOW: int = 0
+const MINIMAP_GRID_INSIDE: int = 1
+const MINIMAP_GRID_HIDDEN: int = 2
 
 # --- Rebindbare Actions + Anzeigename fürs SettingsMenu-UI. ---
 const REBINDABLE_ACTIONS: Dictionary = {
@@ -82,22 +120,8 @@ const REBINDABLE_ACTIONS: Dictionary = {
 # ============================================================================
 # VERBINDLICHE Standard-Tastenbelegung
 # ============================================================================
-#
-# FRUEHER: reset_action_to_default() hat aus _default_keybinds wiederhergestellt
-# — einer Momentaufnahme des InputMap, die beim ersten load_settings()
-# gemacht wurde. Das ist aus zwei Gruenden unzuverlaessig:
-#   1. Die Momentaufnahme spiegelt den Stand von project.godot wider. Ist
-#      dort etwas verrutscht (Pfeiltasten statt WASD, Enter statt Space,
-#      eine Action ganz ohne Event), wird GENAU DAS als "Standard"
-#      wiederhergestellt.
-#   2. Actions, die zur Laufzeit angelegt wurden ("reset"), hatten
-#      ueberhaupt keinen sinnvollen Eintrag.
-#
-# JETZT: Diese Tabelle IST der Standard — hart definiert, unabhaengig von
-# project.godot. "Reset to Default" liefert damit garantiert immer
-# LMB/RMB/Shift/Q/E/F/Space/WASD/R, egal was vorher passiert ist.
-#
-# Format pro Action: {"key": KEY_X} oder {"mouse": MOUSE_BUTTON_X}
+# Diese Tabelle IST der Standard — hart definiert, unabhaengig von
+# project.godot.
 const DEFAULT_KEYBINDS: Dictionary = {
 	"attack_primary":    {"mouse": MOUSE_BUTTON_LEFT},
 	"attack_secondary":  {"mouse": MOUSE_BUTTON_RIGHT},
@@ -114,8 +138,6 @@ const DEFAULT_KEYBINDS: Dictionary = {
 }
 
 
-## Baut das InputEvent zu einem DEFAULT_KEYBINDS-Eintrag. Liefert null,
-## falls die Action nicht in der Tabelle steht.
 static func build_default_event(action: String) -> InputEvent:
 	if not DEFAULT_KEYBINDS.has(action):
 		return null
@@ -148,27 +170,39 @@ var display_mode: int = DISPLAY_MODE_WINDOWED
 var vsync_enabled: bool = true
 var fps_limit: int = 144  # 0 = unlimited
 
-# --- General ---
+# --- General / HUD ---
 var hud_visible: bool = true
-# element (String) -> bool. Wird in _init_hud_elements() aus HUD_ELEMENTS
-# vorbefuellt, damit neu hinzugefuegte Elemente automatisch defaulten.
 var hud_elements: Dictionary = {}
-# false = Minimap bleibt IMMER nordorientiert (Standard), true = Minimap dreht sich mit dem Spieler.
+
+# --- Minimap ---
+## false = Minimap bleibt IMMER nordorientiert (Standard).
 var minimap_rotate_with_player: bool = false
+## Multiplikator auf den Weltausschnitt der 3D-Draufsicht.
+## Groesser = naeher dran (weniger Welt sichtbar).
+var minimap_zoom: float = MINIMAP_ZOOM_DEFAULT
+## Skaliert das komplette Minimap-Control im HUD.
+var minimap_ui_scale: float = MINIMAP_UI_SCALE_DEFAULT
+## Deckkraft von Flaeche und Rahmen.
+var minimap_opacity: float = MINIMAP_OPACITY_DEFAULT
+## Wo das Raum-Grid sitzt: unter der Karte / in der Karte / aus.
+var minimap_grid_placement: int = MINIMAP_GRID_BELOW
+## Spielerpfeil in der Kartenmitte.
+var minimap_show_player_arrow: bool = true
+## X/Y-Koordinatenanzeige unter der Karte.
+var minimap_show_coords: bool = true
+## Zonen-/Etagenname ueber der Karte.
+var minimap_show_zone_label: bool = true
 
 # --- Accessibility ---
 var crt_filter_enabled: bool = true
 var screen_shake_enabled: bool = true
 var colorblind_mode: int = COLORBLIND_OFF
 
-# Merkt sich die letzte bekannte Fenstergröße/-position im Windowed-Modus,
-# damit beim Zurückwechseln von Borderless/Fullscreen die Größe wiederhergestellt
-# wird — ohne das würde "Windowed" nach einem Borderless-Trip bildschirmgroß bleiben.
+# Merkt sich die letzte bekannte Fenstergröße/-position im Windowed-Modus.
 var _windowed_size: Vector2i = DEFAULT_WINDOWED_SIZE
 var _windowed_position: Vector2i = Vector2i.ZERO
 
-# Merkt sich die InputMap-Belegung vom allerersten Start — Grundlage für
-# reset_action_to_default().
+# Merkt sich die InputMap-Belegung vom allerersten Start.
 var _default_keybinds: Dictionary = {}  # action -> Array[InputEvent]
 
 func _ready() -> void:
@@ -177,9 +211,6 @@ func _ready() -> void:
 	load_settings()
 	_apply_all()
 
-# Legt fehlende Actions im InputMap an, BEVOR load_settings() ihre Defaults
-# sichert — sonst waeren die _default_keybinds fuer diese Action leer und
-# reset_action_to_default() haette nichts zum Wiederherstellen.
 func _ensure_actions_exist() -> void:
 	for action in REBINDABLE_ACTIONS.keys():
 		if InputMap.has_action(action):
@@ -192,9 +223,6 @@ func _ensure_actions_exist() -> void:
 		else:
 			push_warning("SettingsManager: Action '%s' fehlt im InputMap und steht nicht in DEFAULT_KEYBINDS." % action)
 
-# Legt fuer jedes in HUD_ELEMENTS deklarierte Element einen Default-Eintrag
-# an. Wird VOR load_settings() aufgerufen, damit gespeicherte Werte die
-# Defaults ueberschreiben koennen — und nicht umgekehrt.
 func _init_hud_elements() -> void:
 	for key in HUD_ELEMENTS.keys():
 		if not hud_elements.has(key):
@@ -210,6 +238,7 @@ func _apply_all() -> void:
 	_apply_sensitivity_to_player()
 	_apply_crt_filter(crt_filter_enabled)
 	_apply_colorblind_mode(colorblind_mode)
+	minimap_setting_changed.emit()
 
 # ============================================================================
 # Controls
@@ -259,9 +288,6 @@ func has_audio_bus(bus_name: String) -> bool:
 # Video
 # ============================================================================
 func set_display_mode(mode: int) -> void:
-	# Aktuelle Fenstergröße/-position sichern, SOLANGE wir noch im Windowed-
-	# Modus sind — das ist die einzige zuverlässige Quelle für "wie groß war
-	# das Fenster, bevor wir in Fullscreen/Borderless gewechselt sind".
 	if display_mode == DISPLAY_MODE_WINDOWED:
 		_windowed_size = DisplayServer.window_get_size()
 		_windowed_position = DisplayServer.window_get_position()
@@ -277,9 +303,6 @@ func _apply_display_mode(mode: int) -> void:
 		DISPLAY_MODE_WINDOWED:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
-			# WICHTIG: Ohne diese zwei Zeilen bleibt das Fenster nach einem
-			# Borderless-Trip bildschirmgroß — DisplayServer merkt sich die
-			# Größe nicht selbst zurück.
 			DisplayServer.window_set_size(_windowed_size)
 			DisplayServer.window_set_position(_windowed_position)
 		DISPLAY_MODE_FULLSCREEN:
@@ -312,16 +335,13 @@ func _apply_fps_limit(fps: int) -> void:
 	Engine.max_fps = maxi(0, fps)
 
 # ============================================================================
-# General
+# General / HUD
 # ============================================================================
 func set_hud_visible(is_visible: bool) -> void:
 	hud_visible = is_visible
 	hud_visible_changed.emit(is_visible)
 	save_settings()
 
-# Einzelnes HUD-Element schalten. Unbekannte Element-IDs werden bewusst
-# ignoriert (mit Warnung) statt still angelegt — so faellt ein Tippfehler
-# im Einstellungsmenue sofort auf.
 func set_hud_element_visible(element: String, is_visible: bool) -> void:
 	if not HUD_ELEMENTS.has(element):
 		push_warning("SettingsManager: Unbekanntes HUD-Element '%s'." % element)
@@ -330,15 +350,78 @@ func set_hud_element_visible(element: String, is_visible: bool) -> void:
 	hud_element_visible_changed.emit(element, is_visible)
 	save_settings()
 
-# Reiner Element-Schalter OHNE den Master-Schalter. Das HUD selbst
-# verknuepft beides — siehe hud.gd.
+## Reiner Element-Schalter OHNE den Master-Schalter. Das HUD verknuepft
+## beides — siehe hud.gd.
 func is_hud_element_visible(element: String) -> bool:
 	return bool(hud_elements.get(element, true))
+
+# ============================================================================
+# Minimap
+# ============================================================================
+# Alle Setter clampen selbst und feuern dasselbe Sammelsignal. Der Clamp
+# hier (statt nur im Slider) ist der eigentliche Schutz — ein Aufruf aus
+# Code oder eine manipulierte Config geht sonst am Slider vorbei.
 
 func set_minimap_rotate_with_player(enabled: bool) -> void:
 	minimap_rotate_with_player = enabled
 	minimap_rotate_with_player_changed.emit(enabled)
+	minimap_setting_changed.emit()
 	save_settings()
+
+func set_minimap_zoom(value: float) -> void:
+	minimap_zoom = clampf(value, MINIMAP_ZOOM_MIN, MINIMAP_ZOOM_MAX)
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_ui_scale(value: float) -> void:
+	minimap_ui_scale = clampf(value, MINIMAP_UI_SCALE_MIN, MINIMAP_UI_SCALE_MAX)
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_opacity(value: float) -> void:
+	minimap_opacity = clampf(value, MINIMAP_OPACITY_MIN, MINIMAP_OPACITY_MAX)
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_grid_placement(placement: int) -> void:
+	minimap_grid_placement = clampi(placement, MINIMAP_GRID_BELOW, MINIMAP_GRID_HIDDEN)
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_show_player_arrow(enabled: bool) -> void:
+	minimap_show_player_arrow = enabled
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_show_coords(enabled: bool) -> void:
+	minimap_show_coords = enabled
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_show_zone_label(enabled: bool) -> void:
+	minimap_show_zone_label = enabled
+	minimap_setting_changed.emit()
+	save_settings()
+
+## Setzt NUR den Minimap-Block zurueck. Feuert das Sammelsignal genau
+## einmal statt achtmal.
+func reset_minimap_settings() -> void:
+	_reset_minimap_values()
+	minimap_rotate_with_player_changed.emit(minimap_rotate_with_player)
+	minimap_setting_changed.emit()
+	save_settings()
+
+## Reine Wertzuweisung ohne Signale — damit die Seiten-Resets weiter unten
+## erst ALLE Werte setzen und dann EINMAL sammelfeuern koennen.
+func _reset_minimap_values() -> void:
+	minimap_rotate_with_player = false
+	minimap_zoom = MINIMAP_ZOOM_DEFAULT
+	minimap_ui_scale = MINIMAP_UI_SCALE_DEFAULT
+	minimap_opacity = MINIMAP_OPACITY_DEFAULT
+	minimap_grid_placement = MINIMAP_GRID_BELOW
+	minimap_show_player_arrow = true
+	minimap_show_coords = true
+	minimap_show_zone_label = true
 
 # ============================================================================
 # Accessibility
@@ -370,9 +453,6 @@ func _apply_colorblind_mode(mode: int) -> void:
 		if node is CanvasItem and node.material is ShaderMaterial:
 			node.material.set_shader_parameter("colorblind_mode", mode)
 
-# Rekursive Namenssuche im ganzen Szenenbaum — bewusst NICHT über Gruppen
-# gelöst, damit du im Editor an den bestehenden CRTOverlay-Nodes NICHTS
-# manuell nachpflegen musst (funktioniert einfach über den exakten Node-Namen).
 func _find_nodes_by_name(root: Node, target_name: String) -> Array:
 	var results: Array = []
 	_find_nodes_by_name_recursive(root, target_name, results)
@@ -398,22 +478,10 @@ func rebind_action(action: String, event: InputEvent) -> void:
 	keybind_changed.emit(action)
 	save_settings()
 
-# Setzt eine Action auf ihren Ausgangszustand zurück.
-#
-# SONDERFALL ui_accept: Die project.godot-Defaults sind hier historisch
-# uneinheitlich (mal nur Enter, mal Enter+Space in wechselnder Reihenfolge)
-# — für "Springen" wollen wir aber IMMER verlässlich Space als Ergebnis,
-# unabhängig davon was ursprünglich in project.godot stand. Deshalb wird
-# hier nicht aus _default_keybinds wiederhergestellt, sondern die
-# Tastatur-Belegung hart auf Space gesetzt (Joypad-Bindings bleiben wie
-# gehabt unangetastet).
 func reset_action_to_default(action: String) -> void:
 	var event: InputEvent = build_default_event(action)
 
 	if event == null:
-		# Kein Tabelleneintrag -> letzter Rueckfall auf die beim Start
-		# gesicherte InputMap-Belegung. Betrifft nur Actions, die jemand
-		# zu REBINDABLE_ACTIONS hinzufuegt ohne DEFAULT_KEYBINDS zu pflegen.
 		push_warning("SettingsManager: '%s' fehlt in DEFAULT_KEYBINDS - nutze die beim Start gesicherte Belegung." % action)
 		if not _default_keybinds.has(action):
 			return
@@ -427,9 +495,6 @@ func reset_action_to_default(action: String) -> void:
 	if not InputMap.has_action(action):
 		InputMap.add_action(action)
 
-	# ALLE bestehenden Events loeschen, nicht nur Key/Maus. Sonst bleibt
-	# z.B. eine zweite Pfeiltasten-Bindung an ui_left haengen und die
-	# Anzeige im Menue zeigt weiter die falsche Taste.
 	InputMap.action_erase_events(action)
 	InputMap.action_add_event(action, event)
 
@@ -437,24 +502,12 @@ func reset_action_to_default(action: String) -> void:
 	save_settings()
 
 
-## Setzt ALLE Actions auf die Standardbelegung zurueck - wird vom
-## Reset-Button im Controls-Tab genutzt.
+## Setzt ALLE Actions auf die Standardbelegung zurueck.
 func reset_all_keybinds() -> void:
 	for action in REBINDABLE_ACTIONS.keys():
 		reset_action_to_default(action)
 
 
-# Liefert das "beste" Tastatur-/Maus-Event einer Action fürs UI. Manche
-# Actions (ui_up/down/left/right) haben in project.godot ZWEI Keyboard-
-# Events: Pfeiltasten (nur "keycode" gesetzt, physical_keycode = 0) UND
-# WASD (physical_keycode gesetzt) — davon wird die physical_keycode-Variante
-# bevorzugt gezeigt.
-#
-# SONDERFALL ui_accept: Godots Default-Belegung enthält hier standardmäßig
-# SOWOHL Enter ALS AUCH Leertaste (beides mit physical_keycode gesetzt).
-# Ohne Sonderbehandlung würde einfach das erste gefundene Event gewinnen,
-# was zufällig Enter statt Space sein kann. Deshalb wird für ui_accept
-# explizit KEY_SPACE gesucht und bevorzugt, falls vorhanden.
 func get_action_event(action: String) -> InputEvent:
 	var events: Array = InputMap.action_get_events(action)
 
@@ -494,43 +547,90 @@ func _events_match(a: InputEvent, b: InputEvent) -> bool:
 	return false
 
 # ============================================================================
-# Reset to Defaults (alle Werte)
+# Reset — pro Seite
 # ============================================================================
-func reset_all_to_defaults() -> void:
-	mouse_sensitivity = DEFAULT_SENSITIVITY
-	master_volume = 1.0
-	music_volume = 1.0
-	sfx_volume = 1.0
-	display_mode = DISPLAY_MODE_WINDOWED
-	vsync_enabled = true
-	fps_limit = 144
+# Ein globaler "Reset to Default" ist im Alltag gefaehrlich: wer in den
+# Keybinds sitzt und zuruecksetzen will, verliert sonst nebenbei seine
+# Lautstaerke, Aufloesung und Minimap-Einstellungen. Deshalb setzt der
+# Button im Menue nur noch die AKTUELLE Seite zurueck; reset_all_to_defaults()
+# bleibt als API bestehen (z.B. fuer einen spaeteren "Alles zuruecksetzen"
+# im Hauptmenue), wird vom Button aber nicht mehr aufgerufen.
+
+func reset_general_settings() -> void:
 	hud_visible = true
 	for key in HUD_ELEMENTS.keys():
 		hud_elements[key] = true
-	minimap_rotate_with_player = false
+	_reset_minimap_values()
 	crt_filter_enabled = true
 	screen_shake_enabled = true
 	colorblind_mode = COLORBLIND_OFF
 
-	for action in REBINDABLE_ACTIONS.keys():
-		reset_action_to_default(action)
+	_apply_crt_filter(crt_filter_enabled)
+	_apply_colorblind_mode(colorblind_mode)
 
-	_apply_all()
-	sensitivity_changed.emit(mouse_sensitivity)
-	volume_changed.emit("Master", master_volume)
-	volume_changed.emit("Music", music_volume)
-	volume_changed.emit("SFX", sfx_volume)
-	display_mode_changed.emit(display_mode)
-	vsync_changed.emit(vsync_enabled)
-	fps_limit_changed.emit(fps_limit)
 	hud_visible_changed.emit(hud_visible)
 	for key in HUD_ELEMENTS.keys():
 		hud_element_visible_changed.emit(key, bool(hud_elements[key]))
 	minimap_rotate_with_player_changed.emit(minimap_rotate_with_player)
+	minimap_setting_changed.emit()
 	crt_filter_changed.emit(crt_filter_enabled)
 	screen_shake_changed.emit(screen_shake_enabled)
 	colorblind_mode_changed.emit(colorblind_mode)
 	save_settings()
+
+
+func reset_video_settings() -> void:
+	display_mode = DISPLAY_MODE_WINDOWED
+	vsync_enabled = true
+	fps_limit = 144
+
+	_apply_display_mode(display_mode)
+	_apply_vsync(vsync_enabled)
+	_apply_fps_limit(fps_limit)
+
+	display_mode_changed.emit(display_mode)
+	fullscreen_changed.emit(false)
+	vsync_changed.emit(vsync_enabled)
+	fps_limit_changed.emit(fps_limit)
+	save_settings()
+
+
+func reset_audio_settings() -> void:
+	master_volume = 1.0
+	music_volume = 1.0
+	sfx_volume = 1.0
+
+	_apply_volume("Master", master_volume)
+	_apply_volume("Music", music_volume)
+	_apply_volume("SFX", sfx_volume)
+
+	volume_changed.emit("Master", master_volume)
+	volume_changed.emit("Music", music_volume)
+	volume_changed.emit("SFX", sfx_volume)
+	save_settings()
+
+
+## Sensitivity + komplette Tastenbelegung. reset_action_to_default()
+## speichert selbst — das abschliessende save_settings() ist trotzdem
+## noetig, weil die Sensitivity sonst nur im Speicher stuende, falls
+## REBINDABLE_ACTIONS jemals leer waere.
+func reset_controls_settings() -> void:
+	mouse_sensitivity = DEFAULT_SENSITIVITY
+	_apply_sensitivity_to_player()
+	sensitivity_changed.emit(mouse_sensitivity)
+
+	for action in REBINDABLE_ACTIONS.keys():
+		reset_action_to_default(action)
+
+	save_settings()
+
+
+## Vollreset ueber ALLE Seiten. Vom Menue-Button NICHT mehr aufgerufen.
+func reset_all_to_defaults() -> void:
+	reset_general_settings()
+	reset_video_settings()
+	reset_audio_settings()
+	reset_controls_settings()
 
 # ============================================================================
 # Persistenz
@@ -550,7 +650,17 @@ func save_settings() -> void:
 	config.set_value("general", "hud_visible", hud_visible)
 	for key in HUD_ELEMENTS.keys():
 		config.set_value("general", "hud_%s" % key, bool(hud_elements.get(key, true)))
-	config.set_value("general", "minimap_rotate_with_player", minimap_rotate_with_player)
+
+	# Eigene Section statt "general": haelt die Config lesbar und macht
+	# spaetere Migrationen unabhaengig vom Rest.
+	config.set_value("minimap", "rotate_with_player", minimap_rotate_with_player)
+	config.set_value("minimap", "zoom", minimap_zoom)
+	config.set_value("minimap", "ui_scale", minimap_ui_scale)
+	config.set_value("minimap", "opacity", minimap_opacity)
+	config.set_value("minimap", "grid_placement", minimap_grid_placement)
+	config.set_value("minimap", "show_player_arrow", minimap_show_player_arrow)
+	config.set_value("minimap", "show_coords", minimap_show_coords)
+	config.set_value("minimap", "show_zone_label", minimap_show_zone_label)
 
 	config.set_value("accessibility", "crt_filter", crt_filter_enabled)
 	config.set_value("accessibility", "screen_shake", screen_shake_enabled)
@@ -596,7 +706,36 @@ func load_settings() -> void:
 	hud_visible = config.get_value("general", "hud_visible", true)
 	for key in HUD_ELEMENTS.keys():
 		hud_elements[key] = bool(config.get_value("general", "hud_%s" % key, true))
-	minimap_rotate_with_player = config.get_value("general", "minimap_rotate_with_player", false)
+
+	# Migration: rotate_with_player lag frueher unter [general].
+	# Die entfallenen Schluessel "grid_scale" und "big_map_zoom" werden
+	# einfach nicht mehr gelesen — beim naechsten save_settings() fallen
+	# sie automatisch aus der Datei, weil ConfigFile neu geschrieben wird.
+	var legacy_rotate: bool = bool(config.get_value("general", "minimap_rotate_with_player", false))
+	minimap_rotate_with_player = bool(config.get_value("minimap", "rotate_with_player", legacy_rotate))
+
+	# clampf beim Laden, nicht nur beim Setzen: eine von Hand editierte
+	# settings.cfg mit zoom = 0 wuerde die Minimap-Kamera sonst auf size 0
+	# stellen (komplett schwarze Karte, kein Fehler im Log).
+	minimap_zoom = clampf(
+		float(config.get_value("minimap", "zoom", MINIMAP_ZOOM_DEFAULT)),
+		MINIMAP_ZOOM_MIN, MINIMAP_ZOOM_MAX)
+	minimap_ui_scale = clampf(
+		float(config.get_value("minimap", "ui_scale", MINIMAP_UI_SCALE_DEFAULT)),
+		MINIMAP_UI_SCALE_MIN, MINIMAP_UI_SCALE_MAX)
+	# Migration: wer die Vorversion mit zwei Reglern hatte, bekommt den
+	# frueheren HINTERGRUND-Wert als neuen Gesamtwert - der Gesamt-Regler
+	# stand dort meist auf 1.0 und waere als Startwert nutzlos.
+	var legacy_bg: float = float(config.get_value("minimap", "bg_opacity", MINIMAP_OPACITY_DEFAULT))
+	minimap_opacity = clampf(
+		float(config.get_value("minimap", "opacity", legacy_bg)) if not config.has_section_key("minimap", "bg_opacity") else legacy_bg,
+		MINIMAP_OPACITY_MIN, MINIMAP_OPACITY_MAX)
+	minimap_grid_placement = clampi(
+		int(config.get_value("minimap", "grid_placement", MINIMAP_GRID_BELOW)),
+		MINIMAP_GRID_BELOW, MINIMAP_GRID_HIDDEN)
+	minimap_show_player_arrow = bool(config.get_value("minimap", "show_player_arrow", true))
+	minimap_show_coords = bool(config.get_value("minimap", "show_coords", true))
+	minimap_show_zone_label = bool(config.get_value("minimap", "show_zone_label", true))
 
 	crt_filter_enabled = config.get_value("accessibility", "crt_filter", true)
 	screen_shake_enabled = config.get_value("accessibility", "screen_shake", true)

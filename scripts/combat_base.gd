@@ -173,6 +173,20 @@ func _process(delta: float) -> void:
 			if player and player.has_method("reset_combo_tilt"):
 				player.reset_combo_tilt()
 
+	# --- Grosskarte offen: keine Angriffe ------------------------------
+	# Auf der Grosskarte wird mit gedrueckter linker Maustaste gezogen.
+	# LMB ist gleichzeitig attack_primary, und Angriffe werden hier per
+	# Input.is_action_pressed() GEPOLLT — set_input_as_handled() in
+	# minimap.gd kann Polling nicht abfangen. Ohne diesen Block wuerde
+	# jedes Verschieben der Karte den Charakter zuschlagen lassen.
+	#
+	# Bewusst NACH den Cooldown-Timern: die sollen weiterlaufen, damit
+	# ein Blick auf die Karte keine Cooldowns einfriert. Und bewusst ein
+	# static-Zugriff statt einer Baumsuche — diese Zeile laeuft in jedem
+	# Frame.
+	if Minimap.big_map_open:
+		return
+
 	if Input.is_action_pressed("attack_primary") and _primary_timer <= 0.0:
 		_do_primary()
 

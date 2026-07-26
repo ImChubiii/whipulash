@@ -58,7 +58,12 @@ const OPPOSITE_DIR := {
 @export var overlay_rotation_degrees: float = -90.0
 
 ## --- Farbschema -------------------------------------------------------
-@export var color_background: Color = Color(0.05, 0.06, 0.05, 0.72)
+## KEIN color_background mehr: das Grid hatte fruerher eine eigene,
+## unabhaengige Hintergrundflaeche - das war die dritte Deckkraft neben
+## Frame und 3D-Ansicht und erzeugte den sichtbaren "Kasten im Kasten".
+## Das Overlay zeichnet jetzt nur noch Zellen/Durchgaenge/Text; der
+## EINE Frame-Hintergrund (minimap.gd, Einstellung "Deckkraft") scheint
+## darunter durch.
 @export var color_unexplored: Color = Color(0.35, 0.38, 0.32, 0.45)
 @export var color_combat: Color = Color(0.62, 0.64, 0.58, 0.95)
 @export var color_corridor: Color = Color(0.45, 0.47, 0.42, 0.95)
@@ -142,8 +147,6 @@ func _draw() -> void:
 	var current: Vector2i = _generator.get_current_room()
 	var pitch: float = cell_px + gap_px
 	var center := size * 0.5
-
-	draw_rect(Rect2(Vector2.ZERO, size), color_background, true)
 
 	# --- Durchgaenge zuerst, damit die Raumquadrate spaeter sauber
 	# darueber gezeichnet werden und den ueberschuessigen Teil der

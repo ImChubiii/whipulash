@@ -11267,6 +11267,30 @@ const INTERACT_ACTION := "interact"
 @export var open_duration: float = 0.7
 
 ## --- Hacking --------------------------------------------------------
+## BUGFIX "im Bossraum eingesperrt":
+##
+## Seit die Tuer auf BEIDEN Seiten eines Boss-/Tresor-Durchgangs
+## eingefaerbt wird, war auch die Tuer INNERHALB des Sonderraums vom Typ
+## BOSS/TREASURE — und requires_hack() leitete daraus ab, dass sie
+## gehackt werden muss. Folge:
+##   1. Spieler betritt den Bossraum, der Raum verriegelt hinter ihm.
+##   2. Boss stirbt -> _lock_exits(false) ruft set_locked(false).
+##   3. set_locked() steigt bei Hack-Tueren ohne abgeschlossenen Hack
+##      SOFORT wieder aus und setzt _locked = true zurueck.
+##   -> Die Tuer geht nie wieder auf. Der Spieler steht fest.
+##
+## Der Hack soll den EINTRITT in den Sonderraum gaten, nicht den Ausgang.
+## Deshalb trennt hack_exempt jetzt die OPTIK (door_kind, bleibt rot bzw.
+## golden) von der MECHANIK: Der LevelGenerator setzt das Flag auf der
+## Innenseite und die Tuer verhaelt sich dort wie eine normale Tuer.
+@export var hack_exempt: bool = false:
+	set(value):
+		hack_exempt = value
+		# Der Hologramm-Zustand haengt an requires_hack() und muss deshalb
+		# mitgezogen werden, wenn sich das Flag nachtraeglich aendert.
+		if is_inside_tree():
+			_refresh_hologram()
+
 @export var force_hack: bool = false
 @export var hack_duration: float = 4.0
 @export var hack_decay_rate: float = 0.5
@@ -11355,16 +11379,55 @@ func _ready() -> void:
 
 
 func requires_hack() -> bool:
+	# hack_exempt gewinnt IMMER — auch gegen force_hack. So laesst sich eine
+	# einzelne Tuer gezielt freistellen, ohne die Kind-Logik anzufassen.
+	if hack_exempt:
+		return false
 	return force_hack or door_kind == DoorKind.BOSS or door_kind == DoorKind.TREASURE
 
 
 ## Faerbt das Tuerblatt ein. material_override statt
 ## surface_material_override, weil ersteres im Template gesetzte
 ## Surface-Overrides ueberschreibt (bekannter Godot-Fallstrick).
+## BUGFIX "Boss-Tuer ist manchmal nicht rot" (Teil 2):
+##
+## _mesh war ein @onready auf den FESTEN Kindnamen "MeshInstance3D".
+## Weicht eine Raum-Szene davon ab (anderer Name, Mesh eine Ebene tiefer
+## unter einem Zwischen-Node), ist _mesh null, _apply_kind_visuals()
+## steigt still aus und die Tuer bleibt in ihrer Grundfarbe — abhaengig
+## davon, WELCHE Raum-Szene der Generator gewuerfelt hat. Genau daher das
+## "manchmal".
+##
+## Jetzt wird zusaetzlich rekursiv nach dem ersten MeshInstance3D gesucht
+## und laut gewarnt, wenn wirklich keins da ist.
+func _find_mesh() -> MeshInstance3D:
+	if _mesh != null and is_instance_valid(_mesh):
+		return _mesh
+
+	var direct := get_node_or_null("MeshInstance3D")
+	if direct is MeshInstance3D:
+		_mesh = direct
+		return _mesh
+
+	for child in get_children():
+		if child is MeshInstance3D:
+			_mesh = child
+			return _mesh
+
+	for child in find_children("*", "MeshInstance3D", true, false):
+		if child is MeshInstance3D:
+			_mesh = child
+			push_warning("Door (%s): Kein direktes 'MeshInstance3D' - nutze stattdessen '%s'. Einfaerbung nach door_kind funktioniert, aber die Raum-Szene sollte angeglichen werden." % [get_path(), child.get_path()])
+			return _mesh
+
+	return null
+
+
 func _apply_kind_visuals() -> void:
+	_mesh = _find_mesh()
 	if _mesh == null:
-		_mesh = get_node_or_null("MeshInstance3D")
-	if _mesh == null:
+		if is_inside_tree():
+			push_warning("Door (%s): Kein MeshInstance3D gefunden - Tuer kann nicht nach door_kind eingefaerbt werden (bleibt normal-farbig)." % get_path())
 		return
 
 	if door_kind == DoorKind.NORMAL:
@@ -11381,7 +11444,7 @@ func _apply_kind_visuals() -> void:
 
 
 func _set_emission_pulse(factor: float) -> void:
-	if _mesh == null:
+	if _mesh == null or not is_instance_valid(_mesh):
 		return
 	var mat := _mesh.material_override as StandardMaterial3D
 	if mat:
@@ -11429,6 +11492,20 @@ func is_hack_enabled() -> bool:
 	return _hack_enabled
 
 
+## Kompakter Zustandsstring fuer das Tuer-Protokoll des LevelGenerators.
+func get_debug_state() -> String:
+	return "kind=%s locked=%s exempt=%s hack_needed=%s hack_enabled=%s hack_done=%s progress=%.2f mesh=%s" % [
+		DoorKind.keys()[door_kind],
+		_locked,
+		hack_exempt,
+		requires_hack(),
+		_hack_enabled,
+		_hack_done,
+		_hack_progress,
+		"OK" if (_mesh != null and is_instance_valid(_mesh)) else "FEHLT"
+	]
+
+
 func _measure_door_height() -> float:
 	if _collision == null or _collision.shape == null:
 		return 4.0
@@ -11448,15 +11525,32 @@ func _measure_door_height() -> float:
 func set_locked(locked: bool) -> void:
 	# Hack-Tueren ignorieren ein automatisches Entriegeln - die gehen NUR
 	# ueber den abgeschlossenen Hack auf. Zusperren darf man sie trotzdem.
+	#
+	# Frueher passierte das lautlos. Im Tuer-Protokoll sah man dann nur
+	# "ENTRIEGELN (danach: HACK BEREIT)" und musste selbst darauf kommen,
+	# dass die Entriegelung abgelehnt wurde. Jetzt sagt die Tuer es selbst.
 	if requires_hack() and not locked and not _hack_done:
 		_locked = true
 		if _collision:
 			_collision.disabled = false
+		push_warning("Door (%s): Entriegeln ABGELEHNT - Tuer ist eine Hack-Tuer (kind=%s) und wurde noch nicht gehackt. Falls das ein Ausgang aus einem Sonderraum ist, muss hack_exempt gesetzt sein." % [get_path(), DoorKind.keys()[door_kind]])
 		return
 
 	_locked = locked
 	if _collision:
 		_collision.disabled = not _locked
+
+
+## Entriegelt bedingungslos, auch eine noch nicht gehackte Hack-Tuer.
+## Notausgang fuer Sonderfaelle (Cheats, Debug, Rettung aus einem Raum,
+## der sich sonst nicht mehr verlassen laesst).
+func force_unlock() -> void:
+	_hack_done = true
+	_locked = false
+	if _collision:
+		_collision.disabled = true
+	_hide_prompt()
+	_dismiss_hologram()
 
 
 func is_locked() -> bool:
@@ -11735,6 +11829,21 @@ const NAV_SOURCE_GROUP := "navmesh_source"
 const GENERATOR_GROUP := "level_generator"
 
 const DIR_KEYS := ["north", "south", "east", "west"]
+
+## Muss 1:1 zu RoomInstance._FLAG_BY_KEY passen.
+const DIR_FLAGS := {
+	"north": 1,
+	"south": 2,
+	"east": 4,
+	"west": 8,
+}
+
+const OPPOSITE_DIR := {
+	"north": "south",
+	"south": "north",
+	"east": "west",
+	"west": "east",
+}
 const DIR_OFFSETS := {
 	"north": Vector2i(0, -1),
 	"south": Vector2i(0, 1),
@@ -11779,6 +11888,18 @@ const DIR_OFFSETS := {
 ## Hoehe ueber dem Raumboden, auf der die Trophaee liegen bleibt.
 @export var victory_trophy_ground_offset: float = 0.3
 
+## --- Tuer-Debug-Protokoll ---------------------------------------------
+## Schreibt nach jeder Generierung und bei jedem Raum-Clear eine komplette
+## Uebersicht aller Tueren ins Log: Zustand, ob Marker und Tuer-Node da
+## sind, ob die Gegenseite passt, und was die Tuer eingefaerbt hat.
+##
+## Zusaetzlich lassen sich die einzelnen Raeume ueber
+## RoomInstance.debug_doors gespraechig schalten (wird von hier
+## automatisch mitgesetzt).
+@export var debug_doors: bool = true
+## Nach jedem Raum-Clear erneut protokollieren.
+@export var debug_doors_on_clear: bool = true
+
 signal stage_generated(stage: int, room_count: int)
 signal map_updated
 signal stage_cleared(stage: int)
@@ -11792,6 +11913,24 @@ var _stage_cleared: bool = false
 
 
 func _ready() -> void:
+	# --- Schutz gegen doppelte Generatoren --------------------------------
+	# Zwei aktive LevelGenerator erzeugen ZWEI komplette Raumsaetze an
+	# denselben Weltpositionen. Sichtbare Folgen: Tueren, die sich nicht
+	# oeffnen lassen (die Tuer des zweiten Satzes blockiert die Oeffnung
+	# des ersten, weil jeder Generator nur seinen EIGENEN Raumsatz
+	# entriegelt), doppelte Gegner und Boss-Tueren, die je nach Satz mal
+	# rot und mal normal eingefaerbt sind.
+	#
+	# Zu erkennen ist das im Log daran, dass "[LevelGenerator] _ready()"
+	# ZWEIMAL erscheint. Statt das stillschweigend zu erzeugen, steigt der
+	# zweite Generator hier hart aus und meldet sich deutlich.
+	var existing: Array[Node] = get_tree().get_nodes_in_group(GENERATOR_GROUP)
+	if not existing.is_empty():
+		push_error("[LevelGenerator] ABBRUCH: Es existiert bereits ein LevelGenerator ('%s') in der Szene. Dieser hier ('%s') generiert NICHT, sonst hingen zwei komplette Raumsaetze uebereinander. Bitte einen der beiden aus der Szene entfernen." % [existing[0].get_path(), get_path()])
+		autostart = false
+		set_process(false)
+		return
+
 	add_to_group(GENERATOR_GROUP)
 
 	if random_seed != 0:
@@ -11903,6 +12042,7 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		var budget: int = _budget_for_type(cell.room_type)
 		room.prepare_enemies(table, budget, current_stage)
 
+		room.debug_doors = debug_doors
 		room.room_entered.connect(_on_room_entered)
 		room.room_cleared.connect(_on_room_cleared)
 
@@ -11923,28 +12063,81 @@ func _instantiate_layout(layout: Dictionary) -> void:
 	stage_generated.emit(current_stage, _instances.size())
 	map_updated.emit()
 
+	if debug_doors:
+		print_door_report("nach Generierung")
+
 
 ## Faerbt Tueren nach dem Raum, in den sie fuehren: Boss = rot,
 ## Treasure = goldgelb. Beide Sonderformen muessen gehackt werden.
+## BUGFIX "Boss-Tuer ist manchmal nicht rot":
+##
+## Frueher wurde nur geprueft, ob im GRID ein Boss-Raum nebenan liegt
+## (layout.has(neighbor_pos)) — NICHT, ob dorthin ueberhaupt ein Durchgang
+## fuehrt. Zwei Fehler auf einmal:
+##
+##  1. ZU VIEL: Ein Raum, der im Grid neben dem Bossraum liegt aber gar
+##     nicht mit ihm verbunden ist, bekam trotzdem eine rote Tuer — die
+##     fuehrt dann ins Nichts.
+##  2. ZU WENIG: Der Bossraum selbst wurde nie eingefaerbt. Wer von innen
+##     oder ueber die andere Seite kam, sah eine normale Tuer. Genau das
+##     "manchmal" aus dem Bugreport — es haengt davon ab, aus welcher
+##     Richtung man ankommt.
+##
+## Jetzt wird die Verbindung ueber die exit_flags BEIDER Zellen verifiziert
+## und die Tuer auf BEIDEN Seiten eingefaerbt.
 func _apply_door_kinds(layout: Dictionary) -> void:
 	for grid_pos in _instances.keys():
 		var room: RoomInstance = _instances[grid_pos]
 		if not room.has_method("set_door_kind"):
 			continue
 
+		var own_cell: RoomGridGenerator.RoomCell = layout.get(grid_pos)
+		if own_cell == null:
+			continue
+
 		for dir in DIR_KEYS:
 			var neighbor_pos: Vector2i = grid_pos + DIR_OFFSETS[dir]
 			if not layout.has(neighbor_pos):
 				continue
+
+			# Es muss auf BEIDEN Seiten ein Ausgang gesetzt sein, sonst
+			# gibt es hier keinen begehbaren Durchgang.
+			var flag: int = DIR_FLAGS[dir]
+			var opposite_flag: int = DIR_FLAGS[OPPOSITE_DIR[dir]]
 			var neighbor: RoomGridGenerator.RoomCell = layout[neighbor_pos]
 
-			match neighbor.room_type:
+			if (own_cell.exit_flags & flag) == 0:
+				continue
+			if (neighbor.exit_flags & opposite_flag) == 0:
+				continue
+
+			# Sonderfarbe richtet sich danach, WOHIN die Tuer fuehrt —
+			# ausser man steht selbst im Sonderraum, dann faerbt sich die
+			# Tuer nach dem EIGENEN Raumtyp (Rueckweg bleibt erkennbar).
+			var target_type: int = neighbor.room_type
+			var is_inside_special: bool = (
+				own_cell.room_type == RoomData.RoomType.BOSS
+				or own_cell.room_type == RoomData.RoomType.TREASURE
+			)
+			if is_inside_special:
+				target_type = own_cell.room_type
+
+			# BUGFIX "im Bossraum eingesperrt":
+			# Der Hack gatet den EINTRITT, nicht den Ausgang. Die Tuer auf
+			# der INNENSEITE eines Sonderraums bleibt zwar rot/golden
+			# eingefaerbt, wird aber vom Hack-Zwang freigestellt. Sonst
+			# lehnt set_locked(false) beim Raum-Clear die Entriegelung ab
+			# (Hack-Tueren gehen nur ueber einen abgeschlossenen Hack auf)
+			# und der Spieler kommt nach dem Bosskampf nicht mehr raus.
+			room.set_door_hack_exempt(dir, is_inside_special)
+
+			match target_type:
 				RoomData.RoomType.BOSS:
 					room.set_door_kind(dir, Door.DoorKind.BOSS)
-					# Boss-Tuer laesst sich erst hacken, wenn DIESER Raum
-					# (der davor) leergeraeumt ist. Raeume ohne Gegner
-					# geben sie sofort frei.
-					room.set_door_hack_enabled(dir, room.is_cleared())
+					# Von aussen: erst hackbar, wenn DIESER Raum (der davor)
+					# leergeraeumt ist. Von innen ist der Hack ohnehin
+					# freigestellt, das Flag ist dort nur noch Kosmetik.
+					room.set_door_hack_enabled(dir, room.is_cleared() or is_inside_special)
 				RoomData.RoomType.TREASURE:
 					room.set_door_kind(dir, Door.DoorKind.TREASURE)
 					room.set_door_hack_enabled(dir, true)
@@ -11977,6 +12170,9 @@ func _on_room_cleared(room: RoomInstance) -> void:
 
 	map_updated.emit()
 
+	if debug_doors and debug_doors_on_clear:
+		print_door_report("nach Clear von %s" % room.grid_position)
+
 ## Laesst die goldene Sieg-Trophaee in die Mitte des Bossraums fallen.
 ## Wird als Kind der aktuellen Szene (nicht des Raums) eingehaengt, damit
 ## sie einen Raumwechsel/Cleanup ueberlebt - der Raum selbst koennte beim
@@ -12002,6 +12198,129 @@ func _spawn_victory_trophy(room: RoomInstance) -> void:
 	trophy.global_position = center
 
 	print("[LevelGenerator] Sieg-Trophaee gespawnt bei %s." % center)
+
+
+# ============================================================================
+# Tuer-Debug-Protokoll
+# ============================================================================
+
+## Schreibt eine vollstaendige Uebersicht aller Tueren ins Log.
+##
+## Geprueft wird pro Durchgang:
+##   - Was sagt das LAYOUT (exit_flags beider Zellen)?
+##   - Existiert im Raum ein ExitPoint-Marker und ein Door-Node?
+##   - Welchen Zustand hat die Tuer wirklich?
+##   - Passt die Gegenseite dazu?
+##
+## Jede Unstimmigkeit bekommt ein Praefix, damit man im Log danach filtern
+## kann. Am Ende steht eine Zusammenfassung mit allen Problemfaellen.
+func print_door_report(reason: String = "") -> void:
+	var header: String = "===== TUER-PROTOKOLL"
+	if reason != "":
+		header += " (%s)" % reason
+	print("%s =====" % header)
+	print("Stage %d | %d Raeume | aktueller Raum: %s" % [current_stage, _instances.size(), _current_room])
+
+	var problems: Array[String] = []
+	var closed: Array[String] = []
+
+	var sorted_keys: Array = _instances.keys()
+	sorted_keys.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		if a.y != b.y:
+			return a.y < b.y
+		return a.x < b.x
+	)
+
+	for grid_pos in sorted_keys:
+		var room: RoomInstance = _instances[grid_pos]
+		if not is_instance_valid(room):
+			problems.append("Raum %s: Instanz ungueltig!" % grid_pos)
+			continue
+
+		var cell: RoomGridGenerator.RoomCell = _current_layout.get(grid_pos)
+		var type_name: String = get_room_type_name(cell.room_type) if cell != null else "?"
+		var cleared_text: String = "gecleared" if room.is_cleared() else "%d Gegner aktiv" % room.get_active_enemy_count()
+
+		print("  Raum %s [%s] - %s" % [grid_pos, type_name, cleared_text])
+
+		for entry in room.get_door_report():
+			var dir: String = entry["dir"]
+			var state: int = entry["state"]
+			var state_text: String = RoomInstance.door_state_name(state)
+			var kind_text: String = _door_kind_name(entry["door_kind"])
+
+			# Was sagt das Layout?
+			var layout_says_exit: bool = false
+			if cell != null:
+				layout_says_exit = (cell.exit_flags & DIR_FLAGS[dir]) != 0
+
+			# Was sagt die Gegenseite?
+			var neighbor_pos: Vector2i = grid_pos + DIR_OFFSETS[dir]
+			var neighbor_state: int = RoomInstance.DoorState.NONE
+			var neighbor_exists: bool = _instances.has(neighbor_pos)
+			if neighbor_exists:
+				neighbor_state = get_door_state(neighbor_pos, OPPOSITE_DIR[dir])
+
+			var hack_text: String = "-"
+			if bool(entry.get("hack_needed", false)):
+				hack_text = "noetig/frei" if entry["hack_enabled"] else "noetig/gesperrt"
+			elif bool(entry.get("hack_exempt", false)):
+				hack_text = "freigestellt"
+
+			var line: String = "      %-6s %-14s Kind=%-8s Layout=%s Marker=%s Node=%s Hack=%-15s Nachbar=%s" % [
+				dir.to_upper(),
+				state_text,
+				kind_text,
+				"JA" if layout_says_exit else "nein",
+				"JA" if entry["has_exit_marker"] else "NEIN",
+				"JA" if entry["has_door_node"] else "NEIN",
+				hack_text,
+				RoomInstance.door_state_name(neighbor_state) if neighbor_exists else "kein Raum"
+			]
+			print(line)
+
+			# --- Auffaelligkeiten sammeln ---
+			if layout_says_exit and not entry["has_door_node"]:
+				problems.append("Raum %s %s: Layout will Ausgang, aber KEIN Door-Node (Doors/Door%s fehlt in der Raum-Szene)." % [grid_pos, dir.to_upper(), dir.capitalize()])
+			if layout_says_exit and not entry["has_exit_marker"]:
+				problems.append("Raum %s %s: Layout will Ausgang, aber ExitPoint-Marker fehlt." % [grid_pos, dir.to_upper()])
+			if layout_says_exit and neighbor_exists and neighbor_state == RoomInstance.DoorState.NONE:
+				problems.append("Raum %s %s: Durchgang einseitig - Gegenseite in %s hat keine Tuer." % [grid_pos, dir.to_upper(), neighbor_pos])
+			if state != RoomInstance.DoorState.NONE and state != RoomInstance.DoorState.OPEN:
+				closed.append("Raum %s [%s] %s -> %s%s" % [
+					grid_pos, type_name, dir.to_upper(), state_text,
+					"" if room.is_cleared() else "  (Raum noch nicht gecleared: %d Gegner)" % room.get_active_enemy_count()
+				])
+			if neighbor_exists and state == RoomInstance.DoorState.OPEN and neighbor_state != RoomInstance.DoorState.OPEN and neighbor_state != RoomInstance.DoorState.NONE:
+				problems.append("Raum %s %s: offen, aber Gegenseite in %s ist %s -> Durchgang trotzdem blockiert." % [grid_pos, dir.to_upper(), neighbor_pos, RoomInstance.door_state_name(neighbor_state)])
+			# EINSPERR-FALLE: Sonderraum, dessen einziger Ausgang gehackt
+			# werden muesste. set_locked(false) wuerde dort beim Clear
+			# abgelehnt -> Spieler sitzt fest.
+			if cell != null and bool(entry.get("hack_needed", false)):
+				if cell.room_type == RoomData.RoomType.BOSS or cell.room_type == RoomData.RoomType.TREASURE:
+					problems.append("Raum %s %s: EINSPERR-FALLE - Ausgang aus einem Sonderraum verlangt einen Hack. hack_exempt fehlt." % [grid_pos, dir.to_upper()])
+
+	print("  --- GESCHLOSSENE TUEREN (%d) ---" % closed.size())
+	if closed.is_empty():
+		print("      keine")
+	for c in closed:
+		print("      %s" % c)
+
+	print("  --- AUFFAELLIGKEITEN (%d) ---" % problems.size())
+	if problems.is_empty():
+		print("      keine")
+	for pr in problems:
+		print("      !! %s" % pr)
+
+	print("===== ENDE TUER-PROTOKOLL =====")
+
+
+func _door_kind_name(kind: int) -> String:
+	match kind:
+		Door.DoorKind.NORMAL: return "NORMAL"
+		Door.DoorKind.BOSS: return "BOSS"
+		Door.DoorKind.TREASURE: return "TRESOR"
+	return "-"
 
 
 # --- Gegner-Tabellen & Budget ---------------------------------------
@@ -12553,8 +12872,18 @@ var exit_points: Dictionary = {}
 signal room_cleared(room: RoomInstance)
 signal room_entered(room: RoomInstance)
 
+## Schreibt bei jedem relevanten Ereignis eine Zeile ins Log. Zusammen mit
+## LevelGenerator.debug_doors ergibt das ein vollstaendiges Tuer-Protokoll.
+@export var debug_doors: bool = false
+
+## Wie oft der Watchdog nach verwaisten Gegner-Zaehlern sucht (Sekunden).
+@export var enemy_watchdog_interval: float = 1.0
+
 var _is_cleared: bool = false
 var _active_enemies: int = 0
+## instance_id -> true. Verhindert Doppelzaehlung, siehe _register_enemy_gone().
+var _counted_dead_enemies: Dictionary = {}
+var _watchdog_timer: float = 0.0
 var _requires_clear: bool = false
 
 var _entry_trigger: Area3D = null
@@ -12811,6 +13140,18 @@ func set_door_kind(dir: String, kind: int) -> void:
 		(door as Door).door_kind = kind
 
 
+## Stellt eine Tuer vom Hack-Zwang frei, OHNE ihre Einfaerbung zu
+## aendern - siehe hack_exempt in door.gd. Wird vom LevelGenerator fuer
+## die Innenseite von Boss-/Tresorraeumen gesetzt, damit man dort nicht
+## eingesperrt wird.
+func set_door_hack_exempt(dir: String, exempt: bool) -> void:
+	if not _doors_by_dir.has(dir):
+		return
+	var door: Node = _doors_by_dir[dir]
+	if is_instance_valid(door) and door is Door:
+		(door as Door).hack_exempt = exempt
+
+
 func set_door_hack_enabled(dir: String, enabled: bool) -> void:
 	if not _doors_by_dir.has(dir):
 		return
@@ -12849,8 +13190,21 @@ func _setup_entry_trigger() -> void:
 ## body_entered: So wird auch der Fall abgedeckt, dass der Spieler beim
 ## Laden des Raumes BEREITS im Trigger steht (body_entered feuert dann nie).
 func _physics_process(delta: float) -> void:
-	if _has_entered or _entry_trigger == null:
+	# NICHT mehr komplett abschalten, sobald der Raum betreten wurde — der
+	# Gegner-Watchdog unten muss weiterlaufen. Nur der Eintritts-Check wird
+	# uebersprungen.
+	if _entry_trigger == null:
 		set_physics_process(false)
+		return
+
+	# Watchdog laeuft IMMER - auch nachdem der Raum betreten wurde, denn
+	# genau dann koennen Gegner verschwinden ohne sauber zu sterben.
+	_watchdog_timer -= delta
+	if _watchdog_timer <= 0.0:
+		_watchdog_timer = maxf(enemy_watchdog_interval, 0.1)
+		_watchdog_check()
+
+	if _has_entered:
 		return
 
 	var player: Node3D = _find_player_inside()
@@ -12866,7 +13220,6 @@ func _physics_process(delta: float) -> void:
 	_dwell_timer += delta
 	if _dwell_timer >= maxf(entry_trigger_dwell_time, 0.0):
 		_has_entered = true
-		set_physics_process(false)
 		on_player_entered()
 
 
@@ -13017,14 +13370,29 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	_spawned_enemies.append(enemy)
 	_active_enemies += 1
 
+	# BUGFIX "Tueren gehen manchmal nicht auf":
+	# Frueher wurde NUR EINE der drei Quellen verbunden (died am Gegner,
+	# sonst died an Health, sonst tree_exited). Verschwindet ein Gegner
+	# aber auf einem Weg, der das gewaehlte Signal NICHT feuert - er faellt
+	# in eine Lava-/Abgrund-Zone und wird per queue_free() entfernt, oder
+	# er wird beim Raum-Cleanup abgeraeumt - dann zaehlt _active_enemies
+	# nie herunter, der Raum gilt ewig als "nicht gecleared" und die
+	# Tueren bleiben fuer immer zu.
+	#
+	# Jetzt werden ALLE verfuegbaren Quellen verbunden und ueber die
+	# Instanz-ID dedupliziert: was zuerst feuert zaehlt, alles danach wird
+	# ignoriert. tree_exited ist dabei das Sicherheitsnetz, das JEDEN
+	# Verschwinde-Weg abdeckt.
+	var enemy_id: int = enemy.get_instance_id()
+
 	if enemy.has_signal("died"):
-		enemy.connect("died", _on_enemy_died)
-	else:
-		var health_node := enemy.find_child("Health", true, false)
-		if health_node and health_node.has_signal("died"):
-			health_node.died.connect(_on_enemy_died)
-		else:
-			enemy.tree_exited.connect(_on_enemy_died)
+		enemy.connect("died", _register_enemy_gone.bind(enemy_id))
+
+	var health_node := enemy.find_child("Health", true, false)
+	if health_node and health_node.has_signal("died"):
+		health_node.died.connect(_register_enemy_gone.bind(enemy_id))
+
+	enemy.tree_exited.connect(_register_enemy_gone.bind(enemy_id))
 
 
 func apply_exit_flags(required_flags: int) -> void:
@@ -13034,12 +13402,52 @@ func apply_exit_flags(required_flags: int) -> void:
 			exit_points.erase(key)
 
 
-func _on_enemy_died() -> void:
+## Zaehlt EINEN Gegner genau EINMAL herunter, egal wie viele Signale fuer
+## ihn feuern. Ohne die Deduplizierung wuerde ein Gegner, der sowohl
+## died ALS AUCH tree_exited ausloest, doppelt zaehlen und der Raum
+## koennte sich verfrueht als leer melden.
+func _register_enemy_gone(enemy_id: int) -> void:
+	if _counted_dead_enemies.has(enemy_id):
+		return
+	_counted_dead_enemies[enemy_id] = true
+
 	_active_enemies -= 1
+	if debug_doors:
+		print("[Room %s] Gegner entfernt - noch %d aktiv." % [grid_position, _active_enemies])
+
 	if _active_enemies <= 0 and not _is_cleared:
 		_is_cleared = true
 		_lock_exits(false)
+		if debug_doors:
+			print("[Room %s] CLEARED -> Tueren entriegelt." % grid_position)
 		room_cleared.emit(self)
+
+
+## Sicherheitsnetz gegen haengende Zaehler. Laeuft nur, solange der Raum
+## noch nicht gecleared ist, und prueft im Sekundentakt, ob ueberhaupt noch
+## gueltige Gegner-Instanzen existieren. Falls nicht, aber der Zaehler
+## haengt noch ueber 0: Raum zwangsweise freigeben.
+##
+## Das faengt selbst den Fall ab, in dem ein Gegner ohne JEDES Signal
+## verschwindet (z.B. wenn ein anderer Node ihn direkt aus dem Baum
+## nimmt und free() statt queue_free() aufruft).
+func _watchdog_check() -> void:
+	if _is_cleared or not _requires_clear or not _enemies_spawned:
+		return
+
+	var alive: int = 0
+	for enemy in _spawned_enemies:
+		if is_instance_valid(enemy) and enemy.is_inside_tree():
+			alive += 1
+
+	if alive > 0:
+		return
+
+	push_warning("RoomInstance (%s): Watchdog - kein lebender Gegner mehr, aber _active_enemies = %d. Raum wird zwangsweise freigegeben." % [grid_position, _active_enemies])
+	_active_enemies = 0
+	_is_cleared = true
+	_lock_exits(false)
+	room_cleared.emit(self)
 
 
 ## Echter Zustand des Durchgangs in dieser Richtung - siehe DoorState.
@@ -13067,6 +13475,56 @@ func get_door_state(dir: String) -> int:
 	return DoorState.LOCKED
 
 
+## Menschenlesbarer Name eines DoorState-Werts - fuer das Debug-Protokoll.
+static func door_state_name(state: int) -> String:
+	match state:
+		DoorState.NONE: return "KEINE TUER"
+		DoorState.OPEN: return "OFFEN"
+		DoorState.LOCKED: return "VERRIEGELT"
+		DoorState.HACK_LOCKED: return "HACK GESPERRT"
+		DoorState.HACK_READY: return "HACK BEREIT"
+	return "?"
+
+
+## Vollstaendiger Zustandsbericht dieses Raums fuer das Tuer-Protokoll.
+## Liefert eine Liste von Dictionaries, eine pro Himmelsrichtung, in der
+## das Layout ueberhaupt einen Ausgang vorsieht.
+func get_door_report() -> Array:
+	var report: Array = []
+	for dir in _FLAG_BY_KEY.keys():
+		var has_marker: bool = exit_points.has(dir)
+		var has_door: bool = _doors_by_dir.has(dir)
+
+		# Richtungen ohne Marker UND ohne Tuer sind schlicht Wand - die
+		# muessen nicht im Protokoll auftauchen.
+		if not has_marker and not has_door:
+			continue
+
+		var door: Node = _doors_by_dir.get(dir)
+		var kind: int = -1
+		var hack_enabled: bool = false
+		var hack_needed: bool = false
+		var hack_exempt: bool = false
+		if is_instance_valid(door) and door is Door:
+			var d: Door = door as Door
+			kind = d.door_kind
+			hack_enabled = d.is_hack_enabled()
+			hack_needed = d.requires_hack()
+			hack_exempt = d.hack_exempt
+
+		report.append({
+			"dir": dir,
+			"state": get_door_state(dir),
+			"has_exit_marker": has_marker,
+			"has_door_node": has_door,
+			"door_kind": kind,
+			"hack_enabled": hack_enabled,
+			"hack_needed": hack_needed,
+			"hack_exempt": hack_exempt,
+		})
+	return report
+
+
 ## Weltposition der Raummitte auf Bodenhoehe - z.B. fuer den Spawn der
 ## Sieg-Trophaee im Bossraum.
 func get_room_center() -> Vector3:
@@ -13086,11 +13544,22 @@ func get_active_enemy_count() -> int:
 
 
 func _lock_exits(locked: bool) -> void:
-	for marker in exit_points.values():
-		if marker.has_meta("door_node"):
-			var door: Node = marker.get_meta("door_node")
-			if is_instance_valid(door) and door.has_method("set_locked"):
-				door.set_locked(locked)
+	for dir in exit_points.keys():
+		var marker: Marker3D = exit_points[dir]
+		if not marker.has_meta("door_node"):
+			push_warning("RoomInstance (%s): ExitPoint '%s' hat keine door_node-Meta - Tuer kann weder ver- noch entriegelt werden." % [grid_position, dir])
+			continue
+		var door: Node = marker.get_meta("door_node")
+		if not is_instance_valid(door) or not door.has_method("set_locked"):
+			push_warning("RoomInstance (%s): Tuer '%s' ist ungueltig oder hat kein set_locked()." % [grid_position, dir])
+			continue
+		door.set_locked(locked)
+		if debug_doors:
+			print("[Room %s] Tuer '%s' -> %s (danach: %s)" % [
+				grid_position, dir,
+				"VERRIEGELN" if locked else "ENTRIEGELN",
+				door_state_name(get_door_state(dir))
+			])
 
 
 func on_player_entered() -> void:
@@ -17873,15 +18342,33 @@ height = 2.0
 extends Control
 class_name SettingsMenu
 
+## Einstellungsmenue.
+##
+## AUFBAU-PHILOSOPHIE: Die .tscn bleibt bewusst so flach wie sie ist. Die
+## Gruppierung (Klapp-Sektionen im General-Tab), der Minimap-Block und das
+## zweispaltige Keybind-Raster werden zur LAUFZEIT gebaut und die
+## bestehenden Zeilen per reparent() in die passende Gruppe verschoben.
+##
+## RESET: Der Button unten setzt NUR die gerade sichtbare Seite zurueck.
+## Ein globaler Reset ist im Alltag gefaehrlich — wer in den Keybinds
+## sitzt und zuruecksetzen will, verliert sonst nebenbei Lautstaerke,
+## Aufloesung und Minimap-Einstellungen. Der Buttontext nennt deshalb
+## immer explizit, WAS zurueckgesetzt wird.
+
 signal back_pressed
 
 @onready var tab_container: TabContainer = $Panel/VBoxContainer/TabContainer
 
-# --- General ---
+# --- General (Original-Pfade, werden zur Laufzeit umgehaengt) ---
+@onready var hud_visible_row: HBoxContainer = $Panel/VBoxContainer/TabContainer/General/HUDVisibleRow
 @onready var hud_visible_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/HUDVisibleRow/HUDVisibleCheck
+@onready var minimap_rotate_row: HBoxContainer = $Panel/VBoxContainer/TabContainer/General/MinimapRotateRow
 @onready var minimap_rotate_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/MinimapRotateRow/MinimapRotateCheck
+@onready var crt_filter_row: HBoxContainer = $Panel/VBoxContainer/TabContainer/General/CRTFilterRow
 @onready var crt_filter_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/CRTFilterRow/CRTFilterCheck
+@onready var screen_shake_row: HBoxContainer = $Panel/VBoxContainer/TabContainer/General/ScreenShakeRow
 @onready var screen_shake_check: CheckButton = $Panel/VBoxContainer/TabContainer/General/ScreenShakeRow/ScreenShakeCheck
+@onready var colorblind_row: HBoxContainer = $Panel/VBoxContainer/TabContainer/General/ColorblindRow
 @onready var colorblind_option: OptionButton = $Panel/VBoxContainer/TabContainer/General/ColorblindRow/ColorblindOption
 
 # --- Video ---
@@ -17909,28 +18396,62 @@ signal back_pressed
 
 @export var conflict_warning_duration: float = 2.5
 
+## Breite der Beschriftungsspalte in den Einstellungszeilen.
+const LABEL_WIDTH: float = 240.0
+## Einrueckung der Zeilen innerhalb einer Klapp-Gruppe.
+const GROUP_INDENT: float = 14.0
+## Breite einer Keybind-Spalte (Label + Button).
+const KEYBIND_LABEL_WIDTH: float = 170.0
+const KEYBIND_BUTTON_WIDTH: float = 130.0
+## Anzahl der NEBENEINANDER stehenden Keybind-Paare.
+const KEYBIND_COLUMNS: int = 2
+
 const FPS_OPTIONS: Array[int] = [30, 60, 120, 144, 240, 0]
+
+## Tab-Node-Name -> Anzeigename fuer den Reset-Button. Der Node-Name ist
+## die stabile Zuordnung; der Tab-TITEL kann sich durch Uebersetzungen
+## oder Umbenennen im Editor aendern und waere als Schluessel unsicher.
+const TAB_RESET_LABELS: Dictionary = {
+	"General": "Allgemein zuruecksetzen",
+	"Video": "Video zuruecksetzen",
+	"Audio": "Audio zuruecksetzen",
+	"Controls": "Steuerung zuruecksetzen",
+}
 
 var _rebinding_action: String = ""
 var _keybind_buttons: Dictionary = {}
 
-## --- Modulares HUD-Dropdown -------------------------------------------
-## Wird KOMPLETT zur Laufzeit gebaut (kein .tscn-Eingriff noetig). Der
-## Toggle-Button klappt die Einzelschalter auf/zu — neue Elemente aus
-## SettingsManager.HUD_ELEMENTS erscheinen automatisch, ohne dass hier
-## etwas nachgepflegt werden muss.
+# --- Gruppen-Infrastruktur (General-Tab) ---
+var _general_content: VBoxContainer = null
+var _group_bodies: Dictionary = {}     # group_id (String) -> VBoxContainer
+var _group_headers: Dictionary = {}    # group_id (String) -> Button
+var _group_titles: Dictionary = {}     # group_id (String) -> String
+
+# --- Modulares HUD-Dropdown ---
 var _hud_dropdown_button: Button = null
 var _hud_elements_box: VBoxContainer = null
 var _hud_element_checks: Dictionary = {}  # element (String) -> CheckButton
 var _hud_dropdown_open: bool = false
 
+# --- Minimap-Steuerelemente (alle zur Laufzeit erzeugt) ---
+var _minimap_zoom_slider: HSlider = null
+var _minimap_ui_scale_slider: HSlider = null
+var _minimap_opacity_slider: HSlider = null
+var _minimap_grid_placement_option: OptionButton = null
+var _minimap_arrow_check: CheckButton = null
+var _minimap_coords_check: CheckButton = null
+var _minimap_zone_check: CheckButton = null
+## slider -> Wert-Label.
+var _slider_value_labels: Dictionary = {}
+## Verhindert, dass _refresh_from_settings() beim Setzen der Slider-Werte
+## deren value_changed feuert und dadurch sofort wieder save_settings()
+## ausloest (Schreibsturm auf settings.cfg beim Menue-Oeffnen).
+var _suppress_signals: bool = false
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
-	# Muss ueber PauseMenu/DeathScreen/WinScreen (Z_INDEX_MENU) UND ueber dem
-	# HUD liegen — SettingsMenu kann sowohl vom PauseMenu als auch (potenziell)
-	# direkt geoeffnet werden, muss also in jedem Fall zuoberst liegen.
 	z_index = PauseMenu.Z_INDEX_MENU + 10
 
 	_fix_panel_background()
@@ -17941,29 +18462,28 @@ func _ready() -> void:
 	conflict_label.visible = false
 
 	_connect_signals()
+
+	# Reihenfolge ist wichtig: erst die Gruppen-Container anlegen und die
+	# bestehenden Zeilen einsortieren, DANN die dynamischen Inhalte
+	# (HUD-Dropdown, Minimap-Regler) in die fertigen Gruppen haengen.
+	_build_general_layout()
 	_build_hud_element_dropdown()
+	_build_minimap_group()
+
 	_build_keybind_rows()
 	_refresh_from_settings()
 	_refresh_hud_element_checks()
+	_update_reset_button_label()
 
 
 # Panel hat opaken Standardhintergrund — fix auf halbtransparent damit der
 # BackgroundBlur (flaches, dunkles ColorRect) dahinter sichtbar wird.
-# HINWEIS: BackgroundBlur nutzt bewusst KEINEN Screen-Blur-Shader mehr —
-# der 9-Tap-Blur (menu_blur.gdshader) erzeugte auf scharfen UI-/HUD-Texten
-# (Minimap-Koordinaten, Ability-Icons etc.) sichtbare "Geisterbilder" statt
-# einer sauberen Unschärfe, weil er nur 9 Samples nutzt. Bei Pause/Death/Win
-# fällt das nicht auf, weil dort das Panel Full-Rect UND komplett opak ist
-# und den Effekt komplett verdeckt. Settings hat aber bewusst ein KLEINES,
-# zentriertes Panel (damit man sieht, dass man "über" dem Pause-Menü ist) —
-# der Rest des Bildschirms braucht daher einen eigenen, aber schlichten
-# dunklen Overlay statt des Blur-Shaders.
 func _fix_panel_background() -> void:
 	var panel := get_node_or_null("Panel") as Panel
 	if panel == null:
 		return
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.05, 0.08, 0.82)  # Dunkel + leicht transparent
+	style.bg_color = Color(0.05, 0.05, 0.08, 0.82)
 	style.corner_radius_top_left = 0
 	style.corner_radius_top_right = 0
 	style.corner_radius_bottom_left = 0
@@ -18006,24 +18526,26 @@ func _hide_missing_audio_buses() -> void:
 
 
 func _connect_signals() -> void:
-	hud_visible_check.toggled.connect(SettingsManager.set_hud_visible)
-	minimap_rotate_check.toggled.connect(SettingsManager.set_minimap_rotate_with_player)
-	crt_filter_check.toggled.connect(SettingsManager.set_crt_filter_enabled)
-	screen_shake_check.toggled.connect(SettingsManager.set_screen_shake_enabled)
+	hud_visible_check.toggled.connect(_on_hud_visible_toggled)
+	minimap_rotate_check.toggled.connect(_on_minimap_rotate_toggled)
+	crt_filter_check.toggled.connect(_on_crt_filter_toggled)
+	screen_shake_check.toggled.connect(_on_screen_shake_toggled)
 	colorblind_option.item_selected.connect(_on_colorblind_selected)
 
 	display_mode_option.item_selected.connect(_on_display_mode_selected)
-	vsync_check.toggled.connect(SettingsManager.set_vsync)
+	vsync_check.toggled.connect(_on_vsync_toggled)
 	fps_limit_option.item_selected.connect(_on_fps_limit_selected)
 
-	master_slider.value_changed.connect(func(v: float) -> void: SettingsManager.set_volume("Master", v))
-	music_slider.value_changed.connect(func(v: float) -> void: SettingsManager.set_volume("Music", v))
-	sfx_slider.value_changed.connect(func(v: float) -> void: SettingsManager.set_volume("SFX", v))
+	master_slider.value_changed.connect(_on_master_volume_changed)
+	music_slider.value_changed.connect(_on_music_volume_changed)
+	sfx_slider.value_changed.connect(_on_sfx_volume_changed)
 
 	sensitivity_slider.value_changed.connect(_on_sensitivity_changed)
 
 	reset_button.pressed.connect(_on_reset_pressed)
 	back_button.pressed.connect(_on_back_pressed)
+
+	tab_container.tab_changed.connect(_on_tab_changed)
 
 	SettingsManager.keybind_changed.connect(_on_keybind_changed)
 
@@ -18032,6 +18554,7 @@ func open() -> void:
 	visible = true
 	_refresh_from_settings()
 	_refresh_hud_element_checks()
+	_update_reset_button_label()
 
 
 func close() -> void:
@@ -18043,7 +18566,453 @@ func is_rebinding() -> bool:
 	return _rebinding_action != ""
 
 
+# ============================================================================
+# General-Tab: Gruppierung
+# ============================================================================
+
+## Baut die Klapp-Gruppen und sortiert die bestehenden .tscn-Zeilen ein.
+##
+## Der General-Tab wird zusaetzlich in einen ScrollContainer gepackt: mit
+## Minimap-Block sind es ueber 20 Zeilen, die sonst unten aus dem Panel
+## herauslaufen wuerden (VBoxContainer clippt nicht, er schiebt einfach
+## ueber den Rand hinaus — man sieht die Zeilen dann gar nicht).
+func _build_general_layout() -> void:
+	var general := tab_container.get_node_or_null("General") as VBoxContainer
+	if general == null:
+		push_warning("SettingsMenu: Tab 'General' nicht gefunden — Gruppierung wird uebersprungen.")
+		return
+
+	# Bestehende Zeilen zwischenspeichern, BEVOR der Scroll-Container
+	# eingehaengt wird — sonst wandert er beim Iterieren mit durch.
+	var existing_rows: Array[Node] = []
+	for child in general.get_children():
+		existing_rows.append(child)
+
+	var scroll := ScrollContainer.new()
+	scroll.name = "GeneralScroll"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	general.add_child(scroll)
+
+	_general_content = VBoxContainer.new()
+	_general_content.name = "GeneralContent"
+	_general_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_general_content.add_theme_constant_override("separation", 4)
+	scroll.add_child(_general_content)
+
+	_create_group("hud", "HUD")
+	_create_group("minimap", "MINIMAP")
+	_create_group("visuals", "DARSTELLUNG & BARRIEREFREIHEIT")
+
+	_move_row_to_group(hud_visible_row, "hud")
+	_move_row_to_group(minimap_rotate_row, "minimap")
+	_move_row_to_group(crt_filter_row, "visuals")
+	_move_row_to_group(screen_shake_row, "visuals")
+	_move_row_to_group(colorblind_row, "visuals")
+
+	# Falls in der .tscn spaeter Zeilen dazukommen, die hier niemand
+	# einsortiert hat: nicht verschlucken, sondern unten anhaengen. Ohne
+	# das waeren sie nach dem Umbau unsichtbar (sie blieben Kind von
+	# "general", stuenden aber hinter dem ScrollContainer).
+	for row in existing_rows:
+		if row.get_parent() == general and row != scroll:
+			row.reparent(_general_content)
+
+
+## Legt eine Klapp-Gruppe an: Kopfzeile (Button) + eingerueckter Koerper.
+func _create_group(group_id: String, title: String) -> VBoxContainer:
+	var header := Button.new()
+	header.name = "Group_%s_Header" % group_id
+	header.toggle_mode = true
+	header.button_pressed = true
+	header.flat = true
+	header.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	header.focus_mode = Control.FOCUS_NONE
+	_general_content.add_child(header)
+
+	var body := VBoxContainer.new()
+	body.name = "Group_%s_Body" % group_id
+	body.add_theme_constant_override("separation", 2)
+	_general_content.add_child(body)
+
+	var separator := HSeparator.new()
+	separator.name = "Group_%s_Separator" % group_id
+	_general_content.add_child(separator)
+
+	_group_headers[group_id] = header
+	_group_bodies[group_id] = body
+	_group_titles[group_id] = title
+
+	header.toggled.connect(_on_group_toggled.bind(group_id))
+	_update_group_header(group_id)
+	return body
+
+
+func _on_group_toggled(is_open: bool, group_id: String) -> void:
+	var body: VBoxContainer = _group_bodies.get(group_id)
+	if body:
+		body.visible = is_open
+	_update_group_header(group_id)
+
+
+func _update_group_header(group_id: String) -> void:
+	var header: Button = _group_headers.get(group_id)
+	if header == null:
+		return
+	var arrow: String = "v" if header.button_pressed else ">"
+	header.text = "%s  %s" % [arrow, _group_titles.get(group_id, group_id)]
+
+
+## Haengt eine bestehende .tscn-Zeile in eine Gruppe und rueckt sie ein.
+## Die Einrueckung passiert ueber einen Spacer als erstes Kind — nicht
+## ueber theme_constant, weil die Zeilen HBoxContainer sind und dort kein
+## Margin-Konstrukt existiert.
+func _move_row_to_group(row: Control, group_id: String) -> void:
+	var body: VBoxContainer = _group_bodies.get(group_id)
+	if body == null or row == null:
+		return
+	row.reparent(body)
+	if row is HBoxContainer and not row.has_node("GroupIndent"):
+		var spacer := Control.new()
+		spacer.name = "GroupIndent"
+		spacer.custom_minimum_size = Vector2(GROUP_INDENT, 0)
+		row.add_child(spacer)
+		row.move_child(spacer, 0)
+
+
+# ============================================================================
+# Minimap-Gruppe
+# ============================================================================
+
+## Baut alle Minimap-Regler in die Gruppe "minimap". Die Zeile
+## "Mit Spieler drehen" liegt bereits dort (aus der .tscn umgehaengt).
+##
+## BEWUSST NICHT HIER: ein Regler fuer den Grosskarten-Zoom. Der laeuft
+## ueber das Mausrad direkt auf der offenen Karte (minimap.gd) — ein
+## zusaetzlicher Schieber waere eine zweite Bedienung fuer dieselbe Sache
+## und wuerde bei jeder Mausrad-Nutzung veralten.
+## Ebenfalls entfallen: "Groesse Raum-Grid". Das Grid hat mit
+## grid_placement bereits eine sinnvolle Steuerung; ein Scale-Regler
+## daneben hat in der Praxis nur das Layout zerschossen.
+func _build_minimap_group() -> void:
+	var body: VBoxContainer = _group_bodies.get("minimap")
+	if body == null:
+		return
+
+	_minimap_zoom_slider = _add_slider_row(
+		body, "Zoom (Karte)",
+		SettingsManager.MINIMAP_ZOOM_MIN, SettingsManager.MINIMAP_ZOOM_MAX, 0.05,
+		_on_minimap_zoom_changed)
+
+	_minimap_ui_scale_slider = _add_slider_row(
+		body, "Groesse der Minimap",
+		SettingsManager.MINIMAP_UI_SCALE_MIN, SettingsManager.MINIMAP_UI_SCALE_MAX, 0.05,
+		_on_minimap_ui_scale_changed)
+
+	_minimap_opacity_slider = _add_slider_row(
+		body, "Deckkraft",
+		SettingsManager.MINIMAP_OPACITY_MIN, SettingsManager.MINIMAP_OPACITY_MAX, 0.02,
+		_on_minimap_opacity_changed)
+
+	_minimap_grid_placement_option = _add_option_row(body, "Raum-Grid Position")
+	_minimap_grid_placement_option.add_item("Unter der Karte", SettingsManager.MINIMAP_GRID_BELOW)
+	_minimap_grid_placement_option.add_item("In der Karte (Ecke)", SettingsManager.MINIMAP_GRID_INSIDE)
+	_minimap_grid_placement_option.add_item("Ausgeblendet", SettingsManager.MINIMAP_GRID_HIDDEN)
+	_minimap_grid_placement_option.item_selected.connect(_on_minimap_grid_placement_selected)
+
+	_minimap_arrow_check = _add_check_row(body, "Spielerpfeil anzeigen", _on_minimap_arrow_toggled)
+	_minimap_coords_check = _add_check_row(body, "Koordinaten anzeigen", _on_minimap_coords_toggled)
+	_minimap_zone_check = _add_check_row(body, "Zonen-/Etagenname anzeigen", _on_minimap_zone_toggled)
+
+	var hint := Label.new()
+	hint.text = "    Grosskarte (M): Mausrad = Zoom auf Cursor, Ziehen = verschieben"
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.modulate = Color(1, 1, 1, 0.55)
+	body.add_child(hint)
+
+	var reset_row := HBoxContainer.new()
+	body.add_child(reset_row)
+	var reset_spacer := Control.new()
+	reset_spacer.custom_minimum_size = Vector2(GROUP_INDENT, 0)
+	reset_row.add_child(reset_spacer)
+	var minimap_reset := Button.new()
+	minimap_reset.text = "Nur Minimap zuruecksetzen"
+	reset_row.add_child(minimap_reset)
+	minimap_reset.pressed.connect(_on_minimap_reset_pressed)
+
+
+## Baut eine Zeile "Label | Slider | Wert" und haengt den Callback an.
+func _add_slider_row(parent: VBoxContainer, label_text: String,
+		min_value: float, max_value: float, step: float,
+		callback: Callable) -> HSlider:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(GROUP_INDENT, 0)
+	row.add_child(spacer)
+
+	var label := Label.new()
+	label.text = label_text
+	label.custom_minimum_size = Vector2(LABEL_WIDTH, 0)
+	row.add_child(label)
+
+	var slider := HSlider.new()
+	slider.min_value = min_value
+	slider.max_value = max_value
+	slider.step = step
+	slider.custom_minimum_size = Vector2(200, 0)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(slider)
+
+	var value_label := Label.new()
+	value_label.custom_minimum_size = Vector2(56, 0)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(value_label)
+
+	_slider_value_labels[slider] = value_label
+	slider.value_changed.connect(callback)
+	return slider
+
+
+func _add_option_row(parent: VBoxContainer, label_text: String) -> OptionButton:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(GROUP_INDENT, 0)
+	row.add_child(spacer)
+
+	var label := Label.new()
+	label.text = label_text
+	label.custom_minimum_size = Vector2(LABEL_WIDTH, 0)
+	row.add_child(label)
+
+	var option := OptionButton.new()
+	option.custom_minimum_size = Vector2(200, 0)
+	row.add_child(option)
+	return option
+
+
+func _add_check_row(parent: VBoxContainer, label_text: String, callback: Callable) -> CheckButton:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(GROUP_INDENT, 0)
+	row.add_child(spacer)
+
+	var label := Label.new()
+	label.text = label_text
+	label.custom_minimum_size = Vector2(LABEL_WIDTH, 0)
+	row.add_child(label)
+
+	var check := CheckButton.new()
+	row.add_child(check)
+	check.toggled.connect(callback)
+	return check
+
+
+func _set_slider_display(slider: HSlider, text: String) -> void:
+	var label: Label = _slider_value_labels.get(slider)
+	if label:
+		label.text = text
+
+
+func _refresh_minimap_labels() -> void:
+	_set_slider_display(_minimap_zoom_slider, "%.2fx" % SettingsManager.minimap_zoom)
+	_set_slider_display(_minimap_ui_scale_slider, "%.2fx" % SettingsManager.minimap_ui_scale)
+	_set_slider_display(_minimap_opacity_slider, "%d%%" % int(round(SettingsManager.minimap_opacity * 100.0)))
+
+
+# ============================================================================
+# Callbacks
+# ============================================================================
+
+func _on_hud_visible_toggled(is_on: bool) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_hud_visible(is_on)
+
+
+func _on_minimap_rotate_toggled(is_on: bool) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_minimap_rotate_with_player(is_on)
+
+
+func _on_crt_filter_toggled(is_on: bool) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_crt_filter_enabled(is_on)
+
+
+func _on_screen_shake_toggled(is_on: bool) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_screen_shake_enabled(is_on)
+
+
+func _on_vsync_toggled(is_on: bool) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_vsync(is_on)
+
+
+func _on_master_volume_changed(value: float) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_volume("Master", value)
+
+
+func _on_music_volume_changed(value: float) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_volume("Music", value)
+
+
+func _on_sfx_volume_changed(value: float) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_volume("SFX", value)
+
+
+func _on_colorblind_selected(index: int) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_colorblind_mode(colorblind_option.get_item_id(index))
+
+
+func _on_display_mode_selected(index: int) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_display_mode(display_mode_option.get_item_id(index))
+
+
+func _on_fps_limit_selected(index: int) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_fps_limit(fps_limit_option.get_item_id(index))
+
+
+func _on_sensitivity_changed(value: float) -> void:
+	sensitivity_value_label.text = str(int(round(value * 10000.0)))
+	if _suppress_signals:
+		return
+	SettingsManager.set_sensitivity(value)
+
+
+func _on_minimap_zoom_changed(value: float) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_minimap_zoom(value)
+	_refresh_minimap_labels()
+
+
+func _on_minimap_ui_scale_changed(value: float) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_minimap_ui_scale(value)
+	_refresh_minimap_labels()
+
+
+func _on_minimap_opacity_changed(value: float) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_minimap_opacity(value)
+	_refresh_minimap_labels()
+
+
+func _on_minimap_grid_placement_selected(index: int) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_minimap_grid_placement(_minimap_grid_placement_option.get_item_id(index))
+
+
+func _on_minimap_arrow_toggled(is_on: bool) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_minimap_show_player_arrow(is_on)
+
+
+func _on_minimap_coords_toggled(is_on: bool) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_minimap_show_coords(is_on)
+
+
+func _on_minimap_zone_toggled(is_on: bool) -> void:
+	if _suppress_signals:
+		return
+	SettingsManager.set_minimap_show_zone_label(is_on)
+
+
+func _on_minimap_reset_pressed() -> void:
+	SettingsManager.reset_minimap_settings()
+	_refresh_from_settings()
+
+
+# ============================================================================
+# Reset — nur die aktuelle Seite
+# ============================================================================
+
+## Liefert den Node-Namen des aktuell sichtbaren Tabs. get_tab_control()
+## statt get_tab_title(): der Titel ist Anzeigetext und kann sich aendern,
+## der Node-Name ist die stabile Kennung.
+func _current_tab_name() -> String:
+	var control: Control = tab_container.get_tab_control(tab_container.current_tab)
+	return control.name if control else ""
+
+
+func _update_reset_button_label() -> void:
+	var tab_name: String = _current_tab_name()
+	reset_button.text = TAB_RESET_LABELS.get(tab_name, "Seite zuruecksetzen")
+
+
+func _on_tab_changed(_index: int) -> void:
+	_update_reset_button_label()
+	# Ein laufendes Rebinding beim Tab-Wechsel abbrechen: sonst wartet der
+	# unsichtbare Controls-Tab weiter auf einen Tastendruck und schluckt
+	# den naechsten Klick des Spielers in einem ganz anderen Tab.
+	if _rebinding_action != "":
+		var cancelled: String = _rebinding_action
+		_rebinding_action = ""
+		_refresh_keybind_label(cancelled)
+
+
+func _on_reset_pressed() -> void:
+	match _current_tab_name():
+		"General":
+			SettingsManager.reset_general_settings()
+		"Video":
+			SettingsManager.reset_video_settings()
+		"Audio":
+			SettingsManager.reset_audio_settings()
+		"Controls":
+			SettingsManager.reset_controls_settings()
+		_:
+			push_warning("SettingsMenu: Unbekannter Tab — Reset uebersprungen.")
+			return
+
+	_refresh_from_settings()
+	_refresh_hud_element_checks()
+
+
+func _on_back_pressed() -> void:
+	back_pressed.emit()
+
+
+# ============================================================================
+# Zustand aus dem SettingsManager zurueckspiegeln
+# ============================================================================
+
+## _suppress_signals kapselt den GESAMTEN Block: Sliders und OptionButtons
+## feuern beim programmatischen Setzen ihre Change-Signale. Ohne die Sperre
+## wuerde jedes Oeffnen des Menues mehrfach save_settings() ausloesen — und
+## bei geclampten Werten sogar den gespeicherten Wert veraendern.
 func _refresh_from_settings() -> void:
+	_suppress_signals = true
+
 	hud_visible_check.button_pressed = SettingsManager.hud_visible
 	minimap_rotate_check.button_pressed = SettingsManager.minimap_rotate_with_player
 	crt_filter_check.button_pressed = SettingsManager.crt_filter_enabled
@@ -18059,6 +19028,26 @@ func _refresh_from_settings() -> void:
 	sfx_slider.value = SettingsManager.sfx_volume
 
 	sensitivity_slider.value = SettingsManager.mouse_sensitivity
+	sensitivity_value_label.text = str(int(round(SettingsManager.mouse_sensitivity * 10000.0)))
+
+	if _minimap_zoom_slider:
+		_minimap_zoom_slider.value = SettingsManager.minimap_zoom
+	if _minimap_ui_scale_slider:
+		_minimap_ui_scale_slider.value = SettingsManager.minimap_ui_scale
+	if _minimap_opacity_slider:
+		_minimap_opacity_slider.value = SettingsManager.minimap_opacity
+	if _minimap_grid_placement_option:
+		_select_option_by_id(_minimap_grid_placement_option, SettingsManager.minimap_grid_placement)
+	if _minimap_arrow_check:
+		_minimap_arrow_check.button_pressed = SettingsManager.minimap_show_player_arrow
+	if _minimap_coords_check:
+		_minimap_coords_check.button_pressed = SettingsManager.minimap_show_coords
+	if _minimap_zone_check:
+		_minimap_zone_check.button_pressed = SettingsManager.minimap_show_zone_label
+
+	_refresh_minimap_labels()
+
+	_suppress_signals = false
 
 
 func _select_option_by_id(option: OptionButton, id: int) -> void:
@@ -18068,55 +19057,40 @@ func _select_option_by_id(option: OptionButton, id: int) -> void:
 			return
 
 
-func _on_colorblind_selected(index: int) -> void:
-	SettingsManager.set_colorblind_mode(colorblind_option.get_item_id(index))
+# ============================================================================
+# Keybinds — zweispaltiges Raster
+# ============================================================================
 
-
-func _on_display_mode_selected(index: int) -> void:
-	SettingsManager.set_display_mode(display_mode_option.get_item_id(index))
-
-
-func _on_fps_limit_selected(index: int) -> void:
-	SettingsManager.set_fps_limit(fps_limit_option.get_item_id(index))
-
-
-func _on_sensitivity_changed(value: float) -> void:
-	SettingsManager.set_sensitivity(value)
-	sensitivity_value_label.text = str(int(round(value * 10000.0)))
-
-
-# BUGFIX: hier stand vorher SettingsManager.reset_to_defaults() — diese
-# Methode existiert im SettingsManager gar nicht (sie heisst
-# reset_all_to_defaults). Der Reset-Button hat also bei jedem Klick einen
-# Laufzeitfehler geworfen statt zurueckzusetzen.
-func _on_reset_pressed() -> void:
-	SettingsManager.reset_all_to_defaults()
-	_refresh_from_settings()
-	_refresh_hud_element_checks()
-
-
-func _on_back_pressed() -> void:
-	back_pressed.emit()
-
-
+## Baut die Tastenbelegung als GridContainer mit KEYBIND_COLUMNS Paaren
+## nebeneinander. Bei 12 Actions ergibt das 6 Zeilen statt 12.
+##
+## columns = KEYBIND_COLUMNS * 2, weil jedes Paar zwei Zellen belegt
+## (Beschriftung + Button). Godots GridContainer fuellt zeilenweise, die
+## Reihenfolge der Actions bleibt dadurch von links nach rechts lesbar.
 func _build_keybind_rows() -> void:
 	for child in keybinds_container.get_children():
 		child.queue_free()
+	_keybind_buttons.clear()
+
+	var grid := GridContainer.new()
+	grid.name = "KeybindGrid"
+	grid.columns = KEYBIND_COLUMNS * 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 4)
+	keybinds_container.add_child(grid)
 
 	for action in SettingsManager.REBINDABLE_ACTIONS.keys():
 		var display_name: String = SettingsManager.REBINDABLE_ACTIONS[action]
 
-		var row := HBoxContainer.new()
-		keybinds_container.add_child(row)
-
 		var label := Label.new()
 		label.text = display_name
-		label.custom_minimum_size = Vector2(200, 0)
-		row.add_child(label)
+		label.custom_minimum_size = Vector2(KEYBIND_LABEL_WIDTH, 0)
+		label.clip_text = true
+		grid.add_child(label)
 
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(160, 0)
-		row.add_child(btn)
+		btn.custom_minimum_size = Vector2(KEYBIND_BUTTON_WIDTH, 0)
+		grid.add_child(btn)
 		_keybind_buttons[action] = btn
 
 		_refresh_keybind_label(action)
@@ -18127,20 +19101,29 @@ func _refresh_keybind_label(action: String) -> void:
 	var btn: Button = _keybind_buttons.get(action)
 	if btn == null:
 		return
+
+	if _rebinding_action == action:
+		btn.text = "[ ... ]"
+		return
+
 	var events := InputMap.action_get_events(action)
 	if events.is_empty():
 		btn.text = "---"
 		return
-	var ev := events[0]
-	if ev is InputEventKey:
+
+	# get_action_event() statt events[0]: bei ui_up/ui_left etc. haengen
+	# zwei Events an derselben Action (Pfeiltaste + WASD). events[0] waere
+	# die Pfeiltaste — der Button wuerde also "Up" statt "W" anzeigen,
+	# obwohl der Spieler mit W laeuft.
+	var ev: InputEvent = SettingsManager.get_action_event(action)
+	if ev == null:
+		btn.text = "---"
+	elif ev is InputEventKey:
 		btn.text = OS.get_keycode_string(ev.physical_keycode)
 	elif ev is InputEventMouseButton:
 		btn.text = "Mouse %d" % ev.button_index
 	else:
 		btn.text = ev.as_text()
-
-	if _rebinding_action == action:
-		btn.text = "[ ... ]"
 
 
 func _on_keybind_button_pressed(action: String) -> void:
@@ -18159,8 +19142,9 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE:
-		_refresh_keybind_label(_rebinding_action)
+		var cancelled: String = _rebinding_action
 		_rebinding_action = ""
+		_refresh_keybind_label(cancelled)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -18178,8 +19162,8 @@ func _input(event: InputEvent) -> void:
 	var action: String = _rebinding_action
 	var conflict: String = SettingsManager.find_conflicting_action(capture_event, action)
 
-	SettingsManager.rebind_action(action, capture_event)
 	_rebinding_action = ""
+	SettingsManager.rebind_action(action, capture_event)
 	_refresh_keybind_label(action)
 
 	if conflict != "":
@@ -18193,55 +19177,46 @@ func _input(event: InputEvent) -> void:
 
 
 # ============================================================================
-# Modulares HUD-Dropdown (General-Tab)
+# Modulares HUD-Dropdown (Gruppe "hud")
 # ============================================================================
 
-## Baut unter der Zeile "HUD anzeigen" einen aufklappbaren Block mit einem
-## CheckButton pro HUD-Element.
-##
-## Warum zur Laufzeit statt im .tscn: die Elementliste lebt im
-## SettingsManager (HUD_ELEMENTS). Waeren die Checkboxen fest in der Szene
-## verdrahtet, muesste man bei jedem neuen HUD-Element ZWEI Stellen
-## nachpflegen und die beiden koennten auseinanderlaufen.
 func _build_hud_element_dropdown() -> void:
-	var general: Node = tab_container.get_node_or_null("General")
-	if general == null:
-		push_warning("SettingsMenu: Tab 'General' nicht gefunden — HUD-Dropdown wird uebersprungen.")
+	var body: VBoxContainer = _group_bodies.get("hud")
+	if body == null:
+		push_warning("SettingsMenu: HUD-Gruppe fehlt — HUD-Dropdown wird uebersprungen.")
 		return
+
+	var toggle_row := HBoxContainer.new()
+	body.add_child(toggle_row)
+
+	var toggle_spacer := Control.new()
+	toggle_spacer.custom_minimum_size = Vector2(GROUP_INDENT, 0)
+	toggle_row.add_child(toggle_spacer)
 
 	_hud_dropdown_button = Button.new()
 	_hud_dropdown_button.name = "HUDElementsDropdown"
 	_hud_dropdown_button.toggle_mode = true
+	_hud_dropdown_button.flat = true
 	_hud_dropdown_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	general.add_child(_hud_dropdown_button)
+	toggle_row.add_child(_hud_dropdown_button)
 
 	_hud_elements_box = VBoxContainer.new()
 	_hud_elements_box.name = "HUDElementsBox"
 	_hud_elements_box.visible = false
 	_hud_elements_box.add_theme_constant_override("separation", 2)
-	general.add_child(_hud_elements_box)
-
-	# Direkt unter die HUD-Sichtbarkeits-Zeile einsortieren, damit der
-	# Zusammenhang optisch klar ist.
-	var hud_row: Node = general.get_node_or_null("HUDVisibleRow")
-	if hud_row:
-		var target_index: int = hud_row.get_index() + 1
-		general.move_child(_hud_dropdown_button, target_index)
-		general.move_child(_hud_elements_box, target_index + 1)
+	body.add_child(_hud_elements_box)
 
 	for element in SettingsManager.HUD_ELEMENTS.keys():
 		var row := HBoxContainer.new()
 		_hud_elements_box.add_child(row)
 
-		# Einrueckung, damit die Unterpunkte als "Kinder" der HUD-Zeile
-		# lesbar sind.
 		var spacer := Control.new()
-		spacer.custom_minimum_size = Vector2(24, 0)
+		spacer.custom_minimum_size = Vector2(GROUP_INDENT * 2.0, 0)
 		row.add_child(spacer)
 
 		var label := Label.new()
 		label.text = SettingsManager.HUD_ELEMENTS[element]
-		label.custom_minimum_size = Vector2(220, 0)
+		label.custom_minimum_size = Vector2(LABEL_WIDTH, 0)
 		row.add_child(label)
 
 		var check := CheckButton.new()
@@ -18277,13 +19252,14 @@ func _update_hud_dropdown_label() -> void:
 
 
 func _on_hud_element_toggled(is_on: bool, element: String) -> void:
+	if _suppress_signals:
+		return
 	SettingsManager.set_hud_element_visible(element, is_on)
 	_update_hud_dropdown_label()
 
 
-## Liest die Checkbox-Zustaende aus dem SettingsManager zurueck. Wichtig:
 ## set_pressed_no_signal() statt button_pressed, sonst wuerde das Setzen
-## selbst wieder toggled() feuern und eine Endlosschleife ausloesen.
+## selbst wieder toggled() feuern.
 func _refresh_hud_element_checks() -> void:
 	for element in _hud_element_checks.keys():
 		var check: CheckButton = _hud_element_checks[element]
@@ -21028,6 +22004,12 @@ func _on_hit_landed(target: Node) -> void:
 
 	_tilt_reset_timer = combo_tilt_reset_delay
 
+# ============================================================================
+# ERSETZE in scripts/combat_base.gd die Funktion _process(delta) durch diese.
+# Einzige Aenderung: der Grosskarten-Block direkt nach dem Stun-Check.
+# Diese Datei NICHT ins Projekt kopieren.
+# ============================================================================
+
 func _process(delta: float) -> void:
 	# Solange der Player gestunnt ist (z.B. von einem schnellen,
 	# nervigen Gegner getroffen), werden weder Angriffe noch Dash
@@ -21066,6 +22048,20 @@ func _process(delta: float) -> void:
 			if player and player.has_method("reset_combo_tilt"):
 				player.reset_combo_tilt()
 
+	# --- Grosskarte offen: keine Angriffe ------------------------------
+	# Auf der Grosskarte wird mit gedrueckter linker Maustaste gezogen.
+	# LMB ist gleichzeitig attack_primary, und Angriffe werden hier per
+	# Input.is_action_pressed() GEPOLLT — set_input_as_handled() in
+	# minimap.gd kann Polling nicht abfangen. Ohne diesen Block wuerde
+	# jedes Verschieben der Karte den Charakter zuschlagen lassen.
+	#
+	# Bewusst NACH den Cooldown-Timern: die sollen weiterlaufen, damit
+	# ein Blick auf die Karte keine Cooldowns einfriert. Und bewusst ein
+	# static-Zugriff statt einer Baumsuche — diese Zeile laeuft in jedem
+	# Frame.
+	if Minimap.big_map_open:
+		return
+
 	if Input.is_action_pressed("attack_primary") and _primary_timer <= 0.0:
 		_do_primary()
 
@@ -21082,8 +22078,7 @@ func _process(delta: float) -> void:
 	if InputMap.has_action("ability_secondary") \
 			and Input.is_action_just_pressed("ability_secondary") and _ability_e_timer <= 0.0:
 		_do_ability_e()
-
-func _do_primary() -> void:
+		func _do_primary() -> void:
 	var cd: float = _get_effective_primary_cooldown()
 	_primary_timer = cd
 	primary_used.emit()
@@ -22168,27 +23163,36 @@ func _play_combo_expire_animation() -> void:
 ===== FILE: scripts\minimap.gd =====
 
 extends Control
+class_name Minimap
 
 ## Minimap oben links.
 ##
 ## - Das schematische Raum-Grid (RoomOverlay, minimap_rooms.gd) rotiert
 ##   seine Zellen-POSITIONEN intern um -90 Grad, damit es zur kalibrierten
-##   3D-Minimap passt - Text/Glyphen bleiben dabei aufrecht. Hier wird das
-##   Overlay nur noch positioniert/skaliert, NICHT mehr zusaetzlich als
-##   Control gedreht.
+##   3D-Minimap passt - Text/Glyphen bleiben dabei aufrecht.
 ## - "toggle_map"-Action (Taste M im Input Map einzutragen) blendet eine
-##   grosse Ansicht ein: 3D-Karte und Raum-Grid NEBENEINANDER, beide auf
-##   dieselbe Kantenlaenge gebracht.
+##   grosse Ansicht ein: 3D-Karte und Raum-Grid NEBENEINANDER.
 ## - ESCAPE: liegt in der Gruppe "minimap", damit pause_menu.gd die
 ##   Grosskarte per is_big_map_open()/close_big_map() zuerst schliessen
 ##   kann, BEVOR ein zweiter ESC-Druck die Pause oeffnet.
-## - Der Spieler-Pfeil orientiert sich an der Kamera-Blickrichtung, nicht
-##   am Charaktermodell.
-## - Die 3D-Minimap-Kamera bekommt ein EIGENES Environment ohne Nebel und
-##   mit vollem Umgebungslicht: sub_viewport.own_world_3d = false teilt
-##   sich das World3D (und damit die WorldEnvironment) mit der Hauptszene.
-##   Der duestere Dungel-Fog (dungeon_atmosphere.gd) wuerde die Draufsicht
-##   sonst mitverdunkeln - eine Minimap soll aber immer gut lesbar bleiben.
+##
+## GROSSKARTE — BEDIENUNG:
+##   Solange die Grosskarte offen ist, wird die Maus freigegeben. Das
+##   stoppt die Spielerkamera automatisch, weil player_base.gd sein
+##   Mouse-Look an Input.mouse_mode == MOUSE_MODE_CAPTURED knuepft - es
+##   braucht dafuer also KEINEN zusaetzlichen Schalter im Spieler.
+##   Mausrad zoomt auf den Cursor, Ziehen verschiebt den Ausschnitt.
+##
+## DECKKRAFT:
+##   Es gibt bewusst nur EINEN Regler. Frueher hatten Rahmen (StyleBox),
+##   3D-Ansicht (Environment.BG_COLOR) und Raum-Grid (eigenes
+##   color_background) je einen eigenen, unabhaengigen Alphawert - drei
+##   Flaechen mit drei verschiedenen Deckkraeften uebereinander, was die
+##   sichtbaren Kanten und den "Kasten im Kasten" erzeugt hat. Jetzt malt
+##   nur noch der Frame eine Flaeche; 3D-Ansicht und Grid rendern
+##   transparent darueber. Der Regler faerbt Hintergrund UND Rahmen, damit
+##   bei niedriger Deckkraft nicht ein knallgelber Rand ueber einer fast
+##   unsichtbaren Karte stehen bleibt.
 
 const ROOM_OVERLAY_SCRIPT := preload("res://scripts/minimap_rooms.gd")
 const GENERATOR_GROUP := "level_generator"
@@ -22197,9 +23201,28 @@ const MINIMAP_GROUP := "minimap"
 
 enum OverlayPlacement { BELOW_MAP, INSIDE_MAP, HIDDEN }
 
+## Mausrad-Zoom der Grosskarte. Laufzeitwert, KEINE gespeicherte
+## Einstellung: das ist eine Geste waehrend des Schauens, kein Setup-Wert.
+const BIG_MAP_ZOOM_MIN: float = 0.35
+const BIG_MAP_ZOOM_MAX: float = 4.0
+const BIG_MAP_ZOOM_STEP: float = 1.15
+
+## Statischer Schalter, damit combat_base.gd in seinem _process() mit
+## EINEM Zugriff pruefen kann, ob die Grosskarte offen ist. Ueber
+## get_nodes_in_group() waere das eine Baumsuche pro Frame; Angriffe
+## werden per Input.is_action_pressed() gepollt und muessen deshalb
+## wirklich jeden Frame fragen.
+##
+## WICHTIG: static var ueberlebt einen Szenenwechsel. Deshalb wird der
+## Wert in _ready() UND _exit_tree() hart zurueckgesetzt - sonst bliebe
+## das Flag nach einem Level-Neustart mit offener Karte auf true haengen
+## und der Spieler koennte nie wieder angreifen.
+static var big_map_open: bool = false
+
 @onready var frame: Panel = $Frame
 @onready var zone_label: Label = $Frame/ZoneLabel
 @onready var map_container: Control = $Frame/MapContainer
+@onready var sub_viewport_container: SubViewportContainer = $Frame/MapContainer/SubViewportContainer
 @onready var sub_viewport: SubViewport = $Frame/MapContainer/SubViewportContainer/SubViewport
 @onready var map_camera: Camera3D = $Frame/MapContainer/SubViewportContainer/SubViewport/MapCamera
 @onready var coord_label: Label = $Frame/CoordLabel
@@ -22232,6 +23255,11 @@ enum OverlayPlacement { BELOW_MAP, INSIDE_MAP, HIDDEN }
 @export var minimap_disable_fog: bool = true
 @export var minimap_ambient_color: Color = Color(1.0, 1.0, 1.0)
 @export var minimap_ambient_energy: float = 1.3
+
+## Falls die Transparenz auf einem Grafiktreiber Probleme macht: hier auf
+## false stellen, dann rendert die Karte wieder mit fester Hintergrund-
+## farbe (minimap_background_color) wie frueher.
+@export var minimap_transparent_background: bool = true
 @export var minimap_background_color: Color = Color(0.05, 0.05, 0.06)
 
 var player: Node3D = null
@@ -22242,6 +23270,24 @@ var _generator: Node = null
 
 var _is_big_map: bool = false
 var _tween: Tween = null
+var _big_map_zoom: float = 1.0
+## Verschiebung des Kartenausschnitts gegenueber der Spielerposition
+## (nur X/Z genutzt). Nur in der Grosskarte relevant.
+var _big_map_pan: Vector3 = Vector3.ZERO
+var _dragging: bool = false
+## Weltpunkt, den der Cursor beim Drag-Start "gegriffen" hat. Beim Ziehen
+## wird der Pan so nachgefuehrt, dass genau dieser Punkt unter dem Cursor
+## bleibt - dadurch klebt die Karte am Mauszeiger, statt mit einem
+## willkuerlichen Pixel-pro-Welt-Faktor zu driften.
+var _drag_anchor_world: Vector3 = Vector3.ZERO
+var _prev_mouse_mode: int = Input.MOUSE_MODE_CAPTURED
+
+## Ausgangsfarben der Frame-StyleBox. Ohne diese Merker wuerde jedes
+## Anwenden der Deckkraft auf dem bereits veraenderten Wert aufsetzen und
+## die Farben waeren nach mehreren Aenderungen verschoben.
+var _frame_base_bg_color: Color = Color(0.06, 0.06, 0.09, 0.82)
+var _frame_base_border_color: Color = Color(0.5, 0.48, 0.18, 1.0)
+var _frame_style: StyleBoxFlat = null
 
 var _small_frame_size: Vector2
 var _small_frame_position: Vector2
@@ -22254,15 +23300,18 @@ var _small_overlay_position: Vector2
 
 func _ready() -> void:
 	add_to_group(MINIMAP_GROUP)
+	big_map_open = false
 
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	map_camera.size = map_size
 	map_camera.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
 	map_camera.near = 0.1
 	map_camera.far = map_height * 2.0
 
 	sub_viewport.own_world_3d = false
 	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	sub_viewport.transparent_bg = minimap_transparent_background
+
+	_cache_frame_style()
 	_set_zone_text(default_zone_name)
 
 	if minimap_disable_fog:
@@ -22271,13 +23320,17 @@ func _ready() -> void:
 	map_container.pivot_offset = map_container.size * 0.5
 	map_container.rotation_degrees = map_calibration_offset_degrees
 
+	# Overlay-Platzierung kommt aus den Einstellungen. Der @export-Wert
+	# bleibt als Editor-Vorgabe erhalten, wird hier aber ueberschrieben -
+	# sonst gaebe es zwei konkurrierende Quellen fuer dieselbe Entscheidung.
+	overlay_placement = SettingsManager.minimap_grid_placement as OverlayPlacement
 	if overlay_placement != OverlayPlacement.HIDDEN:
 		_create_room_overlay()
 
-	rotate_with_player = SettingsManager.minimap_rotate_with_player
-	if not SettingsManager.minimap_rotate_with_player_changed.is_connected(_on_rotate_setting_changed):
-		SettingsManager.minimap_rotate_with_player_changed.connect(_on_rotate_setting_changed)
-
+	# WICHTIG: Erst NACH _create_room_overlay() die Kleinansicht-Masse
+	# sichern. Das Overlay veraendert dort ggf. die Frame-Hoehe - wuerde
+	# man vorher sichern, springt die Minimap beim ersten Schliessen der
+	# Grosskarte auf die falsche Groesse zurueck.
 	_small_frame_size = frame.size
 	_small_frame_position = frame.position
 	_small_map_container_size = map_container.size
@@ -22287,14 +23340,53 @@ func _ready() -> void:
 		_small_overlay_size = _room_overlay.size
 		_small_overlay_position = _room_overlay.position
 
+	if not SettingsManager.minimap_setting_changed.is_connected(_apply_minimap_settings):
+		SettingsManager.minimap_setting_changed.connect(_apply_minimap_settings)
+
+	_apply_minimap_settings()
+
+
+## static var ueberlebt Szenenwechsel - beim Verlassen zwingend loeschen,
+## sonst bleibt das Combat-Gate nach einem Neustart mit offener Karte
+## dauerhaft aktiv.
+func _exit_tree() -> void:
+	big_map_open = false
+
+
+## Holt die StyleBox des Frames einmalig als eigene Kopie. duplicate() ist
+## entscheidend: die StyleBoxFlat aus hud.tscn ist eine geteilte
+## SubResource - ohne Kopie wuerde die Deckkraft auch den Speedrun-Timer-
+## Rahmen mitveraendern, der dieselbe Ressource nutzt.
+func _cache_frame_style() -> void:
+	var existing := frame.get_theme_stylebox("panel")
+	if existing is StyleBoxFlat:
+		_frame_style = (existing as StyleBoxFlat).duplicate()
+	else:
+		_frame_style = StyleBoxFlat.new()
+		_frame_style.border_width_left = 2
+		_frame_style.border_width_top = 2
+		_frame_style.border_width_right = 2
+		_frame_style.border_width_bottom = 2
+		_frame_style.border_color = Color(0.5, 0.48, 0.18, 1.0)
+	_frame_base_bg_color = _frame_style.bg_color
+	_frame_base_border_color = _frame_style.border_color
+	frame.add_theme_stylebox_override("panel", _frame_style)
+
 
 ## Camera3D.environment ueberschreibt fuer DIESE eine Kamera die
 ## WorldEnvironment der geteilten Welt - der Rest der Szene (inkl. der
 ## Haupt-Spielkamera) bleibt vom Dungeon-Nebel unberuehrt.
+##
+## BG_CLEAR_COLOR statt BG_COLOR bei aktiver Transparenz: BG_COLOR malt
+## IMMER eine deckende Flaeche und haette transparent_bg wirkungslos
+## gemacht.
 func _apply_minimap_environment() -> void:
 	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = minimap_background_color
+	if minimap_transparent_background:
+		env.background_mode = Environment.BG_CLEAR_COLOR
+	else:
+		env.background_mode = Environment.BG_COLOR
+		env.background_color = minimap_background_color
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = minimap_ambient_color
 	env.ambient_light_energy = minimap_ambient_energy
@@ -22303,7 +23395,72 @@ func _apply_minimap_environment() -> void:
 	map_camera.environment = env
 
 
+## Uebertraegt ALLE Minimap-Einstellungen auf die Nodes. Bewusst
+## idempotent, damit ein doppelter Aufruf nichts kaputt macht.
+func _apply_minimap_settings() -> void:
+	rotate_with_player = SettingsManager.minimap_rotate_with_player
+
+	# Skalierung am Wurzel-Control, Pivot oben links: die Minimap sitzt in
+	# der linken oberen Ecke und soll beim Vergroessern nach innen wachsen,
+	# nicht aus dem Bildschirm herauslaufen.
+	pivot_offset = Vector2.ZERO
+	scale = Vector2.ONE * SettingsManager.minimap_ui_scale
+
+	# EIN Regler faerbt Flaeche UND Rahmen. Der Rahmen wird relativ zu
+	# seiner Ausgangsdeckkraft skaliert, nicht hart gleichgesetzt - so
+	# bleibt ein evtl. absichtlich halbtransparenter Rand im Verhaeltnis
+	# erhalten.
+	if _frame_style:
+		var opacity: float = SettingsManager.minimap_opacity
+		var bg: Color = _frame_base_bg_color
+		bg.a = opacity
+		_frame_style.bg_color = bg
+
+		var border: Color = _frame_base_border_color
+		border.a = _frame_base_border_color.a * opacity
+		_frame_style.border_color = border
+
+	# Kameragroesse haengt davon ab, in welchem Modus wir gerade sind -
+	# sonst wuerde der Zoom-Regler bei offener Grosskarte die Kleinansicht
+	# einstellen und der Effekt waere erst nach dem Schliessen sichtbar.
+	map_camera.size = _effective_big_map_size() if _is_big_map else _effective_map_size()
+	_small_map_camera_size = _effective_map_size()
+
+	if player_arrow:
+		player_arrow.visible = SettingsManager.minimap_show_player_arrow
+	if coord_label:
+		coord_label.visible = SettingsManager.minimap_show_coords
+	if zone_label:
+		zone_label.visible = SettingsManager.minimap_show_zone_label
+
+	var placement: int = SettingsManager.minimap_grid_placement
+	if _room_overlay and is_instance_valid(_room_overlay):
+		_room_overlay.visible = placement != SettingsManager.MINIMAP_GRID_HIDDEN
+	elif placement != SettingsManager.MINIMAP_GRID_HIDDEN:
+		# Grid war beim Start ausgeschaltet und wurde jetzt eingeschaltet:
+		# Overlay nachtraeglich erzeugen statt einen Neustart zu verlangen.
+		overlay_placement = placement as OverlayPlacement
+		_create_room_overlay()
+		if _room_overlay:
+			_small_overlay_size = _room_overlay.size
+			_small_overlay_position = _room_overlay.position
+
+
+## Zoom > 1 = naeher dran. Der Kamera-Ausschnitt ist der KEHRWERT des
+## Zooms. maxf() verhindert eine Division, die bei einem manipulierten
+## Zoom von 0 eine size von inf erzeugen wuerde.
+func _effective_map_size() -> float:
+	return map_size / maxf(SettingsManager.minimap_zoom, 0.01)
+
+
+func _effective_big_map_size() -> float:
+	return big_map_world_size / maxf(_big_map_zoom, 0.01)
+
+
 func _create_room_overlay() -> void:
+	if _room_overlay and is_instance_valid(_room_overlay):
+		return
+
 	_room_overlay = Control.new()
 	_room_overlay.name = "RoomOverlay"
 	_room_overlay.set_script(ROOM_OVERLAY_SCRIPT)
@@ -22334,6 +23491,9 @@ func _create_room_overlay() -> void:
 		offset_bottom = needed_outer
 
 
+## Legacy-Handler: minimap_rotate_with_player_changed feuert weiterhin
+## (andere Systeme koennen daran haengen). Die eigentliche Arbeit macht
+## _apply_minimap_settings() ueber das Sammelsignal.
 func _on_rotate_setting_changed(enabled: bool) -> void:
 	rotate_with_player = enabled
 
@@ -22342,18 +23502,117 @@ func set_player(p: Node3D) -> void:
 	player = p
 
 
+# ============================================================================
+# Eingabe
+# ============================================================================
+
+## _input() statt _unhandled_input() fuer die Kartenbedienung: _input()
+## laeuft GARANTIERT vor jedem _unhandled_input() im Baum. Nur dadurch
+## kann die Karte den Mausklick verschlucken, bevor player_base.gd ihn
+## sieht und die Maus wieder einfaengt (dort:
+## "if event is InputEventMouseButton and mouse_mode == VISIBLE ->
+## MOUSE_MODE_CAPTURED"). Ueber die Baumreihenfolge waere das nur
+## zufaellig richtig.
+func _input(event: InputEvent) -> void:
+	if not _is_big_map:
+		return
+	if not (event is InputEventMouseButton or event is InputEventMouseMotion):
+		return
+
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		match mb.button_index:
+			MOUSE_BUTTON_WHEEL_UP:
+				if mb.pressed:
+					_zoom_big_map(BIG_MAP_ZOOM_STEP)
+				get_viewport().set_input_as_handled()
+			MOUSE_BUTTON_WHEEL_DOWN:
+				if mb.pressed:
+					_zoom_big_map(1.0 / BIG_MAP_ZOOM_STEP)
+				get_viewport().set_input_as_handled()
+			MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE:
+				if mb.pressed:
+					_dragging = true
+					_drag_anchor_world = _world_point_under_mouse()
+				else:
+					_dragging = false
+				get_viewport().set_input_as_handled()
+		return
+
+	if _dragging:
+		# Pan so nachfuehren, dass der beim Klick gegriffene Weltpunkt
+		# wieder genau unter dem Cursor landet.
+		var current: Vector3 = _world_point_under_mouse()
+		_big_map_pan += Vector3(
+			_drag_anchor_world.x - current.x,
+			0.0,
+			_drag_anchor_world.z - current.z
+		)
+		_update_camera_position()
+		get_viewport().set_input_as_handled()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(TOGGLE_ACTION):
 		_set_big_map(not _is_big_map)
 		get_viewport().set_input_as_handled()
 
 
+## Rechnet die Bildschirm-Mausposition in einen Weltpunkt auf Bodenhoehe um.
+##
+## get_global_transform_with_canvas().affine_inverse() erledigt dabei in
+## einem Rutsch die UI-Skalierung, die Verschiebung UND die
+## -90-Grad-Drehung des map_container - von Hand nachgerechnet waere
+## genau diese Drehung die Fehlerquelle.
+##
+## project_ray_origin() funktioniert bei einer ORTHOGONALEN Kamera anders
+## als bei einer perspektivischen: der Ursprung wandert mit dem
+## Bildschirmpunkt, die Richtung bleibt konstant. Genau deshalb liefert
+## schon der Ursprung allein den gesuchten XZ-Punkt, ohne Strahl-Ebenen-
+## Schnitt.
+func _world_point_under_mouse() -> Vector3:
+	var xform: Transform2D = sub_viewport_container.get_global_transform_with_canvas()
+	var local: Vector2 = xform.affine_inverse() * get_viewport().get_mouse_position()
+	return map_camera.project_ray_origin(local)
+
+
+## Multiplikativer Zoomschritt statt additiv: so fuehlt sich das Scrollen
+## bei starker Vergroesserung genauso fein an wie bei starker
+## Verkleinerung (ein additiver Schritt waere bei Zoom 4.0 kaum spuerbar
+## und bei 0.4 ein Sprung).
+##
+## Zoom ZUM CURSOR: Weltpunkt unter der Maus vor und nach der
+## Groessenaenderung messen, die Differenz auf den Pan addieren. Dadurch
+## bleibt der Punkt unter dem Zeiger stehen, statt dass die Karte immer
+## zur Mitte zieht.
+func _zoom_big_map(factor: float) -> void:
+	var before: Vector3 = _world_point_under_mouse()
+
+	_big_map_zoom = clampf(_big_map_zoom * factor, BIG_MAP_ZOOM_MIN, BIG_MAP_ZOOM_MAX)
+	map_camera.size = _effective_big_map_size()
+
+	var after: Vector3 = _world_point_under_mouse()
+	_big_map_pan += Vector3(before.x - after.x, 0.0, before.z - after.z)
+	_update_camera_position()
+
+
+## Einzige Stelle, die die Kameraposition setzt. Wird aus _process() UND
+## aus den Maus-Handlern gerufen - Letzteres, damit Zoom/Drag sofort
+## sichtbar sind und nicht erst einen Frame spaeter nachziehen.
+func _update_camera_position() -> void:
+	if player == null or not is_instance_valid(player):
+		return
+	var pos: Vector3 = player.global_position
+	map_camera.global_position = Vector3(
+		pos.x + _big_map_pan.x,
+		pos.y + map_height,
+		pos.z + _big_map_pan.z
+	)
+
+
 ## --- Oeffentliche API fuer pause_menu.gd ------------------------------
 ## ESC soll ZUERST nur die Grosskarte schliessen und erst beim NAECHSTEN
-## Druck die Pause oeffnen. pause_menu.gd fragt das hier ab, statt dass
-## Minimap sich selbst um ESC kuemmert - so gibt es nur EINE Stelle, die
-## ueber Pause entscheidet, keine Wettlaufsituation zwischen zwei
-## _unhandled_input()-Listenern auf dieselbe Taste.
+## Druck die Pause oeffnen.
 func is_big_map_open() -> bool:
 	return _is_big_map
 
@@ -22367,6 +23626,7 @@ func _set_big_map(active: bool) -> void:
 	if active == _is_big_map:
 		return
 	_is_big_map = active
+	big_map_open = active
 
 	if _tween and _tween.is_valid():
 		_tween.kill()
@@ -22381,6 +23641,15 @@ func _set_big_map(active: bool) -> void:
 
 
 func _enter_big_map() -> void:
+	# Maus freigeben. player_base.gd dreht die Kamera nur bei
+	# MOUSE_MODE_CAPTURED - damit steht die Spielerkamera automatisch
+	# still, ohne dass der Spieler einen eigenen Sperrschalter braucht.
+	_prev_mouse_mode = Input.mouse_mode
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+	_big_map_pan = Vector3.ZERO
+	_dragging = false
+
 	var viewport_size: Vector2 = get_viewport_rect().size
 
 	var box: float = big_map_box_size
@@ -22390,7 +23659,14 @@ func _enter_big_map() -> void:
 		content_width + big_map_padding * 2.0,
 		big_map_header_reserve + box + big_map_padding + coord_label_reserve
 	)
-	var target_frame_position: Vector2 = (viewport_size - target_frame_size) * 0.5
+
+	# Die Grosskarte soll IMMER bildschirmzentriert und in Originalgroesse
+	# erscheinen - die UI-Skalierung gilt nur fuer die kleine HUD-Ansicht.
+	# Deshalb wird hier gegen die Skalierung gerechnet, sonst saesse die
+	# Grosskarte bei ui_scale 1.5 sichtbar aus der Mitte verschoben und
+	# waere 50 % zu gross.
+	var s: float = maxf(SettingsManager.minimap_ui_scale, 0.01)
+	var target_frame_position: Vector2 = ((viewport_size / s) - target_frame_size) * 0.5 - (position / s)
 
 	_tween.tween_property(frame, "size", target_frame_size, big_map_tween_duration)
 	_tween.tween_property(frame, "position", target_frame_position, big_map_tween_duration)
@@ -22402,14 +23678,24 @@ func _enter_big_map() -> void:
 	_tween.tween_property(map_container, "position", map_target_pos, big_map_tween_duration)
 	_tween.tween_method(_update_map_container_pivot, 0.0, 1.0, big_map_tween_duration)
 
-	map_camera.size = big_map_world_size
+	map_camera.size = _effective_big_map_size()
 
 	if _room_overlay:
+		_room_overlay.visible = SettingsManager.minimap_grid_placement != SettingsManager.MINIMAP_GRID_HIDDEN
 		_tween.tween_property(_room_overlay, "size", Vector2(box, box), big_map_tween_duration)
 		_tween.tween_property(_room_overlay, "position", overlay_target_pos, big_map_tween_duration)
 
 
 func _exit_big_map() -> void:
+	_dragging = false
+	_big_map_pan = Vector3.ZERO
+
+	# Nur zurueckfangen, wenn das Spiel wirklich weiterlaeuft. Wird die
+	# Karte durch ESC geschlossen und gleichzeitig das Pausemenue
+	# geoeffnet, muss die Maus sichtbar bleiben.
+	if not get_tree().paused:
+		Input.mouse_mode = _prev_mouse_mode
+
 	_tween.tween_property(frame, "size", _small_frame_size, big_map_tween_duration)
 	_tween.tween_property(frame, "position", _small_frame_position, big_map_tween_duration)
 
@@ -22417,7 +23703,7 @@ func _exit_big_map() -> void:
 	_tween.tween_property(map_container, "position", _small_map_container_position, big_map_tween_duration)
 	_tween.tween_method(_update_map_container_pivot, 0.0, 1.0, big_map_tween_duration)
 
-	map_camera.size = _small_map_camera_size
+	map_camera.size = _effective_map_size()
 
 	if _room_overlay:
 		_tween.tween_property(_room_overlay, "size", _small_overlay_size, big_map_tween_duration)
@@ -22435,8 +23721,7 @@ func _process(delta: float) -> void:
 	if player == null or not is_instance_valid(player):
 		return
 
-	var pos: Vector3 = player.global_position
-	map_camera.global_position = Vector3(pos.x, pos.y + map_height, pos.z)
+	_update_camera_position()
 
 	var camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
 	var camera_yaw: float = camera_pivot.rotation.y if camera_pivot else 0.0
@@ -22448,8 +23733,12 @@ func _process(delta: float) -> void:
 		map_camera.rotation.y = 0.0
 		player_arrow.rotation = -camera_yaw
 
-	coord_label.text = "X: %d   Y: %d" % [int(pos.x), int(pos.z)]
+	if coord_label.visible:
+		var pos: Vector3 = player.global_position
+		coord_label.text = "X: %d   Y: %d" % [int(pos.x), int(pos.z)]
 
+	# Zonen-Ermittlung laeuft weiter, auch wenn das Label aus ist: andere
+	# Systeme (z.B. Musik-Trigger) koennen an _current_zone haengen.
 	_zone_timer -= delta
 	if _zone_timer <= 0.0:
 		_zone_timer = zone_check_interval
@@ -24030,17 +25319,109 @@ var _return_tween: Tween = null
 @export var stun_camera_shake: float = 0.3
 var status_effects: StatusEffectManager
 
+## --- Stun-Lock-Schutz (Death-Trap durch mehrere Stinger) ---------------
+##
+## PROBLEM: StatusEffectManager.apply_effect() frischt einen bestehenden
+## Effekt per max(alte_restdauer, neue_dauer) AUF. Ein einzelner Stinger
+## stunnt 0.7s bei 1.4s Angriffs-Cooldown — das allein waere fair. Bei
+## bis zu 6 Stingern pro Raum (es_stinger.tres: max_per_room = 6) landet
+## aber im Schnitt alle ~0.23s ein Treffer. Jeder davon setzt den Stun
+## wieder auf volle 0.7s hoch, die Restdauer erreicht nie 0 und der
+## Spieler steht bis zum Tod bewegungsunfaehig herum. Klassischer
+## Stun-Lock: kein Konter moeglich, kein Skill-Ausdruck, nur Tod.
+##
+## LOESUNG (zweistufig, wie in den meisten Action-Spielen):
+##  1. DIMINISHING RETURNS: Jeder Stun innerhalb des Ketten-Zeitfensters
+##     ist nur noch stun_diminish_factor so lang wie der vorherige.
+##  2. IMMUNITAET: Nach stun_max_chain Stuns in Folge — und generell
+##     immer direkt NACH einem abgelaufenen Stun — ist der Spieler fuer
+##     stun_immunity_after_stun Sekunden komplett stun-immun. Das ist das
+##     eigentliche Sicherheitsnetz: es garantiert ein Handlungsfenster,
+##     egal wie viele Gegner gleichzeitig treffen.
+##
+## SCHADEN bleibt davon voll erhalten — nur die Kontrollverlust-Zeit wird
+## gedeckelt. Wer in 6 Stinger reinlaeuft, stirbt weiterhin. Er kann sich
+## jetzt nur wehren dabei.
+@export var stun_immunity_after_stun: float = 1.1
+@export_range(0.0, 1.0) var stun_diminish_factor: float = 0.5
+## Nach dieser Zeit ohne neuen Stun startet die Kette wieder bei voller Laenge.
+@export var stun_diminish_reset_time: float = 4.0
+## Kuerzester Stun, den die Abschwaechung uebrig laesst.
+@export var stun_min_duration: float = 0.12
+## So viele Stuns in Folge, danach greift zwingend die Immunitaet.
+@export var stun_max_chain: int = 3
+@export var stun_debug_logging: bool = false
+
+var _stun_immunity_timer: float = 0.0
+var _stun_chain_count: int = 0
+var _stun_chain_timer: float = 0.0
+
+func _stun_debug(msg: String) -> void:
+	if stun_debug_logging:
+		print("[StunGuard] %s" % msg)
+
+## Einziger Einstiegspunkt fuer Stuns — apply_status_effect("stun", ...)
+## leitet bewusst hierher um, damit die Schutzlogik NICHT umgangen werden
+## kann, egal ueber welchen Weg eine Hitbox den Stun ausloest.
 func apply_stun(duration: float) -> void:
-	status_effects.apply_effect("stun", duration, 1.0)
+	if _stun_immunity_timer > 0.0:
+		_stun_debug("Stun ignoriert — noch %.2fs immun." % _stun_immunity_timer)
+		return
+
+	# Kette ist ausgelaufen -> wieder bei voller Laenge anfangen.
+	if _stun_chain_timer <= 0.0:
+		_stun_chain_count = 0
+
+	if _stun_chain_count >= stun_max_chain:
+		_stun_debug("Ketten-Limit (%d) erreicht -> Immunitaet." % stun_max_chain)
+		_begin_stun_immunity()
+		return
+
+	var scaled: float = duration * pow(stun_diminish_factor, float(_stun_chain_count))
+	scaled = maxf(scaled, stun_min_duration)
+
+	_stun_chain_count += 1
+	_stun_chain_timer = stun_diminish_reset_time
+
+	_stun_debug("Stun #%d: %.2fs angefordert -> %.2fs angewendet." % [_stun_chain_count, duration, scaled])
+
+	status_effects.apply_effect("stun", scaled, 1.0)
 	shake_camera(stun_camera_shake)
+
+func _begin_stun_immunity() -> void:
+	_stun_immunity_timer = stun_immunity_after_stun
+	_stun_chain_count = 0
+	_stun_chain_timer = 0.0
+	status_effects.remove_effect("stun")
+	_stun_debug("Immunitaet fuer %.2fs aktiv." % stun_immunity_after_stun)
+
+## Sobald ein Stun regulaer auslaeuft, startet das garantierte
+## Handlungsfenster. Ohne das koennte der naechste Treffer im selben Frame
+## sofort wieder stunnen und die Kette liefe endlos weiter.
+func _on_status_effect_expired(id: String) -> void:
+	if id == "stun":
+		_stun_immunity_timer = maxf(_stun_immunity_timer, stun_immunity_after_stun)
+		_stun_debug("Stun abgelaufen -> %.2fs Immunitaet." % _stun_immunity_timer)
+
+func is_stun_immune() -> bool:
+	return _stun_immunity_timer > 0.0
+
+## Laesst Immunitaets- und Ketten-Timer ablaufen. Wird aus
+## _physics_process() gefuettert.
+func _tick_stun_guard(delta: float) -> void:
+	_stun_immunity_timer = maxf(_stun_immunity_timer - delta, 0.0)
+	_stun_chain_timer = maxf(_stun_chain_timer - delta, 0.0)
 
 func is_stunned() -> bool:
 	return status_effects.has_effect("stun")
 
 func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, source: Node = null, tick_interval: float = 0.0) -> void:
-	status_effects.apply_effect(id, duration, magnitude, source, tick_interval)
+	# Stun NIE direkt durchreichen — sonst umgeht dieser Pfad den kompletten
+	# Stun-Lock-Schutz oben.
 	if id == "stun":
-		shake_camera(stun_camera_shake)
+		apply_stun(duration)
+		return
+	status_effects.apply_effect(id, duration, magnitude, source, tick_interval)
 
 func has_status_effect(id: String) -> bool:
 	return status_effects.has_effect(id)
@@ -24154,6 +25535,7 @@ func _ready() -> void:
 
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
+	status_effects.effect_expired.connect(_on_status_effect_expired)
 
 	if health:
 		health.health_changed.connect(_on_own_health_changed)
@@ -24297,6 +25679,11 @@ func _on_manual_zoom_input() -> void:
 		_return_tween.kill()
 
 func _physics_process(delta: float) -> void:
+	# GANZ oben, VOR dem Dash-Return: die Stun-Timer muessen auch waehrend
+	# eines Dashs weiterlaufen, sonst friert die Immunitaet mitten im
+	# Ausweichmanoever ein und der naechste Treffer stunnt wieder voll.
+	_tick_stun_guard(delta)
+
 	if combat.is_dashing():
 		velocity = combat.get_dash_velocity(delta)
 		move_and_slide()
@@ -24783,6 +26170,16 @@ extends Node
 # SettingsManager — Autoload-Singleton für alle persistenten Spieleinstellungen.
 # Speichert/lädt in user://settings.cfg (ConfigFile). Muss unter Project Settings
 # -> Autoload als "SettingsManager" eingetragen sein.
+#
+# ÄNDERUNGEN GEGENÜBER DER VORVERSION:
+#  - ENTFERNT: minimap_grid_scale und minimap_big_map_zoom. Der Grosskarten-
+#    Zoom laeuft jetzt ueber das Mausrad (siehe minimap.gd) — ein Regler
+#    dafuer ist doppelte Bedienung fuer dieselbe Sache.
+#  - NEU: minimap_show_player_arrow.
+#  - ZUSAMMENGELEGT: es gibt nur noch EINE Minimap-Deckkraft
+#    (minimap_opacity) fuer Flaeche und Rahmen.
+#  - NEU: Reset pro Seite (reset_general/video/audio/controls) statt nur
+#    "alles zuruecksetzen".
 # ============================================================================
 
 signal sensitivity_changed(value: float)
@@ -24801,9 +26198,12 @@ signal colorblind_mode_changed(mode: int)
 # General
 signal hud_visible_changed(visible: bool)
 signal minimap_rotate_with_player_changed(enabled: bool)
-## Modulare HUD-Elemente: wird fuer JEDES einzelne Element gefeuert.
-## element ist eine der HUD_ELEMENT_* Konstanten weiter unten.
 signal hud_element_visible_changed(element: String, is_visible: bool)
+
+## Sammelsignal fuer ALLE Minimap-Werte. minimap.gd reagiert darauf mit
+## einem vollstaendigen _apply_minimap_settings() — kein Wert kann dadurch
+## "vergessen" werden.
+signal minimap_setting_changed()
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
@@ -24815,10 +26215,6 @@ const DISPLAY_MODE_FULLSCREEN: int = 1
 const DISPLAY_MODE_BORDERLESS: int = 2
 
 # --- Modulare HUD-Elemente ---------------------------------------------
-# Der Master-Schalter hud_visible blendet das komplette HUD aus. Zusaetzlich
-# laesst sich jedes Element einzeln abschalten. Beides ist UND-verknuepft:
-# ein Element ist nur sichtbar, wenn hud_visible == true UND sein eigener
-# Schalter true ist.
 const HUD_ELEMENT_MINIMAP: String = "minimap"
 const HUD_ELEMENT_PARTY: String = "party"
 const HUD_ELEMENT_ABILITIES: String = "abilities"
@@ -24826,7 +26222,6 @@ const HUD_ELEMENT_KEYBINDS: String = "keybinds"
 const HUD_ELEMENT_TIMER: String = "timer"
 const HUD_ELEMENT_COMBO: String = "combo"
 
-# Reihenfolge = Reihenfolge im Einstellungsmenue. Wert = Anzeigename.
 const HUD_ELEMENTS: Dictionary = {
 	HUD_ELEMENT_MINIMAP: "Minimap",
 	HUD_ELEMENT_PARTY: "Charakter-Status / Portraits",
@@ -24841,6 +26236,36 @@ const COLORBLIND_OFF: int = 0
 const COLORBLIND_PROTANOPIA: int = 1
 const COLORBLIND_DEUTERANOPIA: int = 2
 const COLORBLIND_TRITANOPIA: int = 3
+
+# ============================================================================
+# MINIMAP — Grenzwerte
+# ============================================================================
+# Die Grenzen leben hier und nicht im Einstellungsmenue, damit Slider-Range
+# und der Clamp beim Laden aus der Config garantiert dieselbe Quelle haben.
+
+const MINIMAP_ZOOM_MIN: float = 0.4
+const MINIMAP_ZOOM_MAX: float = 3.0
+const MINIMAP_ZOOM_DEFAULT: float = 1.0
+
+const MINIMAP_UI_SCALE_MIN: float = 0.6
+const MINIMAP_UI_SCALE_MAX: float = 1.8
+const MINIMAP_UI_SCALE_DEFAULT: float = 1.0
+
+## Deckkraft der Minimap-Flaeche UND ihres Rahmens. Es gibt bewusst nur
+## noch diesen EINEN Wert: frueher hatten Frame, 3D-Ansicht und Raum-Grid
+## je einen eigenen Alphawert, was drei unterschiedlich durchsichtige
+## Flaechen uebereinander ergab (der "Kasten im Kasten"). Der Default 0.82
+## entspricht dem Wert, der bisher fest in hud.tscn (StyleBoxFlat_mapframe)
+## stand.
+const MINIMAP_OPACITY_MIN: float = 0.0
+const MINIMAP_OPACITY_MAX: float = 1.0
+const MINIMAP_OPACITY_DEFAULT: float = 0.82
+
+## Platzierung des schematischen Raum-Grids. Werte decken sich 1:1 mit
+## minimap.gd -> OverlayPlacement.
+const MINIMAP_GRID_BELOW: int = 0
+const MINIMAP_GRID_INSIDE: int = 1
+const MINIMAP_GRID_HIDDEN: int = 2
 
 # --- Rebindbare Actions + Anzeigename fürs SettingsMenu-UI. ---
 const REBINDABLE_ACTIONS: Dictionary = {
@@ -24858,16 +26283,45 @@ const REBINDABLE_ACTIONS: Dictionary = {
 	"ui_down": "Rückwärts",
 }
 
-# Fallback-Belegung fuer Actions, die im InputMap (project.godot) FEHLEN.
-#
-# Hintergrund: "reset" war urspruenglich nur in Level 1 fest verdrahtet und
-# existiert deshalb in manchen Projektstaenden gar nicht als Action. Ohne
-# den Fallback wuerde InputMap.action_get_events("reset") einen Fehler
-# werfen und das komplette Controls-Menue mitreissen. _ensure_actions_exist()
-# legt fehlende Actions beim Start still an.
-const FALLBACK_KEYS: Dictionary = {
-	"reset": KEY_R,
+# ============================================================================
+# VERBINDLICHE Standard-Tastenbelegung
+# ============================================================================
+# Diese Tabelle IST der Standard — hart definiert, unabhaengig von
+# project.godot.
+const DEFAULT_KEYBINDS: Dictionary = {
+	"attack_primary":    {"mouse": MOUSE_BUTTON_LEFT},
+	"attack_secondary":  {"mouse": MOUSE_BUTTON_RIGHT},
+	"utility":           {"key": KEY_SHIFT},
+	"ability_primary":   {"key": KEY_Q},
+	"ability_secondary": {"key": KEY_E},
+	"interact":          {"key": KEY_F},
+	"ui_accept":         {"key": KEY_SPACE},
+	"ui_left":           {"key": KEY_A},
+	"ui_right":          {"key": KEY_D},
+	"ui_up":             {"key": KEY_W},
+	"ui_down":           {"key": KEY_S},
+	"reset":             {"key": KEY_R},
 }
+
+
+static func build_default_event(action: String) -> InputEvent:
+	if not DEFAULT_KEYBINDS.has(action):
+		return null
+	var spec: Dictionary = DEFAULT_KEYBINDS[action]
+
+	if spec.has("mouse"):
+		var mouse_event := InputEventMouseButton.new()
+		mouse_event.button_index = spec["mouse"]
+		return mouse_event
+
+	if spec.has("key"):
+		var key_event := InputEventKey.new()
+		# physical_keycode statt keycode: bleibt auf AZERTY/QWERTZ an der
+		# gleichen PHYSISCHEN Stelle, was fuer WASD entscheidend ist.
+		key_event.physical_keycode = spec["key"]
+		return key_event
+
+	return null
 
 # --- Controls ---
 var mouse_sensitivity: float = DEFAULT_SENSITIVITY
@@ -24882,27 +26336,39 @@ var display_mode: int = DISPLAY_MODE_WINDOWED
 var vsync_enabled: bool = true
 var fps_limit: int = 144  # 0 = unlimited
 
-# --- General ---
+# --- General / HUD ---
 var hud_visible: bool = true
-# element (String) -> bool. Wird in _init_hud_elements() aus HUD_ELEMENTS
-# vorbefuellt, damit neu hinzugefuegte Elemente automatisch defaulten.
 var hud_elements: Dictionary = {}
-# false = Minimap bleibt IMMER nordorientiert (Standard), true = Minimap dreht sich mit dem Spieler.
+
+# --- Minimap ---
+## false = Minimap bleibt IMMER nordorientiert (Standard).
 var minimap_rotate_with_player: bool = false
+## Multiplikator auf den Weltausschnitt der 3D-Draufsicht.
+## Groesser = naeher dran (weniger Welt sichtbar).
+var minimap_zoom: float = MINIMAP_ZOOM_DEFAULT
+## Skaliert das komplette Minimap-Control im HUD.
+var minimap_ui_scale: float = MINIMAP_UI_SCALE_DEFAULT
+## Deckkraft von Flaeche und Rahmen.
+var minimap_opacity: float = MINIMAP_OPACITY_DEFAULT
+## Wo das Raum-Grid sitzt: unter der Karte / in der Karte / aus.
+var minimap_grid_placement: int = MINIMAP_GRID_BELOW
+## Spielerpfeil in der Kartenmitte.
+var minimap_show_player_arrow: bool = true
+## X/Y-Koordinatenanzeige unter der Karte.
+var minimap_show_coords: bool = true
+## Zonen-/Etagenname ueber der Karte.
+var minimap_show_zone_label: bool = true
 
 # --- Accessibility ---
 var crt_filter_enabled: bool = true
 var screen_shake_enabled: bool = true
 var colorblind_mode: int = COLORBLIND_OFF
 
-# Merkt sich die letzte bekannte Fenstergröße/-position im Windowed-Modus,
-# damit beim Zurückwechseln von Borderless/Fullscreen die Größe wiederhergestellt
-# wird — ohne das würde "Windowed" nach einem Borderless-Trip bildschirmgroß bleiben.
+# Merkt sich die letzte bekannte Fenstergröße/-position im Windowed-Modus.
 var _windowed_size: Vector2i = DEFAULT_WINDOWED_SIZE
 var _windowed_position: Vector2i = Vector2i.ZERO
 
-# Merkt sich die InputMap-Belegung vom allerersten Start — Grundlage für
-# reset_action_to_default().
+# Merkt sich die InputMap-Belegung vom allerersten Start.
 var _default_keybinds: Dictionary = {}  # action -> Array[InputEvent]
 
 func _ready() -> void:
@@ -24911,25 +26377,18 @@ func _ready() -> void:
 	load_settings()
 	_apply_all()
 
-# Legt fehlende Actions im InputMap an, BEVOR load_settings() ihre Defaults
-# sichert — sonst waeren die _default_keybinds fuer diese Action leer und
-# reset_action_to_default() haette nichts zum Wiederherstellen.
 func _ensure_actions_exist() -> void:
 	for action in REBINDABLE_ACTIONS.keys():
 		if InputMap.has_action(action):
 			continue
 		InputMap.add_action(action)
-		if FALLBACK_KEYS.has(action):
-			var ev := InputEventKey.new()
-			ev.physical_keycode = FALLBACK_KEYS[action]
-			InputMap.action_add_event(action, ev)
-			print("[SettingsManager] Action '%s' fehlte im InputMap - mit Taste '%s' angelegt." % [action, OS.get_keycode_string(FALLBACK_KEYS[action])])
+		var event: InputEvent = build_default_event(action)
+		if event:
+			InputMap.action_add_event(action, event)
+			print("[SettingsManager] Action '%s' fehlte im InputMap - mit Standardbelegung angelegt." % action)
 		else:
-			push_warning("SettingsManager: Action '%s' fehlt im InputMap und hat keinen Fallback." % action)
+			push_warning("SettingsManager: Action '%s' fehlt im InputMap und steht nicht in DEFAULT_KEYBINDS." % action)
 
-# Legt fuer jedes in HUD_ELEMENTS deklarierte Element einen Default-Eintrag
-# an. Wird VOR load_settings() aufgerufen, damit gespeicherte Werte die
-# Defaults ueberschreiben koennen — und nicht umgekehrt.
 func _init_hud_elements() -> void:
 	for key in HUD_ELEMENTS.keys():
 		if not hud_elements.has(key):
@@ -24945,6 +26404,7 @@ func _apply_all() -> void:
 	_apply_sensitivity_to_player()
 	_apply_crt_filter(crt_filter_enabled)
 	_apply_colorblind_mode(colorblind_mode)
+	minimap_setting_changed.emit()
 
 # ============================================================================
 # Controls
@@ -24994,9 +26454,6 @@ func has_audio_bus(bus_name: String) -> bool:
 # Video
 # ============================================================================
 func set_display_mode(mode: int) -> void:
-	# Aktuelle Fenstergröße/-position sichern, SOLANGE wir noch im Windowed-
-	# Modus sind — das ist die einzige zuverlässige Quelle für "wie groß war
-	# das Fenster, bevor wir in Fullscreen/Borderless gewechselt sind".
 	if display_mode == DISPLAY_MODE_WINDOWED:
 		_windowed_size = DisplayServer.window_get_size()
 		_windowed_position = DisplayServer.window_get_position()
@@ -25012,9 +26469,6 @@ func _apply_display_mode(mode: int) -> void:
 		DISPLAY_MODE_WINDOWED:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
-			# WICHTIG: Ohne diese zwei Zeilen bleibt das Fenster nach einem
-			# Borderless-Trip bildschirmgroß — DisplayServer merkt sich die
-			# Größe nicht selbst zurück.
 			DisplayServer.window_set_size(_windowed_size)
 			DisplayServer.window_set_position(_windowed_position)
 		DISPLAY_MODE_FULLSCREEN:
@@ -25047,16 +26501,13 @@ func _apply_fps_limit(fps: int) -> void:
 	Engine.max_fps = maxi(0, fps)
 
 # ============================================================================
-# General
+# General / HUD
 # ============================================================================
 func set_hud_visible(is_visible: bool) -> void:
 	hud_visible = is_visible
 	hud_visible_changed.emit(is_visible)
 	save_settings()
 
-# Einzelnes HUD-Element schalten. Unbekannte Element-IDs werden bewusst
-# ignoriert (mit Warnung) statt still angelegt — so faellt ein Tippfehler
-# im Einstellungsmenue sofort auf.
 func set_hud_element_visible(element: String, is_visible: bool) -> void:
 	if not HUD_ELEMENTS.has(element):
 		push_warning("SettingsManager: Unbekanntes HUD-Element '%s'." % element)
@@ -25065,15 +26516,78 @@ func set_hud_element_visible(element: String, is_visible: bool) -> void:
 	hud_element_visible_changed.emit(element, is_visible)
 	save_settings()
 
-# Reiner Element-Schalter OHNE den Master-Schalter. Das HUD selbst
-# verknuepft beides — siehe hud.gd.
+## Reiner Element-Schalter OHNE den Master-Schalter. Das HUD verknuepft
+## beides — siehe hud.gd.
 func is_hud_element_visible(element: String) -> bool:
 	return bool(hud_elements.get(element, true))
+
+# ============================================================================
+# Minimap
+# ============================================================================
+# Alle Setter clampen selbst und feuern dasselbe Sammelsignal. Der Clamp
+# hier (statt nur im Slider) ist der eigentliche Schutz — ein Aufruf aus
+# Code oder eine manipulierte Config geht sonst am Slider vorbei.
 
 func set_minimap_rotate_with_player(enabled: bool) -> void:
 	minimap_rotate_with_player = enabled
 	minimap_rotate_with_player_changed.emit(enabled)
+	minimap_setting_changed.emit()
 	save_settings()
+
+func set_minimap_zoom(value: float) -> void:
+	minimap_zoom = clampf(value, MINIMAP_ZOOM_MIN, MINIMAP_ZOOM_MAX)
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_ui_scale(value: float) -> void:
+	minimap_ui_scale = clampf(value, MINIMAP_UI_SCALE_MIN, MINIMAP_UI_SCALE_MAX)
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_opacity(value: float) -> void:
+	minimap_opacity = clampf(value, MINIMAP_OPACITY_MIN, MINIMAP_OPACITY_MAX)
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_grid_placement(placement: int) -> void:
+	minimap_grid_placement = clampi(placement, MINIMAP_GRID_BELOW, MINIMAP_GRID_HIDDEN)
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_show_player_arrow(enabled: bool) -> void:
+	minimap_show_player_arrow = enabled
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_show_coords(enabled: bool) -> void:
+	minimap_show_coords = enabled
+	minimap_setting_changed.emit()
+	save_settings()
+
+func set_minimap_show_zone_label(enabled: bool) -> void:
+	minimap_show_zone_label = enabled
+	minimap_setting_changed.emit()
+	save_settings()
+
+## Setzt NUR den Minimap-Block zurueck. Feuert das Sammelsignal genau
+## einmal statt achtmal.
+func reset_minimap_settings() -> void:
+	_reset_minimap_values()
+	minimap_rotate_with_player_changed.emit(minimap_rotate_with_player)
+	minimap_setting_changed.emit()
+	save_settings()
+
+## Reine Wertzuweisung ohne Signale — damit die Seiten-Resets weiter unten
+## erst ALLE Werte setzen und dann EINMAL sammelfeuern koennen.
+func _reset_minimap_values() -> void:
+	minimap_rotate_with_player = false
+	minimap_zoom = MINIMAP_ZOOM_DEFAULT
+	minimap_ui_scale = MINIMAP_UI_SCALE_DEFAULT
+	minimap_opacity = MINIMAP_OPACITY_DEFAULT
+	minimap_grid_placement = MINIMAP_GRID_BELOW
+	minimap_show_player_arrow = true
+	minimap_show_coords = true
+	minimap_show_zone_label = true
 
 # ============================================================================
 # Accessibility
@@ -25105,9 +26619,6 @@ func _apply_colorblind_mode(mode: int) -> void:
 		if node is CanvasItem and node.material is ShaderMaterial:
 			node.material.set_shader_parameter("colorblind_mode", mode)
 
-# Rekursive Namenssuche im ganzen Szenenbaum — bewusst NICHT über Gruppen
-# gelöst, damit du im Editor an den bestehenden CRTOverlay-Nodes NICHTS
-# manuell nachpflegen musst (funktioniert einfach über den exakten Node-Namen).
 func _find_nodes_by_name(root: Node, target_name: String) -> Array:
 	var results: Array = []
 	_find_nodes_by_name_recursive(root, target_name, results)
@@ -25133,58 +26644,36 @@ func rebind_action(action: String, event: InputEvent) -> void:
 	keybind_changed.emit(action)
 	save_settings()
 
-# Setzt eine Action auf ihren Ausgangszustand zurück.
-#
-# SONDERFALL ui_accept: Die project.godot-Defaults sind hier historisch
-# uneinheitlich (mal nur Enter, mal Enter+Space in wechselnder Reihenfolge)
-# — für "Springen" wollen wir aber IMMER verlässlich Space als Ergebnis,
-# unabhängig davon was ursprünglich in project.godot stand. Deshalb wird
-# hier nicht aus _default_keybinds wiederhergestellt, sondern die
-# Tastatur-Belegung hart auf Space gesetzt (Joypad-Bindings bleiben wie
-# gehabt unangetastet).
 func reset_action_to_default(action: String) -> void:
-	if action == "ui_accept":
-		for existing in InputMap.action_get_events(action):
-			if existing is InputEventKey or existing is InputEventMouseButton:
-				InputMap.action_erase_event(action, existing)
-		var space_event := InputEventKey.new()
-		space_event.physical_keycode = KEY_SPACE
-		InputMap.action_add_event(action, space_event)
-		keybind_changed.emit(action)
-		save_settings()
-		return
+	var event: InputEvent = build_default_event(action)
 
-	# Actions, die es urspruenglich gar nicht gab (siehe FALLBACK_KEYS),
-	# haben keine sinnvollen _default_keybinds — dann auf die Fallback-
-	# Taste zuruecksetzen statt gar nichts zu tun.
-	if not _default_keybinds.has(action) or (_default_keybinds[action] as Array).is_empty():
-		if not FALLBACK_KEYS.has(action):
+	if event == null:
+		push_warning("SettingsManager: '%s' fehlt in DEFAULT_KEYBINDS - nutze die beim Start gesicherte Belegung." % action)
+		if not _default_keybinds.has(action):
 			return
 		InputMap.action_erase_events(action)
-		var fallback_event := InputEventKey.new()
-		fallback_event.physical_keycode = FALLBACK_KEYS[action]
-		InputMap.action_add_event(action, fallback_event)
+		for fallback_event: InputEvent in _default_keybinds[action]:
+			InputMap.action_add_event(action, fallback_event)
 		keybind_changed.emit(action)
 		save_settings()
 		return
 
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+
 	InputMap.action_erase_events(action)
-	for event: InputEvent in _default_keybinds[action]:
-		InputMap.action_add_event(action, event)
+	InputMap.action_add_event(action, event)
+
 	keybind_changed.emit(action)
 	save_settings()
 
-# Liefert das "beste" Tastatur-/Maus-Event einer Action fürs UI. Manche
-# Actions (ui_up/down/left/right) haben in project.godot ZWEI Keyboard-
-# Events: Pfeiltasten (nur "keycode" gesetzt, physical_keycode = 0) UND
-# WASD (physical_keycode gesetzt) — davon wird die physical_keycode-Variante
-# bevorzugt gezeigt.
-#
-# SONDERFALL ui_accept: Godots Default-Belegung enthält hier standardmäßig
-# SOWOHL Enter ALS AUCH Leertaste (beides mit physical_keycode gesetzt).
-# Ohne Sonderbehandlung würde einfach das erste gefundene Event gewinnen,
-# was zufällig Enter statt Space sein kann. Deshalb wird für ui_accept
-# explizit KEY_SPACE gesucht und bevorzugt, falls vorhanden.
+
+## Setzt ALLE Actions auf die Standardbelegung zurueck.
+func reset_all_keybinds() -> void:
+	for action in REBINDABLE_ACTIONS.keys():
+		reset_action_to_default(action)
+
+
 func get_action_event(action: String) -> InputEvent:
 	var events: Array = InputMap.action_get_events(action)
 
@@ -25224,43 +26713,90 @@ func _events_match(a: InputEvent, b: InputEvent) -> bool:
 	return false
 
 # ============================================================================
-# Reset to Defaults (alle Werte)
+# Reset — pro Seite
 # ============================================================================
-func reset_all_to_defaults() -> void:
-	mouse_sensitivity = DEFAULT_SENSITIVITY
-	master_volume = 1.0
-	music_volume = 1.0
-	sfx_volume = 1.0
-	display_mode = DISPLAY_MODE_WINDOWED
-	vsync_enabled = true
-	fps_limit = 144
+# Ein globaler "Reset to Default" ist im Alltag gefaehrlich: wer in den
+# Keybinds sitzt und zuruecksetzen will, verliert sonst nebenbei seine
+# Lautstaerke, Aufloesung und Minimap-Einstellungen. Deshalb setzt der
+# Button im Menue nur noch die AKTUELLE Seite zurueck; reset_all_to_defaults()
+# bleibt als API bestehen (z.B. fuer einen spaeteren "Alles zuruecksetzen"
+# im Hauptmenue), wird vom Button aber nicht mehr aufgerufen.
+
+func reset_general_settings() -> void:
 	hud_visible = true
 	for key in HUD_ELEMENTS.keys():
 		hud_elements[key] = true
-	minimap_rotate_with_player = false
+	_reset_minimap_values()
 	crt_filter_enabled = true
 	screen_shake_enabled = true
 	colorblind_mode = COLORBLIND_OFF
 
-	for action in REBINDABLE_ACTIONS.keys():
-		reset_action_to_default(action)
+	_apply_crt_filter(crt_filter_enabled)
+	_apply_colorblind_mode(colorblind_mode)
 
-	_apply_all()
-	sensitivity_changed.emit(mouse_sensitivity)
-	volume_changed.emit("Master", master_volume)
-	volume_changed.emit("Music", music_volume)
-	volume_changed.emit("SFX", sfx_volume)
-	display_mode_changed.emit(display_mode)
-	vsync_changed.emit(vsync_enabled)
-	fps_limit_changed.emit(fps_limit)
 	hud_visible_changed.emit(hud_visible)
 	for key in HUD_ELEMENTS.keys():
 		hud_element_visible_changed.emit(key, bool(hud_elements[key]))
 	minimap_rotate_with_player_changed.emit(minimap_rotate_with_player)
+	minimap_setting_changed.emit()
 	crt_filter_changed.emit(crt_filter_enabled)
 	screen_shake_changed.emit(screen_shake_enabled)
 	colorblind_mode_changed.emit(colorblind_mode)
 	save_settings()
+
+
+func reset_video_settings() -> void:
+	display_mode = DISPLAY_MODE_WINDOWED
+	vsync_enabled = true
+	fps_limit = 144
+
+	_apply_display_mode(display_mode)
+	_apply_vsync(vsync_enabled)
+	_apply_fps_limit(fps_limit)
+
+	display_mode_changed.emit(display_mode)
+	fullscreen_changed.emit(false)
+	vsync_changed.emit(vsync_enabled)
+	fps_limit_changed.emit(fps_limit)
+	save_settings()
+
+
+func reset_audio_settings() -> void:
+	master_volume = 1.0
+	music_volume = 1.0
+	sfx_volume = 1.0
+
+	_apply_volume("Master", master_volume)
+	_apply_volume("Music", music_volume)
+	_apply_volume("SFX", sfx_volume)
+
+	volume_changed.emit("Master", master_volume)
+	volume_changed.emit("Music", music_volume)
+	volume_changed.emit("SFX", sfx_volume)
+	save_settings()
+
+
+## Sensitivity + komplette Tastenbelegung. reset_action_to_default()
+## speichert selbst — das abschliessende save_settings() ist trotzdem
+## noetig, weil die Sensitivity sonst nur im Speicher stuende, falls
+## REBINDABLE_ACTIONS jemals leer waere.
+func reset_controls_settings() -> void:
+	mouse_sensitivity = DEFAULT_SENSITIVITY
+	_apply_sensitivity_to_player()
+	sensitivity_changed.emit(mouse_sensitivity)
+
+	for action in REBINDABLE_ACTIONS.keys():
+		reset_action_to_default(action)
+
+	save_settings()
+
+
+## Vollreset ueber ALLE Seiten. Vom Menue-Button NICHT mehr aufgerufen.
+func reset_all_to_defaults() -> void:
+	reset_general_settings()
+	reset_video_settings()
+	reset_audio_settings()
+	reset_controls_settings()
 
 # ============================================================================
 # Persistenz
@@ -25280,7 +26816,17 @@ func save_settings() -> void:
 	config.set_value("general", "hud_visible", hud_visible)
 	for key in HUD_ELEMENTS.keys():
 		config.set_value("general", "hud_%s" % key, bool(hud_elements.get(key, true)))
-	config.set_value("general", "minimap_rotate_with_player", minimap_rotate_with_player)
+
+	# Eigene Section statt "general": haelt die Config lesbar und macht
+	# spaetere Migrationen unabhaengig vom Rest.
+	config.set_value("minimap", "rotate_with_player", minimap_rotate_with_player)
+	config.set_value("minimap", "zoom", minimap_zoom)
+	config.set_value("minimap", "ui_scale", minimap_ui_scale)
+	config.set_value("minimap", "opacity", minimap_opacity)
+	config.set_value("minimap", "grid_placement", minimap_grid_placement)
+	config.set_value("minimap", "show_player_arrow", minimap_show_player_arrow)
+	config.set_value("minimap", "show_coords", minimap_show_coords)
+	config.set_value("minimap", "show_zone_label", minimap_show_zone_label)
 
 	config.set_value("accessibility", "crt_filter", crt_filter_enabled)
 	config.set_value("accessibility", "screen_shake", screen_shake_enabled)
@@ -25326,7 +26872,36 @@ func load_settings() -> void:
 	hud_visible = config.get_value("general", "hud_visible", true)
 	for key in HUD_ELEMENTS.keys():
 		hud_elements[key] = bool(config.get_value("general", "hud_%s" % key, true))
-	minimap_rotate_with_player = config.get_value("general", "minimap_rotate_with_player", false)
+
+	# Migration: rotate_with_player lag frueher unter [general].
+	# Die entfallenen Schluessel "grid_scale" und "big_map_zoom" werden
+	# einfach nicht mehr gelesen — beim naechsten save_settings() fallen
+	# sie automatisch aus der Datei, weil ConfigFile neu geschrieben wird.
+	var legacy_rotate: bool = bool(config.get_value("general", "minimap_rotate_with_player", false))
+	minimap_rotate_with_player = bool(config.get_value("minimap", "rotate_with_player", legacy_rotate))
+
+	# clampf beim Laden, nicht nur beim Setzen: eine von Hand editierte
+	# settings.cfg mit zoom = 0 wuerde die Minimap-Kamera sonst auf size 0
+	# stellen (komplett schwarze Karte, kein Fehler im Log).
+	minimap_zoom = clampf(
+		float(config.get_value("minimap", "zoom", MINIMAP_ZOOM_DEFAULT)),
+		MINIMAP_ZOOM_MIN, MINIMAP_ZOOM_MAX)
+	minimap_ui_scale = clampf(
+		float(config.get_value("minimap", "ui_scale", MINIMAP_UI_SCALE_DEFAULT)),
+		MINIMAP_UI_SCALE_MIN, MINIMAP_UI_SCALE_MAX)
+	# Migration: wer die Vorversion mit zwei Reglern hatte, bekommt den
+	# frueheren HINTERGRUND-Wert als neuen Gesamtwert - der Gesamt-Regler
+	# stand dort meist auf 1.0 und waere als Startwert nutzlos.
+	var legacy_bg: float = float(config.get_value("minimap", "bg_opacity", MINIMAP_OPACITY_DEFAULT))
+	minimap_opacity = clampf(
+		float(config.get_value("minimap", "opacity", legacy_bg)) if not config.has_section_key("minimap", "bg_opacity") else legacy_bg,
+		MINIMAP_OPACITY_MIN, MINIMAP_OPACITY_MAX)
+	minimap_grid_placement = clampi(
+		int(config.get_value("minimap", "grid_placement", MINIMAP_GRID_BELOW)),
+		MINIMAP_GRID_BELOW, MINIMAP_GRID_HIDDEN)
+	minimap_show_player_arrow = bool(config.get_value("minimap", "show_player_arrow", true))
+	minimap_show_coords = bool(config.get_value("minimap", "show_coords", true))
+	minimap_show_zone_label = bool(config.get_value("minimap", "show_zone_label", true))
 
 	crt_filter_enabled = config.get_value("accessibility", "crt_filter", true)
 	screen_shake_enabled = config.get_value("accessibility", "screen_shake", true)
