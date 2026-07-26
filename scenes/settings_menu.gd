@@ -31,6 +31,7 @@ signal back_pressed
 @onready var colorblind_option: OptionButton = $Panel/VBoxContainer/TabContainer/General/ColorblindRow/ColorblindOption
 
 # --- Video ---
+@onready var video_tab: VBoxContainer = $Panel/VBoxContainer/TabContainer/Video
 @onready var display_mode_option: OptionButton = $Panel/VBoxContainer/TabContainer/Video/DisplayModeRow/DisplayModeOption
 @onready var vsync_check: CheckButton = $Panel/VBoxContainer/TabContainer/Video/VSyncRow/VSyncCheck
 @onready var fps_limit_option: OptionButton = $Panel/VBoxContainer/TabContainer/Video/FPSLimitRow/FPSLimitOption
@@ -92,6 +93,9 @@ var _hud_elements_box: VBoxContainer = null
 var _hud_element_checks: Dictionary = {}  # element (String) -> CheckButton
 var _hud_dropdown_open: bool = false
 
+# --- Video-Steuerelemente (zur Laufzeit erzeugt) ---
+var _fov_slider: HSlider = null
+
 # --- Minimap-Steuerelemente (alle zur Laufzeit erzeugt) ---
 var _minimap_zoom_slider: HSlider = null
 var _minimap_ui_scale_slider: HSlider = null
@@ -128,6 +132,7 @@ func _ready() -> void:
 	_build_general_layout()
 	_build_hud_element_dropdown()
 	_build_minimap_group()
+	_build_video_extras()
 
 	_build_keybind_rows()
 	_refresh_from_settings()
@@ -337,6 +342,31 @@ func _move_row_to_group(row: Control, group_id: String) -> void:
 		spacer.custom_minimum_size = Vector2(GROUP_INDENT, 0)
 		row.add_child(spacer)
 		row.move_child(spacer, 0)
+
+
+# ============================================================================
+# Video-Tab: FOV-Regler
+# ============================================================================
+
+## Der FOV-Regler wird zur Laufzeit gebaut statt in die .tscn eingetragen: so
+## bleibt settings_menu.tscn flach (siehe Aufbau-Philosophie oben) und die
+## Zeile bekommt automatisch dasselbe Label/Slider/Wert-Layout wie die
+## Minimap-Regler.
+func _build_video_extras() -> void:
+	if video_tab == null:
+		push_warning("SettingsMenu: Tab 'Video' nicht gefunden — FOV-Regler wird uebersprungen.")
+		return
+
+	_fov_slider = _add_slider_row(
+		video_tab, "Sichtfeld (FOV)",
+		SettingsManager.FOV_MIN, SettingsManager.FOV_MAX, 1.0,
+		_on_fov_changed)
+
+	var hint := Label.new()
+	hint.text = "    Standard: %d - hoeher = mehr Uebersicht, staerkere Randverzerrung" % int(SettingsManager.FOV_DEFAULT)
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.modulate = Color(1, 1, 1, 0.55)
+	video_tab.add_child(hint)
 
 
 # ============================================================================
@@ -561,6 +591,15 @@ func _on_sensitivity_changed(value: float) -> void:
 	SettingsManager.set_sensitivity(value)
 
 
+## Das Wert-Label wird IMMER aktualisiert, auch waehrend _suppress_signals -
+## sonst zeigt die Zeile beim Oeffnen des Menues den Wert von vorher.
+func _on_fov_changed(value: float) -> void:
+	_set_slider_display(_fov_slider, "%d" % int(round(value)))
+	if _suppress_signals:
+		return
+	SettingsManager.set_fov(value)
+
+
 func _on_minimap_zoom_changed(value: float) -> void:
 	if _suppress_signals:
 		return
@@ -681,6 +720,10 @@ func _refresh_from_settings() -> void:
 	_select_option_by_id(display_mode_option, SettingsManager.display_mode)
 	vsync_check.button_pressed = SettingsManager.vsync_enabled
 	_select_option_by_id(fps_limit_option, SettingsManager.fps_limit)
+
+	if _fov_slider:
+		_fov_slider.value = SettingsManager.fov
+		_set_slider_display(_fov_slider, "%d" % int(round(SettingsManager.fov)))
 
 	master_slider.value = SettingsManager.master_volume
 	music_slider.value = SettingsManager.music_volume

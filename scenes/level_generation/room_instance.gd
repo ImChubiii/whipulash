@@ -1,5 +1,3 @@
-
-
 extends Node3D
 class_name RoomInstance
 
@@ -186,6 +184,34 @@ enum DoorState {
 ## Tuerblatt raus, volle Wand rein, vom Boden bis zur Decke. Der Raum
 ## sieht dann genauso aus, wie er sich verhaelt.
 @export var seal_unused_exits: bool = true
+
+## --- Rampen / Hoehenunterschiede --------------------------------------
+## Dicke des Rampen-Keils UNTER seiner Lauf-Flaeche. Frueher fest 1.0 -
+## darunter klaffte bis zu "rise" Meter Leere. Ein Gegner, der auf der Rampe
+## gespawnt oder per Knockback hineingedrueckt wurde, ist durch die duenne
+## Platte hindurchgerutscht und ins Nichts gefallen. Der Keil wird jetzt bis
+## unter das tiefste Bodenniveau des Raums ausgefuellt.
+@export var slope_ramp_extra_thickness: float = 2.0
+
+## Waende eines Rampenraums nach OBEN um den Hoehengewinn und nach UNTEN um
+## den Hoehenverlust verlaengern.
+##
+## Die Waende der Raum-Szenen stehen fest von y = 0 bis y = room_height. Auf
+## einer Rampe stimmt das nicht mehr:
+##   STEIGUNG (+6): man steht am hohen Ende auf y = 6, die Wandoberkante
+##     liegt weiter bei 14 - es bleiben nur 8 Meter, und die Kamera schaut
+##     ueber die Wand hinweg ins Nichts.
+##   SENKUNG (-6): der Boden geht auf y = -6, die Wandunterkante bleibt bei
+##     0 - darunter klafft ein 6 Meter hoher offener Spalt.
+@export var slope_extend_walls: bool = true
+## Sicherheitsabstand, den die Wand ueber/unter das Bodenniveau hinausragt.
+@export var slope_wall_margin: float = 1.0
+
+## Spawn-Marker nach dem Rampenbau per Raycast auf den ECHTEN Boden setzen.
+## Siehe _snap_markers_to_ground() - das ist der Fix gegen "Gegner fallen bei
+## Steigungen durch den Boden".
+@export var snap_spawn_points_to_ground: bool = true
+@export var spawn_ground_probe_height: float = 40.0
 
 ## --- Tuerzustand auf der 3D-Minimap -----------------------------------
 ## Farben absichtlich identisch zum schematischen Grid-Overlay
@@ -651,13 +677,12 @@ func configure_slope(low_dir: String, rise: float) -> void:
 
 	# BUGFIX "Korridore haben keinen absteigenden Boden":
 	#
-	# Die Rampe wird ZUSAETZLICH zur flachen Bodenplatte gebaut. Bei einer
-	# STEIGUNG faellt das nicht auf - die Rampe liegt dann ueber der Platte
-	# und gewinnt. Bei einem GEFAELLE laeuft sie von 0 auf -rise nach unten,
-	# liegt also UNTER der Platte (y -1..0): der Spieler laeuft die ganze
+	# Die Rampe wurde frueher ZUSAETZLICH zur flachen Bodenplatte gebaut. Bei
+	# einer STEIGUNG faellt das nicht auf - die Rampe liegt dann ueber der
+	# Platte und gewinnt. Bei einem GEFAELLE laeuft sie von 0 auf -rise nach
+	# unten, liegt also UNTER der Platte: der Spieler laeuft die ganze
 	# Ganglaenge auf der Platte weiter und faellt am Ende einen ungefederten
-	# Absatz von rise Metern in den naechsten Raum. Genau deshalb wirken nur
-	# die abwaerts fuehrenden Korridore kaputt.
+	# Absatz von rise Metern in den naechsten Raum.
 	#
 	# Sobald eine Rampe existiert, IST sie der Boden - die Platte wird
 	# abgeschaltet und gibt ihr Material an die Rampe weiter (sonst rendert
@@ -672,8 +697,12 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	var hypotenuse: float = sqrt(length * length + rise * rise)
 	var angle: float = atan2(rise, length)
 
+	# Massiver Keil statt duenner Platte: die Dicke reicht garantiert unter
+	# das tiefste Bodenniveau des Raums. Siehe slope_ramp_extra_thickness.
+	var thickness: float = absf(rise) + maxf(slope_ramp_extra_thickness, 0.5)
+
 	var box_mesh := BoxMesh.new()
-	box_mesh.size = Vector3(width, 1.0, hypotenuse)
+	box_mesh.size = Vector3(width, thickness, hypotenuse)
 
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.name = "MeshInstance3D"
@@ -684,14 +713,18 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	ramp.add_child(mesh_instance)
 
 	var shape := CollisionShape3D.new()
+	shape.name = "CollisionShape3D"
 	var box := BoxShape3D.new()
 	box.size = box_mesh.size
 	shape.shape = box
 	ramp.add_child(shape)
 
-	# Rampe mittig platzieren, Oberkante bei 0 am tiefen und bei rise am
-	# hohen Ende. -0.5 auf Y, weil die Box 1.0 dick ist.
-	ramp.position = Vector3(0.0, rise * 0.5 - 0.5, 0.0)
+	# Die LAUF-FLAECHE (Oberseite des Keils) soll ihren Mittelpunkt exakt bei
+	# rise * 0.5 haben, damit die Enden sauber auf 0 und rise liegen. Die
+	# halbe Dicke muss dabei MIT dem Neigungswinkel gerechnet werden: der
+	# alte feste Term "- 0.5" stimmte nur zufaellig fuer eine 1.0 dicke
+	# Platte und liefe bei dickeren Keilen weg.
+	ramp.position = Vector3(0.0, rise * 0.5 - thickness * 0.5 * cos(angle), 0.0)
 
 	# BUGFIX "Ost/West-Rampen sind flach -> 6 Meter hohe Wand statt
 	# Durchgang":
@@ -700,10 +733,7 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	# Godot interpretiert Node3D.rotation in der Euler-Reihenfolge YXZ, die
 	# Gesamtdrehung ist also Ry * Rx * Rz. Die Laengsachse der Rampen-Box ist
 	# lokal +Z - und eine Drehung UM Z laesst genau diese Achse unveraendert.
-	# Der Winkel landete damit komplett im Leeren: die Ost/West-Rampe blieb
-	# waagerecht, waehrend der Raum dahinter trotzdem eine volle Hoehenstufe
-	# hoeher abgesetzt wurde. Ergebnis im Spiel: ein Gang, der vor einer
-	# glatten Wand endet - "Raum hat keinen freien Durchgang".
+	# Der Winkel landete damit komplett im Leeren.
 	#
 	# Korrekt ist Pitch um X (kippt +Z nach oben) und danach Yaw um Y (dreht
 	# die gekippte Achse auf Ost/West). In YXZ-Reihenfolge ist das
@@ -718,8 +748,8 @@ func configure_slope(low_dir: String, rise: float) -> void:
 		pitch = -angle * signf(axis.x)
 	ramp.rotation = Vector3(pitch, yaw, 0.0)
 
-	# Tuer + ExitPoint auf der hohen Seite mit anheben, sonst steht die
-	# Tuer im Boden bzw. der naechste Raum haengt in der Luft.
+	# Tuer + ExitPoint auf der hohen Seite mit anheben, sonst steht die Tuer
+	# im Boden bzw. der naechste Raum haengt in der Luft.
 	if exit_points.has(high_dir):
 		var marker: Marker3D = exit_points[high_dir]
 		marker.position.y += rise
@@ -734,11 +764,203 @@ func configure_slope(low_dir: String, rise: float) -> void:
 			else:
 				door.position.y += rise
 
-	# Der Sturz haengt an der Tuer-Oberkante. Nach dem Anheben muss er neu
-	# gebaut werden - sonst ueberlappt er das Blatt um rise Meter und oben
-	# bleibt ein ebenso hoher Spalt offen.
+	# Waende, Decke, Tuerstuerze, Minimap-Platten und die Trigger-Volumen auf
+	# das neue Hoehenband ziehen. Baut die Stuerze BEIDER Richtungen neu -
+	# der Aufruf fuer high_dir, der frueher hier stand, ist darin enthalten.
+	_apply_slope_bounds(rise)
+
+	# Erst JETZT die Spawn-Marker snappen: der Raycast braucht die fertige
+	# Rampe als Trefferflaeche.
+	if snap_spawn_points_to_ground:
+		_snap_markers_to_ground(enemy_spawn_points)
+		_snap_markers_to_ground(loot_spawn_points)
+
+
+## Zieht Waende, Decke, Tuerstuerze, Minimap-Platten und die Trigger-Volumen
+## auf das Hoehenband, das durch die Rampe entstanden ist.
+##
+## floor_min / floor_max sind das tiefste und hoechste Bodenniveau des Raums
+## (0 und rise, je nach Vorzeichen von rise).
+func _apply_slope_bounds(rise: float) -> void:
+	var floor_min: float = minf(0.0, rise)
+	var floor_max: float = maxf(0.0, rise)
+	var margin: float = maxf(slope_wall_margin, 0.0)
+
+	var new_bottom: float = floor_min - margin
+	var new_top: float = room_height + floor_max
+
+	if slope_extend_walls:
+		for child in get_children():
+			if child is StaticBody3D and child.name.begins_with("Wall"):
+				_stretch_wall(child as StaticBody3D, new_bottom, new_top)
+
+	# Die Decke MUSS mit angehoben werden. Sonst steckt die um rise
+	# angehobene Tuer der hohen Seite in der Deckenplatte, und
+	# _build_door_lintel() rechnet fuer sie gap = room_height - leaf_top <= 0
+	# und baut gar keinen Sturz - genau dort klafft dann das Loch in den
+	# Nachbarraum.
+	_raise_ceiling(floor_max)
+
+	# Ab hier IST room_height die neue Oberkante des Raums. Alles, was danach
+	# gebaut oder verschoben wird (Kappen, Stuerze, Minimap-Platten), rechnet
+	# damit.
+	room_height = new_top
+
+	# Die Kappen sitzen auf der ALTEN Wandoberkante -> komplett neu bauen.
+	if wall_cap_enabled:
+		_rebuild_wall_caps()
+
+	# Stuerze BEIDER Richtungen neu: die hohe Tuer ist gewandert, die
+	# Raumhoehe ebenfalls.
 	if build_door_lintels:
-		_build_door_lintel(high_dir)
+		for dir in _doors_by_dir.keys():
+			_build_door_lintel(dir)
+
+	for dir in _door_markers.keys():
+		var marker: MeshInstance3D = _door_markers[dir]["node"]
+		if is_instance_valid(marker):
+			marker.position.y = room_height + door_marker_height
+
+	_extend_trigger_volumes(new_bottom)
+
+
+## Verlaengert EINE Wand auf das Hoehenband [bottom, top].
+##
+## KRITISCH: BoxMesh und BoxShape3D der Raum-Szenen sind SubResources.
+## WallEast und WallWest teilen sich in room_corridor_01.tscn dieselbe
+## Instanz - und alle Raeume derselben Szene ebenfalls. Ohne duplicate()
+## wuerde das Strecken einer einzigen Wand jede andere Wand im ganzen Level
+## mitverformen. Exakt derselbe Bug wie bei den geteilten Lemonade-Shapes.
+##
+## Vorausgesetzt wird, dass CollisionShape3D und MeshInstance3D mittig im
+## StaticBody3D sitzen (so sind alle Raum-Szenen gebaut).
+func _stretch_wall(body: StaticBody3D, bottom: float, top: float) -> void:
+	var collision := body.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if collision == null or not (collision.shape is BoxShape3D):
+		return
+
+	var height: float = top - bottom
+	if height <= 0.01:
+		return
+
+	var shape: BoxShape3D = (collision.shape as BoxShape3D).duplicate()
+	var new_size: Vector3 = shape.size
+	new_size.y = height
+	shape.size = new_size
+	collision.shape = shape
+
+	for child in body.get_children():
+		if not (child is MeshInstance3D):
+			continue
+		var mesh_child: MeshInstance3D = child as MeshInstance3D
+		# Die Minimap-Kappe wird gleich komplett neu gebaut - hier nicht
+		# mitskalieren, sonst waere sie so hoch wie die ganze Wand und die
+		# Minimap zeigte eine schwarze Flaeche statt eines Wandstrichs.
+		if mesh_child.name == "MinimapCap":
+			continue
+		if mesh_child.mesh is BoxMesh:
+			var wall_mesh: BoxMesh = (mesh_child.mesh as BoxMesh).duplicate()
+			wall_mesh.size = new_size
+			mesh_child.mesh = wall_mesh
+
+	body.position.y = (top + bottom) * 0.5
+
+
+func _raise_ceiling(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	var ceiling := get_node_or_null("Ceiling") as StaticBody3D
+	if ceiling == null:
+		return
+	ceiling.position.y += amount
+
+
+## remove_child() VOR queue_free(): queue_free raeumt erst am Frame-Ende auf,
+## _build_wall_caps() wuerde die alte Kappe sonst noch finden und die Wand
+## per "continue" ueberspringen.
+func _rebuild_wall_caps() -> void:
+	for child in get_children():
+		if not (child is StaticBody3D):
+			continue
+		var old_cap: Node = child.get_node_or_null("MinimapCap")
+		if old_cap:
+			child.remove_child(old_cap)
+			old_cap.queue_free()
+	_build_wall_caps()
+
+
+## EntryTrigger und PresenceArea wurden in _ready() mit der alten Raumhoehe
+## gebaut und reichen von knapp ueber y = 0 bis room_height.
+##
+## Bei einer SENKUNG steht der Spieler am Ende des Gangs bei y = -6, also
+## UNTER beiden Volumen: der Raum wuerde nie scharf schalten und den Spieler
+## gleichzeitig dauerhaft als "entkommen" werten -> Endlos-Reset.
+func _extend_trigger_volumes(bottom: float) -> void:
+	_resize_area_box(_entry_trigger, bottom + entry_trigger_floor_offset, room_height)
+	_resize_area_box(_presence_area, bottom - presence_margin, room_height + presence_margin)
+
+
+## Die BoxShape3D beider Areas werden in _setup_*() per new() erzeugt, sind
+## also NICHT geteilt - sie duerfen hier direkt veraendert werden.
+func _resize_area_box(area: Area3D, bottom: float, top: float) -> void:
+	if area == null:
+		return
+	var shape := area.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if shape == null or not (shape.shape is BoxShape3D):
+		return
+	var box: BoxShape3D = shape.shape as BoxShape3D
+	var new_size: Vector3 = box.size
+	new_size.y = maxf(top - bottom, 1.0)
+	box.size = new_size
+	shape.position.y = bottom + new_size.y * 0.5
+
+
+## Setzt Spawn-Marker per Raycast auf den tatsaechlichen Boden.
+##
+## In den Raum-Szenen liegen ALLE Marker fest auf y = 0.5. Auf einer Rampe
+## ist der Boden dort aber bis zu "rise" Meter hoeher oder tiefer.
+## _spawn_one() setzt den Gegner auf marker.global_position.y + 0.1 - bei
+## einer Steigung steckt er damit meterhoch IM Rampen-Collider. Godots
+## Depenetration schiebt ihn im ersten Physikschritt heraus, bevorzugt nach
+## unten, also durch den Keil hindurch ins Nichts. Genau das ist der
+## "Gegner fallen bei Steigungen durch den Boden"-Bug.
+##
+## Die Decke wird explizit ausgeschlossen: der Strahl startet oberhalb des
+## Markers und wuerde sonst zuerst die Deckenplatte treffen.
+func _snap_markers_to_ground(markers: Array[Marker3D]) -> void:
+	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	if space == null:
+		return
+
+	var exclude: Array[RID] = []
+	var ceiling := get_node_or_null("Ceiling") as StaticBody3D
+	if ceiling:
+		exclude.append(ceiling.get_rid())
+
+	var probe: float = maxf(spawn_ground_probe_height, 1.0)
+
+	for marker in markers:
+		if not is_instance_valid(marker):
+			continue
+
+		var origin: Vector3 = marker.global_position
+		var query := PhysicsRayQueryParameters3D.create(
+			origin + Vector3.UP * probe,
+			origin - Vector3.UP * probe
+		)
+		query.collision_mask = 1
+		query.collide_with_areas = false
+		query.exclude = exclude
+
+		var hit: Dictionary = space.intersect_ray(query)
+		if hit.is_empty():
+			push_warning("RoomInstance (%s): Kein Boden unter Spawn-Marker '%s' - Marker bleibt unveraendert." % [grid_position, marker.name])
+			continue
+
+		# 0.5 statt 0.1 Abstand: _spawn_one() legt nochmal 0.1 drauf, und ein
+		# Gegner, der minimal ueber dem Boden startet, faellt sauber drauf -
+		# einer, der minimal DRIN startet, wird herausgedrueckt.
+		marker.global_position = (hit["position"] as Vector3) + Vector3.UP * 0.5
 
 
 func _opposite(dir: String) -> String:

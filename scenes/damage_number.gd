@@ -1,12 +1,32 @@
 extends Label3D
 class_name DamageNumber
 
+## Schadenszahl, die ueber dem getroffenen Ziel aufsteigt und ausblendet.
+##
+## SCHADENSARTEN: Die Farbe sagt, WOHER der Schaden kam. Das ist in einem
+## schnellen Kampf die einzige Rueckmeldung, die man im Vorbeirennen noch
+## lesen kann - deshalb bekommt jede Quelle ihre eigene Farbe statt nur
+## "normal / crit":
+##   NORMAL - Nahkampf-Hitbox (cyan)
+##   CRIT   - kritischer Treffer (orange-rot)
+##   DASH   - Durchdashen (gelb) - siehe CombatBase.dash_damage
+##
+## show_damage(amount, is_crit) bleibt unveraendert erhalten, damit die
+## bestehenden Aufrufe in primary_hitbox.gd weiterlaufen.
+enum Kind { NORMAL, CRIT, DASH }
+
 @export var rise_distance: float = 2.5
 @export var horizontal_drift: float = 0.9  # max. seitliche Abweichung
 @export var duration: float = 1.5
 @export var normal_color: Color = Color(0.0, 0.918, 0.882, 1.0)
 @export var crit_color: Color = Color(1.0, 0.349, 0.102, 0.855)
 @export var outline_color: Color = Color(0.0, 0.773, 0.933, 1.0)
+
+## Dash-Schaden: kraeftiges Gelb, damit es sich sowohl vom cyanfarbenen
+## Nahkampf- als auch vom orange-roten Crit-Schaden klar abhebt.
+@export var dash_color: Color = Color(1.0, 0.85, 0.1, 1.0)
+@export var dash_outline_color: Color = Color(1.0, 0.55, 0.0, 1.0)
+@export var crit_outline_color: Color = Color(1.0, 0.2, 0.0, 1.0)
 @export var horizontal_stretch: float = 3  # >1.0 = breiter, <1.0 = schmaler
 
 func _ready() -> void:
@@ -23,10 +43,30 @@ func _ready() -> void:
 	scale.x = horizontal_stretch
 	outline_modulate = outline_color
 
+## Bestehende API - unveraendert nutzbar (primary_hitbox.gd ruft genau das
+## auf). Leitet nur noch auf die Kind-Variante um.
 func show_damage(amount: float, is_crit: bool = false) -> void:
+	show_damage_kind(amount, Kind.CRIT if is_crit else Kind.NORMAL)
+
+
+## Bequemer Einzeiler fuer den Dash - spart dem Aufrufer den Enum-Import.
+func show_dash_damage(amount: float) -> void:
+	show_damage_kind(amount, Kind.DASH)
+
+
+func show_damage_kind(amount: float, kind: int) -> void:
 	text = str(int(round(amount)))
-	modulate = crit_color if is_crit else normal_color
-	outline_modulate = outline_color
+
+	match kind:
+		Kind.CRIT:
+			modulate = crit_color
+			outline_modulate = crit_outline_color
+		Kind.DASH:
+			modulate = dash_color
+			outline_modulate = dash_outline_color
+		_:
+			modulate = normal_color
+			outline_modulate = outline_color
 
 	# Jede Zahl bekommt ihre EIGENE zufällige Richtung — sowohl seitlich
 	# (X/Z) als auch wie stark sie nach oben steigt. randf_range() liefert

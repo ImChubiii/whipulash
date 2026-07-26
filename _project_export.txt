@@ -5600,7 +5600,7 @@ custom_features=""
 export_filter="all_resources"
 include_filter=""
 exclude_filter=""
-export_path="./Lemonade.exe"
+export_path="Game Export/Whiplash.exe"
 patches=PackedStringArray()
 patch_delta_encoding=false
 patch_delta_compression_level_zstd=19
@@ -6064,6 +6064,13 @@ enum HazardMode { POOL, SURFACE }
 @export var submersion_tolerance: float = 0.3
 @export var surface_wade_tolerance: float = 0.9
 
+# --- VFX ---
+## Zischen/Rauch, das bei JEDEM Schadens-Tick am getroffenen Koerper
+## aufblitzt ("aetzend"). One-Shot-Szene, Root = GPUParticles3D.
+@export var corrosion_vfx: PackedScene
+## Hoehe ueber der Limonaden-Oberflaeche, auf der der Effekt erscheint.
+@export var corrosion_vfx_height: float = 0.4
+
 @export var display_name: String = "Lemonade"
 @export var debug_logging: bool = false
 
@@ -6107,6 +6114,10 @@ func _ready() -> void:
 ## Ohne das teilen sich ALLE Lemonade-Instanzen dieselbe BoxShape3D und
 ## dasselbe StandardMaterial3D aus der lemonade.tscn - die zuletzt
 ## instanziierte Lache diktiert dann Groesse und Farbe aller anderen.
+##
+## HINWEIS fuer den Dauer-Emitter (Blasen an der Oberflaeche): sobald du
+## dessen ParticleProcessMaterial pro Instanz an 'size' anpasst, gilt
+## exakt dasselbe Problem — dann hier ebenfalls duplizieren.
 func _make_resources_unique() -> void:
 	if collision_shape and collision_shape.shape:
 		collision_shape.shape = collision_shape.shape.duplicate()
@@ -6258,6 +6269,17 @@ func _damage_body(body: Node3D) -> void:
 	if health and health is Health:
 		health.take_damage(damage_per_tick, self)
 		_debug("Tick-Schaden %.1f an '%s'" % [damage_per_tick, body.name])
+
+	# --- VFX ---
+	# Engine.is_editor_hint() ist Pflicht: dieses Script ist @tool, das
+	# VFX-Autoload existiert im Editor aber nicht (Autoloads werden dort
+	# nur instanziiert, wenn sie selbst @tool sind).
+	if corrosion_vfx and not Engine.is_editor_hint():
+		# An der Oberflaeche statt am Koerper-Pivot: im POOL-Modus steckt
+		# der Pivot unter der Fluessigkeit, der Effekt waere unsichtbar.
+		var spawn_pos: Vector3 = body.global_position
+		spawn_pos.y = _get_surface_top_world_y() + corrosion_vfx_height
+		VFX.spawn(corrosion_vfx, spawn_pos, Vector3.UP)
 
 
 ## Im SURFACE-Modus haelt sich der Slow nur solange, wie man drin steht:
@@ -7240,12 +7262,32 @@ script = ExtResource("5_wintercombat")
 extends Label3D
 class_name DamageNumber
 
+## Schadenszahl, die ueber dem getroffenen Ziel aufsteigt und ausblendet.
+##
+## SCHADENSARTEN: Die Farbe sagt, WOHER der Schaden kam. Das ist in einem
+## schnellen Kampf die einzige Rueckmeldung, die man im Vorbeirennen noch
+## lesen kann - deshalb bekommt jede Quelle ihre eigene Farbe statt nur
+## "normal / crit":
+##   NORMAL - Nahkampf-Hitbox (cyan)
+##   CRIT   - kritischer Treffer (orange-rot)
+##   DASH   - Durchdashen (gelb) - siehe CombatBase.dash_damage
+##
+## show_damage(amount, is_crit) bleibt unveraendert erhalten, damit die
+## bestehenden Aufrufe in primary_hitbox.gd weiterlaufen.
+enum Kind { NORMAL, CRIT, DASH }
+
 @export var rise_distance: float = 2.5
 @export var horizontal_drift: float = 0.9  # max. seitliche Abweichung
 @export var duration: float = 1.5
 @export var normal_color: Color = Color(0.0, 0.918, 0.882, 1.0)
 @export var crit_color: Color = Color(1.0, 0.349, 0.102, 0.855)
 @export var outline_color: Color = Color(0.0, 0.773, 0.933, 1.0)
+
+## Dash-Schaden: kraeftiges Gelb, damit es sich sowohl vom cyanfarbenen
+## Nahkampf- als auch vom orange-roten Crit-Schaden klar abhebt.
+@export var dash_color: Color = Color(1.0, 0.85, 0.1, 1.0)
+@export var dash_outline_color: Color = Color(1.0, 0.55, 0.0, 1.0)
+@export var crit_outline_color: Color = Color(1.0, 0.2, 0.0, 1.0)
 @export var horizontal_stretch: float = 3  # >1.0 = breiter, <1.0 = schmaler
 
 func _ready() -> void:
@@ -7262,10 +7304,30 @@ func _ready() -> void:
 	scale.x = horizontal_stretch
 	outline_modulate = outline_color
 
+## Bestehende API - unveraendert nutzbar (primary_hitbox.gd ruft genau das
+## auf). Leitet nur noch auf die Kind-Variante um.
 func show_damage(amount: float, is_crit: bool = false) -> void:
+	show_damage_kind(amount, Kind.CRIT if is_crit else Kind.NORMAL)
+
+
+## Bequemer Einzeiler fuer den Dash - spart dem Aufrufer den Enum-Import.
+func show_dash_damage(amount: float) -> void:
+	show_damage_kind(amount, Kind.DASH)
+
+
+func show_damage_kind(amount: float, kind: int) -> void:
 	text = str(int(round(amount)))
-	modulate = crit_color if is_crit else normal_color
-	outline_modulate = outline_color
+
+	match kind:
+		Kind.CRIT:
+			modulate = crit_color
+			outline_modulate = crit_outline_color
+		Kind.DASH:
+			modulate = dash_color
+			outline_modulate = dash_outline_color
+		_:
+			modulate = normal_color
+			outline_modulate = outline_color
 
 	# Jede Zahl bekommt ihre EIGENE zufällige Richtung — sowohl seitlich
 	# (X/Z) als auch wie stark sie nach oben steigt. randf_range() liefert
@@ -7486,8 +7548,6 @@ height = 6.0
 
 ===== FILE: scenes\enemy_ai.gd =====
 
-
-
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -7595,44 +7655,94 @@ func get_display_name() -> String:
 ## --- Zickzack-Verfolgung (Scout/Stinger) ------------------------------
 ## Ein Gegner, der schnurgerade auf den Spieler zulaeuft, ist trivial zu
 ## treffen und fuehlt sich wie ein Zielobjekt an, nicht wie ein Jaeger.
-## Der Stinger weicht deshalb waehrend der Verfolgung seitlich aus: die
-## Laufrichtung wird um einen pendelnden Winkel um die Y-Achse gedreht.
+##
+## MUSTER: zick - stehen - zack - stehen. Der Gegner setzt also einen
+## schraegen Sprint an, friert kurz ein, und setzt dann schraeg in die
+## ANDERE Richtung an. Das Einfrieren ist der eigentliche Trick: es macht
+## den naechsten Richtungswechsel unvorhersehbar, weil man waehrend der
+## Pause nicht sieht, wohin es weitergeht.
 ##
 ## Der Ausschlag wird kurz vor dem Ziel ausgeblendet - sonst zieht der
 ## Gegner im letzten Meter dauernd am Spieler vorbei und kommt nie in
-## attack_range.
+## attack_range. In der Pausenphase gilt dasselbe: innerhalb von
+## zigzag_min_distance wird NICHT mehr angehalten, sonst bliebe er direkt
+## vor dem Spieler stehen statt zuzuschlagen.
 ##
 ## Standard AUS, damit traege Typen (Fighter, Colossus) unveraendert
 ## geradeaus laufen. Einschalten in der jeweiligen Gegner-Szene.
 @export var zigzag_enabled: bool = false
 
-enum ZigzagWave { TRIANGLE, SINE, SQUARE }
-## TRIANGLE = klassischer Zickzack (gleichmaessiges Pendeln, klare Kanten)
-## SINE     = weiches Schlaengeln
-## SQUARE   = harte Richtungswechsel, wirkt am aggressivsten
-@export var zigzag_waveform: ZigzagWave = ZigzagWave.TRIANGLE
+## Seitlicher Ausschlag eines Beins. 55 Grad heisst: gut die Haelfte der
+## Geschwindigkeit geht in die Seitwaertsbewegung (cos 55 = 0.57 Vortrieb).
+## Ueber 70 Grad kommt er praktisch nicht mehr naeher.
+@export_range(0.0, 80.0) var zigzag_angle_degrees: float = 55.0
 
-## Maximaler seitlicher Ausschlag. Ueber ~50 Grad kommt der Gegner kaum
-## noch vorwaerts (cos 50 = 0.64 der Vortriebsgeschwindigkeit).
-@export_range(0.0, 70.0) var zigzag_angle_degrees: float = 38.0
+## Wie lange EIN schraeges Bein laeuft, bevor angehalten wird.
+@export var zigzag_leg_time: float = 0.35
 
-## Richtungswechsel pro Sekunde.
-@export var zigzag_frequency: float = 2.2
+## Standzeit zwischen zwei Beinen.
+@export var zigzag_pause_time: float = 0.4
 
-## Ab hier laeuft er schnurgerade auf den Spieler zu (voller Ausschlag
-## wuerde den Angriff verhindern).
+## Wie hart in der Pause abgebremst wird. Hoch = schlagartiger Stopp,
+## niedrig = ausrollen. Deutlich ueber movement_acceleration setzen,
+## damit die Pause auch als Pause gelesen wird.
+@export var zigzag_brake_acceleration: float = 90.0
+
+## Ab hier laeuft er schnurgerade durch und pausiert nicht mehr.
 @export var zigzag_min_distance: float = 3.5
 
 ## Ab dieser Entfernung ist der Ausschlag voll ausgefahren. Dazwischen
 ## wird linear geblendet.
-@export var zigzag_fade_distance: float = 9.0
+@export var zigzag_fade_distance: float = 10.0
 
-## Zufaellige Startphase pro Instanz. Ohne das pendelt eine ganze Gruppe
-## im Gleichschritt und sieht aus wie eine Marschformation.
+## Ab welchem Ausschlags-Anteil ueberhaupt noch pausiert wird.
+##
+## WARUM: Bei 0.32 s Bein und 0.4 s Pause ist der Gegner nur 44 % der Zeit
+## in Bewegung, und davon geht bei 58 Grad noch die Haelfte zur Seite. Ein
+## fliehender Spieler waere damit schlicht schneller und der Stinger holt
+## nie auf. Unterhalb dieser Schwelle laeuft er deshalb durch (der Winkel
+## wird ohnehin schon ausgeblendet) und pausiert erst wieder, wenn er
+## Abstand hat.
+@export_range(0.0, 1.0) var zigzag_pause_min_amount: float = 0.45
+
+## --- Fokus-Verlust ----------------------------------------------------
+## Eine Horde, in der jeder Gegner exakt dasselbe tut, liest sich als EIN
+## Schwarm - egal wie viele es sind. Sobald einzelne aber zwischendurch
+## das Interesse verlieren, kurz woanders hinlaufen und dann wieder
+## andocken, zerfaellt die Formation in viele eigenstaendige Nervensaegen.
+##
+## Waehrend der Ablenkung greift der Gegner NICHT an und schaut in seine
+## Laufrichtung statt zum Spieler - das ist der sichtbare Unterschied zu
+## "verfolgt dich gerade".
+##
+## Ein laufender Angriff wird nie unterbrochen: der Wuerfel laeuft nur,
+## solange _is_attacking false ist. Sonst wuerden Telegraph und Hitbox
+## mitten in der Animation abbrechen.
+@export var focus_loss_enabled: bool = false
+
+## Erwartete Aussetzer pro Sekunde. 0.35 heisst grob: alle drei Sekunden
+## einer. Wird ueber eine Poisson-Verteilung in eine Pro-Frame-Chance
+## umgerechnet, damit das Ergebnis NICHT von der Bildrate abhaengt.
+@export var focus_loss_chance_per_second: float = 0.35
+
+@export var focus_loss_duration_min: float = 0.5
+@export var focus_loss_duration_max: float = 1.4
+
+## Tempo waehrend der Ablenkung, als Anteil der normalen Geschwindigkeit.
+@export_range(0.0, 1.0) var focus_loss_wander_speed_factor: float = 0.5
+
+var _focus_lost_timer: float = 0.0
+var _wander_direction: Vector3 = Vector3.ZERO
+
+## Zufaelliger Startpunkt im Takt pro Instanz. Ohne das laeuft eine ganze
+## Gruppe im Gleichschritt und sieht aus wie eine Marschformation.
 @export var zigzag_random_phase: bool = true
 
-var _zigzag_time: float = 0.0
-var _zigzag_phase: float = 0.0
+## Taktphasen: 0 = Bein nach rechts, 1 = Pause, 2 = Bein nach links,
+## 3 = Pause. Ungerade Indizes sind also immer Pausen.
+var _zigzag_phase_index: int = 0
+var _zigzag_timer: float = 0.0
+var _zigzag_holding: bool = false
 
 # Sauberer Ausstieg aus einem angefangenen Angriff: Telegraph aus, kurzer
 # Cooldown, zurueck ins Verfolgen. Wird NICHT aufgerufen, wenn der Gegner
@@ -7874,8 +7984,14 @@ func _ready() -> void:
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
 
+	_setup_slope_stability()
+
+	_zigzag_timer = zigzag_leg_time
 	if zigzag_random_phase:
-		_zigzag_phase = randf() * TAU
+		# Zufaelliger Einstiegspunkt im Takt: sowohl die Phase als auch
+		# die Restzeit darin, sonst starten alle gleichzeitig ihr Bein.
+		_zigzag_phase_index = randi() % 4
+		_zigzag_timer = randf() * (zigzag_pause_time if _zigzag_is_pause() else zigzag_leg_time)
 
 	_debug("_ready(). attack_hitbox=%s | telegraph_inner=%s | telegraph_outer=%s | nav_agent=%s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
 
@@ -7908,6 +8024,29 @@ func _ready() -> void:
 		health.health_changed.connect(_on_health_changed)
 		_on_health_changed(health.current_health, health.max_health)
 
+## Haelt den Gegner auf Rampen am Boden.
+##
+## _physics_process() setzt velocity.y auf dem Boden jeden Frame auf 0. Beim
+## Laufen ABWAERTS reisst der Koerper dadurch vom Untergrund ab, sobald der
+## Hoehenverlust pro Frame groesser ist als floor_snap_length (Godot-Default
+## 0.1): der Gegner faellt, landet, huepft weiter die Rampe hinunter. In
+## diesem Zustand kann ein schneller Koerper duenne Geometrie durchschlagen.
+## Ein groesserer Snap klebt ihn an der Rampe fest, ohne die Sprunglogik zu
+## stoeren - Snapping greift ausschliesslich bei velocity.y <= 0.
+##
+## floor_max_angle wird ebenfalls angehoben: eine 6 Meter hohe Rampe auf
+## einem 20 Meter kurzen Korridor sind bereits ~17 Grad, und am Uebergang zum
+## Nachbarraum kommen Kanten dazu. Wird der Grenzwinkel ueberschritten, gilt
+## die Rampe fuer die Physik als WAND - der Gegner rutscht dann ab statt zu
+## laufen.
+func _setup_slope_stability() -> void:
+	floor_snap_length = maxf(floor_snap_length, 0.6)
+	floor_max_angle = maxf(floor_max_angle, deg_to_rad(55.0))
+	floor_stop_on_slope = true
+	floor_constant_speed = true
+	safe_margin = maxf(safe_margin, 0.02)
+
+
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -7932,29 +8071,38 @@ func _physics_process(delta: float) -> void:
 	var distance: float = global_position.distance_to(_player.global_position)
 	var previous_state: State = _state
 
-	match _state:
-		State.IDLE:
-			velocity.x = 0.0
-			velocity.z = 0.0
-			if distance <= detection_range:
-				_state = State.CHASE
+	_update_focus(delta, distance)
 
-		State.CHASE:
-			if distance <= attack_range:
-				_state = State.ATTACK
-			elif distance > detection_range * 1.5:
-				_state = State.IDLE
-			else:
-				_move_towards_player(delta)
+	if _focus_lost_timer > 0.0:
+		# Abgelenkt: kein Angriff, eigene Laufrichtung. Der Zustand bleibt
+		# formal CHASE, damit der Gegner nach dem Aussetzer nahtlos
+		# weiterverfolgt statt erst wieder in IDLE zu fallen.
+		_state = State.CHASE
+		_wander_step(delta)
+	else:
+		match _state:
+			State.IDLE:
+				velocity.x = 0.0
+				velocity.z = 0.0
+				if distance <= detection_range:
+					_state = State.CHASE
 
-		State.ATTACK:
-			velocity.x = 0.0
-			velocity.z = 0.0
-			_face_player(delta)
-			if distance > attack_range * 1.3 and not _is_attacking:
-				_state = State.CHASE
-			elif _attack_timer <= 0.0 and not _is_attacking and _is_facing_player():
-				_do_attack()
+			State.CHASE:
+				if distance <= attack_range:
+					_state = State.ATTACK
+				elif distance > detection_range * 1.5:
+					_state = State.IDLE
+				else:
+					_move_towards_player(delta)
+
+			State.ATTACK:
+				velocity.x = 0.0
+				velocity.z = 0.0
+				_face_player(delta)
+				if distance > attack_range * 1.3 and not _is_attacking:
+					_state = State.CHASE
+				elif _attack_timer <= 0.0 and not _is_attacking and _is_facing_player():
+					_do_attack()
 
 	if _state != previous_state:
 		_debug("State-Wechsel: %s -> %s (Distanz %.2f, attack_range %.2f)" % [State.keys()[previous_state], State.keys()[_state], distance, attack_range])
@@ -8121,7 +8269,20 @@ func _move_towards_player(delta: float) -> void:
 	# VOR den Kanten- und Hindernis-Pruefungen ausweichen: die pruefen
 	# dir, und geprueft werden muss die Richtung, in die der Gegner
 	# tatsaechlich laeuft - sonst testet er den Boden neben seinem Weg.
-	dir = _apply_zigzag(dir, delta)
+	if zigzag_enabled and _player != null:
+		var zigzag_angle: float = _zigzag_step(delta)
+		if _zigzag_holding:
+			# Pausenphase: stehen bleiben, aber weiter den Spieler
+			# anschauen. Frueher Ausstieg, weil Kanten- und
+			# Hindernis-Pruefung fuer einen stehenden Gegner sinnlos sind.
+			var hold_x: float = velocity.x - _knockback_velocity.x
+			var hold_z: float = velocity.z - _knockback_velocity.z
+			velocity.x = move_toward(hold_x, 0.0, zigzag_brake_acceleration * delta)
+			velocity.z = move_toward(hold_z, 0.0, zigzag_brake_acceleration * delta)
+			_waiting_at_ledge = false
+			_face_player(delta)
+			return
+		dir = dir.rotated(Vector3.UP, zigzag_angle)
 
 	_waiting_at_ledge = false
 
@@ -8168,43 +8329,97 @@ func _move_towards_player(delta: float) -> void:
 	velocity.z = move_toward(residual_z, target_velocity_z, movement_acceleration * delta)
 	_face_player(delta)
 
-## Dreht die Laufrichtung um einen pendelnden Winkel um die Y-Achse.
-## Die Blickrichtung bleibt davon unberuehrt (_face_player laeuft
-## weiterhin auf den Spieler) - der Gegner schaut einen also an, waehrend
-## er seitlich versetzt naeher kommt.
-func _apply_zigzag(dir: Vector3, delta: float) -> Vector3:
-	if not zigzag_enabled:
-		return dir
-	if dir.length_squared() < 0.0001 or _player == null:
-		return dir
+## Wuerfelt den Aussetzer aus bzw. zaehlt einen laufenden herunter.
+func _update_focus(delta: float, distance: float) -> void:
+	if not focus_loss_enabled:
+		return
 
-	_zigzag_time += delta
+	if _focus_lost_timer > 0.0:
+		_focus_lost_timer = maxf(_focus_lost_timer - delta, 0.0)
+		return
 
-	# Ausschlag zwischen zigzag_min_distance und zigzag_fade_distance
-	# linear hochblenden.
+	# Nicht mitten im Angriff und nicht, solange der Spieler ausser
+	# Reichweite ist - sonst "vergisst" ein Gegner den Spieler, den er
+	# ohnehin nicht verfolgt.
+	if _is_attacking or _state == State.IDLE or distance > detection_range:
+		return
+
+	# Poisson: aus einer Rate pro Sekunde eine Chance fuer GENAU diesen
+	# Frame machen. Eine feste Chance pro Frame haenge sonst an der
+	# Bildrate - bei 144 fps setzten die Gegner mehr als doppelt so oft
+	# aus wie bei 60.
+	var chance: float = 1.0 - exp(-maxf(focus_loss_chance_per_second, 0.0) * delta)
+	if randf() >= chance:
+		return
+
+	_focus_lost_timer = randf_range(focus_loss_duration_min, maxf(focus_loss_duration_max, focus_loss_duration_min))
+	_wander_direction = _random_ground_direction()
+	if telegraph_outer:
+		telegraph_outer.visible = false
+	_debug("Fokus verloren fuer %.2fs." % _focus_lost_timer)
+
+
+## Laufen waehrend der Ablenkung: eigene Richtung, gedrosseltes Tempo,
+## Blick in die Laufrichtung.
+func _wander_step(delta: float) -> void:
+	_waiting_at_ledge = false
+
+	# Nicht in Gruben oder von Plattformen laufen - die Kantenpruefung des
+	# normalen Verfolgens laeuft hier ja nicht mit.
+	if _wander_direction.length_squared() < 0.001 or _is_ledge_ahead(_wander_direction):
+		_wander_direction = _random_ground_direction()
+		velocity.x = move_toward(velocity.x - _knockback_velocity.x, 0.0, movement_acceleration * delta)
+		velocity.z = move_toward(velocity.z - _knockback_velocity.z, 0.0, movement_acceleration * delta)
+		return
+
+	var effective_speed: float = get_effective_move_speed() * focus_loss_wander_speed_factor
+	var residual_x: float = velocity.x - _knockback_velocity.x
+	var residual_z: float = velocity.z - _knockback_velocity.z
+	velocity.x = move_toward(residual_x, _wander_direction.x * effective_speed, movement_acceleration * delta)
+	velocity.z = move_toward(residual_z, _wander_direction.z * effective_speed, movement_acceleration * delta)
+
+	var target_rotation: float = atan2(_wander_direction.x, _wander_direction.z)
+	rotation.y = lerp_angle(rotation.y, target_rotation, delta * 6.0)
+
+
+func _random_ground_direction() -> Vector3:
+	var angle: float = randf() * TAU
+	return Vector3(sin(angle), 0.0, cos(angle))
+
+
+## Schaltet den Zickzack-Takt weiter und liefert den Ausweichwinkel des
+## aktuellen Beins. Setzt nebenbei _zigzag_holding, wenn gerade eine
+## Pausenphase laeuft.
+##
+## Die Blickrichtung bleibt unberuehrt (_face_player laeuft weiter auf den
+## Spieler) - der Gegner schaut einen also an, waehrend er seitlich
+## versetzt naeher kommt oder kurz einfriert.
+func _zigzag_step(delta: float) -> float:
+	# Nah am Ziel: kein Ausschlag, keine Pause. Sonst bliebe der Gegner
+	# direkt vor dem Spieler stehen, statt in attack_range zu gehen.
 	var distance: float = global_position.distance_to(_player.global_position)
 	var span: float = maxf(zigzag_fade_distance - zigzag_min_distance, 0.01)
 	var amount: float = clampf((distance - zigzag_min_distance) / span, 0.0, 1.0)
 	if amount <= 0.0:
-		return dir
+		_zigzag_holding = false
+		return 0.0
 
-	var angle: float = deg_to_rad(zigzag_angle_degrees) * _zigzag_wave() * amount
-	return dir.rotated(Vector3.UP, angle)
+	_zigzag_timer -= delta
+	if _zigzag_timer <= 0.0:
+		_zigzag_phase_index = (_zigzag_phase_index + 1) % 4
+		_zigzag_timer = zigzag_pause_time if _zigzag_is_pause() else zigzag_leg_time
+
+	_zigzag_holding = _zigzag_is_pause() and amount >= zigzag_pause_min_amount
+	if _zigzag_holding:
+		return 0.0
+
+	# Phase 0 schlaegt nach rechts aus, Phase 2 nach links.
+	var side: float = 1.0 if _zigzag_phase_index == 0 else -1.0
+	return deg_to_rad(zigzag_angle_degrees) * side * amount
 
 
-## Liefert den aktuellen Pendelwert in [-1, 1].
-func _zigzag_wave() -> float:
-	var phase: float = _zigzag_time * TAU * maxf(zigzag_frequency, 0.01) + _zigzag_phase
-	match zigzag_waveform:
-		ZigzagWave.SINE:
-			return sin(phase)
-		ZigzagWave.SQUARE:
-			return 1.0 if sin(phase) >= 0.0 else -1.0
-	# TRIANGLE: aus dem normierten Phasenanteil ein Dreieck bauen.
-	var t: float = fmod(phase / TAU, 1.0)
-	if t < 0.0:
-		t += 1.0
-	return 4.0 * absf(t - 0.5) - 1.0
+func _zigzag_is_pause() -> bool:
+	return (_zigzag_phase_index % 2) == 1
 
 
 func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:
@@ -11961,6 +12176,8 @@ func is_allowed(stage: int, room_height: float) -> bool:
 
 
 
+
+
 extends Node
 class_name LevelGenerator
 
@@ -12010,6 +12227,19 @@ const DIR_OFFSETS := {
 @export var corridor_threat_budget: int = 2
 @export var boss_threat_budget: int = 12
 @export var threat_per_stage: int = 2
+
+## --- Stage-Skalierung der Gegnerstaerke -------------------------------
+## threat_per_stage erhoeht bisher NUR die Anzahl. Ein Stinger in Etage 5
+## hatte damit exakt dieselben 25 HP und 6 Schaden wie in Etage 1 - es
+## wurden eben nur mehr davon. Weil der Spieler bis dahin staerker ist,
+## fuehlen sich spaetere Etagen dadurch leichter an statt schwerer.
+##
+## Die Werte sind Zuwachs PRO ETAGE ab Etage 2:
+##   0.30 = Etage 1: 100 %, Etage 2: 130 %, Etage 3: 160 % ...
+## Der Deckel verhindert, dass ein langer Run in absurde Zahlen laeuft.
+@export var enemy_health_per_stage: float = 0.30
+@export var enemy_damage_per_stage: float = 0.18
+@export var enemy_scaling_cap: float = 4.0
 @export var threat_hard_cap: int = 14
 
 ## Eigener Deckel fuer den Bossraum. Ohne den wuerde threat_hard_cap (14)
@@ -12252,6 +12482,8 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		room.prepare_enemies(table, budget, current_stage)
 
 		room.debug_doors = debug_doors
+		room.enemy_health_multiplier = get_enemy_health_multiplier()
+		room.enemy_damage_multiplier = get_enemy_damage_multiplier()
 		room.room_entered.connect(_on_room_entered)
 		room.room_cleared.connect(_on_room_cleared)
 
@@ -12269,7 +12501,10 @@ func _instantiate_layout(layout: Dictionary) -> void:
 
 	_refresh_minimap_fog()
 
-	print("[LevelGenerator] %d/%d Raeume instanziert." % [_instances.size(), layout.size()])
+	print("[LevelGenerator] %d/%d Raeume instanziert. Gegner-Skalierung: HP x%.2f, Schaden x%.2f" % [
+		_instances.size(), layout.size(),
+		get_enemy_health_multiplier(), get_enemy_damage_multiplier()
+	])
 	_rebake_navigation()
 	stage_generated.emit(current_stage, _instances.size())
 	map_updated.emit()
@@ -12448,6 +12683,16 @@ func _spawn_victory_trophy(room: RoomInstance) -> void:
 		trophy.global_position = center
 
 	print("[LevelGenerator] Sieg-Trophaee gespawnt bei %s (Raum %s, Bodenhoehe %.1f)." % [center, room.grid_position, room.global_position.y])
+
+
+## Faktor auf Health.max_health jedes gespawnten Gegners dieser Etage.
+func get_enemy_health_multiplier() -> float:
+	return clampf(1.0 + enemy_health_per_stage * float(current_stage - 1), 1.0, enemy_scaling_cap)
+
+
+## Faktor auf die damage jeder Hitbox eines gespawnten Gegners.
+func get_enemy_damage_multiplier() -> float:
+	return clampf(1.0 + enemy_damage_per_stage * float(current_stage - 1), 1.0, enemy_scaling_cap)
 
 
 # ============================================================================
@@ -12785,6 +13030,8 @@ enum RoomType { COMBAT, TREASURE, BOSS, CORRIDOR, SHOP, START }
 
 ===== FILE: scenes\level_generation\room_grid_generator.gd =====
 
+
+
 extends Node
 class_name RoomGridGenerator
 
@@ -12971,16 +13218,52 @@ func _place_special_rooms(cells: Dictionary) -> void:
 	else:
 		push_warning("RoomGridGenerator: Keine Sackgasse fuer den Bossraum gefunden und keine anbaubar - Layout ohne Boss!")
 
-	var treasure_pos: Vector2i = _reserve_dead_end(cells, 1, [boss_pos])
+	# Boss und Tresor duerfen nicht am SELBEN Raum haengen.
+	#
+	# Beide sind zwar korrekt je eine Sackgasse, aber wenn ihr einziger
+	# Nachbar derselbe Raum ist, steht der Spieler in einer Vorkammer mit
+	# zwei Sondertueren nebeneinander. Der Tresor fuehlt sich dann nicht
+	# wie ein eigener Abstecher an, sondern wie eine zweite Tuer im
+	# Bossvorraum - genau das war der Fall im Layout mit Boss (-1, 3) und
+	# Tresor (-2, 2), die sich beide (-1, 2) teilen.
+	var forbidden_anchors: Array[Vector2i] = []
+	if boss_pos != INVALID_POS:
+		var boss_anchor: Vector2i = _connected_neighbor(cells, boss_pos)
+		if boss_anchor != INVALID_POS:
+			forbidden_anchors.append(boss_anchor)
+
+	var treasure_pos: Vector2i = _reserve_dead_end(cells, 1, [boss_pos], forbidden_anchors)
+	if treasure_pos == INVALID_POS and not forbidden_anchors.is_empty():
+		# Lieber ein Tresor am Bossvorraum als gar keiner.
+		treasure_pos = _reserve_dead_end(cells, 1, [boss_pos], [])
 	if treasure_pos != INVALID_POS:
 		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
+
+
+## Der EINZIGE Nachbar einer Sackgasse. Fuer Zellen mit mehreren
+## Ausgaengen wird der erste gefundene geliefert - dort ist der Begriff
+## ohnehin nicht sinnvoll.
+func _connected_neighbor(cells: Dictionary, pos: Vector2i) -> Vector2i:
+	if not cells.has(pos):
+		return INVALID_POS
+	var cell: RoomCell = cells[pos]
+	for dir in DIRECTION_OFFSETS.keys():
+		if cell.exit_flags & DIRECTION_FLAG[dir] == 0:
+			continue
+		var neighbor: Vector2i = pos + DIRECTION_OFFSETS[dir]
+		if cells.has(neighbor):
+			return neighbor
+	return INVALID_POS
 
 
 ## Liefert eine Zelle mit GENAU EINEM Ausgang, die mindestens
 ## min_distance Schritte vom Start entfernt ist. Existiert keine, wird
 ## eine neue Zelle an die entfernteste passende Zelle angebaut.
+## forbidden_anchors verbietet Sackgassen, deren einziger Nachbar bereits
+## einen anderen Sonderraum bedient.
+##
 ## Rueckgabe INVALID_POS, wenn beides scheitert.
-func _reserve_dead_end(cells: Dictionary, min_distance: int, exclude: Array) -> Vector2i:
+func _reserve_dead_end(cells: Dictionary, min_distance: int, exclude: Array, forbidden_anchors: Array = []) -> Vector2i:
 	# 1) Vorhandene Sackgassen, die weiteste zuerst.
 	var candidates: Array[Vector2i] = []
 	for pos in cells.keys():
@@ -12992,6 +13275,10 @@ func _reserve_dead_end(cells: Dictionary, min_distance: int, exclude: Array) -> 
 		if _count_flags(cell.exit_flags) != 1:
 			continue
 		if _manhattan(pos) < min_distance:
+			continue
+		# Nicht an denselben Raum haengen wie ein bereits gesetzter
+		# Sonderraum.
+		if not forbidden_anchors.is_empty() and forbidden_anchors.has(_connected_neighbor(cells, pos)):
 			continue
 		candidates.append(pos)
 
@@ -13012,6 +13299,8 @@ func _reserve_dead_end(cells: Dictionary, min_distance: int, exclude: Array) -> 
 	for anchor in anchors:
 		var anchor_cell: RoomCell = cells[anchor]
 		if anchor_cell.room_type == RoomData.RoomType.BOSS or anchor_cell.room_type == RoomData.RoomType.TREASURE:
+			continue
+		if forbidden_anchors.has(anchor):
 			continue
 
 		var directions: Array = DIRECTION_OFFSETS.keys()
@@ -13118,6 +13407,8 @@ func _count_flags(flags: int) -> int:
 	return count
 
 
+
+
 ===== FILE: scenes\level_generation\room_instance.gd =====
 
 extends Node3D
@@ -13155,6 +13446,20 @@ const NAV_SOURCE_GROUP := "navmesh_source"
 ## ausschliesslich die Minimap-Kamera aus ihrer cull_mask streicht - die
 ## Spielerkamera (Standard-cull_mask = alle 20 Layer) sieht ihn weiter.
 const MINIMAP_HIDDEN_LAYER: int = 20
+
+## Gegenstueck: Layer, den AUSSCHLIESSLICH die Minimap-Kamera rendert.
+##
+## Von oben betrachtet sieht ein Durchgang immer gleich aus - egal ob die
+## Tuer offen oder verriegelt ist. Das Tuerblatt ist nur 10 hoch, die Wand
+## 14; die Minimap-Kamera sieht also durch die Wandluecke hindurch auf den
+## Tuersturz und liest das als Oeffnung. Deshalb bekommt jeder Durchgang
+## eine flache, EINGEFAERBTE Platte knapp ueber der Wandoberkante, die nur
+## auf diesem Layer liegt: die Minimap zeigt sie, die Spielerkamera nicht.
+##
+## player_base.gd streicht diesen Layer aus der cull_mask der
+## Spielerkamera - ohne das saehe man die Platten im Spiel ueber sich
+## schweben.
+const MINIMAP_ONLY_LAYER: int = 19
 
 ## Zustand EINES Durchgangs - Grundlage fuer die Minimap-Synchronisation.
 ##
@@ -13281,6 +13586,63 @@ enum DoorState {
 @export var door_lintel_collision: bool = true
 @export var door_lintel_material_path: String = "res://materials/psx_material.tres"
 
+## --- Ungenutzte Ausgaenge zumauern ------------------------------------
+## Jede Raum-Szene bringt alle vier Tueren mit; das Layout benutzt aber
+## meist nur ein bis drei davon. Bisher blieb das Tuerblatt der
+## ungenutzten Richtungen einfach fuer immer verriegelt stehen - der
+## Spieler sieht also drei Tueren, die sich nie oeffnen, und ein Bossraum
+## mit einem einzigen Ausgang liest sich trotzdem nicht als Sackgasse.
+##
+## Mit diesem Schalter wird die Oeffnung stattdessen komplett zugemauert:
+## Tuerblatt raus, volle Wand rein, vom Boden bis zur Decke. Der Raum
+## sieht dann genauso aus, wie er sich verhaelt.
+@export var seal_unused_exits: bool = true
+
+## --- Rampen / Hoehenunterschiede --------------------------------------
+## Dicke des Rampen-Keils UNTER seiner Lauf-Flaeche. Frueher fest 1.0 -
+## darunter klaffte bis zu "rise" Meter Leere. Ein Gegner, der auf der Rampe
+## gespawnt oder per Knockback hineingedrueckt wurde, ist durch die duenne
+## Platte hindurchgerutscht und ins Nichts gefallen. Der Keil wird jetzt bis
+## unter das tiefste Bodenniveau des Raums ausgefuellt.
+@export var slope_ramp_extra_thickness: float = 2.0
+
+## Waende eines Rampenraums nach OBEN um den Hoehengewinn und nach UNTEN um
+## den Hoehenverlust verlaengern.
+##
+## Die Waende der Raum-Szenen stehen fest von y = 0 bis y = room_height. Auf
+## einer Rampe stimmt das nicht mehr:
+##   STEIGUNG (+6): man steht am hohen Ende auf y = 6, die Wandoberkante
+##     liegt weiter bei 14 - es bleiben nur 8 Meter, und die Kamera schaut
+##     ueber die Wand hinweg ins Nichts.
+##   SENKUNG (-6): der Boden geht auf y = -6, die Wandunterkante bleibt bei
+##     0 - darunter klafft ein 6 Meter hoher offener Spalt.
+@export var slope_extend_walls: bool = true
+## Sicherheitsabstand, den die Wand ueber/unter das Bodenniveau hinausragt.
+@export var slope_wall_margin: float = 1.0
+
+## Spawn-Marker nach dem Rampenbau per Raycast auf den ECHTEN Boden setzen.
+## Siehe _snap_markers_to_ground() - das ist der Fix gegen "Gegner fallen bei
+## Steigungen durch den Boden".
+@export var snap_spawn_points_to_ground: bool = true
+@export var spawn_ground_probe_height: float = 40.0
+
+## --- Tuerzustand auf der 3D-Minimap -----------------------------------
+## Farben absichtlich identisch zum schematischen Grid-Overlay
+## (minimap_rooms.gd), damit beide Karten dasselbe sagen.
+@export var door_marker_enabled: bool = true
+@export var door_marker_height: float = 0.3
+@export var door_marker_color_locked: Color = Color(0.70, 0.28, 0.24)
+@export var door_marker_color_hack_locked: Color = Color(0.55, 0.45, 0.30)
+@export var door_marker_color_hack_ready: Color = Color(0.98, 0.80, 0.25)
+
+## --- Stage-Skalierung der Gegner --------------------------------------
+## Vom LevelGenerator gesetzt (nicht @export - sonst gaebe es pro
+## Raum-Szene einen konkurrierenden zweiten Wert). 1.0 = keine
+## Skalierung. Wird beim Spawnen auf Health.max_health bzw. auf die
+## damage jeder Hitbox des Gegners angewendet.
+var enemy_health_multiplier: float = 1.0
+var enemy_damage_multiplier: float = 1.0
+
 var grid_position: Vector2i = Vector2i.ZERO
 
 var enemy_spawn_points: Array[Marker3D] = []
@@ -13383,6 +13745,13 @@ var _minimap_state_known: bool = false
 ## _has_entered: das ist eine Einmal-Sperre fuer das Gegner-Spawnen, die
 ## Anwesenheit muss dagegen bei JEDEM Betreten neu gemeldet werden.
 var _inside_entry_trigger: bool = false
+
+## dir -> { "node": MeshInstance3D, "material": StandardMaterial3D }
+var _door_markers: Dictionary = {}
+## dir -> zuletzt gezeichneter DoorState. Verhindert, dass jeden Frame
+## Material-Eigenschaften neu gesetzt werden.
+var _door_marker_states: Dictionary = {}
+var _door_marker_pulse: float = 0.0
 
 
 func _ready() -> void:
@@ -13721,13 +14090,12 @@ func configure_slope(low_dir: String, rise: float) -> void:
 
 	# BUGFIX "Korridore haben keinen absteigenden Boden":
 	#
-	# Die Rampe wird ZUSAETZLICH zur flachen Bodenplatte gebaut. Bei einer
-	# STEIGUNG faellt das nicht auf - die Rampe liegt dann ueber der Platte
-	# und gewinnt. Bei einem GEFAELLE laeuft sie von 0 auf -rise nach unten,
-	# liegt also UNTER der Platte (y -1..0): der Spieler laeuft die ganze
+	# Die Rampe wurde frueher ZUSAETZLICH zur flachen Bodenplatte gebaut. Bei
+	# einer STEIGUNG faellt das nicht auf - die Rampe liegt dann ueber der
+	# Platte und gewinnt. Bei einem GEFAELLE laeuft sie von 0 auf -rise nach
+	# unten, liegt also UNTER der Platte: der Spieler laeuft die ganze
 	# Ganglaenge auf der Platte weiter und faellt am Ende einen ungefederten
-	# Absatz von rise Metern in den naechsten Raum. Genau deshalb wirken nur
-	# die abwaerts fuehrenden Korridore kaputt.
+	# Absatz von rise Metern in den naechsten Raum.
 	#
 	# Sobald eine Rampe existiert, IST sie der Boden - die Platte wird
 	# abgeschaltet und gibt ihr Material an die Rampe weiter (sonst rendert
@@ -13742,8 +14110,12 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	var hypotenuse: float = sqrt(length * length + rise * rise)
 	var angle: float = atan2(rise, length)
 
+	# Massiver Keil statt duenner Platte: die Dicke reicht garantiert unter
+	# das tiefste Bodenniveau des Raums. Siehe slope_ramp_extra_thickness.
+	var thickness: float = absf(rise) + maxf(slope_ramp_extra_thickness, 0.5)
+
 	var box_mesh := BoxMesh.new()
-	box_mesh.size = Vector3(width, 1.0, hypotenuse)
+	box_mesh.size = Vector3(width, thickness, hypotenuse)
 
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.name = "MeshInstance3D"
@@ -13754,14 +14126,18 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	ramp.add_child(mesh_instance)
 
 	var shape := CollisionShape3D.new()
+	shape.name = "CollisionShape3D"
 	var box := BoxShape3D.new()
 	box.size = box_mesh.size
 	shape.shape = box
 	ramp.add_child(shape)
 
-	# Rampe mittig platzieren, Oberkante bei 0 am tiefen und bei rise am
-	# hohen Ende. -0.5 auf Y, weil die Box 1.0 dick ist.
-	ramp.position = Vector3(0.0, rise * 0.5 - 0.5, 0.0)
+	# Die LAUF-FLAECHE (Oberseite des Keils) soll ihren Mittelpunkt exakt bei
+	# rise * 0.5 haben, damit die Enden sauber auf 0 und rise liegen. Die
+	# halbe Dicke muss dabei MIT dem Neigungswinkel gerechnet werden: der
+	# alte feste Term "- 0.5" stimmte nur zufaellig fuer eine 1.0 dicke
+	# Platte und liefe bei dickeren Keilen weg.
+	ramp.position = Vector3(0.0, rise * 0.5 - thickness * 0.5 * cos(angle), 0.0)
 
 	# BUGFIX "Ost/West-Rampen sind flach -> 6 Meter hohe Wand statt
 	# Durchgang":
@@ -13770,10 +14146,7 @@ func configure_slope(low_dir: String, rise: float) -> void:
 	# Godot interpretiert Node3D.rotation in der Euler-Reihenfolge YXZ, die
 	# Gesamtdrehung ist also Ry * Rx * Rz. Die Laengsachse der Rampen-Box ist
 	# lokal +Z - und eine Drehung UM Z laesst genau diese Achse unveraendert.
-	# Der Winkel landete damit komplett im Leeren: die Ost/West-Rampe blieb
-	# waagerecht, waehrend der Raum dahinter trotzdem eine volle Hoehenstufe
-	# hoeher abgesetzt wurde. Ergebnis im Spiel: ein Gang, der vor einer
-	# glatten Wand endet - "Raum hat keinen freien Durchgang".
+	# Der Winkel landete damit komplett im Leeren.
 	#
 	# Korrekt ist Pitch um X (kippt +Z nach oben) und danach Yaw um Y (dreht
 	# die gekippte Achse auf Ost/West). In YXZ-Reihenfolge ist das
@@ -13788,8 +14161,8 @@ func configure_slope(low_dir: String, rise: float) -> void:
 		pitch = -angle * signf(axis.x)
 	ramp.rotation = Vector3(pitch, yaw, 0.0)
 
-	# Tuer + ExitPoint auf der hohen Seite mit anheben, sonst steht die
-	# Tuer im Boden bzw. der naechste Raum haengt in der Luft.
+	# Tuer + ExitPoint auf der hohen Seite mit anheben, sonst steht die Tuer
+	# im Boden bzw. der naechste Raum haengt in der Luft.
 	if exit_points.has(high_dir):
 		var marker: Marker3D = exit_points[high_dir]
 		marker.position.y += rise
@@ -13804,11 +14177,203 @@ func configure_slope(low_dir: String, rise: float) -> void:
 			else:
 				door.position.y += rise
 
-	# Der Sturz haengt an der Tuer-Oberkante. Nach dem Anheben muss er neu
-	# gebaut werden - sonst ueberlappt er das Blatt um rise Meter und oben
-	# bleibt ein ebenso hoher Spalt offen.
+	# Waende, Decke, Tuerstuerze, Minimap-Platten und die Trigger-Volumen auf
+	# das neue Hoehenband ziehen. Baut die Stuerze BEIDER Richtungen neu -
+	# der Aufruf fuer high_dir, der frueher hier stand, ist darin enthalten.
+	_apply_slope_bounds(rise)
+
+	# Erst JETZT die Spawn-Marker snappen: der Raycast braucht die fertige
+	# Rampe als Trefferflaeche.
+	if snap_spawn_points_to_ground:
+		_snap_markers_to_ground(enemy_spawn_points)
+		_snap_markers_to_ground(loot_spawn_points)
+
+
+## Zieht Waende, Decke, Tuerstuerze, Minimap-Platten und die Trigger-Volumen
+## auf das Hoehenband, das durch die Rampe entstanden ist.
+##
+## floor_min / floor_max sind das tiefste und hoechste Bodenniveau des Raums
+## (0 und rise, je nach Vorzeichen von rise).
+func _apply_slope_bounds(rise: float) -> void:
+	var floor_min: float = minf(0.0, rise)
+	var floor_max: float = maxf(0.0, rise)
+	var margin: float = maxf(slope_wall_margin, 0.0)
+
+	var new_bottom: float = floor_min - margin
+	var new_top: float = room_height + floor_max
+
+	if slope_extend_walls:
+		for child in get_children():
+			if child is StaticBody3D and child.name.begins_with("Wall"):
+				_stretch_wall(child as StaticBody3D, new_bottom, new_top)
+
+	# Die Decke MUSS mit angehoben werden. Sonst steckt die um rise
+	# angehobene Tuer der hohen Seite in der Deckenplatte, und
+	# _build_door_lintel() rechnet fuer sie gap = room_height - leaf_top <= 0
+	# und baut gar keinen Sturz - genau dort klafft dann das Loch in den
+	# Nachbarraum.
+	_raise_ceiling(floor_max)
+
+	# Ab hier IST room_height die neue Oberkante des Raums. Alles, was danach
+	# gebaut oder verschoben wird (Kappen, Stuerze, Minimap-Platten), rechnet
+	# damit.
+	room_height = new_top
+
+	# Die Kappen sitzen auf der ALTEN Wandoberkante -> komplett neu bauen.
+	if wall_cap_enabled:
+		_rebuild_wall_caps()
+
+	# Stuerze BEIDER Richtungen neu: die hohe Tuer ist gewandert, die
+	# Raumhoehe ebenfalls.
 	if build_door_lintels:
-		_build_door_lintel(high_dir)
+		for dir in _doors_by_dir.keys():
+			_build_door_lintel(dir)
+
+	for dir in _door_markers.keys():
+		var marker: MeshInstance3D = _door_markers[dir]["node"]
+		if is_instance_valid(marker):
+			marker.position.y = room_height + door_marker_height
+
+	_extend_trigger_volumes(new_bottom)
+
+
+## Verlaengert EINE Wand auf das Hoehenband [bottom, top].
+##
+## KRITISCH: BoxMesh und BoxShape3D der Raum-Szenen sind SubResources.
+## WallEast und WallWest teilen sich in room_corridor_01.tscn dieselbe
+## Instanz - und alle Raeume derselben Szene ebenfalls. Ohne duplicate()
+## wuerde das Strecken einer einzigen Wand jede andere Wand im ganzen Level
+## mitverformen. Exakt derselbe Bug wie bei den geteilten Lemonade-Shapes.
+##
+## Vorausgesetzt wird, dass CollisionShape3D und MeshInstance3D mittig im
+## StaticBody3D sitzen (so sind alle Raum-Szenen gebaut).
+func _stretch_wall(body: StaticBody3D, bottom: float, top: float) -> void:
+	var collision := body.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if collision == null or not (collision.shape is BoxShape3D):
+		return
+
+	var height: float = top - bottom
+	if height <= 0.01:
+		return
+
+	var shape: BoxShape3D = (collision.shape as BoxShape3D).duplicate()
+	var new_size: Vector3 = shape.size
+	new_size.y = height
+	shape.size = new_size
+	collision.shape = shape
+
+	for child in body.get_children():
+		if not (child is MeshInstance3D):
+			continue
+		var mesh_child: MeshInstance3D = child as MeshInstance3D
+		# Die Minimap-Kappe wird gleich komplett neu gebaut - hier nicht
+		# mitskalieren, sonst waere sie so hoch wie die ganze Wand und die
+		# Minimap zeigte eine schwarze Flaeche statt eines Wandstrichs.
+		if mesh_child.name == "MinimapCap":
+			continue
+		if mesh_child.mesh is BoxMesh:
+			var wall_mesh: BoxMesh = (mesh_child.mesh as BoxMesh).duplicate()
+			wall_mesh.size = new_size
+			mesh_child.mesh = wall_mesh
+
+	body.position.y = (top + bottom) * 0.5
+
+
+func _raise_ceiling(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	var ceiling := get_node_or_null("Ceiling") as StaticBody3D
+	if ceiling == null:
+		return
+	ceiling.position.y += amount
+
+
+## remove_child() VOR queue_free(): queue_free raeumt erst am Frame-Ende auf,
+## _build_wall_caps() wuerde die alte Kappe sonst noch finden und die Wand
+## per "continue" ueberspringen.
+func _rebuild_wall_caps() -> void:
+	for child in get_children():
+		if not (child is StaticBody3D):
+			continue
+		var old_cap: Node = child.get_node_or_null("MinimapCap")
+		if old_cap:
+			child.remove_child(old_cap)
+			old_cap.queue_free()
+	_build_wall_caps()
+
+
+## EntryTrigger und PresenceArea wurden in _ready() mit der alten Raumhoehe
+## gebaut und reichen von knapp ueber y = 0 bis room_height.
+##
+## Bei einer SENKUNG steht der Spieler am Ende des Gangs bei y = -6, also
+## UNTER beiden Volumen: der Raum wuerde nie scharf schalten und den Spieler
+## gleichzeitig dauerhaft als "entkommen" werten -> Endlos-Reset.
+func _extend_trigger_volumes(bottom: float) -> void:
+	_resize_area_box(_entry_trigger, bottom + entry_trigger_floor_offset, room_height)
+	_resize_area_box(_presence_area, bottom - presence_margin, room_height + presence_margin)
+
+
+## Die BoxShape3D beider Areas werden in _setup_*() per new() erzeugt, sind
+## also NICHT geteilt - sie duerfen hier direkt veraendert werden.
+func _resize_area_box(area: Area3D, bottom: float, top: float) -> void:
+	if area == null:
+		return
+	var shape := area.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if shape == null or not (shape.shape is BoxShape3D):
+		return
+	var box: BoxShape3D = shape.shape as BoxShape3D
+	var new_size: Vector3 = box.size
+	new_size.y = maxf(top - bottom, 1.0)
+	box.size = new_size
+	shape.position.y = bottom + new_size.y * 0.5
+
+
+## Setzt Spawn-Marker per Raycast auf den tatsaechlichen Boden.
+##
+## In den Raum-Szenen liegen ALLE Marker fest auf y = 0.5. Auf einer Rampe
+## ist der Boden dort aber bis zu "rise" Meter hoeher oder tiefer.
+## _spawn_one() setzt den Gegner auf marker.global_position.y + 0.1 - bei
+## einer Steigung steckt er damit meterhoch IM Rampen-Collider. Godots
+## Depenetration schiebt ihn im ersten Physikschritt heraus, bevorzugt nach
+## unten, also durch den Keil hindurch ins Nichts. Genau das ist der
+## "Gegner fallen bei Steigungen durch den Boden"-Bug.
+##
+## Die Decke wird explizit ausgeschlossen: der Strahl startet oberhalb des
+## Markers und wuerde sonst zuerst die Deckenplatte treffen.
+func _snap_markers_to_ground(markers: Array[Marker3D]) -> void:
+	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	if space == null:
+		return
+
+	var exclude: Array[RID] = []
+	var ceiling := get_node_or_null("Ceiling") as StaticBody3D
+	if ceiling:
+		exclude.append(ceiling.get_rid())
+
+	var probe: float = maxf(spawn_ground_probe_height, 1.0)
+
+	for marker in markers:
+		if not is_instance_valid(marker):
+			continue
+
+		var origin: Vector3 = marker.global_position
+		var query := PhysicsRayQueryParameters3D.create(
+			origin + Vector3.UP * probe,
+			origin - Vector3.UP * probe
+		)
+		query.collision_mask = 1
+		query.collide_with_areas = false
+		query.exclude = exclude
+
+		var hit: Dictionary = space.intersect_ray(query)
+		if hit.is_empty():
+			push_warning("RoomInstance (%s): Kein Boden unter Spawn-Marker '%s' - Marker bleibt unveraendert." % [grid_position, marker.name])
+			continue
+
+		# 0.5 statt 0.1 Abstand: _spawn_one() legt nochmal 0.1 drauf, und ein
+		# Gegner, der minimal ueber dem Boden startet, faellt sauber drauf -
+		# einer, der minimal DRIN startet, wird herausgedrueckt.
+		marker.global_position = (hit["position"] as Vector3) + Vector3.UP * 0.5
 
 
 func _opposite(dir: String) -> String:
@@ -14210,6 +14775,8 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	enemy.rotation = Vector3(0.0, point.global_rotation.y, 0.0)
 	enemy.scale = Vector3.ONE
 
+	_apply_stage_scaling(enemy)
+
 	_spawned_enemies.append(enemy)
 	_active_enemies += 1
 
@@ -14239,11 +14806,231 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	enemy.tree_exited.connect(_register_enemy_gone.bind(enemy_id, generation))
 
 
+## Streicht alle Richtungen, die das Layout nicht benutzt.
+##
+## Es wird ueber ALLE vier Himmelsrichtungen gelaufen, nicht nur ueber
+## exit_points: eine Raum-Szene kann eine Tuer ohne zugehoerigen
+## ExitPoint-Marker haben, und genau die blieb frueher als unbenutzbares
+## Tuerblatt stehen.
+## Zieht Lebenspunkte und Schaden eines frisch gespawnten Gegners auf das
+## Niveau der aktuellen Etage hoch.
+##
+## Bis hierher skalierte NUR die Anzahl (threat_per_stage). Ein Stinger in
+## Etage 5 hatte damit exakt dieselben 25 HP wie in Etage 1 - es wurden
+## eben nur mehr davon. Das laesst spaetere Etagen leichter wirken, weil
+## der Spieler inzwischen mehr Schaden macht.
+##
+## Health._ready() hat zu diesem Zeitpunkt bereits current_health auf
+## max_health gesetzt (der Gegner haengt schon im Baum), deshalb wird
+## current_health danach neu gesetzt und health_changed gefeuert - sonst
+## zeigte die Lebensleiste ueber dem Kopf den alten Maximalwert.
+func _apply_stage_scaling(enemy: Node3D) -> void:
+	if is_equal_approx(enemy_health_multiplier, 1.0) and is_equal_approx(enemy_damage_multiplier, 1.0):
+		return
+
+	if not is_equal_approx(enemy_health_multiplier, 1.0):
+		var health_node: Node = enemy.find_child("Health", true, false)
+		if health_node != null and health_node is Health:
+			var hp: Health = health_node as Health
+			hp.max_health *= enemy_health_multiplier
+			hp.current_health = hp.max_health
+			hp.health_changed.emit(hp.current_health, hp.max_health)
+
+	if not is_equal_approx(enemy_damage_multiplier, 1.0):
+		_scale_hitbox_damage(enemy)
+
+
+## Alle Hitboxen des Gegners hochziehen - ein Gegner kann mehrere haben
+## (Nahkampf, Sprungangriff, Aura).
+func _scale_hitbox_damage(node: Node) -> void:
+	for child in node.get_children():
+		if child is Hitbox:
+			(child as Hitbox).damage *= enemy_damage_multiplier
+		_scale_hitbox_damage(child)
+
+
 func apply_exit_flags(required_flags: int) -> void:
-	for key in exit_points.keys().duplicate():
-		var flag: int = _FLAG_BY_KEY.get(key, 0)
-		if flag & required_flags == 0:
-			exit_points.erase(key)
+	var sealed_any: bool = false
+
+	for key in _FLAG_BY_KEY.keys():
+		var flag: int = int(_FLAG_BY_KEY[key])
+		if flag & required_flags != 0:
+			continue
+		exit_points.erase(key)
+		if seal_unused_exits and _seal_exit(key):
+			sealed_any = true
+
+	# Die frisch gemauerten Waende brauchen ihre Minimap-Kappe. Der zweite
+	# Durchlauf ist billig: _build_wall_caps ueberspringt jede Wand, die
+	# schon eine hat.
+	if sealed_any and wall_cap_enabled:
+		_build_wall_caps()
+
+	# Erst JETZT die Zustandsplatten bauen - vorher stehen noch die
+	# Tueren der Richtungen im Weg, die gerade zugemauert wurden.
+	if door_marker_enabled:
+		_build_door_markers()
+
+
+## Legt ueber jeden verbliebenen Durchgang eine flache Platte auf
+## MINIMAP_ONLY_LAYER. Farbe und Sichtbarkeit richten sich nach dem
+## Tuerzustand, aktualisiert wird in _process().
+func _build_door_markers() -> void:
+	for dir in _doors_by_dir.keys():
+		if _door_markers.has(dir):
+			continue
+
+		var door: Node3D = _doors_by_dir[dir] as Node3D
+		if not is_instance_valid(door):
+			continue
+
+		var leaf := Vector3(10.0, 10.0, 0.8)
+		var collision := door.get_node_or_null("CollisionShape3D") as CollisionShape3D
+		if collision != null and collision.shape is BoxShape3D:
+			leaf = (collision.shape as BoxShape3D).size
+
+		var box := BoxMesh.new()
+		if leaf.x >= leaf.z:
+			box.size = Vector3(leaf.x, door_marker_height, door_lintel_thickness)
+		else:
+			box.size = Vector3(door_lintel_thickness, door_marker_height, leaf.z)
+
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.albedo_color = door_marker_color_locked
+
+		var marker := MeshInstance3D.new()
+		marker.name = "DoorMarker%s" % dir.capitalize()
+		marker.mesh = box
+		marker.material_override = material
+		marker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		# Knapp UEBER der Wandoberkante, sonst kaempft die Platte im
+		# Tiefenvergleich mit den Wandkappen (die sitzen exakt dort).
+		marker.position = Vector3(door.position.x, room_height + door_marker_height, door.position.z)
+		# Nur die Minimap-Kamera sieht diesen Layer.
+		marker.layers = 1 << (MINIMAP_ONLY_LAYER - 1)
+		add_child(marker)
+
+		_door_markers[dir] = {"node": marker, "material": material}
+		_door_marker_states[dir] = -1
+
+
+func _process(delta: float) -> void:
+	if _door_markers.is_empty():
+		return
+	_door_marker_pulse = fmod(_door_marker_pulse + delta * 2.2, TAU)
+	_refresh_door_markers()
+
+
+## Faerbt die Platten nach dem ECHTEN Tuerzustand. Eine offene Tuer
+## bekommt keine Platte - der Durchgang soll auf der Karte dann ja als
+## Oeffnung zu lesen sein.
+func _refresh_door_markers() -> void:
+	for dir in _door_markers.keys():
+		var entry: Dictionary = _door_markers[dir]
+		var marker: MeshInstance3D = entry["node"]
+		if not is_instance_valid(marker):
+			continue
+
+		var state: int = get_door_state(dir)
+
+		# Der Puls muss jeden Frame durch, alles andere nur bei Wechsel.
+		if state == DoorState.HACK_READY:
+			var material: StandardMaterial3D = entry["material"]
+			var pulsing: Color = door_marker_color_hack_ready
+			pulsing.a = 0.55 + 0.45 * sin(_door_marker_pulse)
+			material.albedo_color = pulsing
+			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+		if int(_door_marker_states.get(dir, -1)) == state:
+			continue
+		_door_marker_states[dir] = state
+
+		match state:
+			DoorState.OPEN, DoorState.NONE:
+				marker.visible = false
+			DoorState.LOCKED:
+				marker.visible = true
+				_set_marker_color(entry, door_marker_color_locked)
+			DoorState.HACK_LOCKED:
+				marker.visible = true
+				_set_marker_color(entry, door_marker_color_hack_locked)
+			DoorState.HACK_READY:
+				marker.visible = true
+
+
+func _set_marker_color(entry: Dictionary, color: Color) -> void:
+	var material: StandardMaterial3D = entry["material"]
+	material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+	material.albedo_color = color
+
+
+## Mauert EINE Richtung zu: Tuerblatt und Sturz raus, volle Wand rein.
+## Liefert true, wenn tatsaechlich etwas gemauert wurde.
+func _seal_exit(dir: String) -> bool:
+	if not _doors_by_dir.has(dir):
+		return false
+
+	var door: Node3D = _doors_by_dir[dir] as Node3D
+	_doors_by_dir.erase(dir)
+	if not is_instance_valid(door):
+		return false
+
+	# Masse der Oeffnung aus dem Tuerblatt ableiten - dieselbe Quelle wie
+	# beim Sturz, damit beides zusammenpasst und die Skalierung des Raums
+	# automatisch mitgeht.
+	var leaf := Vector3(10.0, 10.0, 0.8)
+	var collision := door.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if collision != null and collision.shape is BoxShape3D:
+		leaf = (collision.shape as BoxShape3D).size
+
+	var door_x: float = door.position.x
+	var door_z: float = door.position.z
+
+	door.queue_free()
+
+	# Der Sturz dieser Richtung ist jetzt ueberfluessig - er saesse mitten
+	# in der neuen Wand.
+	if _lintels_by_dir.has(dir):
+		var lintel: Node = _lintels_by_dir[dir]
+		if is_instance_valid(lintel):
+			lintel.queue_free()
+		_lintels_by_dir.erase(dir)
+
+	var box_size: Vector3
+	if leaf.x >= leaf.z:
+		box_size = Vector3(leaf.x, room_height, door_lintel_thickness)
+	else:
+		box_size = Vector3(door_lintel_thickness, room_height, leaf.z)
+
+	# Als DIREKTES Kind und mit "Wall"-Praefix, damit _build_wall_caps()
+	# die Wand findet und ihr eine Minimap-Kappe verpasst.
+	var body := StaticBody3D.new()
+	body.name = "WallSeal%s" % dir.capitalize()
+	add_child(body)
+	body.position = Vector3(door_x, room_height * 0.5, door_z)
+
+	var box_mesh := BoxMesh.new()
+	box_mesh.size = box_size
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "MeshInstance3D"
+	mesh_instance.mesh = box_mesh
+	# material_override statt surface_material_override - Vorrangregel.
+	mesh_instance.material_override = _load_lintel_material()
+	body.add_child(mesh_instance)
+
+	var shape := CollisionShape3D.new()
+	shape.name = "CollisionShape3D"
+	var box := BoxShape3D.new()
+	box.size = box_size
+	shape.shape = box
+	body.add_child(shape)
+
+	if debug_doors:
+		print("[Room %s] Ausgang '%s' zugemauert (%.1f x %.1f)." % [grid_position, dir, box_size.x if box_size.x > box_size.z else box_size.z, box_size.y])
+
+	return true
 
 
 ## Zaehlt EINEN Gegner genau EINMAL herunter, egal wie viele Signale fuer
@@ -19280,11 +20067,17 @@ camera_lock_multiplier = 0.3
 separation_radius = 1.0
 separation_strength = 3.0
 zigzag_enabled = true
-zigzag_waveform = 0
-zigzag_angle_degrees = 42.0
-zigzag_frequency = 2.4
+zigzag_angle_degrees = 58.0
+zigzag_leg_time = 0.32
+zigzag_pause_time = 0.1
+zigzag_brake_acceleration = 110.0
 zigzag_min_distance = 3.5
-zigzag_fade_distance = 10.0
+zigzag_fade_distance = 11.0
+focus_loss_enabled = true
+focus_loss_chance_per_second = 0.4
+focus_loss_duration_min = 0.5
+focus_loss_duration_max = 1.4
+focus_loss_wander_speed_factor = 0.55
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
@@ -19376,6 +20169,7 @@ signal back_pressed
 @onready var colorblind_option: OptionButton = $Panel/VBoxContainer/TabContainer/General/ColorblindRow/ColorblindOption
 
 # --- Video ---
+@onready var video_tab: VBoxContainer = $Panel/VBoxContainer/TabContainer/Video
 @onready var display_mode_option: OptionButton = $Panel/VBoxContainer/TabContainer/Video/DisplayModeRow/DisplayModeOption
 @onready var vsync_check: CheckButton = $Panel/VBoxContainer/TabContainer/Video/VSyncRow/VSyncCheck
 @onready var fps_limit_option: OptionButton = $Panel/VBoxContainer/TabContainer/Video/FPSLimitRow/FPSLimitOption
@@ -19437,6 +20231,9 @@ var _hud_elements_box: VBoxContainer = null
 var _hud_element_checks: Dictionary = {}  # element (String) -> CheckButton
 var _hud_dropdown_open: bool = false
 
+# --- Video-Steuerelemente (zur Laufzeit erzeugt) ---
+var _fov_slider: HSlider = null
+
 # --- Minimap-Steuerelemente (alle zur Laufzeit erzeugt) ---
 var _minimap_zoom_slider: HSlider = null
 var _minimap_ui_scale_slider: HSlider = null
@@ -19473,6 +20270,7 @@ func _ready() -> void:
 	_build_general_layout()
 	_build_hud_element_dropdown()
 	_build_minimap_group()
+	_build_video_extras()
 
 	_build_keybind_rows()
 	_refresh_from_settings()
@@ -19682,6 +20480,31 @@ func _move_row_to_group(row: Control, group_id: String) -> void:
 		spacer.custom_minimum_size = Vector2(GROUP_INDENT, 0)
 		row.add_child(spacer)
 		row.move_child(spacer, 0)
+
+
+# ============================================================================
+# Video-Tab: FOV-Regler
+# ============================================================================
+
+## Der FOV-Regler wird zur Laufzeit gebaut statt in die .tscn eingetragen: so
+## bleibt settings_menu.tscn flach (siehe Aufbau-Philosophie oben) und die
+## Zeile bekommt automatisch dasselbe Label/Slider/Wert-Layout wie die
+## Minimap-Regler.
+func _build_video_extras() -> void:
+	if video_tab == null:
+		push_warning("SettingsMenu: Tab 'Video' nicht gefunden — FOV-Regler wird uebersprungen.")
+		return
+
+	_fov_slider = _add_slider_row(
+		video_tab, "Sichtfeld (FOV)",
+		SettingsManager.FOV_MIN, SettingsManager.FOV_MAX, 1.0,
+		_on_fov_changed)
+
+	var hint := Label.new()
+	hint.text = "    Standard: %d - hoeher = mehr Uebersicht, staerkere Randverzerrung" % int(SettingsManager.FOV_DEFAULT)
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.modulate = Color(1, 1, 1, 0.55)
+	video_tab.add_child(hint)
 
 
 # ============================================================================
@@ -19906,6 +20729,15 @@ func _on_sensitivity_changed(value: float) -> void:
 	SettingsManager.set_sensitivity(value)
 
 
+## Das Wert-Label wird IMMER aktualisiert, auch waehrend _suppress_signals -
+## sonst zeigt die Zeile beim Oeffnen des Menues den Wert von vorher.
+func _on_fov_changed(value: float) -> void:
+	_set_slider_display(_fov_slider, "%d" % int(round(value)))
+	if _suppress_signals:
+		return
+	SettingsManager.set_fov(value)
+
+
 func _on_minimap_zoom_changed(value: float) -> void:
 	if _suppress_signals:
 		return
@@ -20026,6 +20858,10 @@ func _refresh_from_settings() -> void:
 	_select_option_by_id(display_mode_option, SettingsManager.display_mode)
 	vsync_check.button_pressed = SettingsManager.vsync_enabled
 	_select_option_by_id(fps_limit_option, SettingsManager.fps_limit)
+
+	if _fov_slider:
+		_fov_slider.value = SettingsManager.fov
+		_set_slider_display(_fov_slider, "%d" % int(round(SettingsManager.fov)))
 
 	master_slider.value = SettingsManager.master_volume
 	music_slider.value = SettingsManager.music_volume
@@ -20845,9 +21681,26 @@ func _ready() -> void:
 	color = Color(1.0, 1.0, 1.0, 0.0)  # startet unsichtbar
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # blockiert keine Klicks
 
+## BUGFIX "Overlay taucht in den generierten Levels nie auf":
+##
+## show_submersion() hat bisher NUR die Farbe getweent. In level_01.tscn
+## faellt das nicht auf, weil der Node dort sichtbar in der Szene liegt -
+## in level_generation_test.tscn steht aber visible = false. Ein
+## unsichtbarer ColorRect bleibt unsichtbar, egal wie oft man sein Alpha
+## hochzieht.
+##
+## Die Sichtbarkeit wird deshalb hier mitgeschaltet statt sie der
+## jeweiligen Szene zu ueberlassen: beim Einblenden sofort an, beim
+## Ausblenden erst NACH dem Fade wieder aus (sonst waere der Node schon
+## weg, bevor man das Ausblenden sieht).
 func show_submersion(tint: Color, target_alpha: float = 0.35) -> void:
 	if _tween and _tween.is_valid():
 		_tween.kill()
+	# Alpha auf 0 ziehen, BEVOR der Node sichtbar wird - sonst blitzt beim
+	# ersten Mal kurz die Editor-Farbe des ColorRect auf.
+	if not visible:
+		color = Color(tint.r, tint.g, tint.b, 0.0)
+		visible = true
 	var target_color: Color = Color(tint.r, tint.g, tint.b, target_alpha)
 	_tween = create_tween()
 	_tween.tween_property(self, "color", target_color, fade_duration)
@@ -20855,10 +21708,15 @@ func show_submersion(tint: Color, target_alpha: float = 0.35) -> void:
 func hide_submersion() -> void:
 	if _tween and _tween.is_valid():
 		_tween.kill()
+	if not visible:
+		return
 	var target_color: Color = color
 	target_color.a = 0.0
 	_tween = create_tween()
 	_tween.tween_property(self, "color", target_color, fade_duration)
+	_tween.tween_callback(func() -> void:
+		visible = false
+	)
 
 
 ===== FILE: scenes\tank_dummy.tscn =====
@@ -23101,10 +23959,19 @@ var _combo_timer: float = 0.0
 # --- rueckwaerts bleibt bewusst flach/horizontal (default-Dash). ---
 @export_range(0.0, 1.0) var backward_dash_vertical_influence: float = 0.0
 
+# --- VFX ---
+## Startpuff beim Dash. Wird GEGEN die Dash-Richtung ausgerichtet, damit
+## der Staub zurueckbleibt statt vorauszufliegen.
+@export var dash_vfx: PackedScene
+
 # --- Node-Referenzen, die wir vom Player brauchen ---
 var player: CharacterBody3D
 @onready var primary_hitbox: Hitbox = get_node_or_null("../CameraPivot/PrimaryHitbox")
 @onready var secondary_hitbox: Hitbox = get_node_or_null("../CameraPivot/SecondaryHitbox")
+## Dauer-Emitter fuer den Dash-Trail: GPUParticles3D-Kind am Player-Root
+## namens "DashTrail" (emitting = false, one_shot = false,
+## local_coords = false — sonst zieht der Trail mit statt stehenzubleiben).
+@onready var dash_trail: GPUParticles3D = get_node_or_null("../DashTrail")
 
 func setup(owner_player: CharacterBody3D) -> void:
 	player = owner_player
@@ -23228,6 +24095,9 @@ func _do_primary() -> void:
 
 # Von Charakter-Subklassen überschreibbar. Standardverhalten: PrimaryHitbox
 # fuer ein kurzes Angriffs-Fenster aktivieren.
+# Der Schlag-VFX (swing_vfx) haengt bewusst an der Hitbox selbst, nicht
+# hier — so bekommt jede Waffe/jeder Charakter ihren eigenen Swoosh ueber
+# den Inspector, ohne dass diese Methode ueberschrieben werden muss.
 func _perform_primary() -> void:
 	if primary_hitbox:
 		primary_hitbox.activate()
@@ -23300,6 +24170,14 @@ func _perform_utility() -> void:
 	_is_dashing = true
 	_dash_timer = dash_duration
 
+	# --- VFX ---
+	# Startpuff zeigt GEGEN die Dash-Richtung — der Staub bleibt zurueck,
+	# das verkauft die Beschleunigung deutlich besser als ein Puff nach vorn.
+	if dash_vfx and player:
+		VFX.spawn(dash_vfx, player.global_position, -_dash_direction)
+	if dash_trail:
+		dash_trail.emitting = true
+
 # --- Q-Ability: von jedem Charakter individuell zu überschreiben ---
 func _do_ability_q() -> void:
 	_ability_q_timer = ability_q_cooldown
@@ -23333,6 +24211,11 @@ func get_dash_velocity(delta: float) -> Vector3:
 	_dash_timer -= delta
 	if _dash_timer <= 0.0:
 		_is_dashing = false
+		# Trail hier abschalten und NICHT per create_timer: der Dash kann
+		# durch Frame-Drops laenger dauern als dash_duration in Echtzeit,
+		# ein paralleler Timer waere dann zu frueh fertig.
+		if dash_trail:
+			dash_trail.emitting = false
 		return Vector3.ZERO
 
 	return _dash_direction * dash_speed
@@ -27078,7 +27961,53 @@ var _tilt_tween: Tween
 @export var dash_fov_boost: float = 25.0
 @export var dash_fov_ramp_up_time: float = 0.08
 @export var dash_fov_ramp_down_time: float = 0.35
-var _base_fov: float = 75.0
+
+# --- Kamera-Federarm --------------------------------------------------
+# BUGFIX 1 "beim Dash zoomt die Kamera in den Spieler rein":
+#
+# SpringArm3D zieht seine Kinder heran, sobald der Cast auf Geometrie
+# trifft, und setzt sie dabei OHNE JEDE DAEMPFUNG. Ohne zugewiesene shape
+# castet er nur einen haarduennen Strahl - waehrend eines Dashs legt der
+# Arm pro Frame mehrere Meter zurueck, und steht der Strahl auch nur einen
+# einzigen Frame in Wand oder Boden, springt die Kamera auf Laenge 0.
+#
+# BUGFIX 2 "die Kamera geht beim Dashen durch Waende":
+#
+# Der erste Versuch war, die Kollision waehrend des Dashs komplett
+# abzuschalten. Das beseitigt zwar das Reinzoomen, laesst die Kamera aber
+# durch Waende fahren - schlechter Tausch. Die Kollision bleibt deshalb
+# jetzt AN; stattdessen wird die Laengenaenderung gedaempft:
+#
+#   * Kugel statt Strahl als Cast-Form, plus Ausschluss des eigenen
+#     Koerpers (Godot schliesst das Elternobjekt NICHT automatisch aus).
+#   * Die Kamera wird nicht mehr vom Federarm gesetzt, sondern jeden
+#     Frame selbst auf get_hit_length() zugefahren - REIN schnell, RAUS
+#     langsam. Ein einzelner Fehltreffer verschiebt die Kamera dadurch
+#     hoechstens um pull_speed/60 Einheiten statt sofort auf 0, und echte
+#     Waende schieben sie trotzdem sauber heran.
+#
+# dash_camera_ignore_collision bleibt als Notschalter erhalten, ist aber
+# bewusst AUS.
+@export var dash_camera_ignore_collision: bool = false
+@export var dash_camera_probe_radius: float = 0.35
+@export var dash_camera_margin: float = 0.2
+
+## Wie schnell die Kamera herangezogen wird, wenn etwas im Weg ist
+## (Einheiten pro Sekunde). Hoch genug, dass eine echte Wand die Kamera
+## rechtzeitig einholt - niedrig genug, dass ein Cast-Aussetzer von ein,
+## zwei Frames praktisch unsichtbar bleibt.
+@export var camera_spring_pull_speed: float = 22.0
+
+## Wie schnell sie wieder herausfaehrt. Deutlich langsamer, sonst pumpt
+## die Kamera an jeder Tuerkante.
+@export var camera_spring_return_speed: float = 7.0
+
+## -1 = kein Backup aktiv. Die echte Maske wird beim Dash-Start
+## gesichert, damit ein spaeter geaenderter Layer nicht verlorengeht.
+var _spring_arm_mask_backup: int = -1
+var _camera_spring_current: float = -1.0
+var _dash_fov_tween: Tween
+var _base_fov: float = 90.0
 
 # --- Buoyancy ---
 @export var buoyancy_accel: float = 6.0
@@ -27109,8 +28038,27 @@ func _get_body_height() -> float:
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	combat.setup(self)
-	_base_fov = camera.fov
+
+	# Der FOV kommt AUSSCHLIESSLICH aus den Einstellungen, nicht mehr aus
+	# camera.fov der Szene ("_base_fov = camera.fov"). Sonst haette jede
+	# Charakter-Szene ihren eigenen konkurrierenden Wert und der Regler waere
+	# nach dem naechsten Charakterwechsel wieder wirkungslos.
+	#
+	# Die Verbindung auf fov_changed wird beim Freigeben der Instanz von Godot
+	# automatisch geloest - beim Charakterwechsel muss also nichts aufgeraeumt
+	# werden.
+	set_camera_fov(SettingsManager.fov)
+	if not SettingsManager.fov_changed.is_connected(set_camera_fov):
+		SettingsManager.fov_changed.connect(set_camera_fov)
+
 	_pre_large_enemy_zoom = spring_arm.spring_length
+	_setup_camera_probe()
+	_camera_spring_current = spring_arm.spring_length
+
+	# Die Tuerzustands-Platten der Raeume liegen auf einem Layer, den NUR
+	# die Minimap-Kamera rendern soll. Ohne diese Zeile schweben sie im
+	# Spiel sichtbar ueber den Durchgaengen.
+	camera.set_cull_mask_value(RoomInstance.MINIMAP_ONLY_LAYER, false)
 
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
@@ -27120,6 +28068,20 @@ func _ready() -> void:
 		health.health_changed.connect(_on_own_health_changed)
 		health.died.connect(_on_died)
 		_last_known_health = health.current_health
+
+## Einziger Einstiegspunkt fuer den Basis-FOV.
+##
+## Ein laufender Dash-Tween wird dabei gekillt: seine Rueckwaerts-Phase faehrt
+## sonst auf den ALTEN _base_fov zurueck und ueberschreibt den gerade
+## gesetzten Reglerwert wieder - der Slider haette dann scheinbar zufaellig
+## keine Wirkung, wenn man ihn waehrend eines Dashs bewegt.
+func set_camera_fov(value: float) -> void:
+	_base_fov = clampf(value, SettingsManager.FOV_MIN, SettingsManager.FOV_MAX)
+	if _dash_fov_tween and _dash_fov_tween.is_valid():
+		_dash_fov_tween.kill()
+	if camera:
+		camera.fov = _base_fov
+
 
 func _on_died() -> void:
 	if _is_dead:
@@ -27207,6 +28169,11 @@ func _process(delta: float) -> void:
 
 	camera.rotation.z = deg_to_rad(_combo_tilt_degrees + shake_roll_degrees)
 
+	# NACH dem Shake: der Federarm setzt seine Kinder im internen
+	# Physics-Notification, also VOR diesem _process. Was hier geschrieben
+	# wird, gewinnt fuer den gerenderten Frame.
+	_update_camera_spring(delta)
+
 func shake_camera(amount: float) -> void:
 	if not SettingsManager.screen_shake_enabled:
 		return
@@ -27226,11 +28193,65 @@ func reset_combo_tilt() -> void:
 	_tilt_tween.tween_property(self, "_combo_tilt_degrees", 0.0, 0.6)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
+## Macht den Federarm gegen schnelle Bewegung unempfindlich. Siehe den
+## Kommentar bei dash_camera_ignore_collision.
+func _setup_camera_probe() -> void:
+	if spring_arm == null:
+		return
+	if spring_arm.shape == null:
+		var probe := SphereShape3D.new()
+		probe.radius = maxf(dash_camera_probe_radius, 0.05)
+		spring_arm.shape = probe
+	spring_arm.margin = maxf(spring_arm.margin, dash_camera_margin)
+	# Der eigene Koerper darf den Arm niemals einziehen. Godot schliesst
+	# das Elternobjekt NICHT automatisch aus.
+	spring_arm.add_excluded_object(get_rid())
+
+
+## Schaltet die Kollision des Federarms fuer die Dauer des Dashs ab und
+## danach exakt auf den vorherigen Wert zurueck. Laeuft jeden Frame ganz
+## oben in _physics_process, also auch dann, wenn der Dash durch Tod,
+## Stun oder Szenenwechsel abbricht.
+## Faehrt die Kamera gedaempft auf die vom Federarm ermittelte Laenge zu,
+## statt sie ihn hart setzen zu lassen. Siehe Kommentarblock oben.
+func _update_camera_spring(delta: float) -> void:
+	if spring_arm == null or camera == null:
+		return
+
+	var target: float = spring_arm.get_hit_length()
+	if _camera_spring_current < 0.0:
+		_camera_spring_current = target
+
+	var speed: float = camera_spring_pull_speed if target < _camera_spring_current else camera_spring_return_speed
+	_camera_spring_current = move_toward(_camera_spring_current, target, speed * delta)
+	camera.position = Vector3(0.0, 0.0, _camera_spring_current)
+
+
+func _update_dash_camera_guard() -> void:
+	if not dash_camera_ignore_collision or spring_arm == null:
+		return
+
+	var dashing: bool = combat != null and combat.is_dashing()
+	if dashing:
+		if _spring_arm_mask_backup < 0:
+			_spring_arm_mask_backup = spring_arm.collision_mask
+			spring_arm.collision_mask = 0
+	elif _spring_arm_mask_backup >= 0:
+		spring_arm.collision_mask = _spring_arm_mask_backup
+		_spring_arm_mask_backup = -1
+
+
+## Der Tween wird gemerkt und beim naechsten Dash abgeraeumt. Ohne das
+## laufen bei zwei schnell aufeinanderfolgenden Dashs zwei Tweens
+## gleichzeitig auf camera.fov und ueberschreiben sich gegenseitig - das
+## Sichtfeld bleibt dann auf einem Zwischenwert haengen.
 func play_dash_fov_effect() -> void:
-	var tween := create_tween()
-	tween.tween_property(camera, "fov", _base_fov + dash_fov_boost, dash_fov_ramp_up_time)\
+	if _dash_fov_tween and _dash_fov_tween.is_valid():
+		_dash_fov_tween.kill()
+	_dash_fov_tween = create_tween()
+	_dash_fov_tween.tween_property(camera, "fov", _base_fov + dash_fov_boost, dash_fov_ramp_up_time)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(camera, "fov", _base_fov, dash_fov_ramp_down_time)\
+	_dash_fov_tween.tween_property(camera, "fov", _base_fov, dash_fov_ramp_down_time)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -27262,6 +28283,7 @@ func _physics_process(delta: float) -> void:
 	# eines Dashs weiterlaufen, sonst friert die Immunitaet mitten im
 	# Ausweichmanoever ein und der naechste Treffer stunnt wieder voll.
 	_tick_stun_guard(delta)
+	_update_dash_camera_guard()
 
 	if combat.is_dashing():
 		velocity = combat.get_dash_velocity(delta)
@@ -27498,6 +28520,14 @@ signal hit_landed(target: Node)
 @export var damage_number_scene: PackedScene
 @export var debug_logging: bool = false
 
+# --- VFX ---
+## Effekt beim Aktivieren der Hitbox (Schlag-Trail / Swoosh).
+@export var swing_vfx: PackedScene
+## Effekt beim BESTAETIGTEN Treffer (Impact-Funken).
+@export var impact_vfx: PackedScene
+## Hoehe ueber dem Ziel-Pivot, auf der der Impact erscheint.
+@export var impact_height: float = 1.2
+
 @onready var visual: MeshInstance3D = get_node_or_null("Visual")
 
 var _already_hit: Array[Node] = []
@@ -27511,6 +28541,11 @@ func _debug(msg: String) -> void:
 func _ready() -> void:
 	monitoring = false
 	body_entered.connect(_on_body_entered)
+	# Der Impact haengt bewusst am eigenen hit_landed-Signal statt in
+	# _on_body_entered(): so bleibt die Treffer-Logik voellig unangetastet
+	# und der Effekt feuert garantiert erst NACH allen Filtern
+	# (Self-Damage, _already_hit, Health-Check).
+	hit_landed.connect(_on_hit_landed_vfx)
 	if visual:
 		visual.visible = false
 
@@ -27521,6 +28556,10 @@ func activate() -> void:
 	_debug("activate() aufgerufen. monitoring=%s, global_position=%s, owner=%s" % [monitoring, global_position, owner])
 	if visual:
 		visual.visible = true
+
+	if swing_vfx:
+		# Das Projekt nutzt +Z als "vorne", deshalb basis.z (nicht -basis.z).
+		VFX.spawn(swing_vfx, global_position, global_transform.basis.z)
 
 	# ROBUSTHEITS-FIX: body_entered feuert nur beim EINTRETEN in die Area.
 	# Steht der Spieler beim Aktivieren schon MITTEN in der Hitbox (genau
@@ -27611,6 +28650,25 @@ func _on_body_entered(body: Node3D) -> void:
 				_debug("  -> Knockback %.1f (Fallback: direkt auf velocity) auf '%s' angewendet" % [knockback_force, body.name])
 
 	_spawn_damage_number(body)
+
+
+func _on_hit_landed_vfx(target: Node) -> void:
+	if impact_vfx == null or not (target is Node3D):
+		return
+
+	var target_3d: Node3D = target as Node3D
+	var dir: Vector3 = target_3d.global_position - global_position
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		dir = global_transform.basis.z
+
+	# Auf halbem Weg zwischen Hitbox-Mitte und Ziel-Pivot: sieht bei
+	# grossen Gegnern (Colossus) deutlich besser aus als exakt im Pivot,
+	# der dort tief in der Koerpermitte liegt.
+	var spawn_pos: Vector3 = global_position.lerp(target_3d.global_position, 0.5)
+	spawn_pos.y = target_3d.global_position.y + impact_height
+
+	VFX.spawn(impact_vfx, spawn_pos, dir.normalized())
 
 
 func _spawn_damage_number(body: Node3D) -> void:
@@ -28049,6 +29107,7 @@ signal fullscreen_changed(is_fullscreen: bool)
 signal display_mode_changed(mode: int)
 signal vsync_changed(enabled: bool)
 signal fps_limit_changed(fps: int)
+signal fov_changed(value: float)
 signal keybind_changed(action: String)
 
 # Accessibility
@@ -28069,6 +29128,21 @@ signal minimap_setting_changed()
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
 const DEFAULT_WINDOWED_SIZE: Vector2i = Vector2i(1280, 720)
+
+# ============================================================================
+# SICHTFELD (FOV)
+# ============================================================================
+# Godots Kamera-Default ist 75. Fuer eine Third-Person-Kamera am Federarm ist
+# das zu eng: der Charakter frisst viel Bildflaeche und man verliert bei
+# schnellen Kaempfen die Uebersicht ueber flankierende Gegner. 90 als Start
+# gibt spuerbar mehr Peripherie, ohne PSX-typische Verzerrung an den Raendern.
+#
+# Die Grenzen leben hier und nicht im Einstellungsmenue, damit Slider-Range,
+# der Clamp beim Laden und der Clamp im Spieler garantiert dieselbe Quelle
+# haben.
+const FOV_MIN: float = 60.0
+const FOV_MAX: float = 120.0
+const FOV_DEFAULT: float = 90.0
 
 # Display Mode Enum
 const DISPLAY_MODE_WINDOWED: int = 0
@@ -28196,6 +29270,8 @@ var sfx_volume: float = 1.0
 var display_mode: int = DISPLAY_MODE_WINDOWED
 var vsync_enabled: bool = true
 var fps_limit: int = 144  # 0 = unlimited
+## Vertikales Sichtfeld der Spielerkamera in Grad.
+var fov: float = FOV_DEFAULT
 
 # --- General / HUD ---
 var hud_visible: bool = true
@@ -28263,6 +29339,7 @@ func _apply_all() -> void:
 	_apply_vsync(vsync_enabled)
 	_apply_fps_limit(fps_limit)
 	_apply_sensitivity_to_player()
+	_apply_fov_to_player()
 	_apply_crt_filter(crt_filter_enabled)
 	_apply_colorblind_mode(colorblind_mode)
 	minimap_setting_changed.emit()
@@ -28276,10 +29353,38 @@ func set_sensitivity(value: float) -> void:
 	sensitivity_changed.emit(mouse_sensitivity)
 	save_settings()
 
+## Ueber die Gruppe "player" statt find_child("Player"): der PartyManager
+## tauscht die Spieler-Instanz bei JEDEM Charakterwechsel komplett aus (alte
+## Instanz raus, neue rein). Ein per Namen gefundener Node ist danach
+## ungueltig, und find_child laeuft ausserdem bei jedem Aufruf den halben
+## Szenenbaum ab.
+##
+## Die Gruppe steht hier bewusst als String und nicht als
+## PartyManager.PLAYER_GROUP: die Reihenfolge, in der Autoloads initialisiert
+## werden, ist nicht garantiert - ein Zugriff auf ein anderes Autoload
+## waehrend _ready() kann ins Leere laufen.
 func _apply_sensitivity_to_player() -> void:
-	var player := get_tree().get_root().find_child("Player", true, false)
-	if player and "mouse_sensitivity" in player:
-		player.set("mouse_sensitivity", mouse_sensitivity)
+	for node in get_tree().get_nodes_in_group("player"):
+		if "mouse_sensitivity" in node:
+			node.set("mouse_sensitivity", mouse_sensitivity)
+
+# ============================================================================
+# Sichtfeld (FOV)
+# ============================================================================
+func set_fov(value: float) -> void:
+	fov = clampf(value, FOV_MIN, FOV_MAX)
+	_apply_fov_to_player()
+	fov_changed.emit(fov)
+	save_settings()
+
+## Der Spieler hoert zusaetzlich selbst auf fov_changed (siehe
+## player_base.gd). Dieser Push hier ist fuer den Fall, dass eine
+## Spieler-Instanz erst NACH dem Setzen des Werts entsteht bzw. beim
+## Spielstart aus _apply_all() heraus.
+func _apply_fov_to_player() -> void:
+	for node in get_tree().get_nodes_in_group("player"):
+		if node.has_method("set_camera_fov"):
+			node.set_camera_fov(fov)
 
 # ============================================================================
 # Audio
@@ -28610,15 +29715,18 @@ func reset_video_settings() -> void:
 	display_mode = DISPLAY_MODE_WINDOWED
 	vsync_enabled = true
 	fps_limit = 144
+	fov = FOV_DEFAULT
 
 	_apply_display_mode(display_mode)
 	_apply_vsync(vsync_enabled)
 	_apply_fps_limit(fps_limit)
+	_apply_fov_to_player()
 
 	display_mode_changed.emit(display_mode)
 	fullscreen_changed.emit(false)
 	vsync_changed.emit(vsync_enabled)
 	fps_limit_changed.emit(fps_limit)
+	fov_changed.emit(fov)
 	save_settings()
 
 
@@ -28673,6 +29781,7 @@ func save_settings() -> void:
 	config.set_value("display", "display_mode", display_mode)
 	config.set_value("display", "vsync", vsync_enabled)
 	config.set_value("display", "fps_limit", fps_limit)
+	config.set_value("display", "fov", fov)
 
 	config.set_value("general", "hud_visible", hud_visible)
 	for key in HUD_ELEMENTS.keys():
@@ -28729,6 +29838,11 @@ func load_settings() -> void:
 		display_mode = DISPLAY_MODE_FULLSCREEN if legacy_fs else DISPLAY_MODE_WINDOWED
 	vsync_enabled = config.get_value("display", "vsync", true)
 	fps_limit = config.get_value("display", "fps_limit", 144)
+
+	# clampf schon beim LADEN, nicht erst im Setter: eine von Hand editierte
+	# settings.cfg mit fov = 5 wuerde die Kamera sonst unbrauchbar machen,
+	# ohne dass irgendwo ein Fehler im Log steht.
+	fov = clampf(float(config.get_value("display", "fov", FOV_DEFAULT)), FOV_MIN, FOV_MAX)
 
 	hud_visible = config.get_value("general", "hud_visible", true)
 	for key in HUD_ELEMENTS.keys():
@@ -28908,6 +30022,62 @@ func _process(delta: float) -> void:
 		_debug("Effekt '%s' abgelaufen" % id)
 
 
+===== FILE: scripts\status_vfx.gd =====
+
+extends GPUParticles3D
+class_name StatusVFX
+
+## Schaltet einen Partikel-Emitter anhand eines aktiven Status-Effekts.
+##
+## VERWENDUNG: GPUParticles3D als Kind des Spielers/Gegners anlegen,
+## dieses Script per "Load" zuweisen, effect_id im Inspector setzen.
+## Fuer Stun z.B. kreisende Sterne ueber dem Kopf (position.y ~ 2.0).
+##
+## Funktioniert generisch fuer "stun", "poison", "slow", ... — pro Effekt
+## einfach einen weiteren Partikel-Node mit anderer effect_id anlegen.
+
+@export var effect_id: String = "stun"
+## Node mit dem StatusEffectManager. Leer = direkter Elternknoten.
+@export var source_path: NodePath
+
+
+func _ready() -> void:
+	emitting = false
+
+	var source: Node = get_parent()
+	if not source_path.is_empty():
+		source = get_node_or_null(source_path)
+	if source == null:
+		push_warning("[StatusVFX] Keine Quelle gefunden (%s)." % get_path())
+		return
+
+	# WICHTIG: Kinder werden in Godot VOR dem Elternknoten ready — der
+	# StatusEffectManager wird aber erst in dessen _ready() erzeugt.
+	# Ohne dieses await waere status_effects hier garantiert null.
+	if not source.is_node_ready():
+		await source.ready
+	if not is_instance_valid(source):
+		return
+
+	var manager: StatusEffectManager = source.get("status_effects") as StatusEffectManager
+	if manager == null:
+		push_warning("[StatusVFX] '%s' hat keinen StatusEffectManager." % source.name)
+		return
+
+	manager.effect_applied.connect(_on_effect_applied)
+	manager.effect_expired.connect(_on_effect_expired)
+
+
+func _on_effect_applied(id: String, _duration: float, _magnitude: float, _source: Node) -> void:
+	if id == effect_id:
+		emitting = true
+
+
+func _on_effect_expired(id: String) -> void:
+	if id == effect_id:
+		emitting = false
+
+
 ===== FILE: scripts\steam_manager.gd =====
 
 extends Node
@@ -29042,6 +30212,101 @@ func get_persona_name() -> String:
 ## im Spiel eine Fehlermeldung pro Frame produzieren.
 func has_api(method_name: String) -> bool:
 	return is_available() and _steam.has_method(method_name)
+
+
+===== FILE: scripts\vfx_manager.gd =====
+
+extends Node
+
+## Zentraler One-Shot-VFX-Spawner.
+##
+## REGISTRIEREN: Project Settings -> Autoload
+##   Pfad: res://scripts/vfx_manager.gd
+##   Name: VFX
+##
+## WARUM ZENTRAL:
+## Effekt-Nodes duerfen nicht am Ausloeser haengen — Hitboxen werden 0.15s
+## nach dem Schlag deaktiviert, Gegner rufen bei Tod queue_free(). Ein
+## Kind-Emitter waere dann mitten im Abspielen weg. Hier landen alle
+## Effekte in current_scene und raeumen sich nach Ablauf selbst ab.
+
+## Sicherheitszuschlag auf die berechnete Lebensdauer.
+const CLEANUP_MARGIN: float = 0.5
+
+## Notbremse, falls eine Szene gar keinen Partikel-Node enthaelt.
+const FALLBACK_LIFETIME: float = 2.0
+
+
+## global_pos = Weltposition des Effekts.
+## direction  = Ausrichtung; -Z des Effekts zeigt darauf (Godot-Konvention
+##              von look_at). Vector3.ZERO = keine Ausrichtung.
+## parent     = optionaler Eltern-Node; Standard ist current_scene.
+func spawn(scene: PackedScene, global_pos: Vector3, direction: Vector3 = Vector3.ZERO, parent: Node = null) -> Node3D:
+	if scene == null:
+		return null
+
+	var target_parent: Node = parent if parent != null else get_tree().current_scene
+	if target_parent == null or not is_instance_valid(target_parent):
+		return null
+
+	var instance: Node = scene.instantiate()
+	if not (instance is Node3D):
+		push_warning("[VFX] '%s' ist kein Node3D — verworfen." % scene.resource_path)
+		instance.queue_free()
+		return null
+
+	var node: Node3D = instance as Node3D
+	target_parent.add_child(node)
+	# NACH add_child(): global_position ist vorher nicht gueltig.
+	node.global_position = global_pos
+
+	if direction.length_squared() > 0.0001:
+		_aim(node, direction.normalized())
+
+	var lifetime: float = _restart_emitters(node)
+	_schedule_cleanup(node, lifetime)
+	return node
+
+
+## look_at() wirft einen Fehler, wenn die Blickrichtung exakt parallel zum
+## Up-Vektor liegt (Treffer senkrecht von oben/unten). Dann wird Up gekippt.
+func _aim(node: Node3D, dir: Vector3) -> void:
+	var up: Vector3 = Vector3.UP
+	if absf(dir.dot(up)) > 0.99:
+		up = Vector3.FORWARD
+	node.look_at(node.global_position + dir, up)
+
+
+## Startet alle Emitter der Szene neu und liefert die laengste Laufzeit.
+func _restart_emitters(root: Node) -> float:
+	var longest: float = 0.0
+	for node in _collect_emitters(root):
+		if node is GPUParticles3D:
+			var gpu: GPUParticles3D = node
+			gpu.restart()
+			gpu.emitting = true
+			longest = maxf(longest, gpu.lifetime / maxf(gpu.speed_scale, 0.01))
+		elif node is CPUParticles3D:
+			var cpu: CPUParticles3D = node
+			cpu.restart()
+			cpu.emitting = true
+			longest = maxf(longest, cpu.lifetime / maxf(cpu.speed_scale, 0.01))
+	return longest if longest > 0.0 else FALLBACK_LIFETIME
+
+
+func _collect_emitters(node: Node) -> Array[Node]:
+	var result: Array[Node] = []
+	if node is GPUParticles3D or node is CPUParticles3D:
+		result.append(node)
+	for child in node.get_children():
+		result.append_array(_collect_emitters(child))
+	return result
+
+
+func _schedule_cleanup(node: Node3D, lifetime: float) -> void:
+	await get_tree().create_timer(lifetime + CLEANUP_MARGIN).timeout
+	if is_instance_valid(node):
+		node.queue_free()
 
 
 ===== FILE: scripts\victory_trophy.gd =====

@@ -28,6 +28,21 @@ class_name LavaHazard
 ##     falls ein body_entered-Signal verschluckt wird (passiert beim
 ##     Spawn/Instanziieren im selben Frame), findet der Poll den Body
 ##     trotzdem.
+##  4. NEU - "Lava macht zu spaet Schaden, wenn man reinspringt":
+##     Der Eintrittsschaden hing frueher AUSSCHLIESSLICH an _register(),
+##     also am Betreten des Trigger-VOLUMENS. Beim Sprung von oben feuert
+##     body_entered aber, waehrend die Fuesse noch UEBER der Oberflaeche
+##     sind -> starts_submerged = false, kein Schaden. Der Uebergang
+##     "jetzt wirklich drin" ein paar Frames spaeter hat dann nur die
+##     Optik gestartet und den Tick-Timer bei 0 losrechnen lassen: der
+##     erste Treffer kam erst nach vollen tick_interval Sekunden.
+##     Der Eintrittsschaden haengt jetzt am UEBERGANG, nicht am Volumen.
+##  5. NEU - Gameplay laeuft in _physics_process(): die Fusspunkte werden
+##     im Physik-Schritt aktualisiert. Ein Check in _process() arbeitet je
+##     nach Framerate mit veralteten Positionen.
+##  6. NEU - predict_falling_entry: bei hoher Fallgeschwindigkeit wird der
+##     Fusspunkt des naechsten Physik-Schritts vorausberechnet, damit ein
+##     schneller Sprung nicht ueber eine duenne Lache "hinwegspringt".
 
 enum HazardMode { POOL, SURFACE }
 
@@ -80,11 +95,24 @@ enum HazardMode { POOL, SURFACE }
 @export var submersion_tolerance: float = 0.3
 @export var surface_wade_tolerance: float = 0.9
 
+## Rechnet die im naechsten Physik-Schritt zurueckgelegte Fallstrecke mit
+## ein. Ohne das kann ein schneller Sprung von oben ueber eine duenne Lache
+## hinwegspringen: bei gravity = 40 liegen zwischen zwei Frames schnell mehr
+## Meter als die Toleranz breit ist.
+@export var predict_falling_entry: bool = true
+
+# --- VFX ---
+## Zischen/Rauch, das bei JEDEM Schadens-Tick am getroffenen Koerper
+## aufblitzt ("aetzend"). One-Shot-Szene, Root = GPUParticles3D.
+@export var corrosion_vfx: PackedScene
+## Hoehe ueber der Limonaden-Oberflaeche, auf der der Effekt erscheint.
+@export var corrosion_vfx_height: float = 0.4
+
 @export var display_name: String = "Lemonade"
 @export var debug_logging: bool = false
 
 ## Sicherheits-Poll gegen verschluckte body_entered-Signale (Sekunden).
-@export var rescan_interval: float = 0.5
+@export var rescan_interval: float = 0.2
 
 @onready var visual: CSGBox3D = $LemonadeVisual
 @onready var trigger: Area3D = $LemonadeTrigger
@@ -123,6 +151,10 @@ func _ready() -> void:
 ## Ohne das teilen sich ALLE Lemonade-Instanzen dieselbe BoxShape3D und
 ## dasselbe StandardMaterial3D aus der lemonade.tscn - die zuletzt
 ## instanziierte Lache diktiert dann Groesse und Farbe aller anderen.
+##
+## HINWEIS fuer den Dauer-Emitter (Blasen an der Oberflaeche): sobald du
+## dessen ParticleProcessMaterial pro Instanz an 'size' anpasst, gilt
+## exakt dasselbe Problem — dann hier ebenfalls duplizieren.
 func _make_resources_unique() -> void:
 	if collision_shape and collision_shape.shape:
 		collision_shape.shape = collision_shape.shape.duplicate()
@@ -171,8 +203,17 @@ func _effective_tolerance() -> float:
 	return submersion_tolerance
 
 
-func _is_body_submerged(body: Node3D) -> bool:
-	return _get_body_feet_y(body) <= _get_surface_top_world_y() + _effective_tolerance()
+## delta > 0: der Fusspunkt wird um die im naechsten Physik-Schritt
+## zurueckgelegte Fallstrecke vorausberechnet - siehe predict_falling_entry.
+func _is_body_submerged(body: Node3D, delta: float = 0.0) -> bool:
+	var feet_y: float = _get_body_feet_y(body)
+
+	if predict_falling_entry and delta > 0.0 and body is CharacterBody3D:
+		var vertical: float = (body as CharacterBody3D).velocity.y
+		if vertical < 0.0:
+			feet_y += vertical * delta
+
+	return feet_y <= _get_surface_top_world_y() + _effective_tolerance()
 
 
 ## FIX: CapsuleShape3D.height ist in Godot 4 die GESAMThoehe inklusive der
@@ -199,18 +240,22 @@ func _get_body_feet_y(body: Node3D) -> float:
 	return shape_node.global_position.y - half_height
 
 
+## Nur noch Optik. Das komplette Gameplay haengt in _physics_process() -
+## siehe Bugfix 5 im Kopfkommentar.
 func _process(delta: float) -> void:
 	if pulse_enabled and _material:
 		_pulse_time += delta * pulse_speed
 		var pulse: float = 1.0 + sin(_pulse_time) * pulse_amount
 		_material.emission_energy_multiplier = glow_energy * pulse
 
+
+func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 
 	_rescan_timer -= delta
 	if _rescan_timer <= 0.0:
-		_rescan_timer = rescan_interval
+		_rescan_timer = maxf(rescan_interval, 0.05)
 		_rescan_overlaps()
 
 	if _occupants.is_empty():
@@ -222,11 +267,20 @@ func _process(delta: float) -> void:
 			continue
 
 		var entry: Dictionary = _occupants[body]
-		var now_submerged: bool = _is_body_submerged(body)
+		var now_submerged: bool = _is_body_submerged(body, delta)
 		var was_submerged: bool = entry["submerged"]
 
 		if now_submerged and not was_submerged:
 			_start_submersion_effects(body)
+			# DER eigentliche Fix gegen "Schaden kommt zu spaet": der
+			# Eintrittsschaden haengt am UEBERGANG, nicht am Betreten des
+			# Trigger-Volumens. Wer von oben reinspringt, nimmt jetzt in
+			# genau dem Physik-Schritt Schaden, in dem die Fuesse die
+			# Oberflaeche durchstossen - vorher vergingen erst volle
+			# tick_interval Sekunden.
+			if damage_on_entry:
+				_damage_body(body)
+				entry["tick_timer"] = 0.0
 		elif was_submerged and not now_submerged:
 			_stop_submersion_effects(body)
 
@@ -240,7 +294,6 @@ func _process(delta: float) -> void:
 				_damage_body(body)
 
 		_occupants[body] = entry
-
 
 ## Sicherheitsnetz: body_entered kann verloren gehen, wenn Raum und
 ## Spieler im selben Frame instanziiert/verschoben werden.
@@ -274,6 +327,17 @@ func _damage_body(body: Node3D) -> void:
 	if health and health is Health:
 		health.take_damage(damage_per_tick, self)
 		_debug("Tick-Schaden %.1f an '%s'" % [damage_per_tick, body.name])
+
+	# --- VFX ---
+	# Engine.is_editor_hint() ist Pflicht: dieses Script ist @tool, das
+	# VFX-Autoload existiert im Editor aber nicht (Autoloads werden dort
+	# nur instanziiert, wenn sie selbst @tool sind).
+	if corrosion_vfx and not Engine.is_editor_hint():
+		# An der Oberflaeche statt am Koerper-Pivot: im POOL-Modus steckt
+		# der Pivot unter der Fluessigkeit, der Effekt waere unsichtbar.
+		var spawn_pos: Vector3 = body.global_position
+		spawn_pos.y = _get_surface_top_world_y() + corrosion_vfx_height
+		VFX.spawn(corrosion_vfx, spawn_pos, Vector3.UP)
 
 
 ## Im SURFACE-Modus haelt sich der Slow nur solange, wie man drin steht:

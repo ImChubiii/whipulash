@@ -1,5 +1,3 @@
-
-
 extends CharacterBody3D
 class_name PlayerBase
 
@@ -285,7 +283,7 @@ var _tilt_tween: Tween
 var _spring_arm_mask_backup: int = -1
 var _camera_spring_current: float = -1.0
 var _dash_fov_tween: Tween
-var _base_fov: float = 75.0
+var _base_fov: float = 90.0
 
 # --- Buoyancy ---
 @export var buoyancy_accel: float = 6.0
@@ -316,7 +314,19 @@ func _get_body_height() -> float:
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	combat.setup(self)
-	_base_fov = camera.fov
+
+	# Der FOV kommt AUSSCHLIESSLICH aus den Einstellungen, nicht mehr aus
+	# camera.fov der Szene ("_base_fov = camera.fov"). Sonst haette jede
+	# Charakter-Szene ihren eigenen konkurrierenden Wert und der Regler waere
+	# nach dem naechsten Charakterwechsel wieder wirkungslos.
+	#
+	# Die Verbindung auf fov_changed wird beim Freigeben der Instanz von Godot
+	# automatisch geloest - beim Charakterwechsel muss also nichts aufgeraeumt
+	# werden.
+	set_camera_fov(SettingsManager.fov)
+	if not SettingsManager.fov_changed.is_connected(set_camera_fov):
+		SettingsManager.fov_changed.connect(set_camera_fov)
+
 	_pre_large_enemy_zoom = spring_arm.spring_length
 	_setup_camera_probe()
 	_camera_spring_current = spring_arm.spring_length
@@ -334,6 +344,20 @@ func _ready() -> void:
 		health.health_changed.connect(_on_own_health_changed)
 		health.died.connect(_on_died)
 		_last_known_health = health.current_health
+
+## Einziger Einstiegspunkt fuer den Basis-FOV.
+##
+## Ein laufender Dash-Tween wird dabei gekillt: seine Rueckwaerts-Phase faehrt
+## sonst auf den ALTEN _base_fov zurueck und ueberschreibt den gerade
+## gesetzten Reglerwert wieder - der Slider haette dann scheinbar zufaellig
+## keine Wirkung, wenn man ihn waehrend eines Dashs bewegt.
+func set_camera_fov(value: float) -> void:
+	_base_fov = clampf(value, SettingsManager.FOV_MIN, SettingsManager.FOV_MAX)
+	if _dash_fov_tween and _dash_fov_tween.is_valid():
+		_dash_fov_tween.kill()
+	if camera:
+		camera.fov = _base_fov
+
 
 func _on_died() -> void:
 	if _is_dead:
@@ -683,5 +707,3 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			velocity.z = 0.0
 			break
-
-
