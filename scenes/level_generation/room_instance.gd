@@ -23,10 +23,58 @@ const _DIR_VECTOR := {
 
 const NAV_SOURCE_GROUP := "navmesh_source"
 
+## Zustand EINES Durchgangs - Grundlage fuer die Minimap-Synchronisation.
+##
+## BUGFIX (Minimap zeigte geschlossene Tueren als offen): Die Minimap hat
+## bisher nur die exit_flags des LAYOUTS gezeichnet. Die sagen aber nur
+## "hier ist im Grid ein Nachbar", nicht "hier gibt es tatsaechlich eine
+## begehbare Tuer". Zwei Faelle liefen dadurch auseinander:
+##   1. Die gewaehlte Raum-Szene hat fuer diese Richtung gar keinen
+##      ExitPoint/Door-Node (dann warnt _collect_markers, die Minimap
+##      malte den Durchgang aber trotzdem).
+##   2. Die Tuer ist verriegelt (Kampfraum nicht gecleared) oder muss
+##      erst gehackt werden (Boss/Treasure) - auf der Minimap sah sie
+##      genauso offen aus wie jeder andere Gang.
+## get_door_state() liefert jetzt den ECHTEN Zustand der jeweiligen Tuer.
+enum DoorState {
+	NONE,          ## Kein Durchgang / keine Tuer in dieser Richtung
+	OPEN,          ## Offen und begehbar
+	LOCKED,        ## Verriegelt (Raum noch nicht gecleared)
+	HACK_LOCKED,   ## Boss/Treasure, Hacken noch nicht freigeschaltet
+	HACK_READY,    ## Boss/Treasure, kann jetzt gehackt werden
+}
+
 @export var room_footprint: Vector2 = Vector2(48.0, 48.0)
 @export var room_height: float = 14.0
 
-@export var entry_trigger_inset: float = 3.0
+## --- Kampfraum-Aktivierung / Anti-Baiting -----------------------------
+## FRUEHER: Der EntryTrigger war fast so gross wie der ganze Raum
+## (footprint - entry_trigger_inset mit inset = 3.0). Er feuerte damit
+## schon im Tuerrahmen — man konnte kurz reinlaufen, den Spawn ausloesen
+## und sofort wieder raus, bevor sich die Tueren schliessen.
+##
+## JETZT: Der Trigger ist ein deutlich kleinerer Quader in der RAUMMITTE.
+## entry_trigger_depth gibt an, wie viele Meter der Spieler von JEDER Wand
+## entfernt sein muss, damit der Raum scharf schaltet — der Spieler muss
+## also wirklich einige Meter tief in den Raum hinein.
+##
+## Zusaetzlich muss der Spieler entry_trigger_dwell_time lang DRINNEN
+## bleiben. Wer durch die Mitte durchsprintet und sofort wieder rausrennt,
+## loest nichts aus.
+@export var entry_trigger_depth: float = 9.0
+
+## Mindestgroesse des Triggers, falls der Raum kleiner ist als
+## 2 * entry_trigger_depth (schmale Korridore) — sonst waere der Quader
+## rechnerisch negativ und der Raum liesse sich nie betreten.
+@export var entry_trigger_min_size: float = 6.0
+
+## Wie lange der Spieler ununterbrochen im Trigger stehen muss.
+@export var entry_trigger_dwell_time: float = 0.25
+
+## Vertikale Grosszuegigkeit: Der Trigger startet knapp ueber dem Boden und
+## reicht bis zur Decke, damit auch springende/fallende Spieler erfasst
+## werden.
+@export var entry_trigger_floor_offset: float = 0.2
 
 ## --- Dunkle, aber TEXTURIERTE Decke -----------------------------------
 ## Erzeugt zur Laufzeit eine Deckenplatte. Verwendet dasselbe geteilte
@@ -89,12 +137,26 @@ var exit_points: Dictionary = {}
 signal room_cleared(room: RoomInstance)
 signal room_entered(room: RoomInstance)
 
+## Schreibt bei jedem relevanten Ereignis eine Zeile ins Log. Zusammen mit
+## LevelGenerator.debug_doors ergibt das ein vollstaendiges Tuer-Protokoll.
+@export var debug_doors: bool = false
+
+## Wie oft der Watchdog nach verwaisten Gegner-Zaehlern sucht (Sekunden).
+@export var enemy_watchdog_interval: float = 1.0
+
 var _is_cleared: bool = false
 var _active_enemies: int = 0
+## instance_id -> true. Verhindert Doppelzaehlung, siehe _register_enemy_gone().
+var _counted_dead_enemies: Dictionary = {}
+var _watchdog_timer: float = 0.0
 var _requires_clear: bool = false
 
 var _entry_trigger: Area3D = null
 var _has_entered: bool = false
+## Laeuft, solange der Spieler im Trigger steht. Verlaesst er ihn vorher,
+## wird der Timer verworfen und der Raum bleibt inaktiv.
+var _dwell_timer: float = 0.0
+var _dwell_body: Node3D = null
 var _enemies_spawned: bool = false
 
 var _pending_entries: Array[EnemySpawnEntry] = []
@@ -343,6 +405,18 @@ func set_door_kind(dir: String, kind: int) -> void:
 		(door as Door).door_kind = kind
 
 
+## Stellt eine Tuer vom Hack-Zwang frei, OHNE ihre Einfaerbung zu
+## aendern - siehe hack_exempt in door.gd. Wird vom LevelGenerator fuer
+## die Innenseite von Boss-/Tresorraeumen gesetzt, damit man dort nicht
+## eingesperrt wird.
+func set_door_hack_exempt(dir: String, exempt: bool) -> void:
+	if not _doors_by_dir.has(dir):
+		return
+	var door: Node = _doors_by_dir[dir]
+	if is_instance_valid(door) and door is Door:
+		(door as Door).hack_exempt = exempt
+
+
 func set_door_hack_enabled(dir: String, enabled: bool) -> void:
 	if not _doors_by_dir.has(dir):
 		return
@@ -362,25 +436,69 @@ func _setup_entry_trigger() -> void:
 
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(
-		max(room_footprint.x - entry_trigger_inset, 1.0),
-		room_height,
-		max(room_footprint.y - entry_trigger_inset, 1.0)
-	)
+
+	# Von JEDER Seite um entry_trigger_depth einruecken -> der Trigger sitzt
+	# als kompakter Quader in der Raummitte.
+	var size_x: float = maxf(room_footprint.x - entry_trigger_depth * 2.0, entry_trigger_min_size)
+	var size_z: float = maxf(room_footprint.y - entry_trigger_depth * 2.0, entry_trigger_min_size)
+	var size_y: float = maxf(room_height - entry_trigger_floor_offset, 1.0)
+
+	box.size = Vector3(size_x, size_y, size_z)
 	shape.shape = box
-	shape.position = Vector3(0.0, room_height * 0.5, 0.0)
+	shape.position = Vector3(0.0, entry_trigger_floor_offset + size_y * 0.5, 0.0)
 	_entry_trigger.add_child(shape)
 
-	_entry_trigger.body_entered.connect(_on_entry_trigger_body_entered)
+	_entry_trigger.body_exited.connect(_on_entry_trigger_body_exited)
 
 
-func _on_entry_trigger_body_entered(body: Node) -> void:
+## Der Dwell-Check laeuft bewusst in _physics_process statt ueber
+## body_entered: So wird auch der Fall abgedeckt, dass der Spieler beim
+## Laden des Raumes BEREITS im Trigger steht (body_entered feuert dann nie).
+func _physics_process(delta: float) -> void:
+	# NICHT mehr komplett abschalten, sobald der Raum betreten wurde — der
+	# Gegner-Watchdog unten muss weiterlaufen. Nur der Eintritts-Check wird
+	# uebersprungen.
+	if _entry_trigger == null:
+		set_physics_process(false)
+		return
+
+	# Watchdog laeuft IMMER - auch nachdem der Raum betreten wurde, denn
+	# genau dann koennen Gegner verschwinden ohne sauber zu sterben.
+	_watchdog_timer -= delta
+	if _watchdog_timer <= 0.0:
+		_watchdog_timer = maxf(enemy_watchdog_interval, 0.1)
+		_watchdog_check()
+
 	if _has_entered:
 		return
-	if not body.is_in_group(PartyManager.PLAYER_GROUP):
+
+	var player: Node3D = _find_player_inside()
+	if player == null:
+		_dwell_timer = 0.0
+		_dwell_body = null
 		return
-	_has_entered = true
-	on_player_entered()
+
+	if player != _dwell_body:
+		_dwell_body = player
+		_dwell_timer = 0.0
+
+	_dwell_timer += delta
+	if _dwell_timer >= maxf(entry_trigger_dwell_time, 0.0):
+		_has_entered = true
+		on_player_entered()
+
+
+func _find_player_inside() -> Node3D:
+	for body in _entry_trigger.get_overlapping_bodies():
+		if body is Node3D and body.is_in_group(PartyManager.PLAYER_GROUP):
+			return body
+	return null
+
+
+func _on_entry_trigger_body_exited(body: Node) -> void:
+	if body == _dwell_body:
+		_dwell_timer = 0.0
+		_dwell_body = null
 
 
 func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage: int) -> void:
@@ -517,14 +635,29 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	_spawned_enemies.append(enemy)
 	_active_enemies += 1
 
+	# BUGFIX "Tueren gehen manchmal nicht auf":
+	# Frueher wurde NUR EINE der drei Quellen verbunden (died am Gegner,
+	# sonst died an Health, sonst tree_exited). Verschwindet ein Gegner
+	# aber auf einem Weg, der das gewaehlte Signal NICHT feuert - er faellt
+	# in eine Lava-/Abgrund-Zone und wird per queue_free() entfernt, oder
+	# er wird beim Raum-Cleanup abgeraeumt - dann zaehlt _active_enemies
+	# nie herunter, der Raum gilt ewig als "nicht gecleared" und die
+	# Tueren bleiben fuer immer zu.
+	#
+	# Jetzt werden ALLE verfuegbaren Quellen verbunden und ueber die
+	# Instanz-ID dedupliziert: was zuerst feuert zaehlt, alles danach wird
+	# ignoriert. tree_exited ist dabei das Sicherheitsnetz, das JEDEN
+	# Verschwinde-Weg abdeckt.
+	var enemy_id: int = enemy.get_instance_id()
+
 	if enemy.has_signal("died"):
-		enemy.connect("died", _on_enemy_died)
-	else:
-		var health_node := enemy.find_child("Health", true, false)
-		if health_node and health_node.has_signal("died"):
-			health_node.died.connect(_on_enemy_died)
-		else:
-			enemy.tree_exited.connect(_on_enemy_died)
+		enemy.connect("died", _register_enemy_gone.bind(enemy_id))
+
+	var health_node := enemy.find_child("Health", true, false)
+	if health_node and health_node.has_signal("died"):
+		health_node.died.connect(_register_enemy_gone.bind(enemy_id))
+
+	enemy.tree_exited.connect(_register_enemy_gone.bind(enemy_id))
 
 
 func apply_exit_flags(required_flags: int) -> void:
@@ -534,12 +667,133 @@ func apply_exit_flags(required_flags: int) -> void:
 			exit_points.erase(key)
 
 
-func _on_enemy_died() -> void:
+## Zaehlt EINEN Gegner genau EINMAL herunter, egal wie viele Signale fuer
+## ihn feuern. Ohne die Deduplizierung wuerde ein Gegner, der sowohl
+## died ALS AUCH tree_exited ausloest, doppelt zaehlen und der Raum
+## koennte sich verfrueht als leer melden.
+func _register_enemy_gone(enemy_id: int) -> void:
+	if _counted_dead_enemies.has(enemy_id):
+		return
+	_counted_dead_enemies[enemy_id] = true
+
 	_active_enemies -= 1
+	if debug_doors:
+		print("[Room %s] Gegner entfernt - noch %d aktiv." % [grid_position, _active_enemies])
+
 	if _active_enemies <= 0 and not _is_cleared:
 		_is_cleared = true
 		_lock_exits(false)
+		if debug_doors:
+			print("[Room %s] CLEARED -> Tueren entriegelt." % grid_position)
 		room_cleared.emit(self)
+
+
+## Sicherheitsnetz gegen haengende Zaehler. Laeuft nur, solange der Raum
+## noch nicht gecleared ist, und prueft im Sekundentakt, ob ueberhaupt noch
+## gueltige Gegner-Instanzen existieren. Falls nicht, aber der Zaehler
+## haengt noch ueber 0: Raum zwangsweise freigeben.
+##
+## Das faengt selbst den Fall ab, in dem ein Gegner ohne JEDES Signal
+## verschwindet (z.B. wenn ein anderer Node ihn direkt aus dem Baum
+## nimmt und free() statt queue_free() aufruft).
+func _watchdog_check() -> void:
+	if _is_cleared or not _requires_clear or not _enemies_spawned:
+		return
+
+	var alive: int = 0
+	for enemy in _spawned_enemies:
+		if is_instance_valid(enemy) and enemy.is_inside_tree():
+			alive += 1
+
+	if alive > 0:
+		return
+
+	push_warning("RoomInstance (%s): Watchdog - kein lebender Gegner mehr, aber _active_enemies = %d. Raum wird zwangsweise freigegeben." % [grid_position, _active_enemies])
+	_active_enemies = 0
+	_is_cleared = true
+	_lock_exits(false)
+	room_cleared.emit(self)
+
+
+## Echter Zustand des Durchgangs in dieser Richtung - siehe DoorState.
+func get_door_state(dir: String) -> int:
+	# exit_points wurde von apply_exit_flags() auf die vom Layout wirklich
+	# geforderten Richtungen eingedampft. Steht dir nicht (mehr) drin,
+	# existiert hier auch kein Durchgang.
+	if not exit_points.has(dir):
+		return DoorState.NONE
+	if not _doors_by_dir.has(dir):
+		return DoorState.NONE
+
+	var door: Node = _doors_by_dir[dir]
+	if not is_instance_valid(door):
+		return DoorState.NONE
+
+	if not (door is Door):
+		return DoorState.OPEN
+
+	var d: Door = door as Door
+	if not d.is_locked():
+		return DoorState.OPEN
+	if d.requires_hack():
+		return DoorState.HACK_READY if d.is_hack_enabled() else DoorState.HACK_LOCKED
+	return DoorState.LOCKED
+
+
+## Menschenlesbarer Name eines DoorState-Werts - fuer das Debug-Protokoll.
+static func door_state_name(state: int) -> String:
+	match state:
+		DoorState.NONE: return "KEINE TUER"
+		DoorState.OPEN: return "OFFEN"
+		DoorState.LOCKED: return "VERRIEGELT"
+		DoorState.HACK_LOCKED: return "HACK GESPERRT"
+		DoorState.HACK_READY: return "HACK BEREIT"
+	return "?"
+
+
+## Vollstaendiger Zustandsbericht dieses Raums fuer das Tuer-Protokoll.
+## Liefert eine Liste von Dictionaries, eine pro Himmelsrichtung, in der
+## das Layout ueberhaupt einen Ausgang vorsieht.
+func get_door_report() -> Array:
+	var report: Array = []
+	for dir in _FLAG_BY_KEY.keys():
+		var has_marker: bool = exit_points.has(dir)
+		var has_door: bool = _doors_by_dir.has(dir)
+
+		# Richtungen ohne Marker UND ohne Tuer sind schlicht Wand - die
+		# muessen nicht im Protokoll auftauchen.
+		if not has_marker and not has_door:
+			continue
+
+		var door: Node = _doors_by_dir.get(dir)
+		var kind: int = -1
+		var hack_enabled: bool = false
+		var hack_needed: bool = false
+		var hack_exempt: bool = false
+		if is_instance_valid(door) and door is Door:
+			var d: Door = door as Door
+			kind = d.door_kind
+			hack_enabled = d.is_hack_enabled()
+			hack_needed = d.requires_hack()
+			hack_exempt = d.hack_exempt
+
+		report.append({
+			"dir": dir,
+			"state": get_door_state(dir),
+			"has_exit_marker": has_marker,
+			"has_door_node": has_door,
+			"door_kind": kind,
+			"hack_enabled": hack_enabled,
+			"hack_needed": hack_needed,
+			"hack_exempt": hack_exempt,
+		})
+	return report
+
+
+## Weltposition der Raummitte auf Bodenhoehe - z.B. fuer den Spawn der
+## Sieg-Trophaee im Bossraum.
+func get_room_center() -> Vector3:
+	return global_position
 
 
 func is_cleared() -> bool:
@@ -555,11 +809,22 @@ func get_active_enemy_count() -> int:
 
 
 func _lock_exits(locked: bool) -> void:
-	for marker in exit_points.values():
-		if marker.has_meta("door_node"):
-			var door: Node = marker.get_meta("door_node")
-			if is_instance_valid(door) and door.has_method("set_locked"):
-				door.set_locked(locked)
+	for dir in exit_points.keys():
+		var marker: Marker3D = exit_points[dir]
+		if not marker.has_meta("door_node"):
+			push_warning("RoomInstance (%s): ExitPoint '%s' hat keine door_node-Meta - Tuer kann weder ver- noch entriegelt werden." % [grid_position, dir])
+			continue
+		var door: Node = marker.get_meta("door_node")
+		if not is_instance_valid(door) or not door.has_method("set_locked"):
+			push_warning("RoomInstance (%s): Tuer '%s' ist ungueltig oder hat kein set_locked()." % [grid_position, dir])
+			continue
+		door.set_locked(locked)
+		if debug_doors:
+			print("[Room %s] Tuer '%s' -> %s (danach: %s)" % [
+				grid_position, dir,
+				"VERRIEGELN" if locked else "ENTRIEGELN",
+				door_state_name(get_door_state(dir))
+			])
 
 
 func on_player_entered() -> void:

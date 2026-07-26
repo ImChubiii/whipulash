@@ -10,6 +10,22 @@ class_name DeathScreen
 
 @export var death_screen_delay: float = 1.2
 
+## --- Layout-Korrektur -------------------------------------------------
+## Die VBoxContainer-Geometrie kommt aus den Level-.tscn (in level_02.tscn
+## z.B. offset_top = -211 / offset_bottom = 241 bei zwei 100px hohen
+## Buttons) — der Inhalt lief dadurch unten aus dem Panel heraus und die
+## Buttons standen viel zu tief.
+##
+## Statt die Geometrie in JEDER Level-Szene einzeln nachzuziehen (der
+## DeathScreen ist in level_01/02/test/... jeweils separat instanziiert),
+## wird das Layout hier EINMAL zentral im Code korrigiert. Damit ist es
+## automatisch in allen Levels konsistent.
+@export var fix_layout_in_code: bool = true
+@export var content_top_offset: float = -260.0
+@export var content_width: float = 640.0
+@export var button_size: Vector2 = Vector2(240.0, 56.0)
+@export var content_separation: int = 14
+
 var _health_node: Health
 var _blur_overlay: ColorRect = null
 var _pause_menu: PauseMenu = null
@@ -27,6 +43,8 @@ func _ready() -> void:
 	_blur_overlay = get_parent().get_node_or_null("BlurOverlay") as ColorRect
 	_pause_menu = get_parent().get_node_or_null("PauseMenu") as PauseMenu
 	_fix_panel_background()
+	if fix_layout_in_code:
+		_fix_content_layout()
 
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -55,6 +73,66 @@ func _fix_panel_background() -> void:
 	style.corner_radius_bottom_left = 0
 	style.corner_radius_bottom_right = 0
 	panel.add_theme_stylebox_override("panel", style)
+
+
+## Zieht den kompletten Inhalt nach oben und gibt den Buttons eine
+## vernuenftige Groesse. Der VBoxContainer wird zentriert verankert und
+## bekommt eine feste Hoehe, die zum Inhalt passt — vorher war er so
+## dimensioniert, dass die 2x100px-Buttons unter den Bildschirmrand
+## rutschten.
+func _fix_content_layout() -> void:
+	var box := get_node_or_null("Panel/VBoxContainer") as VBoxContainer
+	if box == null:
+		push_warning("DeathScreen: 'Panel/VBoxContainer' nicht gefunden - Layout-Korrektur uebersprungen.")
+		return
+
+	# Anker manuell setzen statt ueber set_anchors_preset() — der Preset
+	# wuerde die Offsets mit umrechnen und das Ergebnis waere von der
+	# vorherigen (kaputten) Geometrie aus der .tscn abhaengig.
+	box.anchor_left = 0.5
+	box.anchor_right = 0.5
+	box.anchor_top = 0.5
+	box.anchor_bottom = 0.5
+	box.offset_left = -content_width * 0.5
+	box.offset_right = content_width * 0.5
+	box.offset_top = content_top_offset
+	# Hoehe wird vom Inhalt bestimmt (Buttons + Labels), deshalb bewusst
+	# grosszuegig — der Container waechst nicht ueber seinen Inhalt hinaus.
+	box.offset_bottom = content_top_offset + 420.0
+	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	box.grow_vertical = Control.GROW_DIRECTION_BOTH
+	box.alignment = BoxContainer.ALIGNMENT_BEGIN
+	box.add_theme_constant_override("separation", content_separation)
+
+	# Fuehrende Leerzeichen im Titel raus (waren im .tscn als manuelle
+	# "Zentrierung" hart eingetippt) und stattdessen echte Zentrierung.
+	if skill_issue_label:
+		skill_issue_label.text = skill_issue_label.text.strip_edges()
+		skill_issue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		skill_issue_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if killed_by_label:
+		killed_by_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		killed_by_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if items_label:
+		items_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	for btn in [restart_button, quit_button]:
+		if btn == null or not (btn is Button):
+			continue
+		btn.custom_minimum_size = button_size
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+
+
+## Holt die Endzeit vom Speedrun-Timer und stoppt ihn. Nutzt die Gruppe
+## statt eines festen Pfades, damit der DeathScreen nichts ueber den
+## HUD-Aufbau wissen muss.
+func _stop_and_read_run_timer() -> String:
+	for node in get_tree().get_nodes_in_group(RunTimer.RUN_TIMER_GROUP):
+		if node is RunTimer:
+			var timer: RunTimer = node
+			timer.stop()
+			return timer.get_time_string()
+	return ""
 
 
 # Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — der alte
@@ -86,7 +164,10 @@ func _on_player_died() -> void:
 	if _pause_menu:
 		_pause_menu.lock_out()
 
+	var run_time: String = _stop_and_read_run_timer()
 	killed_by_label.text = "Getötet von: %s" % _get_killer_name()
+	if run_time != "":
+		killed_by_label.text += "     |     Zeit: %s" % run_time
 	_update_items_display()
 
 	await get_tree().create_timer(death_screen_delay).timeout

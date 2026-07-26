@@ -57,17 +57,109 @@ var _return_tween: Tween = null
 @export var stun_camera_shake: float = 0.3
 var status_effects: StatusEffectManager
 
+## --- Stun-Lock-Schutz (Death-Trap durch mehrere Stinger) ---------------
+##
+## PROBLEM: StatusEffectManager.apply_effect() frischt einen bestehenden
+## Effekt per max(alte_restdauer, neue_dauer) AUF. Ein einzelner Stinger
+## stunnt 0.7s bei 1.4s Angriffs-Cooldown — das allein waere fair. Bei
+## bis zu 6 Stingern pro Raum (es_stinger.tres: max_per_room = 6) landet
+## aber im Schnitt alle ~0.23s ein Treffer. Jeder davon setzt den Stun
+## wieder auf volle 0.7s hoch, die Restdauer erreicht nie 0 und der
+## Spieler steht bis zum Tod bewegungsunfaehig herum. Klassischer
+## Stun-Lock: kein Konter moeglich, kein Skill-Ausdruck, nur Tod.
+##
+## LOESUNG (zweistufig, wie in den meisten Action-Spielen):
+##  1. DIMINISHING RETURNS: Jeder Stun innerhalb des Ketten-Zeitfensters
+##     ist nur noch stun_diminish_factor so lang wie der vorherige.
+##  2. IMMUNITAET: Nach stun_max_chain Stuns in Folge — und generell
+##     immer direkt NACH einem abgelaufenen Stun — ist der Spieler fuer
+##     stun_immunity_after_stun Sekunden komplett stun-immun. Das ist das
+##     eigentliche Sicherheitsnetz: es garantiert ein Handlungsfenster,
+##     egal wie viele Gegner gleichzeitig treffen.
+##
+## SCHADEN bleibt davon voll erhalten — nur die Kontrollverlust-Zeit wird
+## gedeckelt. Wer in 6 Stinger reinlaeuft, stirbt weiterhin. Er kann sich
+## jetzt nur wehren dabei.
+@export var stun_immunity_after_stun: float = 1.1
+@export_range(0.0, 1.0) var stun_diminish_factor: float = 0.5
+## Nach dieser Zeit ohne neuen Stun startet die Kette wieder bei voller Laenge.
+@export var stun_diminish_reset_time: float = 4.0
+## Kuerzester Stun, den die Abschwaechung uebrig laesst.
+@export var stun_min_duration: float = 0.12
+## So viele Stuns in Folge, danach greift zwingend die Immunitaet.
+@export var stun_max_chain: int = 3
+@export var stun_debug_logging: bool = false
+
+var _stun_immunity_timer: float = 0.0
+var _stun_chain_count: int = 0
+var _stun_chain_timer: float = 0.0
+
+func _stun_debug(msg: String) -> void:
+	if stun_debug_logging:
+		print("[StunGuard] %s" % msg)
+
+## Einziger Einstiegspunkt fuer Stuns — apply_status_effect("stun", ...)
+## leitet bewusst hierher um, damit die Schutzlogik NICHT umgangen werden
+## kann, egal ueber welchen Weg eine Hitbox den Stun ausloest.
 func apply_stun(duration: float) -> void:
-	status_effects.apply_effect("stun", duration, 1.0)
+	if _stun_immunity_timer > 0.0:
+		_stun_debug("Stun ignoriert — noch %.2fs immun." % _stun_immunity_timer)
+		return
+
+	# Kette ist ausgelaufen -> wieder bei voller Laenge anfangen.
+	if _stun_chain_timer <= 0.0:
+		_stun_chain_count = 0
+
+	if _stun_chain_count >= stun_max_chain:
+		_stun_debug("Ketten-Limit (%d) erreicht -> Immunitaet." % stun_max_chain)
+		_begin_stun_immunity()
+		return
+
+	var scaled: float = duration * pow(stun_diminish_factor, float(_stun_chain_count))
+	scaled = maxf(scaled, stun_min_duration)
+
+	_stun_chain_count += 1
+	_stun_chain_timer = stun_diminish_reset_time
+
+	_stun_debug("Stun #%d: %.2fs angefordert -> %.2fs angewendet." % [_stun_chain_count, duration, scaled])
+
+	status_effects.apply_effect("stun", scaled, 1.0)
 	shake_camera(stun_camera_shake)
+
+func _begin_stun_immunity() -> void:
+	_stun_immunity_timer = stun_immunity_after_stun
+	_stun_chain_count = 0
+	_stun_chain_timer = 0.0
+	status_effects.remove_effect("stun")
+	_stun_debug("Immunitaet fuer %.2fs aktiv." % stun_immunity_after_stun)
+
+## Sobald ein Stun regulaer auslaeuft, startet das garantierte
+## Handlungsfenster. Ohne das koennte der naechste Treffer im selben Frame
+## sofort wieder stunnen und die Kette liefe endlos weiter.
+func _on_status_effect_expired(id: String) -> void:
+	if id == "stun":
+		_stun_immunity_timer = maxf(_stun_immunity_timer, stun_immunity_after_stun)
+		_stun_debug("Stun abgelaufen -> %.2fs Immunitaet." % _stun_immunity_timer)
+
+func is_stun_immune() -> bool:
+	return _stun_immunity_timer > 0.0
+
+## Laesst Immunitaets- und Ketten-Timer ablaufen. Wird aus
+## _physics_process() gefuettert.
+func _tick_stun_guard(delta: float) -> void:
+	_stun_immunity_timer = maxf(_stun_immunity_timer - delta, 0.0)
+	_stun_chain_timer = maxf(_stun_chain_timer - delta, 0.0)
 
 func is_stunned() -> bool:
 	return status_effects.has_effect("stun")
 
 func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, source: Node = null, tick_interval: float = 0.0) -> void:
-	status_effects.apply_effect(id, duration, magnitude, source, tick_interval)
+	# Stun NIE direkt durchreichen — sonst umgeht dieser Pfad den kompletten
+	# Stun-Lock-Schutz oben.
 	if id == "stun":
-		shake_camera(stun_camera_shake)
+		apply_stun(duration)
+		return
+	status_effects.apply_effect(id, duration, magnitude, source, tick_interval)
 
 func has_status_effect(id: String) -> bool:
 	return status_effects.has_effect(id)
@@ -181,6 +273,7 @@ func _ready() -> void:
 
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
+	status_effects.effect_expired.connect(_on_status_effect_expired)
 
 	if health:
 		health.health_changed.connect(_on_own_health_changed)
@@ -324,6 +417,11 @@ func _on_manual_zoom_input() -> void:
 		_return_tween.kill()
 
 func _physics_process(delta: float) -> void:
+	# GANZ oben, VOR dem Dash-Return: die Stun-Timer muessen auch waehrend
+	# eines Dashs weiterlaufen, sonst friert die Immunitaet mitten im
+	# Ausweichmanoever ein und der naechste Treffer stunnt wieder voll.
+	_tick_stun_guard(delta)
+
 	if combat.is_dashing():
 		velocity = combat.get_dash_velocity(delta)
 		move_and_slide()

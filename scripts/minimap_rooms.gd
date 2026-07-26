@@ -31,6 +31,21 @@ const DIR_OFFSET_BY_BIT := {
 	8: Vector2i(-1, 0),
 }
 
+## Bit -> Richtungsname, wie ihn RoomInstance.get_door_state() erwartet.
+const DIR_NAME_BY_BIT := {
+	1: "north",
+	2: "south",
+	4: "east",
+	8: "west",
+}
+
+const OPPOSITE_DIR := {
+	"north": "south",
+	"south": "north",
+	"east": "west",
+	"west": "east",
+}
+
 @export var cell_px: float = 18.0
 @export var gap_px: float = 4.0
 @export var view_radius: int = 2
@@ -59,6 +74,16 @@ const DIR_OFFSET_BY_BIT := {
 ## (kuerzer + durchsichtiger), damit die Neugier/Fog-of-War erhalten
 ## bleibt, man aber trotzdem sieht "hier geht es weiter".
 @export var color_door_unexplored_alpha: float = 0.5
+## Verriegelte Tuer (Kampfraum noch nicht gecleared): schmaler Riegel in
+## gedaempftem Rot statt offener Gang.
+@export var color_door_locked: Color = Color(0.70, 0.28, 0.24, 0.95)
+## Boss-/Treasure-Tuer, die noch NICHT gehackt werden darf.
+@export var color_door_hack_locked: Color = Color(0.55, 0.45, 0.30, 0.9)
+## Boss-/Treasure-Tuer, die JETZT gehackt werden kann - pulsiert.
+@export var color_door_hack_ready: Color = Color(0.98, 0.80, 0.25, 1.0)
+## Wie breit ein verriegelter Durchgang im Verhaeltnis zur Zelle
+## gezeichnet wird (1.0 = so breit wie ein offener Gang).
+@export_range(0.1, 1.0) var locked_door_width_factor: float = 0.42
 @export var color_text: Color = Color(0.08, 0.08, 0.06, 1.0)
 
 var _generator: Node = null
@@ -140,11 +165,31 @@ func _draw() -> void:
 			var neighbor_grid: Vector2i = grid + DIR_OFFSET_BY_BIT[bit]
 			if not cells.has(neighbor_grid):
 				continue
+
+			var dir_name: String = DIR_NAME_BY_BIT[bit]
+			var state: int = _door_state(grid, dir_name, exits, bit)
+			if state == RoomInstance.DoorState.NONE:
+				continue
+
+			# BEIDSEITIGE Pruefung: ein Durchgang existiert nur, wenn AUCH
+			# der Nachbarraum auf seiner Gegenseite eine Tuer hat. Ohne das
+			# malte die Minimap Gaenge, die im Level an einer Wand enden.
+			var neighbor_exits: int = int(cells[neighbor_grid].get("exits", 0))
+			var opposite_bit: int = _bit_for_dir(OPPOSITE_DIR[dir_name])
+			var neighbor_state: int = _door_state(
+				neighbor_grid, OPPOSITE_DIR[dir_name], neighbor_exits, opposite_bit
+			)
+			if neighbor_state == RoomInstance.DoorState.NONE:
+				continue
+
 			var neighbor_data: Dictionary = cells[neighbor_grid]
 			var neighbor_visited: bool = bool(neighbor_data.get("visited", false))
 			var neighbor_center := _cell_center(neighbor_grid, current, center, pitch)
 
-			_draw_passage(here_center, neighbor_center, cell_px, neighbor_visited)
+			# Der restriktivere der beiden Zustaende gewinnt - eine Seite
+			# offen und die andere verriegelt heisst: man kommt nicht durch.
+			_draw_passage(here_center, neighbor_center, cell_px, neighbor_visited,
+				_stricter_state(state, neighbor_state))
 
 	# --- Raumzellen ------------------------------------------------------
 	for pos in cells.keys():
@@ -206,26 +251,80 @@ func _draw() -> void:
 ## sind (Standard: -90) - dann ist die Verbindung zwischen zwei
 ## Zellmitten garantiert rein horizontal oder rein vertikal auf dem
 ## Bildschirm, und ein simples Rect2 reicht aus.
-func _draw_passage(here: Vector2, neighbor: Vector2, cell_size: float, neighbor_visited: bool) -> void:
+func _draw_passage(here: Vector2, neighbor: Vector2, cell_size: float, neighbor_visited: bool, state: int) -> void:
 	var delta: Vector2 = neighbor - here
 	var horizontal: bool = absf(delta.x) >= absf(delta.y)
 	var mid: Vector2 = (here + neighbor) * 0.5
 	var far_point: Vector2 = neighbor if neighbor_visited else mid
 
-	var fill: Color = color_door
+	var fill: Color = _color_for_door_state(state)
 	if not neighbor_visited:
-		fill.a = color_door.a * color_door_unexplored_alpha
+		fill.a = fill.a * color_door_unexplored_alpha
+
+	# Nur ein OFFENER Durchgang wird in voller Zellbreite gefuellt. Alles
+	# Verriegelte wird bewusst SCHMALER gezeichnet, damit es sich optisch
+	# klar als Riegel und nicht als Gang liest.
+	var width: float = cell_size
+	if state != RoomInstance.DoorState.OPEN:
+		width = cell_size * locked_door_width_factor
 
 	if horizontal:
 		var min_x: float = minf(here.x, far_point.x)
 		var max_x: float = maxf(here.x, far_point.x)
-		var rect := Rect2(Vector2(min_x, here.y - cell_size * 0.5), Vector2(max_x - min_x, cell_size))
+		var rect := Rect2(Vector2(min_x, here.y - width * 0.5), Vector2(max_x - min_x, width))
 		draw_rect(rect, fill, true)
 	else:
 		var min_y: float = minf(here.y, far_point.y)
 		var max_y: float = maxf(here.y, far_point.y)
-		var rect := Rect2(Vector2(here.x - cell_size * 0.5, min_y), Vector2(cell_size, max_y - min_y))
+		var rect := Rect2(Vector2(here.x - width * 0.5, min_y), Vector2(width, max_y - min_y))
 		draw_rect(rect, fill, true)
+
+
+## Fragt den ECHTEN Tuerzustand beim Generator ab.
+##
+## Faellt auf die alte Bitmaske zurueck, falls der Generator die Methode
+## (noch) nicht kennt - so bleibt das Overlay auch mit einem aelteren
+## LevelGenerator funktionsfaehig, statt gar nichts mehr zu zeichnen.
+func _door_state(grid: Vector2i, dir: String, exits: int, bit: int) -> int:
+	if _generator != null and is_instance_valid(_generator) and _generator.has_method("get_door_state"):
+		return int(_generator.get_door_state(grid, dir))
+	return RoomInstance.DoorState.OPEN if (exits & bit) != 0 else RoomInstance.DoorState.NONE
+
+
+func _bit_for_dir(dir: String) -> int:
+	for bit in DIR_NAME_BY_BIT.keys():
+		if DIR_NAME_BY_BIT[bit] == dir:
+			return bit
+	return 0
+
+
+## Reihenfolge von "am wenigsten begehbar" nach "offen". Der niedrigere
+## Rang gewinnt, damit eine einseitig verriegelte Verbindung auch als
+## verriegelt dargestellt wird.
+func _stricter_state(a: int, b: int) -> int:
+	var rank := {
+		RoomInstance.DoorState.NONE: 0,
+		RoomInstance.DoorState.LOCKED: 1,
+		RoomInstance.DoorState.HACK_LOCKED: 2,
+		RoomInstance.DoorState.HACK_READY: 3,
+		RoomInstance.DoorState.OPEN: 4,
+	}
+	return a if int(rank.get(a, 4)) <= int(rank.get(b, 4)) else b
+
+
+func _color_for_door_state(state: int) -> Color:
+	match state:
+		RoomInstance.DoorState.LOCKED:
+			return color_door_locked
+		RoomInstance.DoorState.HACK_LOCKED:
+			return color_door_hack_locked
+		RoomInstance.DoorState.HACK_READY:
+			# Pulsiert im selben Takt wie die Markierung des aktuellen
+			# Raums - signalisiert "hier kannst du JETZT etwas tun".
+			var pulsing := color_door_hack_ready
+			pulsing.a = color_door_hack_ready.a * (0.55 + 0.45 * sin(_pulse))
+			return pulsing
+	return color_door
 
 
 ## Fog of War: sichtbar sind betretene Raeume und (optional) deren direkte

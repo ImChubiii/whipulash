@@ -1,5 +1,3 @@
-
-
 extends Control
 class_name SettingsMenu
 
@@ -44,6 +42,16 @@ const FPS_OPTIONS: Array[int] = [30, 60, 120, 144, 240, 0]
 var _rebinding_action: String = ""
 var _keybind_buttons: Dictionary = {}
 
+## --- Modulares HUD-Dropdown -------------------------------------------
+## Wird KOMPLETT zur Laufzeit gebaut (kein .tscn-Eingriff noetig). Der
+## Toggle-Button klappt die Einzelschalter auf/zu — neue Elemente aus
+## SettingsManager.HUD_ELEMENTS erscheinen automatisch, ohne dass hier
+## etwas nachgepflegt werden muss.
+var _hud_dropdown_button: Button = null
+var _hud_elements_box: VBoxContainer = null
+var _hud_element_checks: Dictionary = {}  # element (String) -> CheckButton
+var _hud_dropdown_open: bool = false
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -61,8 +69,10 @@ func _ready() -> void:
 	conflict_label.visible = false
 
 	_connect_signals()
+	_build_hud_element_dropdown()
 	_build_keybind_rows()
 	_refresh_from_settings()
+	_refresh_hud_element_checks()
 
 
 # Panel hat opaken Standardhintergrund — fix auf halbtransparent damit der
@@ -149,6 +159,7 @@ func _connect_signals() -> void:
 func open() -> void:
 	visible = true
 	_refresh_from_settings()
+	_refresh_hud_element_checks()
 
 
 func close() -> void:
@@ -202,9 +213,14 @@ func _on_sensitivity_changed(value: float) -> void:
 	sensitivity_value_label.text = str(int(round(value * 10000.0)))
 
 
+# BUGFIX: hier stand vorher SettingsManager.reset_to_defaults() — diese
+# Methode existiert im SettingsManager gar nicht (sie heisst
+# reset_all_to_defaults). Der Reset-Button hat also bei jedem Klick einen
+# Laufzeitfehler geworfen statt zurueckzusetzen.
 func _on_reset_pressed() -> void:
-	SettingsManager.reset_to_defaults()
+	SettingsManager.reset_all_to_defaults()
 	_refresh_from_settings()
+	_refresh_hud_element_checks()
 
 
 func _on_back_pressed() -> void:
@@ -302,3 +318,103 @@ func _input(event: InputEvent) -> void:
 		timer.timeout.connect(func() -> void: conflict_label.visible = false)
 
 	get_viewport().set_input_as_handled()
+
+
+# ============================================================================
+# Modulares HUD-Dropdown (General-Tab)
+# ============================================================================
+
+## Baut unter der Zeile "HUD anzeigen" einen aufklappbaren Block mit einem
+## CheckButton pro HUD-Element.
+##
+## Warum zur Laufzeit statt im .tscn: die Elementliste lebt im
+## SettingsManager (HUD_ELEMENTS). Waeren die Checkboxen fest in der Szene
+## verdrahtet, muesste man bei jedem neuen HUD-Element ZWEI Stellen
+## nachpflegen und die beiden koennten auseinanderlaufen.
+func _build_hud_element_dropdown() -> void:
+	var general: Node = tab_container.get_node_or_null("General")
+	if general == null:
+		push_warning("SettingsMenu: Tab 'General' nicht gefunden — HUD-Dropdown wird uebersprungen.")
+		return
+
+	_hud_dropdown_button = Button.new()
+	_hud_dropdown_button.name = "HUDElementsDropdown"
+	_hud_dropdown_button.toggle_mode = true
+	_hud_dropdown_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	general.add_child(_hud_dropdown_button)
+
+	_hud_elements_box = VBoxContainer.new()
+	_hud_elements_box.name = "HUDElementsBox"
+	_hud_elements_box.visible = false
+	_hud_elements_box.add_theme_constant_override("separation", 2)
+	general.add_child(_hud_elements_box)
+
+	# Direkt unter die HUD-Sichtbarkeits-Zeile einsortieren, damit der
+	# Zusammenhang optisch klar ist.
+	var hud_row: Node = general.get_node_or_null("HUDVisibleRow")
+	if hud_row:
+		var target_index: int = hud_row.get_index() + 1
+		general.move_child(_hud_dropdown_button, target_index)
+		general.move_child(_hud_elements_box, target_index + 1)
+
+	for element in SettingsManager.HUD_ELEMENTS.keys():
+		var row := HBoxContainer.new()
+		_hud_elements_box.add_child(row)
+
+		# Einrueckung, damit die Unterpunkte als "Kinder" der HUD-Zeile
+		# lesbar sind.
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(24, 0)
+		row.add_child(spacer)
+
+		var label := Label.new()
+		label.text = SettingsManager.HUD_ELEMENTS[element]
+		label.custom_minimum_size = Vector2(220, 0)
+		row.add_child(label)
+
+		var check := CheckButton.new()
+		row.add_child(check)
+		_hud_element_checks[element] = check
+
+		# bind() haengt die Element-ID an — sonst wuesste der Callback
+		# nicht, WELCHE Checkbox geschaltet wurde.
+		check.toggled.connect(_on_hud_element_toggled.bind(element))
+
+	_hud_dropdown_button.toggled.connect(_on_hud_dropdown_toggled)
+	_update_hud_dropdown_label()
+
+
+func _on_hud_dropdown_toggled(pressed: bool) -> void:
+	_hud_dropdown_open = pressed
+	if _hud_elements_box:
+		_hud_elements_box.visible = pressed
+	_update_hud_dropdown_label()
+
+
+func _update_hud_dropdown_label() -> void:
+	if _hud_dropdown_button == null:
+		return
+	var arrow: String = "v" if _hud_dropdown_open else ">"
+	var active: int = 0
+	for element in SettingsManager.HUD_ELEMENTS.keys():
+		if SettingsManager.is_hud_element_visible(element):
+			active += 1
+	_hud_dropdown_button.text = "%s  HUD-Elemente  (%d/%d aktiv)" % [
+		arrow, active, SettingsManager.HUD_ELEMENTS.size()
+	]
+
+
+func _on_hud_element_toggled(is_on: bool, element: String) -> void:
+	SettingsManager.set_hud_element_visible(element, is_on)
+	_update_hud_dropdown_label()
+
+
+## Liest die Checkbox-Zustaende aus dem SettingsManager zurueck. Wichtig:
+## set_pressed_no_signal() statt button_pressed, sonst wuerde das Setzen
+## selbst wieder toggled() feuern und eine Endlosschleife ausloesen.
+func _refresh_hud_element_checks() -> void:
+	for element in _hud_element_checks.keys():
+		var check: CheckButton = _hud_element_checks[element]
+		if is_instance_valid(check):
+			check.set_pressed_no_signal(SettingsManager.is_hud_element_visible(element))
+	_update_hud_dropdown_label()

@@ -12,6 +12,19 @@ class_name AbilitySlot
 
 var _was_on_cooldown: bool = false
 
+# Schaltet Tastenkuerzel + Cooldown-Zahl aus (HUD-Einstellung
+# "Keybinds / Cooldowns"). Der Cooldown-BALKEN bleibt bewusst sichtbar —
+# ausgeblendet werden nur die LABELS, sonst waere nicht mehr erkennbar,
+# ob eine Faehigkeit ueberhaupt bereit ist.
+var _labels_visible: bool = true
+
+func set_labels_visible(is_visible: bool) -> void:
+	_labels_visible = is_visible
+	if key_label:
+		key_label.visible = is_visible
+	if cooldown_label:
+		cooldown_label.visible = is_visible
+
 func _ready() -> void:
 	pivot_offset = size * 0.5
 	cooldown_overlay.color = Color(0.0, 0.0, 0.0, 0.65)
@@ -24,6 +37,10 @@ func setup(texture: Texture2D, key_text: String) -> void:
 	if texture:
 		icon.texture = texture
 	key_label.text = key_text
+	# Der Sichtbarkeits-Schalter darf durch ein Icon-Update NICHT verloren
+	# gehen — sonst blinken die Keybinds bei jedem Charakterwechsel wieder auf.
+	key_label.visible = _labels_visible
+	cooldown_label.visible = _labels_visible
 
 func set_icon(texture: Texture2D) -> void:
 	icon.texture = texture

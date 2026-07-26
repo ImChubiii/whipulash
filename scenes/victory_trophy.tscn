@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://dlipoa1cyf4p1"]
+
+[ext_resource type="Script" path="res://scripts/victory_trophy.gd" id="1_trophy"]
+
+[node name="VictoryTrophy" type="Node3D"]
+script = ExtResource("1_trophy")
+drop_height = 14.0
+drop_duration = 1.1
+pickup_radius = 3.0
+cylinder_radius = 1.1
+cylinder_height = 3.2
+beam_enabled = true
+beam_height = 40.0

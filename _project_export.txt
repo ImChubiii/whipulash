@@ -6894,13 +6894,14 @@ func _process(delta: float) -> void:
 
 ===== FILE: scenes\characters\char_giselle.tscn =====
 
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://52uf15kj5rx0"]
 
-[ext_resource type="Script" path="res://scripts/characters/char_giselle.gd" id="1_giselle"]
+[ext_resource type="Script" uid="uid://cyh3pac86pvjn" path="res://scripts/characters/char_giselle.gd" id="1_giselle"]
 [ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="4_o7r84"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
-[ext_resource type="Script" path="res://scripts/characters/combat_giselle.gd" id="5_gisellecombat"]
+[ext_resource type="Script" uid="uid://ynh2l4waev1g" path="res://scripts/characters/combat_giselle.gd" id="5_gisellecombat"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -6923,69 +6924,72 @@ size = Vector3(1, 1, 4.548828)
 material = SubResource("StandardMaterial3D_rn2lo")
 size = Vector3(18.537506, 22.847519, 72.81865)
 
-[node name="CharGiselle" type="CharacterBody3D"]
+[node name="CharGiselle" type="CharacterBody3D" unique_id=95100292]
 script = ExtResource("1_giselle")
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=755367694]
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="CharacterModel" parent="." instance=ExtResource("2_tuyoq")]
+[node name="CharacterModel" parent="." unique_id=611720617 instance=ExtResource("2_tuyoq")]
 transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
 
-[node name="CameraPivot" type="Node3D" parent="."]
+[node name="CameraPivot" type="Node3D" parent="." unique_id=489963335]
 
-[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot"]
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot" unique_id=843866397]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage_number_scene = ExtResource("4_o7r84")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=54088038]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
 shape = SubResource("BoxShape3D_qlg0r")
 
-[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox"]
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox" unique_id=311250376]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
 mesh = SubResource("BoxMesh_qlg0r")
 
-[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot"]
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot" unique_id=1929067481]
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 9.0
+damage_number_scene = ExtResource("4_o7r84")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1478091659]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
 shape = SubResource("BoxShape3D_4eyt2")
 
-[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox"]
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox" unique_id=1843560576]
 transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
 mesh = SubResource("BoxMesh_6igkw")
 
-[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=1213944006]
 spring_length = 8.0
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=123459548]
 
-[node name="Health" type="Node" parent="."]
+[node name="Health" type="Node" parent="." unique_id=721868555]
 script = ExtResource("3_qhqgy")
 
-[node name="Combat" type="Node" parent="."]
+[node name="Combat" type="Node" parent="." unique_id=1120459944]
 script = ExtResource("5_gisellecombat")
 
 
 ===== FILE: scenes\characters\char_karina.tscn =====
 
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://plesiwjme2q2"]
 
-[ext_resource type="Script" path="res://scripts/characters/char_karina.gd" id="1_karina"]
+[ext_resource type="Script" uid="uid://nmqrc35k3824" path="res://scripts/characters/char_karina.gd" id="1_karina"]
 [ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="4_71isp"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
-[ext_resource type="Script" path="res://scripts/characters/combat_karina.gd" id="5_karinacombat"]
+[ext_resource type="Script" uid="uid://eklnfrxejbuf" path="res://scripts/characters/combat_karina.gd" id="5_karinacombat"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -7008,69 +7012,72 @@ size = Vector3(1, 1, 4.548828)
 material = SubResource("StandardMaterial3D_rn2lo")
 size = Vector3(18.537506, 22.847519, 72.81865)
 
-[node name="CharKarina" type="CharacterBody3D"]
+[node name="CharKarina" type="CharacterBody3D" unique_id=1211426866]
 script = ExtResource("1_karina")
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=575633596]
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="CharacterModel" parent="." instance=ExtResource("2_tuyoq")]
+[node name="CharacterModel" parent="." unique_id=465802841 instance=ExtResource("2_tuyoq")]
 transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
 
-[node name="CameraPivot" type="Node3D" parent="."]
+[node name="CameraPivot" type="Node3D" parent="." unique_id=1287006210]
 
-[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot"]
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot" unique_id=514001301]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage_number_scene = ExtResource("4_71isp")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=1947348745]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
 shape = SubResource("BoxShape3D_qlg0r")
 
-[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox"]
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox" unique_id=1014834245]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
 mesh = SubResource("BoxMesh_qlg0r")
 
-[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot"]
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot" unique_id=364859976]
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 9.0
+damage_number_scene = ExtResource("4_71isp")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1270968494]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
 shape = SubResource("BoxShape3D_4eyt2")
 
-[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox"]
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox" unique_id=827592480]
 transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
 mesh = SubResource("BoxMesh_6igkw")
 
-[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=906557283]
 spring_length = 8.0
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=979760550]
 
-[node name="Health" type="Node" parent="."]
+[node name="Health" type="Node" parent="." unique_id=1014464105]
 script = ExtResource("3_qhqgy")
 
-[node name="Combat" type="Node" parent="."]
+[node name="Combat" type="Node" parent="." unique_id=2032550543]
 script = ExtResource("5_karinacombat")
 
 
 ===== FILE: scenes\characters\char_ningning.tscn =====
 
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://c7tl33bapkou1"]
 
-[ext_resource type="Script" path="res://scripts/characters/char_ningning.gd" id="1_ning"]
+[ext_resource type="Script" uid="uid://dh4a0i4iwgybh" path="res://scripts/characters/char_ningning.gd" id="1_ning"]
 [ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="4_u6hti"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
-[ext_resource type="Script" path="res://scripts/characters/combat_ningning.gd" id="5_ningcombat"]
+[ext_resource type="Script" uid="uid://7kkvr2pd8oha" path="res://scripts/characters/combat_ningning.gd" id="5_ningcombat"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -7093,69 +7100,72 @@ size = Vector3(1, 1, 4.548828)
 material = SubResource("StandardMaterial3D_rn2lo")
 size = Vector3(18.537506, 22.847519, 72.81865)
 
-[node name="CharNingning" type="CharacterBody3D"]
+[node name="CharNingning" type="CharacterBody3D" unique_id=695229074]
 script = ExtResource("1_ning")
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=390162164]
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="CharacterModel" parent="." instance=ExtResource("2_tuyoq")]
+[node name="CharacterModel" parent="." unique_id=267417481 instance=ExtResource("2_tuyoq")]
 transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
 
-[node name="CameraPivot" type="Node3D" parent="."]
+[node name="CameraPivot" type="Node3D" parent="." unique_id=1633612252]
 
-[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot"]
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot" unique_id=1381885071]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage_number_scene = ExtResource("4_u6hti")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=474198894]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
 shape = SubResource("BoxShape3D_qlg0r")
 
-[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox"]
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox" unique_id=1275382347]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
 mesh = SubResource("BoxMesh_qlg0r")
 
-[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot"]
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot" unique_id=1105732607]
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 9.0
+damage_number_scene = ExtResource("4_u6hti")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=498811588]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
 shape = SubResource("BoxShape3D_4eyt2")
 
-[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox"]
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox" unique_id=1856064407]
 transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
 mesh = SubResource("BoxMesh_6igkw")
 
-[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=1153064322]
 spring_length = 8.0
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=1442739339]
 
-[node name="Health" type="Node" parent="."]
+[node name="Health" type="Node" parent="." unique_id=2081695957]
 script = ExtResource("3_qhqgy")
 
-[node name="Combat" type="Node" parent="."]
+[node name="Combat" type="Node" parent="." unique_id=932916164]
 script = ExtResource("5_ningcombat")
 
 
 ===== FILE: scenes\characters\char_winter.tscn =====
 
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bkyplq6fj3yft"]
 
-[ext_resource type="Script" path="res://scripts/characters/char_winter.gd" id="1_winter"]
+[ext_resource type="Script" uid="uid://3vc06c3kmrbw" path="res://scripts/characters/char_winter.gd" id="1_winter"]
 [ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="4_i32li"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
-[ext_resource type="Script" path="res://scripts/characters/combat_winter.gd" id="5_wintercombat"]
+[ext_resource type="Script" uid="uid://qlxom5ue0a30" path="res://scripts/characters/combat_winter.gd" id="5_wintercombat"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -7178,57 +7188,59 @@ size = Vector3(1, 1, 4.548828)
 material = SubResource("StandardMaterial3D_rn2lo")
 size = Vector3(18.537506, 22.847519, 72.81865)
 
-[node name="CharWinter" type="CharacterBody3D"]
+[node name="CharWinter" type="CharacterBody3D" unique_id=574951109]
 script = ExtResource("1_winter")
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1355083992]
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="CharacterModel" parent="." instance=ExtResource("2_tuyoq")]
+[node name="CharacterModel" parent="." unique_id=1417025321 instance=ExtResource("2_tuyoq")]
 transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
 
-[node name="CameraPivot" type="Node3D" parent="."]
+[node name="CameraPivot" type="Node3D" parent="." unique_id=1953444161]
 
-[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot"]
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot" unique_id=1237763576]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage_number_scene = ExtResource("4_i32li")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=2036259035]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
 shape = SubResource("BoxShape3D_qlg0r")
 
-[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox"]
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox" unique_id=1155095662]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
 mesh = SubResource("BoxMesh_qlg0r")
 
-[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot"]
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot" unique_id=1174200990]
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 9.0
+damage_number_scene = ExtResource("4_i32li")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1249222209]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
 shape = SubResource("BoxShape3D_4eyt2")
 
-[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox"]
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox" unique_id=1091938802]
 transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
 mesh = SubResource("BoxMesh_6igkw")
 
-[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=162238579]
 spring_length = 8.0
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=1602835666]
 
-[node name="Health" type="Node" parent="."]
+[node name="Health" type="Node" parent="." unique_id=1753711452]
 script = ExtResource("3_qhqgy")
 
-[node name="Combat" type="Node" parent="."]
+[node name="Combat" type="Node" parent="." unique_id=873002602]
 script = ExtResource("5_wintercombat")
 
 
@@ -7381,9 +7393,10 @@ height = 0.001
 collision_layer = 4
 floor_snap_length = 0.4
 script = ExtResource("1_w4gkx")
-move_speed = 8.5
+move_speed = 8.0
+speed_variance = 0.12
 detection_range = 45.0
-attack_range = 6.5
+attack_range = 5.0
 attack_cooldown = 1.8
 gravity = 20.0
 attack_windup_time = 0.8
@@ -7452,7 +7465,7 @@ collision_mask = 1
 script = ExtResource("4_fva3d")
 damage = 30.0
 knockback_force = 5.0
-stun_duration = 0.5
+stun_duration = 0.0
 damage_number_scene = ExtResource("5_dmgnum")
 debug_logging = false
 
@@ -7488,9 +7501,58 @@ class_name EnemyAI
 enum State { IDLE, CHASE, ATTACK }
 
 @export var move_speed: float = 7.0
+
+# --- Individuelle Geschwindigkeits-Streuung -------------------------------
+# Jede gespawnte Instanz wuerfelt EINMALIG in _ready() einen eigenen
+# Multiplikator zwischen (1 - speed_variance) und (1 + speed_variance).
+# Dadurch laufen mehrere Gegner desselben Typs nicht mehr wie auf einer
+# Schnur hintereinander her, sondern ziehen sich beim Verfolgen leicht
+# auseinander — der Unterschied ist bewusst klein genug, um nicht wie ein
+# Balancing-Fehler zu wirken, aber gross genug um spuerbar zu sein.
+# 0.0 = alle Instanzen exakt gleich schnell (altes Verhalten).
+@export_range(0.0, 0.5) var speed_variance: float = 0.12
+
 @export var detection_range: float = 20.0
 @export var attack_range: float = 5.0
 @export var attack_cooldown: float = 1.0
+
+# --- Angriffs-Freigabe (Fix: "greift ins Leere") --------------------------
+# Frueher wurde ein Angriff gestartet, sobald distance <= attack_range war,
+# und die Hitbox danach BEDINGUNGSLOS aktiviert — auch wenn der Spieler
+# waehrend pre_attack_delay + attack_windup_time laengst weggelaufen war
+# oder von Anfang an ausserhalb der tatsaechlichen Hitbox-Reichweite stand
+# (attack_range war groesser als die reale Reichweite der AttackHitbox).
+# Ergebnis: Gegner schlagen sichtbar in die Luft.
+#
+# Jetzt wird die Distanz DIREKT VOR dem Aktivieren der Hitbox erneut
+# geprueft. Liegt der Spieler weiter weg als attack_range * diesem Faktor,
+# wird der Angriff sauber abgebrochen (Telegraph aus, kurzer Cooldown,
+# zurueck in CHASE) statt ins Leere zu schlagen.
+@export var attack_commit_range_multiplier: float = 1.15
+
+# Cooldown nach einem abgebrochenen Angriff — kurz, damit der Gegner sofort
+# wieder nachsetzen kann, aber lang genug um kein Telegraph-Flackern zu
+# erzeugen.
+@export var attack_abort_cooldown: float = 0.3
+
+# Minimaler Blickrichtungs-Abgleich, damit ein Angriff ueberhaupt startet.
+# Verhindert Schlaege, die seitlich am Spieler vorbeigehen, weil der Gegner
+# sich noch dreht.
+# 1.0 = exakt frontal, 0.0 = 90 Grad Toleranz, -1.0 = Check deaktiviert.
+#
+# ACHSEN-FALLE (hat in der ersten Fassung ALLE Angriffe blockiert):
+# Godots Node3D-Konvention ist -Z = vorne. DIESES Projekt nutzt aber
+# durchgehend +Z als Vorne — sichtbar an zwei Stellen:
+#   1. _face_player() rechnet atan2(dir.x, dir.z) und richtet damit die
+#      +Z-Achse auf den Spieler aus (fuer -Z waere es atan2(-x, -z)).
+#   2. Die AttackHitbox sitzt bei z = +8.2 (dummy.tscn/tank_dummy.tscn),
+#      also auf der POSITIVEN Z-Seite.
+# Ein Check gegen -basis.z liefert deshalb dauerhaft ein Dot-Produkt von
+# etwa -1 und der Gegner greift NIE an. Deshalb wird die Blickrichtung
+# jetzt nicht mehr aus der Basis gelesen, sondern direkt gegen dieselbe
+# Ziel-Yaw geprueft, die auch _face_player() ansteuert — damit koennen die
+# beiden Stellen gar nicht mehr auseinanderlaufen.
+@export_range(-1.0, 1.0) var attack_min_facing_dot: float = 0.35
 
 # gravity hat einen Setter, damit jump_velocity automatisch neu berechnet
 # wird, falls gravity zur Laufzeit (Inspector-Live-Edit, Debug-Tools etc.)
@@ -7536,6 +7598,21 @@ func get_display_name() -> String:
 # --- Sanfte Separation von anderen Gegnern ---
 @export var separation_radius: float = 6.0
 @export var separation_strength: float = 5.0
+
+# Sauberer Ausstieg aus einem angefangenen Angriff: Telegraph aus, kurzer
+# Cooldown, zurueck ins Verfolgen. Wird NICHT aufgerufen, wenn der Gegner
+# stirbt — dafuer ist _on_died() zustaendig.
+func _abort_attack() -> void:
+	_is_attacking = false
+	_attack_timer = maxf(attack_abort_cooldown, 0.0)
+
+	if telegraph_inner:
+		telegraph_inner.visible = false
+	if telegraph_outer:
+		telegraph_outer.visible = false
+
+	if _state == State.ATTACK:
+		_state = State.CHASE
 
 # --- Transparenz nach HP + Hit-Flash ---
 @export_range(0.0, 1.0) var min_alpha_at_zero_hp: float = 0.15
@@ -7665,6 +7742,9 @@ var _is_dead: bool = false
 var _collision_shape_cache: CollisionShape3D
 var _warned_missing_collision_shape: bool = false
 
+# Einmalig in _ready() gewuerfelter, instanzspezifischer Tempo-Multiplikator.
+var _speed_multiplier: float = 1.0
+
 var _nav_update_timer: float = 0.0
 # Wird beim ersten Nutzungsversuch geprueft: existiert ueberhaupt eine
 # NavigationRegion3D auf der Map? Ohne die spammt is_target_reachable()
@@ -7678,6 +7758,62 @@ func _debug(msg: String) -> void:
 
 func _recalculate_jump_velocity() -> void:
 	jump_velocity = sqrt(2.0 * max(gravity, 0.0) * max(jump_height, 0.0))
+
+# Wuerfelt den instanzspezifischen Tempo-Multiplikator. Bewusst nur EINMAL
+# beim Spawn — ein pro Frame neu gewuerfelter Wert wuerde als Zittern statt
+# als Charakter wahrgenommen.
+func _roll_speed_multiplier() -> void:
+	var v: float = clampf(speed_variance, 0.0, 0.5)
+	_speed_multiplier = randf_range(1.0 - v, 1.0 + v)
+	_debug("Tempo-Multiplikator gewuerfelt: %.3f (effektiv %.2f m/s)" % [_speed_multiplier, move_speed * _speed_multiplier])
+
+# Effektives Tempo inkl. Slow-Status und individueller Streuung.
+func get_effective_move_speed() -> float:
+	var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
+	return move_speed * _speed_multiplier * slow_factor
+
+# Aktuelle XZ-Distanz zum Spieler. Die Y-Achse wird bewusst ignoriert:
+# Ein Gegner, der 3 Meter unter dem Spieler auf einer Treppe steht, soll
+# nicht faelschlich als "ausser Reichweite" gelten.
+func _distance_to_player_xz() -> float:
+	if _player == null or not is_instance_valid(_player):
+		return INF
+	var offset: Vector3 = _player.global_position - global_position
+	offset.y = 0.0
+	return offset.length()
+
+# Prueft, ob der Gegner den Spieler grob anschaut. Ohne diesen Check
+# starten Gegner Angriffe waehrend sie sich noch drehen und schlagen
+# seitlich vorbei.
+#
+# Verglichen wird die AKTUELLE rotation.y gegen genau die Ziel-Yaw, die
+# _face_player() ansteuert (atan2(dir.x, dir.z)). Dadurch ist der Check
+# unabhaengig davon, welche Achse das Projekt als "vorne" definiert —
+# siehe die ausfuehrliche Begruendung bei attack_min_facing_dot.
+func _is_facing_player() -> bool:
+	if attack_min_facing_dot <= -1.0:
+		return true
+	if _player == null or not is_instance_valid(_player):
+		return false
+
+	var to_player: Vector3 = _player.global_position - global_position
+	to_player.y = 0.0
+	if to_player.length() < 0.01:
+		return true
+	to_player = to_player.normalized()
+
+	# Exakt dieselbe Formel wie in _face_player().
+	var target_yaw: float = atan2(to_player.x, to_player.z)
+	var yaw_error: float = absf(angle_difference(rotation.y, target_yaw))
+
+	# Dot-Schwelle in einen maximal erlaubten Winkel umrechnen, damit der
+	# Inspector-Wert dieselbe Bedeutung behaelt wie vorher.
+	var max_angle: float = acos(clampf(attack_min_facing_dot, -1.0, 1.0))
+
+	if yaw_error > max_angle:
+		_debug("Angriff wartet — Blickwinkel %.1f Grad > erlaubte %.1f Grad." % [rad_to_deg(yaw_error), rad_to_deg(max_angle)])
+		return false
+	return true
 
 # Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — haelt
 # _player aktuell, da der Player-Node beim Wechseln komplett ausgetauscht
@@ -7698,6 +7834,7 @@ func _refresh_player_reference() -> void:
 
 func _ready() -> void:
 	add_to_group("enemies")
+	_roll_speed_multiplier()
 	_refresh_player_reference()
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
@@ -7778,7 +7915,7 @@ func _physics_process(delta: float) -> void:
 			_face_player(delta)
 			if distance > attack_range * 1.3 and not _is_attacking:
 				_state = State.CHASE
-			elif _attack_timer <= 0.0 and not _is_attacking:
+			elif _attack_timer <= 0.0 and not _is_attacking and _is_facing_player():
 				_do_attack()
 
 	if _state != previous_state:
@@ -7974,8 +8111,7 @@ func _move_towards_player(delta: float) -> void:
 		if required_height > 0.0:
 			velocity.y = sqrt(2.0 * gravity * required_height)
 
-	var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
-	var effective_speed: float = move_speed * slow_factor
+	var effective_speed: float = get_effective_move_speed()
 
 	var target_velocity_x: float = dir.x * effective_speed
 	var target_velocity_z: float = dir.z * effective_speed
@@ -8172,6 +8308,15 @@ func _do_attack() -> void:
 
 	if telegraph_inner:
 		telegraph_inner.visible = false
+
+	# --- Freigabe-Check: steht der Spieler UEBERHAUPT noch in Reichweite? ---
+	# Ohne diesen Check wird die Hitbox auch dann aktiviert, wenn der Spieler
+	# waehrend pre_attack_delay + attack_windup_time laengst weggelaufen ist.
+	var commit_range: float = attack_range * maxf(attack_commit_range_multiplier, 0.1)
+	if _distance_to_player_xz() > commit_range:
+		_debug("Angriff ABGEBROCHEN — Spieler ausser Reichweite (%.2f > %.2f)." % [_distance_to_player_xz(), commit_range])
+		_abort_attack()
+		return
 
 	if attack_hitbox:
 		attack_hitbox.activate()
@@ -8427,8 +8572,17 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 [ext_resource type="PackedScene" uid="uid://bpartyslot01" path="res://scenes/party_slot.tscn" id="3_pslot"]
 [ext_resource type="Texture2D" uid="uid://bd0s34jsplqb6" path="res://textures/image-removebg-preview (13).png" id="3_uo2fv"]
 [ext_resource type="PackedScene" uid="uid://bablslot001" path="res://scenes/ability_slot.tscn" id="4_abslot"]
+[ext_resource type="Script" path="res://scripts/run_timer.gd" id="5_timer"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
+bg_color = Color(0.06, 0.06, 0.09, 0.82)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.48, 0.18, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_timer"]
 bg_color = Color(0.06, 0.06, 0.09, 0.82)
 border_width_left = 2
 border_width_top = 2
@@ -8535,9 +8689,9 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 4.0
+offset_left = 8.0
 offset_top = -26.0
-offset_right = -4.0
+offset_right = -76.0
 offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -8546,6 +8700,86 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 14
 text = "X: 0   Y: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MapHint" type="Label" parent="Minimap/Frame" unique_id=1277713387]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -74.0
+offset_top = -26.0
+offset_right = -8.0
+offset_bottom = -4.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "MAP [M]"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="RunTimer" type="Control" parent="." unique_id=1927081869]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 250.0
+offset_top = 18.0
+offset_right = 414.0
+offset_bottom = 66.0
+mouse_filter = 2
+script = ExtResource("5_timer")
+
+[node name="Background" type="Panel" parent="RunTimer" unique_id=355809777]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_timer")
+
+[node name="TitleLabel" type="Label" parent="RunTimer" unique_id=355809778]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 6.0
+offset_top = 2.0
+offset_right = -6.0
+offset_bottom = 17.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
+text = "TIME"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="RunTimer" unique_id=355809779]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 15.0
+offset_right = -6.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 24
+text = "0.00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -8630,14 +8864,18 @@ layout_mode = 2
 
 [node name="ComboDisplay" type="VBoxContainer" parent="." unique_id=1613643524]
 layout_mode = 1
-anchors_preset = 4
+anchors_preset = 8
+anchor_left = 0.5
 anchor_top = 0.5
+anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = 60.0
-offset_top = -60.0
-offset_right = 300.0
-offset_bottom = 60.0
+offset_left = -170.0
+offset_top = -215.0
+offset_right = 170.0
+offset_bottom = -85.0
+grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(170, 65)
 mouse_filter = 2
 
 [node name="ComboCount" type="Label" parent="ComboDisplay" unique_id=1896651905]
@@ -8647,6 +8885,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 48
 text = "x5"
+horizontal_alignment = 1
 
 [node name="ComboText" type="Label" parent="ComboDisplay" unique_id=812960518]
 layout_mode = 2
@@ -8655,6 +8894,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 20
 text = "COMBO!"
+horizontal_alignment = 1
 
 
 ===== FILE: scenes\kill_gate.gd =====
@@ -10974,20 +11214,30 @@ class_name Door
 
 ## Tuer faehrt beim Entriegeln senkrecht nach oben aus dem Rahmen.
 ##
-## NEU:
-##  - door_kind faerbt das Tuerblatt ein (BOSS = rot, TREASURE = goldgelb).
-##  - BOSS/TREASURE-Tueren lassen sich nicht einfach oeffnen, sondern
-##    muessen "gehackt" werden: Interaktionstaste (Action "interact ")
-##    hack_duration Sekunden GEDRUECKT HALTEN. Loslassen setzt den
-##    Fortschritt kontrolliert zurueck (nicht sofort auf 0, das fuehlt
-##    sich billig an).
-##  - Freigeschaltet wird das Hacken erst, wenn der davorliegende Raum
-##    gecleared ist -> LevelGenerator ruft set_hack_enabled(true).
+## door_kind faerbt das Tuerblatt ein (BOSS = rot, TREASURE = goldgelb).
+## BOSS/TREASURE-Tueren muessen "gehackt" werden: Interaktionstaste
+## (Action "interact") hack_duration Sekunden GEDRUECKT HALTEN.
+## Freigeschaltet wird das Hacken erst, wenn der davorliegende Raum
+## gecleared ist -> LevelGenerator ruft set_hack_enabled(true).
 ##
-## MATERIAL-OVERRIDE-BUG beachtet: Die Tuerblaetter der Room-Templates
-## setzen "surface_material_override/0". material_override HAT VORRANG
-## davor - genau deshalb wird die Einfaerbung hier bewusst ueber
-## material_override gesetzt und beim Zuruecksetzen wieder auf null.
+## BUGFIX (Boss-/Treasure-Tuer liess sich nicht bedienen):
+## _setup_hack_area() (die Area3D, die den Spieler ueberhaupt erst
+## erkennt) wurde bisher NUR aufgerufen, wenn requires_hack() beim
+## Ausfuehren von _ready() bereits true war. Das Problem: der
+## LevelGenerator ruft set_door_kind(BOSS/TREASURE) immer ERST NACH dem
+## add_child() aller Raeume auf (_apply_door_kinds() laeuft ganz am Ende
+## von _instantiate_layout) - add_child() loest _ready() der Tuer aber
+## SOFORT rekursiv aus, also lange BEVOR der Kind ueberhaupt gesetzt
+## wird. requires_hack() war zu dem Zeitpunkt also immer false, die
+## Hack-Area wurde nie erzeugt, und die Taste tat buntlich nichts.
+## Fix: die Hack-Area wird jetzt IMMER in _ready() erzeugt (minimaler
+## Overhead - eine leere Area3D pro Tuer), unabhaengig vom aktuellen
+## door_kind. Fuer normale Tueren bricht _process_hack() trotzdem sofort
+## über requires_hack() ab, es wird also nichts zusaetzlich verarbeitet.
+##
+## MATERIAL-OVERRIDE-BUG beachtet: material_override HAT VORRANG vor
+## surface_material_override - die Einfaerbung nach door_kind wird
+## deshalb bewusst ueber material_override gesetzt.
 
 enum DoorKind { NORMAL, BOSS, TREASURE }
 
@@ -10995,14 +11245,21 @@ signal hack_started
 signal hack_progress_changed(progress: float)
 signal hack_completed
 
-## Achtung: der InputMap-Name enthaelt ein Leerzeichen am Ende - das ist
-## ein bestehender Tippfehler in project.godot, hier 1:1 uebernommen.
-const INTERACT_ACTION := "interact "
+## Achtung: die InputMap-Action heisst "interact" (ohne Leerzeichen) -
+## der urspruengliche Tippfehler mit Leerzeichen wurde im Input Map
+## bereinigt (Action umbenannt), dieser Verweis hier entsprechend
+## nachgezogen.
+const INTERACT_ACTION := "interact"
 
 @export var door_kind: DoorKind = DoorKind.NORMAL:
 	set(value):
 		door_kind = value
 		_apply_kind_visuals()
+		# door_kind wird vom LevelGenerator ERST NACH _ready() gesetzt
+		# (siehe Bugfix-Kommentar oben) - das Hologramm muss deshalb hier
+		# nachgezogen werden, nicht nur in _ready().
+		if is_inside_tree():
+			_refresh_hologram()
 
 @export var open_height: float = 0.0
 @export var open_clearance: float = 0.5
@@ -11010,13 +11267,9 @@ const INTERACT_ACTION := "interact "
 @export var open_duration: float = 0.7
 
 ## --- Hacking --------------------------------------------------------
-## Erzwingt Hacken auch fuer NORMAL-Tueren.
 @export var force_hack: bool = false
 @export var hack_duration: float = 4.0
-## Wie schnell der Fortschritt beim Loslassen zurueckfaellt (Anteil der
-## hack_duration pro Sekunde).
 @export var hack_decay_rate: float = 0.5
-## Radius, in dem der Spieler stehen muss, um hacken zu koennen.
 @export var hack_range: float = 4.0
 @export var prompt_text: String = "HACKING"
 
@@ -11024,6 +11277,30 @@ const INTERACT_ACTION := "interact "
 @export var color_boss: Color = Color(0.85, 0.10, 0.10)
 @export var color_treasure: Color = Color(1.0, 0.78, 0.15)
 @export var kind_emission_energy: float = 1.6
+
+## --- Hacking-Hologramm ------------------------------------------------
+## Schwebendes Schild VOR der Tuer, das Boss-/Treasure-Tueren schon aus
+## der Entfernung als Hack-Ziel kennzeichnet.
+##
+## AUSRICHTUNG: Die Richtung "in den Raum hinein" wird aus der Position
+## der Tuer RELATIV ZUM RAUM-URSPRUNG abgeleitet (der Raum-Ursprung liegt
+## in der Raummitte, die Tuer am Rand -> der Vektor von der Tuer zur
+## Raummitte zeigt zwangslaeufig nach innen). Das funktioniert fuer alle
+## vier Himmelsrichtungen ohne dass die Tuer ihre eigene Rotation kennen
+## muss - die ist je nach Raum-Szene unterschiedlich gesetzt.
+##
+## VERSCHWINDEN: Sobald der Spieler zu hacken beginnt (oder der Hack
+## fertig ist), wird das Hologramm ausgeblendet und kommt nicht zurueck -
+## es hat seinen Zweck dann erfuellt und wuerde nur die Sicht auf den
+## Fortschrittsbalken stoeren.
+@export var hologram_enabled: bool = true
+@export var hologram_distance: float = 3.2
+@export var hologram_height: float = 3.0
+@export var hologram_font_size: int = 64
+@export var hologram_text_size: float = 0.5
+@export var hologram_fade_duration: float = 0.35
+@export var hologram_bob_height: float = 0.25
+@export var hologram_bob_speed: float = 1.6
 
 var _locked: bool = true
 var _closed_y: float = 0.0
@@ -11036,6 +11313,12 @@ var _hack_done: bool = false
 var _hack_progress: float = 0.0
 var _hack_area: Area3D = null
 var _player_in_range: bool = false
+
+var _hologram: Node3D = null
+var _hologram_label: Label3D = null
+var _hologram_dismissed: bool = false
+var _hologram_base_y: float = 0.0
+var _hologram_time: float = 0.0
 
 @onready var _collision: CollisionShape3D = get_node_or_null("CollisionShape3D")
 @onready var _mesh: MeshInstance3D = get_node_or_null("MeshInstance3D")
@@ -11060,8 +11343,13 @@ func _ready() -> void:
 	_collision.disabled = not _locked
 
 	_apply_kind_visuals()
-	if requires_hack():
-		_setup_hack_area()
+
+	# IMMER erzeugen, nicht nur "if requires_hack()" - siehe Bugfix-
+	# Kommentar oben. door_kind kann sich NACH _ready() noch aendern
+	# (LevelGenerator setzt es erst spaeter), die Area muss aber schon
+	# jetzt existieren, damit der Spieler ueberhaupt erkannt wird.
+	_setup_hack_area()
+	_refresh_hologram()
 
 	set_process(true)
 
@@ -11101,6 +11389,9 @@ func _set_emission_pulse(factor: float) -> void:
 
 
 func _setup_hack_area() -> void:
+	if _hack_area != null:
+		return
+
 	_hack_area = Area3D.new()
 	_hack_area.name = "HackRange"
 	_hack_area.collision_layer = 0
@@ -11174,6 +11465,7 @@ func is_locked() -> bool:
 
 func _process(delta: float) -> void:
 	_process_hack(delta)
+	_animate_hologram(delta)
 
 	var target_y: float = _closed_y if _locked else _open_y
 	if not is_equal_approx(position.y, target_y):
@@ -11196,10 +11488,12 @@ func _process_hack(delta: float) -> void:
 	if Input.is_action_pressed(INTERACT_ACTION):
 		if _hack_progress <= 0.0:
 			hack_started.emit()
+		# Erster echter Interaktions-Frame: Hologramm hat seinen Zweck
+		# erfuellt und wuerde ab jetzt nur den Fortschrittsbalken stoeren.
+		_dismiss_hologram()
 		_hack_progress = minf(_hack_progress + delta / max(hack_duration, 0.05), 1.0)
 		hack_progress_changed.emit(_hack_progress)
 		_show_prompt(prompt_text, _hack_progress)
-		# Optisches Feedback: Tuer flackert waehrend des Hacks staerker.
 		_set_emission_pulse(1.0 + sin(Time.get_ticks_msec() * 0.02) * 0.6)
 
 		if _hack_progress >= 1.0:
@@ -11221,12 +11515,140 @@ func _decay(delta: float) -> void:
 
 func _complete_hack() -> void:
 	_hack_done = true
+	_dismiss_hologram()
 	_locked = false
 	if _collision:
 		_collision.disabled = true
 	_set_emission_pulse(1.0)
 	_hide_prompt()
 	hack_completed.emit()
+
+
+# ============================================================================
+# Hacking-Hologramm
+# ============================================================================
+
+## Erzeugt das Hologramm, sobald die Tuer eine Hack-Tuer ist, und entfernt
+## es wieder, falls door_kind zurueck auf NORMAL faellt.
+func _refresh_hologram() -> void:
+	if not hologram_enabled or _hologram_dismissed:
+		return
+
+	if not requires_hack():
+		if _hologram and is_instance_valid(_hologram):
+			_hologram.queue_free()
+			_hologram = null
+			_hologram_label = null
+		return
+
+	if _hologram and is_instance_valid(_hologram):
+		_update_hologram_text()
+		return
+
+	_build_hologram()
+
+
+func _build_hologram() -> void:
+	_hologram = Node3D.new()
+	_hologram.name = "HackHologram"
+	add_child(_hologram)
+
+	var tint: Color = color_boss if door_kind == DoorKind.BOSS else color_treasure
+
+	_hologram_label = Label3D.new()
+	_hologram_label.name = "HologramLabel"
+	# BILLBOARD_ENABLED: dreht sich immer zur Kamera, damit das Schild aus
+	# jeder Anlaufrichtung lesbar ist.
+	_hologram_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_hologram_label.no_depth_test = false
+	_hologram_label.shaded = false
+	_hologram_label.double_sided = true
+	_hologram_label.font_size = hologram_font_size
+	_hologram_label.pixel_size = hologram_text_size / float(max(hologram_font_size, 1))
+	_hologram_label.modulate = tint
+	_hologram_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.85)
+	_hologram_label.outline_size = 12
+	_hologram_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hologram.add_child(_hologram_label)
+
+	_update_hologram_text()
+	_position_hologram()
+
+
+func _update_hologram_text() -> void:
+	if _hologram_label == null:
+		return
+	var kind_text: String = "BOSS" if door_kind == DoorKind.BOSS else "TRESOR"
+	_hologram_label.text = "%s\n[ HACK ]" % kind_text
+	var tint: Color = color_boss if door_kind == DoorKind.BOSS else color_treasure
+	_hologram_label.modulate = tint
+
+
+## Setzt das Hologramm hologram_distance Meter VOR die Tuer, Richtung
+## Raummitte - siehe Klassenkommentar zur Herleitung der Innenrichtung.
+func _position_hologram() -> void:
+	if _hologram == null:
+		return
+
+	var inward: Vector3 = _inward_direction()
+	_hologram.position = inward * hologram_distance + Vector3(0.0, hologram_height, 0.0)
+	_hologram_base_y = _hologram.position.y
+
+
+## Richtung "in den Raum hinein", ausgedrueckt im LOKALEN Raum der Tuer.
+## Fallback auf -Z (Godot-Vorwaerts), falls kein RoomInstance-Vorfahre
+## existiert (z.B. Tuer manuell in ein Testlevel gesetzt).
+func _inward_direction() -> Vector3:
+	var room: Node = get_parent()
+	while room != null and not (room is RoomInstance):
+		room = room.get_parent()
+
+	if room == null:
+		return Vector3(0.0, 0.0, -1.0)
+
+	var room_3d: Node3D = room as Node3D
+	var to_center: Vector3 = room_3d.global_position - global_position
+	to_center.y = 0.0
+	if to_center.length() < 0.01:
+		return Vector3(0.0, 0.0, -1.0)
+
+	# In den lokalen Raum der Tuer umrechnen, weil _hologram.position
+	# lokal interpretiert wird.
+	return global_transform.basis.inverse() * to_center.normalized()
+
+
+## Blendet das Hologramm dauerhaft aus - wird beim ersten Hack-Fortschritt
+## und beim abgeschlossenen Hack aufgerufen.
+func _dismiss_hologram() -> void:
+	if _hologram_dismissed:
+		return
+	_hologram_dismissed = true
+
+	if _hologram == null or not is_instance_valid(_hologram):
+		return
+
+	if _hologram_label:
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(_hologram_label, "modulate:a", 0.0, hologram_fade_duration)
+		tween.tween_property(_hologram, "scale", Vector3(1.4, 0.05, 1.4), hologram_fade_duration)\
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.chain().tween_callback(func() -> void:
+			if is_instance_valid(_hologram):
+				_hologram.queue_free()
+			_hologram = null
+			_hologram_label = null
+		)
+	else:
+		_hologram.queue_free()
+		_hologram = null
+
+
+func _animate_hologram(delta: float) -> void:
+	if _hologram == null or not is_instance_valid(_hologram):
+		return
+	_hologram_time += delta * hologram_bob_speed
+	_hologram.position.y = _hologram_base_y + sin(_hologram_time) * hologram_bob_height
 
 
 func _show_prompt(text: String, progress: float) -> void:
@@ -11345,6 +11767,18 @@ const DIR_OFFSETS := {
 @export var navigation_region: NavigationRegion3D
 @export var random_seed: int = 0
 
+## --- Sieg-Trophaee ----------------------------------------------------
+## Faellt in die Mitte des Bossraums, sobald der Boss besiegt ist.
+## Aufsammeln loest den WinScreen aus (siehe victory_trophy.gd).
+##
+## Als PFAD statt als PackedScene-Export, damit ein fehlendes/verschobenes
+## Asset nur eine Warnung erzeugt statt die ganze Generator-Szene beim
+## Laden zu zerreissen.
+@export var victory_trophy_scene_path: String = "res://scenes/victory_trophy.tscn"
+@export var spawn_victory_trophy: bool = true
+## Hoehe ueber dem Raumboden, auf der die Trophaee liegen bleibt.
+@export var victory_trophy_ground_offset: float = 0.3
+
 signal stage_generated(stage: int, room_count: int)
 signal map_updated
 signal stage_cleared(stage: int)
@@ -11392,6 +11826,18 @@ func get_current_stage() -> int:
 
 func is_stage_cleared() -> bool:
 	return _stage_cleared
+
+## Echter Tuerzustand einer Zelle in einer Richtung - wird von der
+## Minimap (minimap_rooms.gd) abgefragt, damit dort nur tatsaechlich
+## vorhandene und tatsaechlich begehbare Durchgaenge als offen erscheinen.
+func get_door_state(grid: Vector2i, dir: String) -> int:
+	if not _instances.has(grid):
+		return RoomInstance.DoorState.NONE
+	var room: RoomInstance = _instances[grid]
+	if not is_instance_valid(room):
+		return RoomInstance.DoorState.NONE
+	return room.get_door_state(dir)
+
 
 func get_room_type_name(type: int) -> String:
 	match type:
@@ -11518,6 +11964,8 @@ func _on_room_cleared(room: RoomInstance) -> void:
 			_stage_cleared = true
 			stage_cleared.emit(current_stage)
 			print("[LevelGenerator] Stage %d gecleared (Bossraum bei %s)." % [current_stage, room.grid_position])
+			if spawn_victory_trophy:
+				_spawn_victory_trophy(room)
 
 	# Angrenzende Boss-Tuer freischalten - ab jetzt darf gehackt werden.
 	for dir in DIR_KEYS:
@@ -11528,6 +11976,33 @@ func _on_room_cleared(room: RoomInstance) -> void:
 			room.set_door_hack_enabled(dir, true)
 
 	map_updated.emit()
+
+## Laesst die goldene Sieg-Trophaee in die Mitte des Bossraums fallen.
+## Wird als Kind der aktuellen Szene (nicht des Raums) eingehaengt, damit
+## sie einen Raumwechsel/Cleanup ueberlebt - der Raum selbst koennte beim
+## Stage-Wechsel abgeraeumt werden.
+func _spawn_victory_trophy(room: RoomInstance) -> void:
+	var packed: PackedScene = load(victory_trophy_scene_path) as PackedScene
+	if packed == null:
+		push_warning("[LevelGenerator] Sieg-Trophaee nicht gefunden unter '%s' - Bossraum bleibt ohne Belohnung." % victory_trophy_scene_path)
+		return
+
+	var trophy: Node3D = packed.instantiate() as Node3D
+	if trophy == null:
+		push_warning("[LevelGenerator] '%s' hat keinen Node3D-Root." % victory_trophy_scene_path)
+		return
+
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		parent = get_tree().get_root()
+	parent.add_child(trophy)
+
+	var center: Vector3 = room.get_room_center()
+	center.y += victory_trophy_ground_offset
+	trophy.global_position = center
+
+	print("[LevelGenerator] Sieg-Trophaee gespawnt bei %s." % center)
+
 
 # --- Gegner-Tabellen & Budget ---------------------------------------
 
@@ -11964,21 +12439,110 @@ const _DIR_VECTOR := {
 
 const NAV_SOURCE_GROUP := "navmesh_source"
 
+## Zustand EINES Durchgangs - Grundlage fuer die Minimap-Synchronisation.
+##
+## BUGFIX (Minimap zeigte geschlossene Tueren als offen): Die Minimap hat
+## bisher nur die exit_flags des LAYOUTS gezeichnet. Die sagen aber nur
+## "hier ist im Grid ein Nachbar", nicht "hier gibt es tatsaechlich eine
+## begehbare Tuer". Zwei Faelle liefen dadurch auseinander:
+##   1. Die gewaehlte Raum-Szene hat fuer diese Richtung gar keinen
+##      ExitPoint/Door-Node (dann warnt _collect_markers, die Minimap
+##      malte den Durchgang aber trotzdem).
+##   2. Die Tuer ist verriegelt (Kampfraum nicht gecleared) oder muss
+##      erst gehackt werden (Boss/Treasure) - auf der Minimap sah sie
+##      genauso offen aus wie jeder andere Gang.
+## get_door_state() liefert jetzt den ECHTEN Zustand der jeweiligen Tuer.
+enum DoorState {
+	NONE,          ## Kein Durchgang / keine Tuer in dieser Richtung
+	OPEN,          ## Offen und begehbar
+	LOCKED,        ## Verriegelt (Raum noch nicht gecleared)
+	HACK_LOCKED,   ## Boss/Treasure, Hacken noch nicht freigeschaltet
+	HACK_READY,    ## Boss/Treasure, kann jetzt gehackt werden
+}
+
 @export var room_footprint: Vector2 = Vector2(48.0, 48.0)
 @export var room_height: float = 14.0
 
-@export var entry_trigger_inset: float = 3.0
+## --- Kampfraum-Aktivierung / Anti-Baiting -----------------------------
+## FRUEHER: Der EntryTrigger war fast so gross wie der ganze Raum
+## (footprint - entry_trigger_inset mit inset = 3.0). Er feuerte damit
+## schon im Tuerrahmen — man konnte kurz reinlaufen, den Spawn ausloesen
+## und sofort wieder raus, bevor sich die Tueren schliessen.
+##
+## JETZT: Der Trigger ist ein deutlich kleinerer Quader in der RAUMMITTE.
+## entry_trigger_depth gibt an, wie viele Meter der Spieler von JEDER Wand
+## entfernt sein muss, damit der Raum scharf schaltet — der Spieler muss
+## also wirklich einige Meter tief in den Raum hinein.
+##
+## Zusaetzlich muss der Spieler entry_trigger_dwell_time lang DRINNEN
+## bleiben. Wer durch die Mitte durchsprintet und sofort wieder rausrennt,
+## loest nichts aus.
+@export var entry_trigger_depth: float = 9.0
 
-## --- Dunkle Decke ----------------------------------------------------
-## Erzeugt zur Laufzeit eine unbeleuchtete, fast schwarze Deckenplatte.
-## Zusammen mit dem Distanz-Nebel (dungeon_atmosphere.gd) sieht man, DASS
-## da eine Decke ist, aber nicht, wie sie aussieht.
+## Mindestgroesse des Triggers, falls der Raum kleiner ist als
+## 2 * entry_trigger_depth (schmale Korridore) — sonst waere der Quader
+## rechnerisch negativ und der Raum liesse sich nie betreten.
+@export var entry_trigger_min_size: float = 6.0
+
+## Wie lange der Spieler ununterbrochen im Trigger stehen muss.
+@export var entry_trigger_dwell_time: float = 0.25
+
+## Vertikale Grosszuegigkeit: Der Trigger startet knapp ueber dem Boden und
+## reicht bis zur Decke, damit auch springende/fallende Spieler erfasst
+## werden.
+@export var entry_trigger_floor_offset: float = 0.2
+
+## --- Dunkle, aber TEXTURIERTE Decke -----------------------------------
+## Erzeugt zur Laufzeit eine Deckenplatte. Verwendet dasselbe geteilte
+## PSX-Material wie Waende/Boden (Vertex-Snapping-Shader + Textur), nur
+## dunkel eingefaerbt - vorher war das eine reine Flatcolor-Flaeche ohne
+## jede Textur, was im Vergleich zum Rest des Raumes "kaputt" aussah.
+##
+## CULL-BUG BEIM MATERIALWECHSEL: Der PSX-Shader hat "cull_back" FEST im
+## Shadercode stehen (render_mode unshaded, cull_back, ...) - das laesst
+## sich bei einem ShaderMaterial anders als bei StandardMaterial3D NICHT
+## per Skript umschalten. Ein normaler BoxMesh mit nach oben zeigender
+## Deckenflaeche waere von UNTEN betrachtet dadurch unsichtbar (man sieht
+## die Rueckseite des Polygons, die weggecullt wird). Deshalb: PlaneMesh
+## statt BoxMesh, um 180 Grad gekippt - dadurch zeigt exakt dieselbe
+## Dreiecks-Vorderseite nach UNTEN in den Raum, ganz ohne den gemeinsamen
+## Shader anzufassen. Die Kollision bleibt unabhaengig davon ein simpler
+## Box-Collider (Kollision braucht keine Ausrichtung).
 @export var build_ceiling: bool = true
 @export var ceiling_color: Color = Color(0.035, 0.04, 0.035)
+## Pfad zum geteilten PSX-Material. Fallback auf eine schlichte, dunkle
+## StandardMaterial3D, falls die Resource fehlt/verschoben wurde.
+@export var ceiling_material_path: String = "res://materials/psx_material.tres"
 ## Kollision fuer die Decke - verhindert, dass man mit hohen Spruengen
 ## oder Knockback aus dem Raum fliegt.
 @export var ceiling_collision: bool = true
 @export var ceiling_thickness: float = 1.0
+
+## --- Wand-Kappe fuer die Minimap-Sichtbarkeit --------------------------
+## Grund-Textur der Waende bleibt UNVERAENDERT identisch zum Boden (das
+## bisherige Einfaerben der ganzen Wand wurde wieder entfernt - sah in
+## der normalen Spielansicht falsch aus, weil Wand und Boden dort ja
+## bewusst gleich aussehen sollen).
+## PROBLEM bleibt aber bestehen: aus der reinen Top-Down-Perspektive der
+## Minimap zeigt eine Wand nur ihre duenne Oberkante, texturell identisch
+## zum Boden - man sieht sie praktisch nicht.
+## FIX: jede Wand bekommt oben ein ZUSAETZLICHES, rein optisches Kappen-
+## Mesh in dunkler Farbe (gleiche Groesse wie die Wand-Grundflaeche,
+## aber nur wall_cap_height hoch), das ganz knapp ueber der eigentlichen
+## Wand-Oberkante sitzt. Von der Seite/im normalen Spiel faellt dieser
+## duenne dunkle Streifen kaum auf (er sitzt direkt an der duesteren
+## Decke), aber die Top-Down-Kamera der Minimap trifft ihn zuerst und
+## zeigt dadurch den Wandverlauf klar erkennbar dunkel gegen den
+## helleren Boden.
+@export var wall_cap_enabled: bool = true
+@export var wall_cap_height: float = 1.0
+@export var wall_cap_color: Color = Color(0.035, 0.04, 0.035)
+## Minimaler Hochversatz ueber die tatsaechliche Wand-Oberkante, damit
+## die Kappe im Tiefenvergleich zuverlaessig vor der (gleich hohen,
+## gleich texturierten) eigentlichen Wandflaeche gewinnt - ohne das
+## wuerde es zu Z-Fighting/Flackern zwischen beiden Flaechen kommen.
+@export var wall_cap_epsilon: float = 0.03
+@export var wall_cap_material_path: String = "res://materials/psx_material.tres"
 
 var grid_position: Vector2i = Vector2i.ZERO
 
@@ -11995,6 +12559,10 @@ var _requires_clear: bool = false
 
 var _entry_trigger: Area3D = null
 var _has_entered: bool = false
+## Laeuft, solange der Spieler im Trigger steht. Verlaesst er ihn vorher,
+## wird der Timer verworfen und der Raum bleibt inaktiv.
+var _dwell_timer: float = 0.0
+var _dwell_body: Node3D = null
 var _enemies_spawned: bool = false
 
 var _pending_entries: Array[EnemySpawnEntry] = []
@@ -12014,6 +12582,8 @@ func _ready() -> void:
 	_setup_entry_trigger()
 	if build_ceiling:
 		_build_ceiling()
+	if wall_cap_enabled:
+		_build_wall_caps()
 
 
 func _exit_tree() -> void:
@@ -12052,8 +12622,9 @@ func _collect_markers() -> void:
 					push_warning("RoomInstance (%s): ExitPoint '%s' hat keine Tuer unter 'Doors/Door%s'." % [name, child.name, child.name.capitalize()])
 
 
-## Dunkle Decke: shading_mode UNSHADED + fast schwarze Albedo. Dadurch
-## reagiert sie auf gar kein Licht und bleibt in jeder Etage gleich duester.
+## Baut eine texturierte, dunkel eingefaerbte Decke. Kollision (Box) und
+## Optik (gekipptes PlaneMesh mit PSX-Material) sind zwei unabhaengige
+## Kinder desselben StaticBody3D.
 func _build_ceiling() -> void:
 	if get_node_or_null("Ceiling") != null:
 		return
@@ -12063,17 +12634,20 @@ func _build_ceiling() -> void:
 	body.position = Vector3(0.0, room_height + ceiling_thickness * 0.5, 0.0)
 	add_child(body)
 
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = ceiling_color
-	mat.cull_mode = BaseMaterial3D.CULL_FRONT  # von unten sichtbar
+	var mat: Material = _make_ceiling_material()
 
-	var box_mesh := BoxMesh.new()
-	box_mesh.size = Vector3(room_footprint.x, ceiling_thickness, room_footprint.y)
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(room_footprint.x, room_footprint.y)
 
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.name = "MeshInstance3D"
-	mesh_instance.mesh = box_mesh
+	mesh_instance.mesh = plane
+	# PlaneMesh zeigt standardmaessig mit der Vorderseite nach OBEN (+Y).
+	# Lokal auf die Unterkante der Kollisionsbox setzen und um 180 Grad
+	# kippen, damit dieselbe Dreiecksseite stattdessen nach UNTEN in den
+	# Raum zeigt - siehe Klassenkommentar zum cull_back-Problem oben.
+	mesh_instance.position = Vector3(0.0, -ceiling_thickness * 0.5, 0.0)
+	mesh_instance.rotation_degrees = Vector3(180.0, 0.0, 0.0)
 	# material_override statt surface_material_override - Vorrangregel.
 	mesh_instance.material_override = mat
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -12082,11 +12656,82 @@ func _build_ceiling() -> void:
 	if ceiling_collision:
 		var shape := CollisionShape3D.new()
 		var box := BoxShape3D.new()
-		box.size = box_mesh.size
+		box.size = Vector3(room_footprint.x, ceiling_thickness, room_footprint.y)
 		shape.shape = box
 		body.add_child(shape)
 	else:
 		body.collision_layer = 0
+
+
+## Dupliziert das geteilte PSX-Shader-Material (NIEMALS die Original-
+## Resource direkt benutzen - sonst faerbt das erste instanziierte
+## Zimmer ALLE anderen Decken im Spiel mit ein) und faerbt es dunkel via
+## Shader-Parameter. Faellt auf eine schlichte StandardMaterial3D zurueck,
+## falls die Resource fehlt.
+func _make_ceiling_material() -> Material:
+	var base := load(ceiling_material_path)
+	if base is ShaderMaterial:
+		var mat: ShaderMaterial = (base as ShaderMaterial).duplicate()
+		mat.set_shader_parameter("albedo_color", ceiling_color)
+		return mat
+
+	push_warning("RoomInstance: ceiling_material_path '%s' nicht gefunden oder kein ShaderMaterial - Decke faellt auf Flatcolor zurueck." % ceiling_material_path)
+	var fallback := StandardMaterial3D.new()
+	fallback.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fallback.albedo_color = ceiling_color
+	fallback.cull_mode = BaseMaterial3D.CULL_FRONT
+	return fallback
+
+
+## Setzt jeder Wand ("Wall*"-StaticBody3D, direktes Kind) eine duenne,
+## dunkle Kappe knapp ueber ihre eigene Oberkante - siehe Klassenkommentar
+## oben. Groesse/Position werden aus der WAND EIGENEN CollisionShape3D
+## abgelesen (nicht aus room_height), damit das auch bei Waenden
+## funktioniert, deren Hoehe (noch) nicht exakt der Raumhoehe entspricht.
+func _build_wall_caps() -> void:
+	var base := load(wall_cap_material_path)
+
+	for child in get_children():
+		if not (child is StaticBody3D):
+			continue
+		if not child.name.begins_with("Wall"):
+			continue
+		if child.get_node_or_null("MinimapCap") != null:
+			continue
+
+		var collision := child.get_node_or_null("CollisionShape3D") as CollisionShape3D
+		if collision == null or not (collision.shape is BoxShape3D):
+			continue
+		var box: BoxShape3D = collision.shape as BoxShape3D
+
+		var cap_mesh := BoxMesh.new()
+		cap_mesh.size = Vector3(box.size.x, wall_cap_height, box.size.z)
+
+		var mat: Material
+		if base is ShaderMaterial:
+			var shader_mat: ShaderMaterial = (base as ShaderMaterial).duplicate()
+			shader_mat.set_shader_parameter("albedo_color", wall_cap_color)
+			mat = shader_mat
+		else:
+			push_warning("RoomInstance: wall_cap_material_path '%s' nicht gefunden oder kein ShaderMaterial - Kappe faellt auf Flatcolor zurueck." % wall_cap_material_path)
+			var fallback := StandardMaterial3D.new()
+			fallback.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			fallback.albedo_color = wall_cap_color
+			mat = fallback
+
+		var cap := MeshInstance3D.new()
+		cap.name = "MinimapCap"
+		cap.mesh = cap_mesh
+		# material_override statt surface_material_override - Vorrangregel.
+		cap.material_override = mat
+		cap.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+		# Lokal (relativ zur Wand-StaticBody3D, deren Ursprung mittig in
+		# der Wand liegt): knapp ueber der eigenen Oberkante der Wand.
+		var wall_top_local_y: float = box.size.y * 0.5
+		cap.position = Vector3(0.0, wall_top_local_y - wall_cap_height * 0.5 + wall_cap_epsilon, 0.0)
+
+		child.add_child(cap)
 
 
 ## Baut im Inneren eines Korridors eine Rampe, die rise Meter ueberwindet.
@@ -12185,25 +12830,57 @@ func _setup_entry_trigger() -> void:
 
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(
-		max(room_footprint.x - entry_trigger_inset, 1.0),
-		room_height,
-		max(room_footprint.y - entry_trigger_inset, 1.0)
-	)
+
+	# Von JEDER Seite um entry_trigger_depth einruecken -> der Trigger sitzt
+	# als kompakter Quader in der Raummitte.
+	var size_x: float = maxf(room_footprint.x - entry_trigger_depth * 2.0, entry_trigger_min_size)
+	var size_z: float = maxf(room_footprint.y - entry_trigger_depth * 2.0, entry_trigger_min_size)
+	var size_y: float = maxf(room_height - entry_trigger_floor_offset, 1.0)
+
+	box.size = Vector3(size_x, size_y, size_z)
 	shape.shape = box
-	shape.position = Vector3(0.0, room_height * 0.5, 0.0)
+	shape.position = Vector3(0.0, entry_trigger_floor_offset + size_y * 0.5, 0.0)
 	_entry_trigger.add_child(shape)
 
-	_entry_trigger.body_entered.connect(_on_entry_trigger_body_entered)
+	_entry_trigger.body_exited.connect(_on_entry_trigger_body_exited)
 
 
-func _on_entry_trigger_body_entered(body: Node) -> void:
-	if _has_entered:
+## Der Dwell-Check laeuft bewusst in _physics_process statt ueber
+## body_entered: So wird auch der Fall abgedeckt, dass der Spieler beim
+## Laden des Raumes BEREITS im Trigger steht (body_entered feuert dann nie).
+func _physics_process(delta: float) -> void:
+	if _has_entered or _entry_trigger == null:
+		set_physics_process(false)
 		return
-	if not body.is_in_group(PartyManager.PLAYER_GROUP):
+
+	var player: Node3D = _find_player_inside()
+	if player == null:
+		_dwell_timer = 0.0
+		_dwell_body = null
 		return
-	_has_entered = true
-	on_player_entered()
+
+	if player != _dwell_body:
+		_dwell_body = player
+		_dwell_timer = 0.0
+
+	_dwell_timer += delta
+	if _dwell_timer >= maxf(entry_trigger_dwell_time, 0.0):
+		_has_entered = true
+		set_physics_process(false)
+		on_player_entered()
+
+
+func _find_player_inside() -> Node3D:
+	for body in _entry_trigger.get_overlapping_bodies():
+		if body is Node3D and body.is_in_group(PartyManager.PLAYER_GROUP):
+			return body
+	return null
+
+
+func _on_entry_trigger_body_exited(body: Node) -> void:
+	if body == _dwell_body:
+		_dwell_timer = 0.0
+		_dwell_body = null
 
 
 func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage: int) -> void:
@@ -12363,6 +13040,37 @@ func _on_enemy_died() -> void:
 		_is_cleared = true
 		_lock_exits(false)
 		room_cleared.emit(self)
+
+
+## Echter Zustand des Durchgangs in dieser Richtung - siehe DoorState.
+func get_door_state(dir: String) -> int:
+	# exit_points wurde von apply_exit_flags() auf die vom Layout wirklich
+	# geforderten Richtungen eingedampft. Steht dir nicht (mehr) drin,
+	# existiert hier auch kein Durchgang.
+	if not exit_points.has(dir):
+		return DoorState.NONE
+	if not _doors_by_dir.has(dir):
+		return DoorState.NONE
+
+	var door: Node = _doors_by_dir[dir]
+	if not is_instance_valid(door):
+		return DoorState.NONE
+
+	if not (door is Door):
+		return DoorState.OPEN
+
+	var d: Door = door as Door
+	if not d.is_locked():
+		return DoorState.OPEN
+	if d.requires_hack():
+		return DoorState.HACK_READY if d.is_hack_enabled() else DoorState.HACK_LOCKED
+	return DoorState.LOCKED
+
+
+## Weltposition der Raummitte auf Bodenhoehe - z.B. fuer den Spawn der
+## Sieg-Trophaee im Bossraum.
+func get_room_center() -> Vector3:
+	return global_position
 
 
 func is_cleared() -> bool:
@@ -17089,9 +17797,10 @@ height = 0.001
 collision_layer = 4
 floor_snap_length = 0.29
 script = ExtResource("1_p4blw")
-move_speed = 16.0
+move_speed = 15.0
+speed_variance = 0.16
 detection_range = 50.0
-attack_range = 2.5
+attack_range = 2.1
 attack_cooldown = 1.4
 gravity = 20.0
 attack_windup_time = 0.35
@@ -17161,8 +17870,6 @@ height = 2.0
 
 ===== FILE: scenes\settings_menu.gd =====
 
-
-
 extends Control
 class_name SettingsMenu
 
@@ -17207,6 +17914,16 @@ const FPS_OPTIONS: Array[int] = [30, 60, 120, 144, 240, 0]
 var _rebinding_action: String = ""
 var _keybind_buttons: Dictionary = {}
 
+## --- Modulares HUD-Dropdown -------------------------------------------
+## Wird KOMPLETT zur Laufzeit gebaut (kein .tscn-Eingriff noetig). Der
+## Toggle-Button klappt die Einzelschalter auf/zu — neue Elemente aus
+## SettingsManager.HUD_ELEMENTS erscheinen automatisch, ohne dass hier
+## etwas nachgepflegt werden muss.
+var _hud_dropdown_button: Button = null
+var _hud_elements_box: VBoxContainer = null
+var _hud_element_checks: Dictionary = {}  # element (String) -> CheckButton
+var _hud_dropdown_open: bool = false
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -17224,8 +17941,10 @@ func _ready() -> void:
 	conflict_label.visible = false
 
 	_connect_signals()
+	_build_hud_element_dropdown()
 	_build_keybind_rows()
 	_refresh_from_settings()
+	_refresh_hud_element_checks()
 
 
 # Panel hat opaken Standardhintergrund — fix auf halbtransparent damit der
@@ -17312,6 +18031,7 @@ func _connect_signals() -> void:
 func open() -> void:
 	visible = true
 	_refresh_from_settings()
+	_refresh_hud_element_checks()
 
 
 func close() -> void:
@@ -17365,9 +18085,14 @@ func _on_sensitivity_changed(value: float) -> void:
 	sensitivity_value_label.text = str(int(round(value * 10000.0)))
 
 
+# BUGFIX: hier stand vorher SettingsManager.reset_to_defaults() — diese
+# Methode existiert im SettingsManager gar nicht (sie heisst
+# reset_all_to_defaults). Der Reset-Button hat also bei jedem Klick einen
+# Laufzeitfehler geworfen statt zurueckzusetzen.
 func _on_reset_pressed() -> void:
-	SettingsManager.reset_to_defaults()
+	SettingsManager.reset_all_to_defaults()
 	_refresh_from_settings()
+	_refresh_hud_element_checks()
 
 
 func _on_back_pressed() -> void:
@@ -17465,6 +18190,106 @@ func _input(event: InputEvent) -> void:
 		timer.timeout.connect(func() -> void: conflict_label.visible = false)
 
 	get_viewport().set_input_as_handled()
+
+
+# ============================================================================
+# Modulares HUD-Dropdown (General-Tab)
+# ============================================================================
+
+## Baut unter der Zeile "HUD anzeigen" einen aufklappbaren Block mit einem
+## CheckButton pro HUD-Element.
+##
+## Warum zur Laufzeit statt im .tscn: die Elementliste lebt im
+## SettingsManager (HUD_ELEMENTS). Waeren die Checkboxen fest in der Szene
+## verdrahtet, muesste man bei jedem neuen HUD-Element ZWEI Stellen
+## nachpflegen und die beiden koennten auseinanderlaufen.
+func _build_hud_element_dropdown() -> void:
+	var general: Node = tab_container.get_node_or_null("General")
+	if general == null:
+		push_warning("SettingsMenu: Tab 'General' nicht gefunden — HUD-Dropdown wird uebersprungen.")
+		return
+
+	_hud_dropdown_button = Button.new()
+	_hud_dropdown_button.name = "HUDElementsDropdown"
+	_hud_dropdown_button.toggle_mode = true
+	_hud_dropdown_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	general.add_child(_hud_dropdown_button)
+
+	_hud_elements_box = VBoxContainer.new()
+	_hud_elements_box.name = "HUDElementsBox"
+	_hud_elements_box.visible = false
+	_hud_elements_box.add_theme_constant_override("separation", 2)
+	general.add_child(_hud_elements_box)
+
+	# Direkt unter die HUD-Sichtbarkeits-Zeile einsortieren, damit der
+	# Zusammenhang optisch klar ist.
+	var hud_row: Node = general.get_node_or_null("HUDVisibleRow")
+	if hud_row:
+		var target_index: int = hud_row.get_index() + 1
+		general.move_child(_hud_dropdown_button, target_index)
+		general.move_child(_hud_elements_box, target_index + 1)
+
+	for element in SettingsManager.HUD_ELEMENTS.keys():
+		var row := HBoxContainer.new()
+		_hud_elements_box.add_child(row)
+
+		# Einrueckung, damit die Unterpunkte als "Kinder" der HUD-Zeile
+		# lesbar sind.
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(24, 0)
+		row.add_child(spacer)
+
+		var label := Label.new()
+		label.text = SettingsManager.HUD_ELEMENTS[element]
+		label.custom_minimum_size = Vector2(220, 0)
+		row.add_child(label)
+
+		var check := CheckButton.new()
+		row.add_child(check)
+		_hud_element_checks[element] = check
+
+		# bind() haengt die Element-ID an — sonst wuesste der Callback
+		# nicht, WELCHE Checkbox geschaltet wurde.
+		check.toggled.connect(_on_hud_element_toggled.bind(element))
+
+	_hud_dropdown_button.toggled.connect(_on_hud_dropdown_toggled)
+	_update_hud_dropdown_label()
+
+
+func _on_hud_dropdown_toggled(pressed: bool) -> void:
+	_hud_dropdown_open = pressed
+	if _hud_elements_box:
+		_hud_elements_box.visible = pressed
+	_update_hud_dropdown_label()
+
+
+func _update_hud_dropdown_label() -> void:
+	if _hud_dropdown_button == null:
+		return
+	var arrow: String = "v" if _hud_dropdown_open else ">"
+	var active: int = 0
+	for element in SettingsManager.HUD_ELEMENTS.keys():
+		if SettingsManager.is_hud_element_visible(element):
+			active += 1
+	_hud_dropdown_button.text = "%s  HUD-Elemente  (%d/%d aktiv)" % [
+		arrow, active, SettingsManager.HUD_ELEMENTS.size()
+	]
+
+
+func _on_hud_element_toggled(is_on: bool, element: String) -> void:
+	SettingsManager.set_hud_element_visible(element, is_on)
+	_update_hud_dropdown_label()
+
+
+## Liest die Checkbox-Zustaende aus dem SettingsManager zurueck. Wichtig:
+## set_pressed_no_signal() statt button_pressed, sonst wuerde das Setzen
+## selbst wieder toggled() feuern und eine Endlosschleife ausloesen.
+func _refresh_hud_element_checks() -> void:
+	for element in _hud_element_checks.keys():
+		var check: CheckButton = _hud_element_checks[element]
+		if is_instance_valid(check):
+			check.set_pressed_no_signal(SettingsManager.is_hud_element_visible(element))
+	_update_hud_dropdown_label()
 
 
 ===== FILE: scenes\settings_menu.tscn =====
@@ -18139,8 +18964,9 @@ collision_layer = 4
 floor_snap_length = 0.5
 script = ExtResource("1_p7a36")
 move_speed = 5.5
+speed_variance = 0.08
 detection_range = 100.0
-attack_range = 9.0
+attack_range = 8.0
 attack_cooldown = 1.5
 gravity = 20.0
 attack_windup_time = 2.0
@@ -18210,7 +19036,7 @@ collision_mask = 1
 script = ExtResource("4_1v3u1")
 damage = 70.0
 knockback_force = 10.0
-stun_duration = 1.0
+stun_duration = 0.0
 damage_number_scene = ExtResource("5_dmgnum")
 debug_logging = false
 
@@ -19654,14 +20480,35 @@ mesh = ExtResource("56_glgj5")
 shape = SubResource("ConcavePolygonShape3D_ky17o")
 
 
-===== FILE: scenes\win_screen.gd =====
+===== FILE: scenes\victory_trophy.tscn =====
 
+[gd_scene format=3 uid="uid://dlipoa1cyf4p1"]
+
+[ext_resource type="Script" path="res://scripts/victory_trophy.gd" id="1_trophy"]
+
+[node name="VictoryTrophy" type="Node3D"]
+script = ExtResource("1_trophy")
+drop_height = 14.0
+drop_duration = 1.1
+pickup_radius = 3.0
+cylinder_radius = 1.1
+cylinder_height = 3.2
+beam_enabled = true
+beam_height = 40.0
+
+
+===== FILE: scenes\win_screen.gd =====
 
 extends Control
 class_name WinScreen
 
 @onready var restart_button: Button = $Panel/VBoxContainer/RestartButton
 @onready var quit_button: Button = $Panel/VBoxContainer/QuitButton
+
+## Zeit-Label wird zur Laufzeit erzeugt, damit keine der (mehreren)
+## Level-Szenen angefasst werden muss, in denen der WinScreen jeweils
+## separat instanziiert ist.
+var _time_label: Label = null
 
 var _blur_overlay: ColorRect = null
 var _pause_menu: PauseMenu = null
@@ -19680,8 +20527,36 @@ func _ready() -> void:
 	_pause_menu = get_parent().get_node_or_null("PauseMenu") as PauseMenu
 	_fix_panel_background()
 
+	_build_time_label()
+
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+
+
+## Setzt das Zeit-Label direkt unter die Ueberschrift (Index 1), damit es
+## ueber den Buttons steht.
+func _build_time_label() -> void:
+	var box := get_node_or_null("Panel/VBoxContainer") as VBoxContainer
+	if box == null:
+		return
+	_time_label = Label.new()
+	_time_label.name = "RunTimeLabel"
+	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_time_label.add_theme_font_size_override("font_size", 32)
+	_time_label.text = ""
+	box.add_child(_time_label)
+	box.move_child(_time_label, 1)
+
+
+## Stoppt den Speedrun-Timer und liefert die Endzeit. Ueber die Gruppe
+## statt ueber einen festen Pfad — der WinScreen kennt den HUD-Aufbau nicht.
+func _stop_and_read_run_timer() -> String:
+	for node in get_tree().get_nodes_in_group(RunTimer.RUN_TIMER_GROUP):
+		if node is RunTimer:
+			var timer: RunTimer = node
+			timer.stop()
+			return timer.get_time_string()
+	return ""
 
 
 # Gleiches Fix wie PauseMenu / DeathScreen: Panel Full-Rect opak → Blur unsichtbar
@@ -19706,6 +20581,10 @@ func show_win() -> void:
 	# ist das Level gewonnen, ESC/Pause soll nicht mehr moeglich sein.
 	if _pause_menu:
 		_pause_menu.lock_out()
+
+	var run_time: String = _stop_and_read_run_timer()
+	if _time_label:
+		_time_label.text = ("ZEIT: %s" % run_time) if run_time != "" else ""
 
 	if _blur_overlay:
 		_blur_overlay.visible = true
@@ -19741,6 +20620,19 @@ class_name AbilitySlot
 
 var _was_on_cooldown: bool = false
 
+# Schaltet Tastenkuerzel + Cooldown-Zahl aus (HUD-Einstellung
+# "Keybinds / Cooldowns"). Der Cooldown-BALKEN bleibt bewusst sichtbar —
+# ausgeblendet werden nur die LABELS, sonst waere nicht mehr erkennbar,
+# ob eine Faehigkeit ueberhaupt bereit ist.
+var _labels_visible: bool = true
+
+func set_labels_visible(is_visible: bool) -> void:
+	_labels_visible = is_visible
+	if key_label:
+		key_label.visible = is_visible
+	if cooldown_label:
+		cooldown_label.visible = is_visible
+
 func _ready() -> void:
 	pivot_offset = size * 0.5
 	cooldown_overlay.color = Color(0.0, 0.0, 0.0, 0.65)
@@ -19753,6 +20645,10 @@ func setup(texture: Texture2D, key_text: String) -> void:
 	if texture:
 		icon.texture = texture
 	key_label.text = key_text
+	# Der Sichtbarkeits-Schalter darf durch ein Icon-Update NICHT verloren
+	# gehen — sonst blinken die Keybinds bei jedem Charakterwechsel wieder auf.
+	key_label.visible = _labels_visible
+	cooldown_label.visible = _labels_visible
 
 func set_icon(texture: Texture2D) -> void:
 	icon.texture = texture
@@ -20394,6 +21290,22 @@ class_name DeathScreen
 
 @export var death_screen_delay: float = 1.2
 
+## --- Layout-Korrektur -------------------------------------------------
+## Die VBoxContainer-Geometrie kommt aus den Level-.tscn (in level_02.tscn
+## z.B. offset_top = -211 / offset_bottom = 241 bei zwei 100px hohen
+## Buttons) — der Inhalt lief dadurch unten aus dem Panel heraus und die
+## Buttons standen viel zu tief.
+##
+## Statt die Geometrie in JEDER Level-Szene einzeln nachzuziehen (der
+## DeathScreen ist in level_01/02/test/... jeweils separat instanziiert),
+## wird das Layout hier EINMAL zentral im Code korrigiert. Damit ist es
+## automatisch in allen Levels konsistent.
+@export var fix_layout_in_code: bool = true
+@export var content_top_offset: float = -260.0
+@export var content_width: float = 640.0
+@export var button_size: Vector2 = Vector2(240.0, 56.0)
+@export var content_separation: int = 14
+
 var _health_node: Health
 var _blur_overlay: ColorRect = null
 var _pause_menu: PauseMenu = null
@@ -20411,6 +21323,8 @@ func _ready() -> void:
 	_blur_overlay = get_parent().get_node_or_null("BlurOverlay") as ColorRect
 	_pause_menu = get_parent().get_node_or_null("PauseMenu") as PauseMenu
 	_fix_panel_background()
+	if fix_layout_in_code:
+		_fix_content_layout()
 
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -20439,6 +21353,66 @@ func _fix_panel_background() -> void:
 	style.corner_radius_bottom_left = 0
 	style.corner_radius_bottom_right = 0
 	panel.add_theme_stylebox_override("panel", style)
+
+
+## Zieht den kompletten Inhalt nach oben und gibt den Buttons eine
+## vernuenftige Groesse. Der VBoxContainer wird zentriert verankert und
+## bekommt eine feste Hoehe, die zum Inhalt passt — vorher war er so
+## dimensioniert, dass die 2x100px-Buttons unter den Bildschirmrand
+## rutschten.
+func _fix_content_layout() -> void:
+	var box := get_node_or_null("Panel/VBoxContainer") as VBoxContainer
+	if box == null:
+		push_warning("DeathScreen: 'Panel/VBoxContainer' nicht gefunden - Layout-Korrektur uebersprungen.")
+		return
+
+	# Anker manuell setzen statt ueber set_anchors_preset() — der Preset
+	# wuerde die Offsets mit umrechnen und das Ergebnis waere von der
+	# vorherigen (kaputten) Geometrie aus der .tscn abhaengig.
+	box.anchor_left = 0.5
+	box.anchor_right = 0.5
+	box.anchor_top = 0.5
+	box.anchor_bottom = 0.5
+	box.offset_left = -content_width * 0.5
+	box.offset_right = content_width * 0.5
+	box.offset_top = content_top_offset
+	# Hoehe wird vom Inhalt bestimmt (Buttons + Labels), deshalb bewusst
+	# grosszuegig — der Container waechst nicht ueber seinen Inhalt hinaus.
+	box.offset_bottom = content_top_offset + 420.0
+	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	box.grow_vertical = Control.GROW_DIRECTION_BOTH
+	box.alignment = BoxContainer.ALIGNMENT_BEGIN
+	box.add_theme_constant_override("separation", content_separation)
+
+	# Fuehrende Leerzeichen im Titel raus (waren im .tscn als manuelle
+	# "Zentrierung" hart eingetippt) und stattdessen echte Zentrierung.
+	if skill_issue_label:
+		skill_issue_label.text = skill_issue_label.text.strip_edges()
+		skill_issue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		skill_issue_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if killed_by_label:
+		killed_by_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		killed_by_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if items_label:
+		items_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	for btn in [restart_button, quit_button]:
+		if btn == null or not (btn is Button):
+			continue
+		btn.custom_minimum_size = button_size
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+
+
+## Holt die Endzeit vom Speedrun-Timer und stoppt ihn. Nutzt die Gruppe
+## statt eines festen Pfades, damit der DeathScreen nichts ueber den
+## HUD-Aufbau wissen muss.
+func _stop_and_read_run_timer() -> String:
+	for node in get_tree().get_nodes_in_group(RunTimer.RUN_TIMER_GROUP):
+		if node is RunTimer:
+			var timer: RunTimer = node
+			timer.stop()
+			return timer.get_time_string()
+	return ""
 
 
 # Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — der alte
@@ -20470,7 +21444,10 @@ func _on_player_died() -> void:
 	if _pause_menu:
 		_pause_menu.lock_out()
 
+	var run_time: String = _stop_and_read_run_timer()
 	killed_by_label.text = "Getötet von: %s" % _get_killer_name()
+	if run_time != "":
+		killed_by_label.text += "     |     Zeit: %s" % run_time
 	_update_items_display()
 
 	await get_tree().create_timer(death_screen_delay).timeout
@@ -20538,7 +21515,7 @@ class_name DungeonAtmosphere
 ## Ab hier beginnt das Abdunkeln (Meter vor der Kamera).
 @export var fog_begin: float = 14.0
 ## Ab hier ist praktisch alles schwarz.
-@export var fog_end: float = 55.0
+@export var fog_end: float = 40.0
 ## Wie schnell der Nebel zwischen begin und end zumacht (>1 = spaeter,
 ## dafuer haerter; das fuehlt sich weniger nach Milchglas an).
 @export var fog_curve: float = 2.2
@@ -20865,21 +21842,43 @@ extends Control
 # Zentrales HUD:
 #  - rechts: 4 Party-Slots (Portrait + HP, aktiver Char groesser + mit Name)
 #  - rechts unten: 5 Ability-Icons (Primary, Secondary, Shift, Q, E)
-#  - oben links: Minimap mit Zonenname darueber und X/Y-Koordinaten darunter
-#  - Mitte: Combo-Anzeige (bestehende Logik, unveraendert)
+#  - oben links: Minimap mit Zonenname darueber, X/Y-Koordinaten und
+#    Tastenhinweis "MAP [M]" darunter
+#  - oben links neben der Minimap: Speedrun-Timer
+#  - Mitte: Combo-Anzeige mit Sway-Animation
 #
-# WICHTIG: player/player_health/player_combat werden NICHT mehr nur einmal
+# WICHTIG: player/player_health/player_combat werden NICHT nur einmal
 # beim Start gesucht, sondern bei JEDEM Charakterwechsel ueber
 # PartyManager.active_player_changed neu verbunden — da beim Wechsel die
 # komplette Player-Instanz ausgetauscht wird.
+#
+# MODULARE HUD-ELEMENTE: Der Master-Schalter (SettingsManager.hud_visible)
+# und die Einzelschalter (SettingsManager.hud_elements) sind UND-verknuepft.
+# Deshalb wird die Sichtbarkeit NICHT direkt auf self gesetzt, sondern in
+# _apply_hud_visibility() zentral aus beiden Quellen berechnet — sonst
+# wuerde ein Master-Toggle die Einzelschalter ueberschreiben.
 
 @onready var combo_display: Control = $ComboDisplay
 @onready var combo_count_label: Label = $ComboDisplay/ComboCount
 @onready var party_container: VBoxContainer = $RightPanel/PartyContainer
 @onready var ability_container: HBoxContainer = $AbilityBar/AbilityContainer
 @onready var minimap: Control = $Minimap
+@onready var right_panel: Control = $RightPanel
+@onready var ability_bar: Control = $AbilityBar
+@onready var run_timer: Control = $RunTimer
 
 const SLOT_COUNT: int = 5
+
+## --- Combo-Sway ---------------------------------------------------------
+## Ausschlag nach links/rechts bei jedem Treffer. Die Richtung alterniert
+## mit dem Combo-Zaehler, damit es sich wie ein Pendel anfuehlt und nicht
+## wie ein zufaelliges Zittern.
+@export var combo_sway_distance: float = 26.0
+@export var combo_sway_rotation_degrees: float = 11.0
+@export var combo_sway_duration: float = 0.45
+## Ab diesem Combo-Zaehler ist der Ausschlag maximal.
+@export var combo_sway_max_at_count: int = 12
+@export var combo_punch_scale: float = 1.45
 
 var player_health: Health
 var player_combat: CombatBase
@@ -20888,21 +21887,27 @@ var player: CharacterBody3D
 var _party_slots: Array[PartySlot] = []
 var _ability_slots: Array[AbilitySlot] = []
 var _combo_display_home_position: Vector2
+var _combo_tween: Tween
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	combo_display.visible = false
 	combo_display.modulate.a = 1.0
+	combo_display.rotation = 0.0
 	_combo_display_home_position = combo_display.position
+	# Pivot in die Mitte, damit die Sway-Rotation um den Text kippt und
+	# nicht um die linke obere Ecke.
+	combo_display.pivot_offset = combo_display.size * 0.5
 
-	visible = SettingsManager.hud_visible
 	SettingsManager.hud_visible_changed.connect(_on_hud_visible_changed)
+	SettingsManager.hud_element_visible_changed.connect(_on_hud_element_visible_changed)
 
 	_cache_slots()
 	_connect_party_manager()
 	_refresh_party()
 	_refresh_ability_icons()
+	_apply_hud_visibility()
 
 	# Falls PartyManager schon vor dem HUD gespawnt hat, sofort verbinden.
 	if PartyManager.player and is_instance_valid(PartyManager.player):
@@ -20919,8 +21924,39 @@ func _cache_slots() -> void:
 		if child is AbilitySlot:
 			_ability_slots.append(child)
 
-func _on_hud_visible_changed(is_visible: bool) -> void:
-	visible = is_visible
+# ============================================================================
+# Sichtbarkeit (Master-Schalter + modulare Einzelschalter)
+# ============================================================================
+func _on_hud_visible_changed(_is_visible: bool) -> void:
+	_apply_hud_visibility()
+
+func _on_hud_element_visible_changed(_element: String, _is_visible: bool) -> void:
+	_apply_hud_visibility()
+
+# Einzige Stelle, die ueber Sichtbarkeit entscheidet. Ein Element ist nur
+# dann sichtbar, wenn BEIDE Schalter true sind.
+func _apply_hud_visibility() -> void:
+	var master: bool = SettingsManager.hud_visible
+	visible = master
+
+	if not master:
+		return
+
+	minimap.visible = SettingsManager.is_hud_element_visible(SettingsManager.HUD_ELEMENT_MINIMAP)
+	right_panel.visible = SettingsManager.is_hud_element_visible(SettingsManager.HUD_ELEMENT_PARTY)
+	ability_bar.visible = SettingsManager.is_hud_element_visible(SettingsManager.HUD_ELEMENT_ABILITIES)
+
+	if run_timer:
+		run_timer.visible = SettingsManager.is_hud_element_visible(SettingsManager.HUD_ELEMENT_TIMER)
+
+	# Keybinds/Cooldowns sind KEIN eigener Node, sondern Kind-Labels der
+	# Ability-Slots — deshalb ueber deren API statt ueber .visible.
+	var show_keys: bool = SettingsManager.is_hud_element_visible(SettingsManager.HUD_ELEMENT_KEYBINDS)
+	for slot: AbilitySlot in _ability_slots:
+		slot.set_labels_visible(show_keys)
+
+	if not SettingsManager.is_hud_element_visible(SettingsManager.HUD_ELEMENT_COMBO):
+		combo_display.visible = false
 
 func _connect_party_manager() -> void:
 	if not PartyManager.active_character_changed.is_connected(_on_active_character_changed):
@@ -21032,6 +22068,12 @@ func _refresh_ability_icons() -> void:
 	for i: int in range(SLOT_COUNT):
 		_ability_slots[i].setup(icons[i], keys[i])
 
+	# Nach einem Icon-Refresh den Keybind-Schalter erneut anwenden — setup()
+	# schreibt das KeyLabel neu und wuerde es sonst wieder sichtbar machen.
+	var show_keys: bool = SettingsManager.is_hud_element_visible(SettingsManager.HUD_ELEMENT_KEYBINDS)
+	for slot: AbilitySlot in _ability_slots:
+		slot.set_labels_visible(show_keys)
+
 func _process(_delta: float) -> void:
 	# Switch-Cooldown der Party-Slots (unabhaengig davon, ob player_combat
 	# gerade gueltig ist — betrifft auch inaktive Party-Mitglieder).
@@ -21048,33 +22090,77 @@ func _process(_delta: float) -> void:
 		var remaining: float = player_combat.get_cooldown_remaining(i)
 		_ability_slots[i].update_cooldown(percent, remaining)
 
+# ============================================================================
+# Combo-Anzeige
+# ============================================================================
 func _on_combo_changed(count: int) -> void:
+	if not SettingsManager.is_hud_element_visible(SettingsManager.HUD_ELEMENT_COMBO):
+		combo_display.visible = false
+		return
+
 	if count <= 1:
 		_play_combo_expire_animation()
 		return
 
-	combo_display.position = _combo_display_home_position
+	# Laufende Animation hart beenden, sonst ueberlagern sich bei schnellen
+	# Combos mehrere Tweens und das Element "driftet" aus seiner Position.
+	if _combo_tween and _combo_tween.is_valid():
+		_combo_tween.kill()
+
+	combo_display.pivot_offset = combo_display.size * 0.5
 	combo_display.modulate.a = 1.0
 	combo_display.visible = true
 	combo_count_label.text = "x%d" % count
 
-	combo_display.scale = Vector2(1.4, 1.4)
-	var tween := create_tween()
-	tween.tween_property(combo_display, "scale", Vector2(1.0, 1.0), 0.2)\
+	# Richtung alterniert -> Pendel-Gefuehl statt Zufallsgezappel.
+	var direction: float = 1.0 if count % 2 == 0 else -1.0
+	# Intensitaet waechst mit dem Combo-Zaehler und saettigt bei
+	# combo_sway_max_at_count.
+	var intensity: float = clampf(
+		float(count) / float(max(combo_sway_max_at_count, 2)),
+		0.35,
+		1.0
+	)
+
+	# Startzustand des Ausschlags SOFORT setzen (kein Tween hin, nur zurueck)
+	# — dadurch fuehlt sich der Treffer wie ein Schlag an und nicht wie eine
+	# weiche Bewegung.
+	combo_display.position = Vector2(
+		_combo_display_home_position.x + combo_sway_distance * intensity * direction,
+		_combo_display_home_position.y
+	)
+	combo_display.rotation_degrees = combo_sway_rotation_degrees * intensity * direction
+	combo_display.scale = Vector2(combo_punch_scale, combo_punch_scale)
+
+	_combo_tween = create_tween()
+	_combo_tween.set_parallel(true)
+
+	_combo_tween.tween_property(combo_display, "position", _combo_display_home_position, combo_sway_duration)\
+		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	_combo_tween.tween_property(combo_display, "rotation_degrees", 0.0, combo_sway_duration)\
+		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	_combo_tween.tween_property(combo_display, "scale", Vector2.ONE, 0.22)\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _play_combo_expire_animation() -> void:
 	if not combo_display.visible:
 		return
 
-	var fall_tween := create_tween()
-	fall_tween.set_parallel(true)
-	fall_tween.tween_property(combo_display, "position:y", combo_display.position.y + 40, 0.5)\
+	if _combo_tween and _combo_tween.is_valid():
+		_combo_tween.kill()
+
+	_combo_tween = create_tween()
+	_combo_tween.set_parallel(true)
+	_combo_tween.tween_property(combo_display, "position:y", combo_display.position.y + 40.0, 0.5)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	fall_tween.tween_property(combo_display, "modulate:a", 0.0, 0.5)
-	fall_tween.chain().tween_callback(func():
+	_combo_tween.tween_property(combo_display, "rotation_degrees", 0.0, 0.3)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_combo_tween.tween_property(combo_display, "modulate:a", 0.0, 0.5)
+	_combo_tween.chain().tween_callback(func() -> void:
 		combo_display.visible = false
 		combo_display.position = _combo_display_home_position
+		combo_display.rotation_degrees = 0.0
+		combo_display.scale = Vector2.ONE
 		combo_display.modulate.a = 1.0
 	)
 
@@ -21463,6 +22549,21 @@ const DIR_OFFSET_BY_BIT := {
 	8: Vector2i(-1, 0),
 }
 
+## Bit -> Richtungsname, wie ihn RoomInstance.get_door_state() erwartet.
+const DIR_NAME_BY_BIT := {
+	1: "north",
+	2: "south",
+	4: "east",
+	8: "west",
+}
+
+const OPPOSITE_DIR := {
+	"north": "south",
+	"south": "north",
+	"east": "west",
+	"west": "east",
+}
+
 @export var cell_px: float = 18.0
 @export var gap_px: float = 4.0
 @export var view_radius: int = 2
@@ -21491,6 +22592,16 @@ const DIR_OFFSET_BY_BIT := {
 ## (kuerzer + durchsichtiger), damit die Neugier/Fog-of-War erhalten
 ## bleibt, man aber trotzdem sieht "hier geht es weiter".
 @export var color_door_unexplored_alpha: float = 0.5
+## Verriegelte Tuer (Kampfraum noch nicht gecleared): schmaler Riegel in
+## gedaempftem Rot statt offener Gang.
+@export var color_door_locked: Color = Color(0.70, 0.28, 0.24, 0.95)
+## Boss-/Treasure-Tuer, die noch NICHT gehackt werden darf.
+@export var color_door_hack_locked: Color = Color(0.55, 0.45, 0.30, 0.9)
+## Boss-/Treasure-Tuer, die JETZT gehackt werden kann - pulsiert.
+@export var color_door_hack_ready: Color = Color(0.98, 0.80, 0.25, 1.0)
+## Wie breit ein verriegelter Durchgang im Verhaeltnis zur Zelle
+## gezeichnet wird (1.0 = so breit wie ein offener Gang).
+@export_range(0.1, 1.0) var locked_door_width_factor: float = 0.42
 @export var color_text: Color = Color(0.08, 0.08, 0.06, 1.0)
 
 var _generator: Node = null
@@ -21572,11 +22683,31 @@ func _draw() -> void:
 			var neighbor_grid: Vector2i = grid + DIR_OFFSET_BY_BIT[bit]
 			if not cells.has(neighbor_grid):
 				continue
+
+			var dir_name: String = DIR_NAME_BY_BIT[bit]
+			var state: int = _door_state(grid, dir_name, exits, bit)
+			if state == RoomInstance.DoorState.NONE:
+				continue
+
+			# BEIDSEITIGE Pruefung: ein Durchgang existiert nur, wenn AUCH
+			# der Nachbarraum auf seiner Gegenseite eine Tuer hat. Ohne das
+			# malte die Minimap Gaenge, die im Level an einer Wand enden.
+			var neighbor_exits: int = int(cells[neighbor_grid].get("exits", 0))
+			var opposite_bit: int = _bit_for_dir(OPPOSITE_DIR[dir_name])
+			var neighbor_state: int = _door_state(
+				neighbor_grid, OPPOSITE_DIR[dir_name], neighbor_exits, opposite_bit
+			)
+			if neighbor_state == RoomInstance.DoorState.NONE:
+				continue
+
 			var neighbor_data: Dictionary = cells[neighbor_grid]
 			var neighbor_visited: bool = bool(neighbor_data.get("visited", false))
 			var neighbor_center := _cell_center(neighbor_grid, current, center, pitch)
 
-			_draw_passage(here_center, neighbor_center, cell_px, neighbor_visited)
+			# Der restriktivere der beiden Zustaende gewinnt - eine Seite
+			# offen und die andere verriegelt heisst: man kommt nicht durch.
+			_draw_passage(here_center, neighbor_center, cell_px, neighbor_visited,
+				_stricter_state(state, neighbor_state))
 
 	# --- Raumzellen ------------------------------------------------------
 	for pos in cells.keys():
@@ -21638,26 +22769,80 @@ func _draw() -> void:
 ## sind (Standard: -90) - dann ist die Verbindung zwischen zwei
 ## Zellmitten garantiert rein horizontal oder rein vertikal auf dem
 ## Bildschirm, und ein simples Rect2 reicht aus.
-func _draw_passage(here: Vector2, neighbor: Vector2, cell_size: float, neighbor_visited: bool) -> void:
+func _draw_passage(here: Vector2, neighbor: Vector2, cell_size: float, neighbor_visited: bool, state: int) -> void:
 	var delta: Vector2 = neighbor - here
 	var horizontal: bool = absf(delta.x) >= absf(delta.y)
 	var mid: Vector2 = (here + neighbor) * 0.5
 	var far_point: Vector2 = neighbor if neighbor_visited else mid
 
-	var fill: Color = color_door
+	var fill: Color = _color_for_door_state(state)
 	if not neighbor_visited:
-		fill.a = color_door.a * color_door_unexplored_alpha
+		fill.a = fill.a * color_door_unexplored_alpha
+
+	# Nur ein OFFENER Durchgang wird in voller Zellbreite gefuellt. Alles
+	# Verriegelte wird bewusst SCHMALER gezeichnet, damit es sich optisch
+	# klar als Riegel und nicht als Gang liest.
+	var width: float = cell_size
+	if state != RoomInstance.DoorState.OPEN:
+		width = cell_size * locked_door_width_factor
 
 	if horizontal:
 		var min_x: float = minf(here.x, far_point.x)
 		var max_x: float = maxf(here.x, far_point.x)
-		var rect := Rect2(Vector2(min_x, here.y - cell_size * 0.5), Vector2(max_x - min_x, cell_size))
+		var rect := Rect2(Vector2(min_x, here.y - width * 0.5), Vector2(max_x - min_x, width))
 		draw_rect(rect, fill, true)
 	else:
 		var min_y: float = minf(here.y, far_point.y)
 		var max_y: float = maxf(here.y, far_point.y)
-		var rect := Rect2(Vector2(here.x - cell_size * 0.5, min_y), Vector2(cell_size, max_y - min_y))
+		var rect := Rect2(Vector2(here.x - width * 0.5, min_y), Vector2(width, max_y - min_y))
 		draw_rect(rect, fill, true)
+
+
+## Fragt den ECHTEN Tuerzustand beim Generator ab.
+##
+## Faellt auf die alte Bitmaske zurueck, falls der Generator die Methode
+## (noch) nicht kennt - so bleibt das Overlay auch mit einem aelteren
+## LevelGenerator funktionsfaehig, statt gar nichts mehr zu zeichnen.
+func _door_state(grid: Vector2i, dir: String, exits: int, bit: int) -> int:
+	if _generator != null and is_instance_valid(_generator) and _generator.has_method("get_door_state"):
+		return int(_generator.get_door_state(grid, dir))
+	return RoomInstance.DoorState.OPEN if (exits & bit) != 0 else RoomInstance.DoorState.NONE
+
+
+func _bit_for_dir(dir: String) -> int:
+	for bit in DIR_NAME_BY_BIT.keys():
+		if DIR_NAME_BY_BIT[bit] == dir:
+			return bit
+	return 0
+
+
+## Reihenfolge von "am wenigsten begehbar" nach "offen". Der niedrigere
+## Rang gewinnt, damit eine einseitig verriegelte Verbindung auch als
+## verriegelt dargestellt wird.
+func _stricter_state(a: int, b: int) -> int:
+	var rank := {
+		RoomInstance.DoorState.NONE: 0,
+		RoomInstance.DoorState.LOCKED: 1,
+		RoomInstance.DoorState.HACK_LOCKED: 2,
+		RoomInstance.DoorState.HACK_READY: 3,
+		RoomInstance.DoorState.OPEN: 4,
+	}
+	return a if int(rank.get(a, 4)) <= int(rank.get(b, 4)) else b
+
+
+func _color_for_door_state(state: int) -> Color:
+	match state:
+		RoomInstance.DoorState.LOCKED:
+			return color_door_locked
+		RoomInstance.DoorState.HACK_LOCKED:
+			return color_door_hack_locked
+		RoomInstance.DoorState.HACK_READY:
+			# Pulsiert im selben Takt wie die Markierung des aktuellen
+			# Raums - signalisiert "hier kannst du JETZT etwas tun".
+			var pulsing := color_door_hack_ready
+			pulsing.a = color_door_hack_ready.a * (0.55 + 0.45 * sin(_pulse))
+			return pulsing
+	return color_door
 
 
 ## Fog of War: sichtbar sind betretene Raeume und (optional) deren direkte
@@ -22180,8 +23365,6 @@ func get_party_index() -> int:
 
 ===== FILE: scripts\pause_menu.gd =====
 
-
-
 # scripts/pause_menu.gd
 extends Control
 class_name PauseMenu
@@ -22196,6 +23379,11 @@ const Z_INDEX_BLUR: int = 10
 const Z_INDEX_MENU: int = 20
 
 const MINIMAP_GROUP := "minimap"
+
+## Action zum sofortigen Neustart des Levels. Ist in den Steuerungs-
+## einstellungen rebindbar (SettingsManager.REBINDABLE_ACTIONS) und wird
+## dort bei Bedarf automatisch angelegt (Fallback-Taste: R).
+const RESET_ACTION := "reset"
 
 @onready var resume_button: Button = $Panel/VBoxContainer/ResumeButton
 @onready var settings_button: Button = $Panel/VBoxContainer/SettingsButton
@@ -22324,6 +23512,17 @@ func _close_open_big_map() -> bool:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# --- Level-Reset -----------------------------------------------------
+	# Bewusst VOR dem ESC-Check: der Reset soll auch aus dem offenen
+	# Pausemenue heraus funktionieren. Nach Tod/Sieg ist er gesperrt —
+	# dort gibt es eigene Restart-Buttons, und ein Reset waehrend des
+	# laufenden Death-Delays wuerde die Screens durcheinanderbringen.
+	if InputMap.has_action(RESET_ACTION) and event.is_action_pressed(RESET_ACTION):
+		if not (_locked_out or _is_endscreen_active()):
+			_restart_level()
+		get_viewport().set_input_as_handled()
+		return
+
 	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		return
 
@@ -22391,9 +23590,16 @@ func _on_settings_back() -> void:
 
 
 func _on_restart_pressed() -> void:
+	_restart_level()
+
+
+## Gemeinsamer Pfad fuer Restart-Button UND Reset-Taste — so kann es keine
+## zwei leicht unterschiedlichen Neustart-Wege geben.
+func _restart_level() -> void:
 	if _blur_overlay:
 		_blur_overlay.visible = false
 	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	get_tree().reload_current_scene()
 
 
@@ -23311,7 +24517,6 @@ func _build_clean_transform() -> Transform3D:
 
 ===== FILE: scripts\primary_hitbox.gd =====
 
-
 extends Area3D
 class_name Hitbox
 
@@ -23350,6 +24555,32 @@ func activate() -> void:
 	_debug("activate() aufgerufen. monitoring=%s, global_position=%s, owner=%s" % [monitoring, global_position, owner])
 	if visual:
 		visual.visible = true
+
+	# ROBUSTHEITS-FIX: body_entered feuert nur beim EINTRETEN in die Area.
+	# Steht der Spieler beim Aktivieren schon MITTEN in der Hitbox (genau
+	# der Normalfall: der Gegner bleibt in Reichweite stehen, telegraphiert
+	# und schlaegt dann zu, ohne dass sich jemand bewegt hat), kann das
+	# Signal ausbleiben und der Schlag geht wirkungslos durch.
+	# Deshalb wird direkt nach der Aktivierung EINMAL aktiv nachgesehen,
+	# wer bereits ueberlappt.
+	_sweep_initial_overlaps.call_deferred()
+
+
+## Traegt Bodies nach, die beim Aktivieren bereits in der Hitbox standen.
+## Ein Physik-Frame Wartezeit ist noetig, weil die Area ihre Ueberlappungen
+## erst nach dem Umschalten von monitoring neu auswertet -
+## get_overlapping_bodies() waere im selben Frame noch leer.
+func _sweep_initial_overlaps() -> void:
+	if not monitoring:
+		return
+	await get_tree().physics_frame
+	if not is_instance_valid(self) or not monitoring:
+		return
+
+	for body in get_overlapping_bodies():
+		if body is Node3D:
+			_debug("Nachtrag-Sweep: '%s' stand beim Aktivieren bereits in der Hitbox." % body.name)
+			_on_body_entered(body)
 
 
 func deactivate() -> void:
@@ -23427,9 +24658,124 @@ func _spawn_damage_number(body: Node3D) -> void:
 	number.show_damage(damage)
 
 
+===== FILE: scripts\run_timer.gd =====
+
+extends Control
+class_name RunTimer
+
+## Speedrun-Timer neben der Minimap.
+##
+## START-LOGIK: Der Timer startet automatisch, sobald zum ersten Mal eine
+## gueltige Spieler-Instanz existiert (PartyManager.player) — also genau in
+## dem Moment, in dem der Spieler die Map betritt. Ein manueller start()
+## ist dadurch NICHT noetig, kann aber (z.B. von einem Cutscene-Ende aus)
+## trotzdem aufgerufen werden.
+##
+## PAUSE: process_mode bleibt bewusst auf PROCESS_MODE_INHERIT. Dadurch
+## friert der Timer ein, sobald get_tree().paused == true (Pausemenue,
+## Grosskarte mit Pause, Death-Screen). Ein Speedrun-Timer, der im
+## Pausemenue weiterlaeuft, waere fuer Runs unbrauchbar.
+##
+## STOPPEN: win_screen.gd / death_screen.gd koennen ueber die Gruppe
+## RUN_TIMER_GROUP an diesen Node kommen und stop() aufrufen — die
+## Endzeit bleibt dann stehen und ist ueber get_time_string() auslesbar.
+
+const RUN_TIMER_GROUP: String = "run_timer"
+
+@onready var time_label: Label = $TimeLabel
+
+## Wenn false, muss start() explizit aufgerufen werden.
+@export var auto_start_on_player_spawn: bool = true
+
+## Text, der vor dem Start angezeigt wird.
+@export var idle_text: String = "0.00"
+
+var _elapsed: float = 0.0
+var _running: bool = false
+var _started: bool = false
+
+
+func _ready() -> void:
+	add_to_group(RUN_TIMER_GROUP)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_elapsed = 0.0
+	_running = false
+	_started = false
+	if time_label:
+		time_label.text = idle_text
+
+	# Die Sichtbarkeit steuert zentral hud.gd (Master-Schalter UND
+	# Element-Schalter) — hier bewusst NICHT nochmal gesetzt, sonst gaebe
+	# es zwei konkurrierende Quellen fuer denselben Zustand.
+
+
+func _process(delta: float) -> void:
+	if not _started and auto_start_on_player_spawn:
+		if PartyManager.player and is_instance_valid(PartyManager.player):
+			start()
+
+	if not _running:
+		return
+
+	_elapsed += delta
+	if time_label:
+		time_label.text = format_time(_elapsed)
+
+
+# --- Oeffentliche API ---------------------------------------------------
+
+func start() -> void:
+	_started = true
+	_running = true
+
+
+func stop() -> void:
+	_running = false
+
+
+func reset() -> void:
+	_elapsed = 0.0
+	_running = false
+	_started = false
+	if time_label:
+		time_label.text = idle_text
+
+
+func restart() -> void:
+	_elapsed = 0.0
+	_started = true
+	_running = true
+
+
+func is_running() -> bool:
+	return _running
+
+
+func get_elapsed() -> float:
+	return _elapsed
+
+
+func get_time_string() -> String:
+	return format_time(_elapsed)
+
+
+## Format: Sekunden mit zwei Nachkommastellen ("42.17"). Minuten werden
+## NUR vorangestellt, sobald es welche gibt ("1.42.17").
+##
+## Bewusst ueber Hundertstel als int gerechnet statt ueber fmod(): float-
+## Rundung wuerde bei 59.999 sonst "59.100" statt "1.00.00" erzeugen.
+static func format_time(seconds: float) -> String:
+	var total_cs: int = int(floor(maxf(seconds, 0.0) * 100.0))
+	var minutes: int = total_cs / 6000
+	var secs: int = (total_cs / 100) % 60
+	var cs: int = total_cs % 100
+
+	if minutes > 0:
+		return "%d.%02d.%02d" % [minutes, secs, cs]
+	return "%d.%02d" % [secs, cs]
+
+
 ===== FILE: scripts\settings_manager.gd =====
-
-
 
 extends Node
 
@@ -23455,6 +24801,9 @@ signal colorblind_mode_changed(mode: int)
 # General
 signal hud_visible_changed(visible: bool)
 signal minimap_rotate_with_player_changed(enabled: bool)
+## Modulare HUD-Elemente: wird fuer JEDES einzelne Element gefeuert.
+## element ist eine der HUD_ELEMENT_* Konstanten weiter unten.
+signal hud_element_visible_changed(element: String, is_visible: bool)
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
@@ -23465,6 +24814,28 @@ const DISPLAY_MODE_WINDOWED: int = 0
 const DISPLAY_MODE_FULLSCREEN: int = 1
 const DISPLAY_MODE_BORDERLESS: int = 2
 
+# --- Modulare HUD-Elemente ---------------------------------------------
+# Der Master-Schalter hud_visible blendet das komplette HUD aus. Zusaetzlich
+# laesst sich jedes Element einzeln abschalten. Beides ist UND-verknuepft:
+# ein Element ist nur sichtbar, wenn hud_visible == true UND sein eigener
+# Schalter true ist.
+const HUD_ELEMENT_MINIMAP: String = "minimap"
+const HUD_ELEMENT_PARTY: String = "party"
+const HUD_ELEMENT_ABILITIES: String = "abilities"
+const HUD_ELEMENT_KEYBINDS: String = "keybinds"
+const HUD_ELEMENT_TIMER: String = "timer"
+const HUD_ELEMENT_COMBO: String = "combo"
+
+# Reihenfolge = Reihenfolge im Einstellungsmenue. Wert = Anzeigename.
+const HUD_ELEMENTS: Dictionary = {
+	HUD_ELEMENT_MINIMAP: "Minimap",
+	HUD_ELEMENT_PARTY: "Charakter-Status / Portraits",
+	HUD_ELEMENT_ABILITIES: "Faehigkeiten",
+	HUD_ELEMENT_KEYBINDS: "Keybinds / Cooldowns",
+	HUD_ELEMENT_TIMER: "Speedrun-Timer",
+	HUD_ELEMENT_COMBO: "Combo-Zaehler",
+}
+
 # Colorblind Mode Enum
 const COLORBLIND_OFF: int = 0
 const COLORBLIND_PROTANOPIA: int = 1
@@ -23472,20 +24843,30 @@ const COLORBLIND_DEUTERANOPIA: int = 2
 const COLORBLIND_TRITANOPIA: int = 3
 
 # --- Rebindbare Actions + Anzeigename fürs SettingsMenu-UI. ---
-# ACHTUNG: "interact " (mit Leerzeichen am Ende) ist ein bestehender Tippfehler
-# im InputMap-Namen selbst (project.godot), hier absichtlich 1:1 übernommen.
 const REBINDABLE_ACTIONS: Dictionary = {
 	"attack_primary": "Primärangriff",
 	"attack_secondary": "Sekundärangriff",
 	"utility": "Dash",
 	"ability_primary": "Fähigkeit (Q)",
 	"ability_secondary": "Fähigkeit (E)",
-	"interact ": "Interagieren",
+	"interact": "Interagieren",
+	"reset": "Level neu starten",
 	"ui_accept": "Springen",
 	"ui_left": "Links",
 	"ui_right": "Rechts",
 	"ui_up": "Vorwärts",
 	"ui_down": "Rückwärts",
+}
+
+# Fallback-Belegung fuer Actions, die im InputMap (project.godot) FEHLEN.
+#
+# Hintergrund: "reset" war urspruenglich nur in Level 1 fest verdrahtet und
+# existiert deshalb in manchen Projektstaenden gar nicht als Action. Ohne
+# den Fallback wuerde InputMap.action_get_events("reset") einen Fehler
+# werfen und das komplette Controls-Menue mitreissen. _ensure_actions_exist()
+# legt fehlende Actions beim Start still an.
+const FALLBACK_KEYS: Dictionary = {
+	"reset": KEY_R,
 }
 
 # --- Controls ---
@@ -23503,6 +24884,9 @@ var fps_limit: int = 144  # 0 = unlimited
 
 # --- General ---
 var hud_visible: bool = true
+# element (String) -> bool. Wird in _init_hud_elements() aus HUD_ELEMENTS
+# vorbefuellt, damit neu hinzugefuegte Elemente automatisch defaulten.
+var hud_elements: Dictionary = {}
 # false = Minimap bleibt IMMER nordorientiert (Standard), true = Minimap dreht sich mit dem Spieler.
 var minimap_rotate_with_player: bool = false
 
@@ -23522,8 +24906,34 @@ var _windowed_position: Vector2i = Vector2i.ZERO
 var _default_keybinds: Dictionary = {}  # action -> Array[InputEvent]
 
 func _ready() -> void:
+	_init_hud_elements()
+	_ensure_actions_exist()
 	load_settings()
 	_apply_all()
+
+# Legt fehlende Actions im InputMap an, BEVOR load_settings() ihre Defaults
+# sichert — sonst waeren die _default_keybinds fuer diese Action leer und
+# reset_action_to_default() haette nichts zum Wiederherstellen.
+func _ensure_actions_exist() -> void:
+	for action in REBINDABLE_ACTIONS.keys():
+		if InputMap.has_action(action):
+			continue
+		InputMap.add_action(action)
+		if FALLBACK_KEYS.has(action):
+			var ev := InputEventKey.new()
+			ev.physical_keycode = FALLBACK_KEYS[action]
+			InputMap.action_add_event(action, ev)
+			print("[SettingsManager] Action '%s' fehlte im InputMap - mit Taste '%s' angelegt." % [action, OS.get_keycode_string(FALLBACK_KEYS[action])])
+		else:
+			push_warning("SettingsManager: Action '%s' fehlt im InputMap und hat keinen Fallback." % action)
+
+# Legt fuer jedes in HUD_ELEMENTS deklarierte Element einen Default-Eintrag
+# an. Wird VOR load_settings() aufgerufen, damit gespeicherte Werte die
+# Defaults ueberschreiben koennen — und nicht umgekehrt.
+func _init_hud_elements() -> void:
+	for key in HUD_ELEMENTS.keys():
+		if not hud_elements.has(key):
+			hud_elements[key] = true
 
 func _apply_all() -> void:
 	_apply_volume("Master", master_volume)
@@ -23644,6 +25054,22 @@ func set_hud_visible(is_visible: bool) -> void:
 	hud_visible_changed.emit(is_visible)
 	save_settings()
 
+# Einzelnes HUD-Element schalten. Unbekannte Element-IDs werden bewusst
+# ignoriert (mit Warnung) statt still angelegt — so faellt ein Tippfehler
+# im Einstellungsmenue sofort auf.
+func set_hud_element_visible(element: String, is_visible: bool) -> void:
+	if not HUD_ELEMENTS.has(element):
+		push_warning("SettingsManager: Unbekanntes HUD-Element '%s'." % element)
+		return
+	hud_elements[element] = is_visible
+	hud_element_visible_changed.emit(element, is_visible)
+	save_settings()
+
+# Reiner Element-Schalter OHNE den Master-Schalter. Das HUD selbst
+# verknuepft beides — siehe hud.gd.
+func is_hud_element_visible(element: String) -> bool:
+	return bool(hud_elements.get(element, true))
+
 func set_minimap_rotate_with_player(enabled: bool) -> void:
 	minimap_rotate_with_player = enabled
 	minimap_rotate_with_player_changed.emit(enabled)
@@ -23728,8 +25154,20 @@ func reset_action_to_default(action: String) -> void:
 		save_settings()
 		return
 
-	if not _default_keybinds.has(action):
+	# Actions, die es urspruenglich gar nicht gab (siehe FALLBACK_KEYS),
+	# haben keine sinnvollen _default_keybinds — dann auf die Fallback-
+	# Taste zuruecksetzen statt gar nichts zu tun.
+	if not _default_keybinds.has(action) or (_default_keybinds[action] as Array).is_empty():
+		if not FALLBACK_KEYS.has(action):
+			return
+		InputMap.action_erase_events(action)
+		var fallback_event := InputEventKey.new()
+		fallback_event.physical_keycode = FALLBACK_KEYS[action]
+		InputMap.action_add_event(action, fallback_event)
+		keybind_changed.emit(action)
+		save_settings()
 		return
+
 	InputMap.action_erase_events(action)
 	for event: InputEvent in _default_keybinds[action]:
 		InputMap.action_add_event(action, event)
@@ -23797,6 +25235,8 @@ func reset_all_to_defaults() -> void:
 	vsync_enabled = true
 	fps_limit = 144
 	hud_visible = true
+	for key in HUD_ELEMENTS.keys():
+		hud_elements[key] = true
 	minimap_rotate_with_player = false
 	crt_filter_enabled = true
 	screen_shake_enabled = true
@@ -23814,6 +25254,8 @@ func reset_all_to_defaults() -> void:
 	vsync_changed.emit(vsync_enabled)
 	fps_limit_changed.emit(fps_limit)
 	hud_visible_changed.emit(hud_visible)
+	for key in HUD_ELEMENTS.keys():
+		hud_element_visible_changed.emit(key, bool(hud_elements[key]))
 	minimap_rotate_with_player_changed.emit(minimap_rotate_with_player)
 	crt_filter_changed.emit(crt_filter_enabled)
 	screen_shake_changed.emit(screen_shake_enabled)
@@ -23836,6 +25278,8 @@ func save_settings() -> void:
 	config.set_value("display", "fps_limit", fps_limit)
 
 	config.set_value("general", "hud_visible", hud_visible)
+	for key in HUD_ELEMENTS.keys():
+		config.set_value("general", "hud_%s" % key, bool(hud_elements.get(key, true)))
 	config.set_value("general", "minimap_rotate_with_player", minimap_rotate_with_player)
 
 	config.set_value("accessibility", "crt_filter", crt_filter_enabled)
@@ -23880,6 +25324,8 @@ func load_settings() -> void:
 	fps_limit = config.get_value("display", "fps_limit", 144)
 
 	hud_visible = config.get_value("general", "hud_visible", true)
+	for key in HUD_ELEMENTS.keys():
+		hud_elements[key] = bool(config.get_value("general", "hud_%s" % key, true))
 	minimap_rotate_with_player = config.get_value("general", "minimap_rotate_with_player", false)
 
 	crt_filter_enabled = config.get_value("accessibility", "crt_filter", true)
@@ -24024,6 +25470,233 @@ func _process(delta: float) -> void:
 		_effects.erase(id)
 		effect_expired.emit(id)
 		_debug("Effekt '%s' abgelaufen" % id)
+
+
+===== FILE: scripts\victory_trophy.gd =====
+
+extends Node3D
+class_name VictoryTrophy
+
+## Goldener Zylinder, der nach dem Bosskampf in die Mitte des Bossraums
+## faellt. Aufsammeln -> WinScreen.
+##
+## KEINE KOLLISION (wie gefordert): Der sichtbare Zylinder ist ein reines
+## MeshInstance3D ohne StaticBody/CollisionShape - man kann durch ihn
+## hindurchlaufen. Das Einsammeln laeuft ueber eine separate Area3D, die
+## NUR monitoring betreibt (collision_layer = 0), also selbst nichts
+## blockiert und von keinem anderen Body als Hindernis gesehen wird.
+##
+## FALLANIMATION: bewusst per Tween statt per RigidBody3D. Ein Rigidbody
+## braeuchte einen Boden zum Aufkommen - der ist im Bossraum aber nicht
+## garantiert (Lava, Loecher, Rampen). Der Tween landet immer exakt auf
+## der vorgesehenen Hoehe.
+
+signal collected
+
+## Aus welcher Hoehe UEBER der Zielposition der Zylinder herunterfaellt.
+@export var drop_height: float = 14.0
+@export var drop_duration: float = 1.1
+
+## Erst NACH dem Aufkommen einsammelbar - sonst koennte man ihn im
+## Vorbeilaufen \"aus der Luft\" mitnehmen, bevor die Belohnung ueberhaupt
+## sichtbar war.
+@export var arm_delay_after_landing: float = 0.15
+
+@export var pickup_radius: float = 3.0
+
+## --- Optik ---------------------------------------------------------------
+@export var trophy_color: Color = Color(1.0, 0.82, 0.22)
+@export var emission_energy: float = 2.4
+@export var cylinder_radius: float = 1.1
+@export var cylinder_height: float = 3.2
+
+## Idle-Animation nach der Landung.
+@export var spin_speed_degrees: float = 55.0
+@export var bob_height: float = 0.35
+@export var bob_speed: float = 2.0
+
+## Lichtsaeule nach oben - macht die Trophaee auch quer durch den Raum
+## und auf der Minimap-Draufsicht sofort sichtbar.
+@export var beam_enabled: bool = true
+@export var beam_height: float = 40.0
+@export var beam_radius: float = 0.35
+@export_range(0.0, 1.0) var beam_alpha: float = 0.22
+
+var _mesh: MeshInstance3D = null
+var _beam: MeshInstance3D = null
+var _area: Area3D = null
+var _armed: bool = false
+var _collected: bool = false
+var _landed: bool = false
+var _bob_time: float = 0.0
+var _rest_y: float = 0.0
+
+
+func _ready() -> void:
+	_rest_y = global_position.y
+	_build_visuals()
+	_build_pickup_area()
+	_play_drop()
+
+
+func _build_visuals() -> void:
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = cylinder_radius
+	cylinder.bottom_radius = cylinder_radius
+	cylinder.height = cylinder_height
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = trophy_color
+	mat.emission_enabled = true
+	mat.emission = trophy_color
+	mat.emission_energy_multiplier = emission_energy
+	mat.metallic = 0.8
+	mat.roughness = 0.25
+
+	_mesh = MeshInstance3D.new()
+	_mesh.name = "TrophyMesh"
+	_mesh.mesh = cylinder
+	# material_override statt surface_material_override - Vorrangregel:
+	# material_override gewinnt IMMER, also wird hier auch genau das
+	# gesetzt, was sichtbar sein soll.
+	_mesh.material_override = mat
+	_mesh.position = Vector3(0.0, cylinder_height * 0.5, 0.0)
+	add_child(_mesh)
+
+	if not beam_enabled:
+		return
+
+	var beam_mesh := CylinderMesh.new()
+	beam_mesh.top_radius = beam_radius
+	beam_mesh.bottom_radius = beam_radius
+	beam_mesh.height = beam_height
+
+	var beam_mat := StandardMaterial3D.new()
+	beam_mat.albedo_color = Color(trophy_color.r, trophy_color.g, trophy_color.b, beam_alpha)
+	beam_mat.emission_enabled = true
+	beam_mat.emission = trophy_color
+	beam_mat.emission_energy_multiplier = emission_energy * 0.6
+	beam_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	beam_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	# Von innen UND aussen sichtbar - sonst verschwindet die Saeule, sobald
+	# man in ihr steht.
+	beam_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	_beam = MeshInstance3D.new()
+	_beam.name = "TrophyBeam"
+	_beam.mesh = beam_mesh
+	_beam.material_override = beam_mat
+	_beam.position = Vector3(0.0, beam_height * 0.5, 0.0)
+	_beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_beam)
+
+
+## collision_layer = 0 -> die Area ist selbst fuer nichts ein Hindernis.
+## collision_mask = 1 -> sie sieht nur den Player-Layer.
+func _build_pickup_area() -> void:
+	_area = Area3D.new()
+	_area.name = "PickupArea"
+	_area.collision_layer = 0
+	_area.collision_mask = 1
+	_area.monitorable = false
+	add_child(_area)
+
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = pickup_radius
+	shape.shape = sphere
+	shape.position = Vector3(0.0, cylinder_height * 0.5, 0.0)
+	_area.add_child(shape)
+
+	_area.body_entered.connect(_on_body_entered)
+
+
+func _play_drop() -> void:
+	global_position.y = _rest_y + drop_height
+
+	var tween := create_tween()
+	tween.tween_property(self, "global_position:y", _rest_y, drop_duration)\
+		.set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(func() -> void:
+		_landed = true
+	)
+	tween.tween_interval(arm_delay_after_landing)
+	tween.tween_callback(func() -> void:
+		_armed = true
+		# Falls der Spieler beim Landen bereits IN der Area steht, feuert
+		# body_entered nie - deshalb hier einmal aktiv nachsehen.
+		_check_overlap_now()
+	)
+
+
+func _check_overlap_now() -> void:
+	if _area == null:
+		return
+	for body in _area.get_overlapping_bodies():
+		if _is_player(body):
+			_collect()
+			return
+
+
+func _process(delta: float) -> void:
+	if _collected or not _landed:
+		return
+
+	rotate_y(deg_to_rad(spin_speed_degrees) * delta)
+
+	_bob_time += delta * bob_speed
+	if _mesh:
+		_mesh.position.y = cylinder_height * 0.5 + sin(_bob_time) * bob_height
+
+
+func _is_player(body: Node) -> bool:
+	if body == null:
+		return false
+	if body.is_in_group(PartyManager.PLAYER_GROUP):
+		return true
+	# Fallback wie in goal_zone.gd: der Player traegt set_target() aus dem
+	# Lock-On-System.
+	return body.has_method("set_target")
+
+
+func _on_body_entered(body: Node3D) -> void:
+	if not _armed or _collected:
+		return
+	if not _is_player(body):
+		return
+	_collect()
+
+
+func _collect() -> void:
+	if _collected:
+		return
+	_collected = true
+	collected.emit()
+
+	if _beam:
+		_beam.visible = false
+
+	# Kurzer Einsammel-Pop, DANN erst der WinScreen - sonst waere der
+	# Effekt hinter dem sofort erscheinenden Panel unsichtbar.
+	if _mesh:
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(_mesh, "scale", Vector3(1.6, 0.2, 1.6), 0.18)\
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(_mesh, "position:y", _mesh.position.y + 3.0, 0.25)\
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		await tween.finished
+
+	_show_win_screen()
+	queue_free()
+
+
+func _show_win_screen() -> void:
+	var win_screen := get_tree().get_root().find_child("WinScreen", true, false)
+	if win_screen and win_screen.has_method("show_win"):
+		win_screen.show_win()
+	else:
+		push_warning("VictoryTrophy: Konnte keinen Node namens 'WinScreen' finden.")
 
 
 ===== FILE: scripts\zone_marker.gd =====

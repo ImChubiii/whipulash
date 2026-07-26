@@ -5,8 +5,17 @@
 [ext_resource type="PackedScene" uid="uid://bpartyslot01" path="res://scenes/party_slot.tscn" id="3_pslot"]
 [ext_resource type="Texture2D" uid="uid://bd0s34jsplqb6" path="res://textures/image-removebg-preview (13).png" id="3_uo2fv"]
 [ext_resource type="PackedScene" uid="uid://bablslot001" path="res://scenes/ability_slot.tscn" id="4_abslot"]
+[ext_resource type="Script" path="res://scripts/run_timer.gd" id="5_timer"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
+bg_color = Color(0.06, 0.06, 0.09, 0.82)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.48, 0.18, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_timer"]
 bg_color = Color(0.06, 0.06, 0.09, 0.82)
 border_width_left = 2
 border_width_top = 2
@@ -113,9 +122,9 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 4.0
+offset_left = 8.0
 offset_top = -26.0
-offset_right = -4.0
+offset_right = -76.0
 offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -124,6 +133,86 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 14
 text = "X: 0   Y: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MapHint" type="Label" parent="Minimap/Frame" unique_id=1277713387]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -74.0
+offset_top = -26.0
+offset_right = -8.0
+offset_bottom = -4.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "MAP [M]"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="RunTimer" type="Control" parent="." unique_id=1927081869]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 250.0
+offset_top = 18.0
+offset_right = 414.0
+offset_bottom = 66.0
+mouse_filter = 2
+script = ExtResource("5_timer")
+
+[node name="Background" type="Panel" parent="RunTimer" unique_id=355809777]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_timer")
+
+[node name="TitleLabel" type="Label" parent="RunTimer" unique_id=355809778]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 6.0
+offset_top = 2.0
+offset_right = -6.0
+offset_bottom = 17.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
+text = "TIME"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="RunTimer" unique_id=355809779]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 15.0
+offset_right = -6.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 24
+text = "0.00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -208,14 +297,18 @@ layout_mode = 2
 
 [node name="ComboDisplay" type="VBoxContainer" parent="." unique_id=1613643524]
 layout_mode = 1
-anchors_preset = 4
+anchors_preset = 8
+anchor_left = 0.5
 anchor_top = 0.5
+anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = 60.0
-offset_top = -60.0
-offset_right = 300.0
-offset_bottom = 60.0
+offset_left = -170.0
+offset_top = -215.0
+offset_right = 170.0
+offset_bottom = -85.0
+grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(170, 65)
 mouse_filter = 2
 
 [node name="ComboCount" type="Label" parent="ComboDisplay" unique_id=1896651905]
@@ -225,6 +318,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 48
 text = "x5"
+horizontal_alignment = 1
 
 [node name="ComboText" type="Label" parent="ComboDisplay" unique_id=812960518]
 layout_mode = 2
@@ -233,3 +327,4 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 20
 text = "COMBO!"
+horizontal_alignment = 1

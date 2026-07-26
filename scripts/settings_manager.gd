@@ -1,6 +1,3 @@
-
-
-
 extends Node
 
 # ============================================================================
@@ -25,6 +22,9 @@ signal colorblind_mode_changed(mode: int)
 # General
 signal hud_visible_changed(visible: bool)
 signal minimap_rotate_with_player_changed(enabled: bool)
+## Modulare HUD-Elemente: wird fuer JEDES einzelne Element gefeuert.
+## element ist eine der HUD_ELEMENT_* Konstanten weiter unten.
+signal hud_element_visible_changed(element: String, is_visible: bool)
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DEFAULT_SENSITIVITY: float = 0.003
@@ -34,6 +34,28 @@ const DEFAULT_WINDOWED_SIZE: Vector2i = Vector2i(1280, 720)
 const DISPLAY_MODE_WINDOWED: int = 0
 const DISPLAY_MODE_FULLSCREEN: int = 1
 const DISPLAY_MODE_BORDERLESS: int = 2
+
+# --- Modulare HUD-Elemente ---------------------------------------------
+# Der Master-Schalter hud_visible blendet das komplette HUD aus. Zusaetzlich
+# laesst sich jedes Element einzeln abschalten. Beides ist UND-verknuepft:
+# ein Element ist nur sichtbar, wenn hud_visible == true UND sein eigener
+# Schalter true ist.
+const HUD_ELEMENT_MINIMAP: String = "minimap"
+const HUD_ELEMENT_PARTY: String = "party"
+const HUD_ELEMENT_ABILITIES: String = "abilities"
+const HUD_ELEMENT_KEYBINDS: String = "keybinds"
+const HUD_ELEMENT_TIMER: String = "timer"
+const HUD_ELEMENT_COMBO: String = "combo"
+
+# Reihenfolge = Reihenfolge im Einstellungsmenue. Wert = Anzeigename.
+const HUD_ELEMENTS: Dictionary = {
+	HUD_ELEMENT_MINIMAP: "Minimap",
+	HUD_ELEMENT_PARTY: "Charakter-Status / Portraits",
+	HUD_ELEMENT_ABILITIES: "Faehigkeiten",
+	HUD_ELEMENT_KEYBINDS: "Keybinds / Cooldowns",
+	HUD_ELEMENT_TIMER: "Speedrun-Timer",
+	HUD_ELEMENT_COMBO: "Combo-Zaehler",
+}
 
 # Colorblind Mode Enum
 const COLORBLIND_OFF: int = 0
@@ -49,12 +71,69 @@ const REBINDABLE_ACTIONS: Dictionary = {
 	"ability_primary": "Fähigkeit (Q)",
 	"ability_secondary": "Fähigkeit (E)",
 	"interact": "Interagieren",
+	"reset": "Level neu starten",
 	"ui_accept": "Springen",
 	"ui_left": "Links",
 	"ui_right": "Rechts",
 	"ui_up": "Vorwärts",
 	"ui_down": "Rückwärts",
 }
+
+# ============================================================================
+# VERBINDLICHE Standard-Tastenbelegung
+# ============================================================================
+#
+# FRUEHER: reset_action_to_default() hat aus _default_keybinds wiederhergestellt
+# — einer Momentaufnahme des InputMap, die beim ersten load_settings()
+# gemacht wurde. Das ist aus zwei Gruenden unzuverlaessig:
+#   1. Die Momentaufnahme spiegelt den Stand von project.godot wider. Ist
+#      dort etwas verrutscht (Pfeiltasten statt WASD, Enter statt Space,
+#      eine Action ganz ohne Event), wird GENAU DAS als "Standard"
+#      wiederhergestellt.
+#   2. Actions, die zur Laufzeit angelegt wurden ("reset"), hatten
+#      ueberhaupt keinen sinnvollen Eintrag.
+#
+# JETZT: Diese Tabelle IST der Standard — hart definiert, unabhaengig von
+# project.godot. "Reset to Default" liefert damit garantiert immer
+# LMB/RMB/Shift/Q/E/F/Space/WASD/R, egal was vorher passiert ist.
+#
+# Format pro Action: {"key": KEY_X} oder {"mouse": MOUSE_BUTTON_X}
+const DEFAULT_KEYBINDS: Dictionary = {
+	"attack_primary":    {"mouse": MOUSE_BUTTON_LEFT},
+	"attack_secondary":  {"mouse": MOUSE_BUTTON_RIGHT},
+	"utility":           {"key": KEY_SHIFT},
+	"ability_primary":   {"key": KEY_Q},
+	"ability_secondary": {"key": KEY_E},
+	"interact":          {"key": KEY_F},
+	"ui_accept":         {"key": KEY_SPACE},
+	"ui_left":           {"key": KEY_A},
+	"ui_right":          {"key": KEY_D},
+	"ui_up":             {"key": KEY_W},
+	"ui_down":           {"key": KEY_S},
+	"reset":             {"key": KEY_R},
+}
+
+
+## Baut das InputEvent zu einem DEFAULT_KEYBINDS-Eintrag. Liefert null,
+## falls die Action nicht in der Tabelle steht.
+static func build_default_event(action: String) -> InputEvent:
+	if not DEFAULT_KEYBINDS.has(action):
+		return null
+	var spec: Dictionary = DEFAULT_KEYBINDS[action]
+
+	if spec.has("mouse"):
+		var mouse_event := InputEventMouseButton.new()
+		mouse_event.button_index = spec["mouse"]
+		return mouse_event
+
+	if spec.has("key"):
+		var key_event := InputEventKey.new()
+		# physical_keycode statt keycode: bleibt auf AZERTY/QWERTZ an der
+		# gleichen PHYSISCHEN Stelle, was fuer WASD entscheidend ist.
+		key_event.physical_keycode = spec["key"]
+		return key_event
+
+	return null
 
 # --- Controls ---
 var mouse_sensitivity: float = DEFAULT_SENSITIVITY
@@ -71,6 +150,9 @@ var fps_limit: int = 144  # 0 = unlimited
 
 # --- General ---
 var hud_visible: bool = true
+# element (String) -> bool. Wird in _init_hud_elements() aus HUD_ELEMENTS
+# vorbefuellt, damit neu hinzugefuegte Elemente automatisch defaulten.
+var hud_elements: Dictionary = {}
 # false = Minimap bleibt IMMER nordorientiert (Standard), true = Minimap dreht sich mit dem Spieler.
 var minimap_rotate_with_player: bool = false
 
@@ -90,8 +172,33 @@ var _windowed_position: Vector2i = Vector2i.ZERO
 var _default_keybinds: Dictionary = {}  # action -> Array[InputEvent]
 
 func _ready() -> void:
+	_init_hud_elements()
+	_ensure_actions_exist()
 	load_settings()
 	_apply_all()
+
+# Legt fehlende Actions im InputMap an, BEVOR load_settings() ihre Defaults
+# sichert — sonst waeren die _default_keybinds fuer diese Action leer und
+# reset_action_to_default() haette nichts zum Wiederherstellen.
+func _ensure_actions_exist() -> void:
+	for action in REBINDABLE_ACTIONS.keys():
+		if InputMap.has_action(action):
+			continue
+		InputMap.add_action(action)
+		var event: InputEvent = build_default_event(action)
+		if event:
+			InputMap.action_add_event(action, event)
+			print("[SettingsManager] Action '%s' fehlte im InputMap - mit Standardbelegung angelegt." % action)
+		else:
+			push_warning("SettingsManager: Action '%s' fehlt im InputMap und steht nicht in DEFAULT_KEYBINDS." % action)
+
+# Legt fuer jedes in HUD_ELEMENTS deklarierte Element einen Default-Eintrag
+# an. Wird VOR load_settings() aufgerufen, damit gespeicherte Werte die
+# Defaults ueberschreiben koennen — und nicht umgekehrt.
+func _init_hud_elements() -> void:
+	for key in HUD_ELEMENTS.keys():
+		if not hud_elements.has(key):
+			hud_elements[key] = true
 
 func _apply_all() -> void:
 	_apply_volume("Master", master_volume)
@@ -212,6 +319,22 @@ func set_hud_visible(is_visible: bool) -> void:
 	hud_visible_changed.emit(is_visible)
 	save_settings()
 
+# Einzelnes HUD-Element schalten. Unbekannte Element-IDs werden bewusst
+# ignoriert (mit Warnung) statt still angelegt — so faellt ein Tippfehler
+# im Einstellungsmenue sofort auf.
+func set_hud_element_visible(element: String, is_visible: bool) -> void:
+	if not HUD_ELEMENTS.has(element):
+		push_warning("SettingsManager: Unbekanntes HUD-Element '%s'." % element)
+		return
+	hud_elements[element] = is_visible
+	hud_element_visible_changed.emit(element, is_visible)
+	save_settings()
+
+# Reiner Element-Schalter OHNE den Master-Schalter. Das HUD selbst
+# verknuepft beides — siehe hud.gd.
+func is_hud_element_visible(element: String) -> bool:
+	return bool(hud_elements.get(element, true))
+
 func set_minimap_rotate_with_player(enabled: bool) -> void:
 	minimap_rotate_with_player = enabled
 	minimap_rotate_with_player_changed.emit(enabled)
@@ -285,24 +408,41 @@ func rebind_action(action: String, event: InputEvent) -> void:
 # Tastatur-Belegung hart auf Space gesetzt (Joypad-Bindings bleiben wie
 # gehabt unangetastet).
 func reset_action_to_default(action: String) -> void:
-	if action == "ui_accept":
-		for existing in InputMap.action_get_events(action):
-			if existing is InputEventKey or existing is InputEventMouseButton:
-				InputMap.action_erase_event(action, existing)
-		var space_event := InputEventKey.new()
-		space_event.physical_keycode = KEY_SPACE
-		InputMap.action_add_event(action, space_event)
+	var event: InputEvent = build_default_event(action)
+
+	if event == null:
+		# Kein Tabelleneintrag -> letzter Rueckfall auf die beim Start
+		# gesicherte InputMap-Belegung. Betrifft nur Actions, die jemand
+		# zu REBINDABLE_ACTIONS hinzufuegt ohne DEFAULT_KEYBINDS zu pflegen.
+		push_warning("SettingsManager: '%s' fehlt in DEFAULT_KEYBINDS - nutze die beim Start gesicherte Belegung." % action)
+		if not _default_keybinds.has(action):
+			return
+		InputMap.action_erase_events(action)
+		for fallback_event: InputEvent in _default_keybinds[action]:
+			InputMap.action_add_event(action, fallback_event)
 		keybind_changed.emit(action)
 		save_settings()
 		return
 
-	if not _default_keybinds.has(action):
-		return
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+
+	# ALLE bestehenden Events loeschen, nicht nur Key/Maus. Sonst bleibt
+	# z.B. eine zweite Pfeiltasten-Bindung an ui_left haengen und die
+	# Anzeige im Menue zeigt weiter die falsche Taste.
 	InputMap.action_erase_events(action)
-	for event: InputEvent in _default_keybinds[action]:
-		InputMap.action_add_event(action, event)
+	InputMap.action_add_event(action, event)
+
 	keybind_changed.emit(action)
 	save_settings()
+
+
+## Setzt ALLE Actions auf die Standardbelegung zurueck - wird vom
+## Reset-Button im Controls-Tab genutzt.
+func reset_all_keybinds() -> void:
+	for action in REBINDABLE_ACTIONS.keys():
+		reset_action_to_default(action)
+
 
 # Liefert das "beste" Tastatur-/Maus-Event einer Action fürs UI. Manche
 # Actions (ui_up/down/left/right) haben in project.godot ZWEI Keyboard-
@@ -365,6 +505,8 @@ func reset_all_to_defaults() -> void:
 	vsync_enabled = true
 	fps_limit = 144
 	hud_visible = true
+	for key in HUD_ELEMENTS.keys():
+		hud_elements[key] = true
 	minimap_rotate_with_player = false
 	crt_filter_enabled = true
 	screen_shake_enabled = true
@@ -382,6 +524,8 @@ func reset_all_to_defaults() -> void:
 	vsync_changed.emit(vsync_enabled)
 	fps_limit_changed.emit(fps_limit)
 	hud_visible_changed.emit(hud_visible)
+	for key in HUD_ELEMENTS.keys():
+		hud_element_visible_changed.emit(key, bool(hud_elements[key]))
 	minimap_rotate_with_player_changed.emit(minimap_rotate_with_player)
 	crt_filter_changed.emit(crt_filter_enabled)
 	screen_shake_changed.emit(screen_shake_enabled)
@@ -404,6 +548,8 @@ func save_settings() -> void:
 	config.set_value("display", "fps_limit", fps_limit)
 
 	config.set_value("general", "hud_visible", hud_visible)
+	for key in HUD_ELEMENTS.keys():
+		config.set_value("general", "hud_%s" % key, bool(hud_elements.get(key, true)))
 	config.set_value("general", "minimap_rotate_with_player", minimap_rotate_with_player)
 
 	config.set_value("accessibility", "crt_filter", crt_filter_enabled)
@@ -448,6 +594,8 @@ func load_settings() -> void:
 	fps_limit = config.get_value("display", "fps_limit", 144)
 
 	hud_visible = config.get_value("general", "hud_visible", true)
+	for key in HUD_ELEMENTS.keys():
+		hud_elements[key] = bool(config.get_value("general", "hud_%s" % key, true))
 	minimap_rotate_with_player = config.get_value("general", "minimap_rotate_with_player", false)
 
 	crt_filter_enabled = config.get_value("accessibility", "crt_filter", true)

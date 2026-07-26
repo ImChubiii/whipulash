@@ -1,4 +1,3 @@
-
 extends Area3D
 class_name Hitbox
 
@@ -37,6 +36,32 @@ func activate() -> void:
 	_debug("activate() aufgerufen. monitoring=%s, global_position=%s, owner=%s" % [monitoring, global_position, owner])
 	if visual:
 		visual.visible = true
+
+	# ROBUSTHEITS-FIX: body_entered feuert nur beim EINTRETEN in die Area.
+	# Steht der Spieler beim Aktivieren schon MITTEN in der Hitbox (genau
+	# der Normalfall: der Gegner bleibt in Reichweite stehen, telegraphiert
+	# und schlaegt dann zu, ohne dass sich jemand bewegt hat), kann das
+	# Signal ausbleiben und der Schlag geht wirkungslos durch.
+	# Deshalb wird direkt nach der Aktivierung EINMAL aktiv nachgesehen,
+	# wer bereits ueberlappt.
+	_sweep_initial_overlaps.call_deferred()
+
+
+## Traegt Bodies nach, die beim Aktivieren bereits in der Hitbox standen.
+## Ein Physik-Frame Wartezeit ist noetig, weil die Area ihre Ueberlappungen
+## erst nach dem Umschalten von monitoring neu auswertet -
+## get_overlapping_bodies() waere im selben Frame noch leer.
+func _sweep_initial_overlaps() -> void:
+	if not monitoring:
+		return
+	await get_tree().physics_frame
+	if not is_instance_valid(self) or not monitoring:
+		return
+
+	for body in get_overlapping_bodies():
+		if body is Node3D:
+			_debug("Nachtrag-Sweep: '%s' stand beim Aktivieren bereits in der Hitbox." % body.name)
+			_on_body_entered(body)
 
 
 func deactivate() -> void:

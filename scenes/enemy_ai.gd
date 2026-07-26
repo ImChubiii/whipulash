@@ -4,9 +4,58 @@ class_name EnemyAI
 enum State { IDLE, CHASE, ATTACK }
 
 @export var move_speed: float = 7.0
+
+# --- Individuelle Geschwindigkeits-Streuung -------------------------------
+# Jede gespawnte Instanz wuerfelt EINMALIG in _ready() einen eigenen
+# Multiplikator zwischen (1 - speed_variance) und (1 + speed_variance).
+# Dadurch laufen mehrere Gegner desselben Typs nicht mehr wie auf einer
+# Schnur hintereinander her, sondern ziehen sich beim Verfolgen leicht
+# auseinander — der Unterschied ist bewusst klein genug, um nicht wie ein
+# Balancing-Fehler zu wirken, aber gross genug um spuerbar zu sein.
+# 0.0 = alle Instanzen exakt gleich schnell (altes Verhalten).
+@export_range(0.0, 0.5) var speed_variance: float = 0.12
+
 @export var detection_range: float = 20.0
 @export var attack_range: float = 5.0
 @export var attack_cooldown: float = 1.0
+
+# --- Angriffs-Freigabe (Fix: "greift ins Leere") --------------------------
+# Frueher wurde ein Angriff gestartet, sobald distance <= attack_range war,
+# und die Hitbox danach BEDINGUNGSLOS aktiviert — auch wenn der Spieler
+# waehrend pre_attack_delay + attack_windup_time laengst weggelaufen war
+# oder von Anfang an ausserhalb der tatsaechlichen Hitbox-Reichweite stand
+# (attack_range war groesser als die reale Reichweite der AttackHitbox).
+# Ergebnis: Gegner schlagen sichtbar in die Luft.
+#
+# Jetzt wird die Distanz DIREKT VOR dem Aktivieren der Hitbox erneut
+# geprueft. Liegt der Spieler weiter weg als attack_range * diesem Faktor,
+# wird der Angriff sauber abgebrochen (Telegraph aus, kurzer Cooldown,
+# zurueck in CHASE) statt ins Leere zu schlagen.
+@export var attack_commit_range_multiplier: float = 1.15
+
+# Cooldown nach einem abgebrochenen Angriff — kurz, damit der Gegner sofort
+# wieder nachsetzen kann, aber lang genug um kein Telegraph-Flackern zu
+# erzeugen.
+@export var attack_abort_cooldown: float = 0.3
+
+# Minimaler Blickrichtungs-Abgleich, damit ein Angriff ueberhaupt startet.
+# Verhindert Schlaege, die seitlich am Spieler vorbeigehen, weil der Gegner
+# sich noch dreht.
+# 1.0 = exakt frontal, 0.0 = 90 Grad Toleranz, -1.0 = Check deaktiviert.
+#
+# ACHSEN-FALLE (hat in der ersten Fassung ALLE Angriffe blockiert):
+# Godots Node3D-Konvention ist -Z = vorne. DIESES Projekt nutzt aber
+# durchgehend +Z als Vorne — sichtbar an zwei Stellen:
+#   1. _face_player() rechnet atan2(dir.x, dir.z) und richtet damit die
+#      +Z-Achse auf den Spieler aus (fuer -Z waere es atan2(-x, -z)).
+#   2. Die AttackHitbox sitzt bei z = +8.2 (dummy.tscn/tank_dummy.tscn),
+#      also auf der POSITIVEN Z-Seite.
+# Ein Check gegen -basis.z liefert deshalb dauerhaft ein Dot-Produkt von
+# etwa -1 und der Gegner greift NIE an. Deshalb wird die Blickrichtung
+# jetzt nicht mehr aus der Basis gelesen, sondern direkt gegen dieselbe
+# Ziel-Yaw geprueft, die auch _face_player() ansteuert — damit koennen die
+# beiden Stellen gar nicht mehr auseinanderlaufen.
+@export_range(-1.0, 1.0) var attack_min_facing_dot: float = 0.35
 
 # gravity hat einen Setter, damit jump_velocity automatisch neu berechnet
 # wird, falls gravity zur Laufzeit (Inspector-Live-Edit, Debug-Tools etc.)
@@ -52,6 +101,21 @@ func get_display_name() -> String:
 # --- Sanfte Separation von anderen Gegnern ---
 @export var separation_radius: float = 6.0
 @export var separation_strength: float = 5.0
+
+# Sauberer Ausstieg aus einem angefangenen Angriff: Telegraph aus, kurzer
+# Cooldown, zurueck ins Verfolgen. Wird NICHT aufgerufen, wenn der Gegner
+# stirbt — dafuer ist _on_died() zustaendig.
+func _abort_attack() -> void:
+	_is_attacking = false
+	_attack_timer = maxf(attack_abort_cooldown, 0.0)
+
+	if telegraph_inner:
+		telegraph_inner.visible = false
+	if telegraph_outer:
+		telegraph_outer.visible = false
+
+	if _state == State.ATTACK:
+		_state = State.CHASE
 
 # --- Transparenz nach HP + Hit-Flash ---
 @export_range(0.0, 1.0) var min_alpha_at_zero_hp: float = 0.15
@@ -181,6 +245,9 @@ var _is_dead: bool = false
 var _collision_shape_cache: CollisionShape3D
 var _warned_missing_collision_shape: bool = false
 
+# Einmalig in _ready() gewuerfelter, instanzspezifischer Tempo-Multiplikator.
+var _speed_multiplier: float = 1.0
+
 var _nav_update_timer: float = 0.0
 # Wird beim ersten Nutzungsversuch geprueft: existiert ueberhaupt eine
 # NavigationRegion3D auf der Map? Ohne die spammt is_target_reachable()
@@ -194,6 +261,62 @@ func _debug(msg: String) -> void:
 
 func _recalculate_jump_velocity() -> void:
 	jump_velocity = sqrt(2.0 * max(gravity, 0.0) * max(jump_height, 0.0))
+
+# Wuerfelt den instanzspezifischen Tempo-Multiplikator. Bewusst nur EINMAL
+# beim Spawn — ein pro Frame neu gewuerfelter Wert wuerde als Zittern statt
+# als Charakter wahrgenommen.
+func _roll_speed_multiplier() -> void:
+	var v: float = clampf(speed_variance, 0.0, 0.5)
+	_speed_multiplier = randf_range(1.0 - v, 1.0 + v)
+	_debug("Tempo-Multiplikator gewuerfelt: %.3f (effektiv %.2f m/s)" % [_speed_multiplier, move_speed * _speed_multiplier])
+
+# Effektives Tempo inkl. Slow-Status und individueller Streuung.
+func get_effective_move_speed() -> float:
+	var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
+	return move_speed * _speed_multiplier * slow_factor
+
+# Aktuelle XZ-Distanz zum Spieler. Die Y-Achse wird bewusst ignoriert:
+# Ein Gegner, der 3 Meter unter dem Spieler auf einer Treppe steht, soll
+# nicht faelschlich als "ausser Reichweite" gelten.
+func _distance_to_player_xz() -> float:
+	if _player == null or not is_instance_valid(_player):
+		return INF
+	var offset: Vector3 = _player.global_position - global_position
+	offset.y = 0.0
+	return offset.length()
+
+# Prueft, ob der Gegner den Spieler grob anschaut. Ohne diesen Check
+# starten Gegner Angriffe waehrend sie sich noch drehen und schlagen
+# seitlich vorbei.
+#
+# Verglichen wird die AKTUELLE rotation.y gegen genau die Ziel-Yaw, die
+# _face_player() ansteuert (atan2(dir.x, dir.z)). Dadurch ist der Check
+# unabhaengig davon, welche Achse das Projekt als "vorne" definiert —
+# siehe die ausfuehrliche Begruendung bei attack_min_facing_dot.
+func _is_facing_player() -> bool:
+	if attack_min_facing_dot <= -1.0:
+		return true
+	if _player == null or not is_instance_valid(_player):
+		return false
+
+	var to_player: Vector3 = _player.global_position - global_position
+	to_player.y = 0.0
+	if to_player.length() < 0.01:
+		return true
+	to_player = to_player.normalized()
+
+	# Exakt dieselbe Formel wie in _face_player().
+	var target_yaw: float = atan2(to_player.x, to_player.z)
+	var yaw_error: float = absf(angle_difference(rotation.y, target_yaw))
+
+	# Dot-Schwelle in einen maximal erlaubten Winkel umrechnen, damit der
+	# Inspector-Wert dieselbe Bedeutung behaelt wie vorher.
+	var max_angle: float = acos(clampf(attack_min_facing_dot, -1.0, 1.0))
+
+	if yaw_error > max_angle:
+		_debug("Angriff wartet — Blickwinkel %.1f Grad > erlaubte %.1f Grad." % [rad_to_deg(yaw_error), rad_to_deg(max_angle)])
+		return false
+	return true
 
 # Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — haelt
 # _player aktuell, da der Player-Node beim Wechseln komplett ausgetauscht
@@ -214,6 +337,7 @@ func _refresh_player_reference() -> void:
 
 func _ready() -> void:
 	add_to_group("enemies")
+	_roll_speed_multiplier()
 	_refresh_player_reference()
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
@@ -294,7 +418,7 @@ func _physics_process(delta: float) -> void:
 			_face_player(delta)
 			if distance > attack_range * 1.3 and not _is_attacking:
 				_state = State.CHASE
-			elif _attack_timer <= 0.0 and not _is_attacking:
+			elif _attack_timer <= 0.0 and not _is_attacking and _is_facing_player():
 				_do_attack()
 
 	if _state != previous_state:
@@ -490,8 +614,7 @@ func _move_towards_player(delta: float) -> void:
 		if required_height > 0.0:
 			velocity.y = sqrt(2.0 * gravity * required_height)
 
-	var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
-	var effective_speed: float = move_speed * slow_factor
+	var effective_speed: float = get_effective_move_speed()
 
 	var target_velocity_x: float = dir.x * effective_speed
 	var target_velocity_z: float = dir.z * effective_speed
@@ -688,6 +811,15 @@ func _do_attack() -> void:
 
 	if telegraph_inner:
 		telegraph_inner.visible = false
+
+	# --- Freigabe-Check: steht der Spieler UEBERHAUPT noch in Reichweite? ---
+	# Ohne diesen Check wird die Hitbox auch dann aktiviert, wenn der Spieler
+	# waehrend pre_attack_delay + attack_windup_time laengst weggelaufen ist.
+	var commit_range: float = attack_range * maxf(attack_commit_range_multiplier, 0.1)
+	if _distance_to_player_xz() > commit_range:
+		_debug("Angriff ABGEBROCHEN — Spieler ausser Reichweite (%.2f > %.2f)." % [_distance_to_player_xz(), commit_range])
+		_abort_attack()
+		return
 
 	if attack_hitbox:
 		attack_hitbox.activate()

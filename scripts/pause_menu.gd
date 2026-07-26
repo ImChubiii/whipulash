@@ -1,5 +1,3 @@
-
-
 # scripts/pause_menu.gd
 extends Control
 class_name PauseMenu
@@ -14,6 +12,11 @@ const Z_INDEX_BLUR: int = 10
 const Z_INDEX_MENU: int = 20
 
 const MINIMAP_GROUP := "minimap"
+
+## Action zum sofortigen Neustart des Levels. Ist in den Steuerungs-
+## einstellungen rebindbar (SettingsManager.REBINDABLE_ACTIONS) und wird
+## dort bei Bedarf automatisch angelegt (Fallback-Taste: R).
+const RESET_ACTION := "reset"
 
 @onready var resume_button: Button = $Panel/VBoxContainer/ResumeButton
 @onready var settings_button: Button = $Panel/VBoxContainer/SettingsButton
@@ -142,6 +145,17 @@ func _close_open_big_map() -> bool:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# --- Level-Reset -----------------------------------------------------
+	# Bewusst VOR dem ESC-Check: der Reset soll auch aus dem offenen
+	# Pausemenue heraus funktionieren. Nach Tod/Sieg ist er gesperrt —
+	# dort gibt es eigene Restart-Buttons, und ein Reset waehrend des
+	# laufenden Death-Delays wuerde die Screens durcheinanderbringen.
+	if InputMap.has_action(RESET_ACTION) and event.is_action_pressed(RESET_ACTION):
+		if not (_locked_out or _is_endscreen_active()):
+			_restart_level()
+		get_viewport().set_input_as_handled()
+		return
+
 	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		return
 
@@ -209,9 +223,16 @@ func _on_settings_back() -> void:
 
 
 func _on_restart_pressed() -> void:
+	_restart_level()
+
+
+## Gemeinsamer Pfad fuer Restart-Button UND Reset-Taste — so kann es keine
+## zwei leicht unterschiedlichen Neustart-Wege geben.
+func _restart_level() -> void:
 	if _blur_overlay:
 		_blur_overlay.visible = false
 	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	get_tree().reload_current_scene()
 
 

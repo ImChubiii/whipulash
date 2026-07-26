@@ -44,6 +44,11 @@ const INTERACT_ACTION := "interact"
 	set(value):
 		door_kind = value
 		_apply_kind_visuals()
+		# door_kind wird vom LevelGenerator ERST NACH _ready() gesetzt
+		# (siehe Bugfix-Kommentar oben) - das Hologramm muss deshalb hier
+		# nachgezogen werden, nicht nur in _ready().
+		if is_inside_tree():
+			_refresh_hologram()
 
 @export var open_height: float = 0.0
 @export var open_clearance: float = 0.5
@@ -51,6 +56,30 @@ const INTERACT_ACTION := "interact"
 @export var open_duration: float = 0.7
 
 ## --- Hacking --------------------------------------------------------
+## BUGFIX "im Bossraum eingesperrt":
+##
+## Seit die Tuer auf BEIDEN Seiten eines Boss-/Tresor-Durchgangs
+## eingefaerbt wird, war auch die Tuer INNERHALB des Sonderraums vom Typ
+## BOSS/TREASURE — und requires_hack() leitete daraus ab, dass sie
+## gehackt werden muss. Folge:
+##   1. Spieler betritt den Bossraum, der Raum verriegelt hinter ihm.
+##   2. Boss stirbt -> _lock_exits(false) ruft set_locked(false).
+##   3. set_locked() steigt bei Hack-Tueren ohne abgeschlossenen Hack
+##      SOFORT wieder aus und setzt _locked = true zurueck.
+##   -> Die Tuer geht nie wieder auf. Der Spieler steht fest.
+##
+## Der Hack soll den EINTRITT in den Sonderraum gaten, nicht den Ausgang.
+## Deshalb trennt hack_exempt jetzt die OPTIK (door_kind, bleibt rot bzw.
+## golden) von der MECHANIK: Der LevelGenerator setzt das Flag auf der
+## Innenseite und die Tuer verhaelt sich dort wie eine normale Tuer.
+@export var hack_exempt: bool = false:
+	set(value):
+		hack_exempt = value
+		# Der Hologramm-Zustand haengt an requires_hack() und muss deshalb
+		# mitgezogen werden, wenn sich das Flag nachtraeglich aendert.
+		if is_inside_tree():
+			_refresh_hologram()
+
 @export var force_hack: bool = false
 @export var hack_duration: float = 4.0
 @export var hack_decay_rate: float = 0.5
@@ -61,6 +90,30 @@ const INTERACT_ACTION := "interact"
 @export var color_boss: Color = Color(0.85, 0.10, 0.10)
 @export var color_treasure: Color = Color(1.0, 0.78, 0.15)
 @export var kind_emission_energy: float = 1.6
+
+## --- Hacking-Hologramm ------------------------------------------------
+## Schwebendes Schild VOR der Tuer, das Boss-/Treasure-Tueren schon aus
+## der Entfernung als Hack-Ziel kennzeichnet.
+##
+## AUSRICHTUNG: Die Richtung "in den Raum hinein" wird aus der Position
+## der Tuer RELATIV ZUM RAUM-URSPRUNG abgeleitet (der Raum-Ursprung liegt
+## in der Raummitte, die Tuer am Rand -> der Vektor von der Tuer zur
+## Raummitte zeigt zwangslaeufig nach innen). Das funktioniert fuer alle
+## vier Himmelsrichtungen ohne dass die Tuer ihre eigene Rotation kennen
+## muss - die ist je nach Raum-Szene unterschiedlich gesetzt.
+##
+## VERSCHWINDEN: Sobald der Spieler zu hacken beginnt (oder der Hack
+## fertig ist), wird das Hologramm ausgeblendet und kommt nicht zurueck -
+## es hat seinen Zweck dann erfuellt und wuerde nur die Sicht auf den
+## Fortschrittsbalken stoeren.
+@export var hologram_enabled: bool = true
+@export var hologram_distance: float = 3.2
+@export var hologram_height: float = 3.0
+@export var hologram_font_size: int = 64
+@export var hologram_text_size: float = 0.5
+@export var hologram_fade_duration: float = 0.35
+@export var hologram_bob_height: float = 0.25
+@export var hologram_bob_speed: float = 1.6
 
 var _locked: bool = true
 var _closed_y: float = 0.0
@@ -73,6 +126,12 @@ var _hack_done: bool = false
 var _hack_progress: float = 0.0
 var _hack_area: Area3D = null
 var _player_in_range: bool = false
+
+var _hologram: Node3D = null
+var _hologram_label: Label3D = null
+var _hologram_dismissed: bool = false
+var _hologram_base_y: float = 0.0
+var _hologram_time: float = 0.0
 
 @onready var _collision: CollisionShape3D = get_node_or_null("CollisionShape3D")
 @onready var _mesh: MeshInstance3D = get_node_or_null("MeshInstance3D")
@@ -103,21 +162,61 @@ func _ready() -> void:
 	# (LevelGenerator setzt es erst spaeter), die Area muss aber schon
 	# jetzt existieren, damit der Spieler ueberhaupt erkannt wird.
 	_setup_hack_area()
+	_refresh_hologram()
 
 	set_process(true)
 
 
 func requires_hack() -> bool:
+	# hack_exempt gewinnt IMMER — auch gegen force_hack. So laesst sich eine
+	# einzelne Tuer gezielt freistellen, ohne die Kind-Logik anzufassen.
+	if hack_exempt:
+		return false
 	return force_hack or door_kind == DoorKind.BOSS or door_kind == DoorKind.TREASURE
 
 
 ## Faerbt das Tuerblatt ein. material_override statt
 ## surface_material_override, weil ersteres im Template gesetzte
 ## Surface-Overrides ueberschreibt (bekannter Godot-Fallstrick).
+## BUGFIX "Boss-Tuer ist manchmal nicht rot" (Teil 2):
+##
+## _mesh war ein @onready auf den FESTEN Kindnamen "MeshInstance3D".
+## Weicht eine Raum-Szene davon ab (anderer Name, Mesh eine Ebene tiefer
+## unter einem Zwischen-Node), ist _mesh null, _apply_kind_visuals()
+## steigt still aus und die Tuer bleibt in ihrer Grundfarbe — abhaengig
+## davon, WELCHE Raum-Szene der Generator gewuerfelt hat. Genau daher das
+## "manchmal".
+##
+## Jetzt wird zusaetzlich rekursiv nach dem ersten MeshInstance3D gesucht
+## und laut gewarnt, wenn wirklich keins da ist.
+func _find_mesh() -> MeshInstance3D:
+	if _mesh != null and is_instance_valid(_mesh):
+		return _mesh
+
+	var direct := get_node_or_null("MeshInstance3D")
+	if direct is MeshInstance3D:
+		_mesh = direct
+		return _mesh
+
+	for child in get_children():
+		if child is MeshInstance3D:
+			_mesh = child
+			return _mesh
+
+	for child in find_children("*", "MeshInstance3D", true, false):
+		if child is MeshInstance3D:
+			_mesh = child
+			push_warning("Door (%s): Kein direktes 'MeshInstance3D' - nutze stattdessen '%s'. Einfaerbung nach door_kind funktioniert, aber die Raum-Szene sollte angeglichen werden." % [get_path(), child.get_path()])
+			return _mesh
+
+	return null
+
+
 func _apply_kind_visuals() -> void:
+	_mesh = _find_mesh()
 	if _mesh == null:
-		_mesh = get_node_or_null("MeshInstance3D")
-	if _mesh == null:
+		if is_inside_tree():
+			push_warning("Door (%s): Kein MeshInstance3D gefunden - Tuer kann nicht nach door_kind eingefaerbt werden (bleibt normal-farbig)." % get_path())
 		return
 
 	if door_kind == DoorKind.NORMAL:
@@ -134,7 +233,7 @@ func _apply_kind_visuals() -> void:
 
 
 func _set_emission_pulse(factor: float) -> void:
-	if _mesh == null:
+	if _mesh == null or not is_instance_valid(_mesh):
 		return
 	var mat := _mesh.material_override as StandardMaterial3D
 	if mat:
@@ -182,6 +281,20 @@ func is_hack_enabled() -> bool:
 	return _hack_enabled
 
 
+## Kompakter Zustandsstring fuer das Tuer-Protokoll des LevelGenerators.
+func get_debug_state() -> String:
+	return "kind=%s locked=%s exempt=%s hack_needed=%s hack_enabled=%s hack_done=%s progress=%.2f mesh=%s" % [
+		DoorKind.keys()[door_kind],
+		_locked,
+		hack_exempt,
+		requires_hack(),
+		_hack_enabled,
+		_hack_done,
+		_hack_progress,
+		"OK" if (_mesh != null and is_instance_valid(_mesh)) else "FEHLT"
+	]
+
+
 func _measure_door_height() -> float:
 	if _collision == null or _collision.shape == null:
 		return 4.0
@@ -201,15 +314,32 @@ func _measure_door_height() -> float:
 func set_locked(locked: bool) -> void:
 	# Hack-Tueren ignorieren ein automatisches Entriegeln - die gehen NUR
 	# ueber den abgeschlossenen Hack auf. Zusperren darf man sie trotzdem.
+	#
+	# Frueher passierte das lautlos. Im Tuer-Protokoll sah man dann nur
+	# "ENTRIEGELN (danach: HACK BEREIT)" und musste selbst darauf kommen,
+	# dass die Entriegelung abgelehnt wurde. Jetzt sagt die Tuer es selbst.
 	if requires_hack() and not locked and not _hack_done:
 		_locked = true
 		if _collision:
 			_collision.disabled = false
+		push_warning("Door (%s): Entriegeln ABGELEHNT - Tuer ist eine Hack-Tuer (kind=%s) und wurde noch nicht gehackt. Falls das ein Ausgang aus einem Sonderraum ist, muss hack_exempt gesetzt sein." % [get_path(), DoorKind.keys()[door_kind]])
 		return
 
 	_locked = locked
 	if _collision:
 		_collision.disabled = not _locked
+
+
+## Entriegelt bedingungslos, auch eine noch nicht gehackte Hack-Tuer.
+## Notausgang fuer Sonderfaelle (Cheats, Debug, Rettung aus einem Raum,
+## der sich sonst nicht mehr verlassen laesst).
+func force_unlock() -> void:
+	_hack_done = true
+	_locked = false
+	if _collision:
+		_collision.disabled = true
+	_hide_prompt()
+	_dismiss_hologram()
 
 
 func is_locked() -> bool:
@@ -218,6 +348,7 @@ func is_locked() -> bool:
 
 func _process(delta: float) -> void:
 	_process_hack(delta)
+	_animate_hologram(delta)
 
 	var target_y: float = _closed_y if _locked else _open_y
 	if not is_equal_approx(position.y, target_y):
@@ -240,6 +371,9 @@ func _process_hack(delta: float) -> void:
 	if Input.is_action_pressed(INTERACT_ACTION):
 		if _hack_progress <= 0.0:
 			hack_started.emit()
+		# Erster echter Interaktions-Frame: Hologramm hat seinen Zweck
+		# erfuellt und wuerde ab jetzt nur den Fortschrittsbalken stoeren.
+		_dismiss_hologram()
 		_hack_progress = minf(_hack_progress + delta / max(hack_duration, 0.05), 1.0)
 		hack_progress_changed.emit(_hack_progress)
 		_show_prompt(prompt_text, _hack_progress)
@@ -264,12 +398,140 @@ func _decay(delta: float) -> void:
 
 func _complete_hack() -> void:
 	_hack_done = true
+	_dismiss_hologram()
 	_locked = false
 	if _collision:
 		_collision.disabled = true
 	_set_emission_pulse(1.0)
 	_hide_prompt()
 	hack_completed.emit()
+
+
+# ============================================================================
+# Hacking-Hologramm
+# ============================================================================
+
+## Erzeugt das Hologramm, sobald die Tuer eine Hack-Tuer ist, und entfernt
+## es wieder, falls door_kind zurueck auf NORMAL faellt.
+func _refresh_hologram() -> void:
+	if not hologram_enabled or _hologram_dismissed:
+		return
+
+	if not requires_hack():
+		if _hologram and is_instance_valid(_hologram):
+			_hologram.queue_free()
+			_hologram = null
+			_hologram_label = null
+		return
+
+	if _hologram and is_instance_valid(_hologram):
+		_update_hologram_text()
+		return
+
+	_build_hologram()
+
+
+func _build_hologram() -> void:
+	_hologram = Node3D.new()
+	_hologram.name = "HackHologram"
+	add_child(_hologram)
+
+	var tint: Color = color_boss if door_kind == DoorKind.BOSS else color_treasure
+
+	_hologram_label = Label3D.new()
+	_hologram_label.name = "HologramLabel"
+	# BILLBOARD_ENABLED: dreht sich immer zur Kamera, damit das Schild aus
+	# jeder Anlaufrichtung lesbar ist.
+	_hologram_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_hologram_label.no_depth_test = false
+	_hologram_label.shaded = false
+	_hologram_label.double_sided = true
+	_hologram_label.font_size = hologram_font_size
+	_hologram_label.pixel_size = hologram_text_size / float(max(hologram_font_size, 1))
+	_hologram_label.modulate = tint
+	_hologram_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.85)
+	_hologram_label.outline_size = 12
+	_hologram_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hologram.add_child(_hologram_label)
+
+	_update_hologram_text()
+	_position_hologram()
+
+
+func _update_hologram_text() -> void:
+	if _hologram_label == null:
+		return
+	var kind_text: String = "BOSS" if door_kind == DoorKind.BOSS else "TRESOR"
+	_hologram_label.text = "%s\n[ HACK ]" % kind_text
+	var tint: Color = color_boss if door_kind == DoorKind.BOSS else color_treasure
+	_hologram_label.modulate = tint
+
+
+## Setzt das Hologramm hologram_distance Meter VOR die Tuer, Richtung
+## Raummitte - siehe Klassenkommentar zur Herleitung der Innenrichtung.
+func _position_hologram() -> void:
+	if _hologram == null:
+		return
+
+	var inward: Vector3 = _inward_direction()
+	_hologram.position = inward * hologram_distance + Vector3(0.0, hologram_height, 0.0)
+	_hologram_base_y = _hologram.position.y
+
+
+## Richtung "in den Raum hinein", ausgedrueckt im LOKALEN Raum der Tuer.
+## Fallback auf -Z (Godot-Vorwaerts), falls kein RoomInstance-Vorfahre
+## existiert (z.B. Tuer manuell in ein Testlevel gesetzt).
+func _inward_direction() -> Vector3:
+	var room: Node = get_parent()
+	while room != null and not (room is RoomInstance):
+		room = room.get_parent()
+
+	if room == null:
+		return Vector3(0.0, 0.0, -1.0)
+
+	var room_3d: Node3D = room as Node3D
+	var to_center: Vector3 = room_3d.global_position - global_position
+	to_center.y = 0.0
+	if to_center.length() < 0.01:
+		return Vector3(0.0, 0.0, -1.0)
+
+	# In den lokalen Raum der Tuer umrechnen, weil _hologram.position
+	# lokal interpretiert wird.
+	return global_transform.basis.inverse() * to_center.normalized()
+
+
+## Blendet das Hologramm dauerhaft aus - wird beim ersten Hack-Fortschritt
+## und beim abgeschlossenen Hack aufgerufen.
+func _dismiss_hologram() -> void:
+	if _hologram_dismissed:
+		return
+	_hologram_dismissed = true
+
+	if _hologram == null or not is_instance_valid(_hologram):
+		return
+
+	if _hologram_label:
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(_hologram_label, "modulate:a", 0.0, hologram_fade_duration)
+		tween.tween_property(_hologram, "scale", Vector3(1.4, 0.05, 1.4), hologram_fade_duration)\
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.chain().tween_callback(func() -> void:
+			if is_instance_valid(_hologram):
+				_hologram.queue_free()
+			_hologram = null
+			_hologram_label = null
+		)
+	else:
+		_hologram.queue_free()
+		_hologram = null
+
+
+func _animate_hologram(delta: float) -> void:
+	if _hologram == null or not is_instance_valid(_hologram):
+		return
+	_hologram_time += delta * hologram_bob_speed
+	_hologram.position.y = _hologram_base_y + sin(_hologram_time) * hologram_bob_height
 
 
 func _show_prompt(text: String, progress: float) -> void:
