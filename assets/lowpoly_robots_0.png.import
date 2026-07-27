@@ -14,7 +14,7 @@ generator_parameters={
 
 [deps]
 
-source_file="res://assets/lowpoly_robots_0.png"
+source_file="res://assets/textures/characters/lowpoly_robots_0.png"
 dest_files=["res://.godot/imported/lowpoly_robots_0.png-9d837c1e00154108abf301b87bbde3ed.s3tc.ctex"]
 
 [params]

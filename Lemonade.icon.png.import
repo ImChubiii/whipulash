@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://Lemonade.icon.png"
+source_file="res://assets/ui/web/Lemonade.icon.png"
 dest_files=["res://.godot/imported/Lemonade.icon.png-784e27f911bbf8dc66570ecd8945a534.ctex"]
 
 [params]

@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://Lemonade.apple-touch-icon.png"
+source_file="res://assets/ui/web/Lemonade.apple-touch-icon.png"
 dest_files=["res://.godot/imported/Lemonade.apple-touch-icon.png-d9432e603fa7ecf263d9929b76a00d93.ctex"]
 
 [params]

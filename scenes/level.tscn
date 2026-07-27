@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://lr5uahfanci4"]
 
 [ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
-[ext_resource type="PackedScene" uid="uid://d0fs0qbmya5ye" path="res://scenes/floor.tscn" id="2_o3n3m"]
+[ext_resource type="PackedScene" uid="uid://d0fs0qbmya5ye" path="res://scenes/environment/floor.tscn" id="2_o3n3m"]
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="3_phjcq"]
-[ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="4_kf42o"]
+[ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/enemies/dummy.tscn" id="4_kf42o"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="4_phjcq"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="6_8c41q"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="6_kf42o"]
-[ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scenes/enemy_spawner.gd" id="7_klq6b"]
+[ext_resource type="Script" uid="uid://dspe7ug6dcwvu" path="res://scripts/enemies/enemy_spawner.gd" id="7_klq6b"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="8_b121j"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8c41q"]

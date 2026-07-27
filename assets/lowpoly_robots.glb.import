@@ -8,7 +8,7 @@ path="res://.godot/imported/lowpoly_robots.glb-427f3212820155944520d1be70a1703b.
 
 [deps]
 
-source_file="res://assets/lowpoly_robots.glb"
+source_file="res://assets/characters/lowpoly_robots.glb"
 dest_files=["res://.godot/imported/lowpoly_robots.glb-427f3212820155944520d1be70a1703b.scn"]
 
 [params]

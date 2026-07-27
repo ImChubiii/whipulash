@@ -11,7 +11,7 @@ metadata={
 
 [deps]
 
-source_file="res://assets/image-removebg-preview (9).png"
+source_file="res://assets/textures/ui/image-removebg-preview (9).png"
 dest_files=["res://.godot/imported/image-removebg-preview (9).png-0cd256e4dfdee54e652ce4b117f9d21b.s3tc.ctex"]
 
 [params]

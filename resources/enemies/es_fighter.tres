@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EnemySpawnEntry" format=3 uid="uid://cfgrjjfnk1k08"]
 
 [ext_resource type="Script" uid="uid://cvv6ttrhxcdyi" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/dummy.tscn" id="2_scene"]
+[ext_resource type="PackedScene" uid="uid://dt3tk05ggmgk0" path="res://scenes/enemies/dummy.tscn" id="2_scene"]
 
 [resource]
 script = ExtResource("1_script")
