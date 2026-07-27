@@ -48,12 +48,32 @@ static func make(seed_value: int) -> RandomNumberGenerator:
 ## Addition: benachbarte Salts ("spawn:(0,0)" und "spawn:(0,1)") sollen
 ## weit auseinander liegende Seeds liefern, sonst haetten benachbarte
 ## Raeume sichtbar aehnliche Gegner-Rolls.
+## BUGFIX: 0x9E3779B97F4A7C15 & Co. sind die drei bekannten SplitMix64-
+## Mischkonstanten (Steele/Vigna) — als UNSIGNED 64-Bit-Zahlen gedacht.
+## GDScript kennt aber keinen unsigned int: "int" ist immer signed-64-Bit,
+## und ein Hex-Literal, dessen Wert 0x7FFFFFFFFFFFFFFF ueberschreitet, laesst
+## sich gar nicht erst parsen ("Cannot represent ... as a 64-bit signed
+## integer"). Deshalb hier die Zweierkomplement-Form (= Wert - 2^64) als
+## negatives Literal. Das Bit-Muster und damit die Mischqualitaet bleiben
+## identisch — nur die Lesart als "negative Zahl" statt "riesige positive
+## Zahl" aendert sich.
 static func derive(base_seed: int, salt: String) -> int:
-	var x: int = base_seed ^ (hash(salt) * 0x9E3779B97F4A7C15)
-	x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9
-	x = (x ^ (x >> 27)) * 0x94D049BB133111EB
-	x = x ^ (x >> 31)
+	var x: int = base_seed ^ (hash(salt) * -0x61C8864680B583EB)
+	x = (x ^ _unsigned_shift_right(x, 30)) * -0x40A7B892E31B1A47
+	x = (x ^ _unsigned_shift_right(x, 27)) * -0x6B2FB644ECCEEE15
+	x = x ^ _unsigned_shift_right(x, 31)
 	return x
+
+
+## GDScripts ">>" ist bei negativen Zahlen eine ARITHMETISCHE Verschiebung
+## (fuellt von links mit Einsen statt Nullen auf). Das Original-SplitMix64
+## rechnet mit unsigned Werten und braucht eine LOGISCHE Verschiebung — sonst
+## haengen an jedem negativen Zwischenwert kuenstliche Einsen, die die
+## Streuung der abgeleiteten Seeds verschlechtern (Verhalten bleibt korrekt,
+## nur die Durchmischung waere schwaecher). Die Maske entfernt die
+## faelschlich eingefuegten Einsen wieder.
+static func _unsigned_shift_right(x: int, bits: int) -> int:
+	return (x >> bits) & ((1 << (64 - bits)) - 1)
 
 
 ## Fisher-Yates ueber einen ANGEGEBENEN RNG. Array.shuffle() waere hier
@@ -112,3 +132,5 @@ static func code_to_seed(code: String) -> int:
 		if value > MAX_SEED:
 			return 0
 	return value
+
+

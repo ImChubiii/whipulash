@@ -5,22 +5,11 @@
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_m4cp6"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_r5myi"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="5_dmgnum"]
+[ext_resource type="PackedScene" uid="uid://cwxy54bgqns2d" path="res://assets/lowpoly_robots.glb" id="6_robot"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 radius = 0.4
 height = 1.2
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_qbaa6"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_k5f3b"]
-render_priority = 0
-shader = ExtResource("2_dtsht")
-shader_parameter/albedo_color = Color(1, 1, 1, 1)
-shader_parameter/snap_resolution = 77.73
-shader_parameter/vertex_jitter_strength = 0.64
-shader_parameter/alpha_multiplier = 1.0
-shader_parameter/flash_color = Color(1, 0, 0, 1)
-shader_parameter/flash_strength = 0.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
 height = 1.0
@@ -79,7 +68,6 @@ speed_variance = 0.16
 detection_range = 50.0
 attack_range = 2.1
 attack_cooldown = 1.4
-gravity = 20.0
 attack_windup_time = 0.35
 pre_attack_delay = 0.25
 display_name = "Stinger"
@@ -94,28 +82,24 @@ zigzag_angle_degrees = 58.0
 zigzag_leg_time = 0.32
 zigzag_pause_time = 0.1
 zigzag_brake_acceleration = 110.0
-zigzag_min_distance = 3.5
 zigzag_fade_distance = 11.0
 focus_loss_enabled = true
 focus_loss_chance_per_second = 0.4
-focus_loss_duration_min = 0.5
-focus_loss_duration_max = 1.4
 focus_loss_wander_speed_factor = 0.55
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
 movement_acceleration = 55.0
 nav_target_update_interval = 0.15
-debug_logging = false
+robot_variant = "RC"
+model_tint = Color(0.78, 0.95, 0.85, 1)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=662295708]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-mesh = SubResource("CapsuleMesh_qbaa6")
-surface_material_override/0 = SubResource("ShaderMaterial_k5f3b")
+[node name="CharacterModel" parent="." unique_id=895800740 instance=ExtResource("6_robot")]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0.4, 0)
 
 [node name="Health" type="Node" parent="." unique_id=496713544]
 script = ExtResource("3_m4cp6")
@@ -125,13 +109,11 @@ regen_enabled = false
 [node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.8)
 collision_layer = 0
-collision_mask = 1
 script = ExtResource("4_r5myi")
 damage = 6.0
 knockback_force = 3.0
 stun_duration = 0.7
 damage_number_scene = ExtResource("5_dmgnum")
-debug_logging = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
@@ -150,8 +132,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6418824, -1.8)
 mesh = SubResource("CylinderMesh_fva3d")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=2082225921]
-path_desired_distance = 1.0
 target_desired_distance = 1.5
 path_height_offset = 0.2
-radius = 0.5
 height = 2.0

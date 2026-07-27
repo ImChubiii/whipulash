@@ -3,6 +3,12 @@ class_name EnemyAI
 
 enum State { IDLE, CHASE, ATTACK }
 
+## PSX-Shader fuer alle Oberflaechen des Gegners. Wird zur Laufzeit auf jede
+## Surface des importierten Modells gelegt, damit Hit-Flash und
+## HP-Transparenz weiterhin funktionieren (das .glb bringt normale
+## StandardMaterial3D mit, die keine alpha_multiplier/flash_strength kennen).
+const PSX_SHADER: Shader = preload("res://shaders/psx.gdshader")
+
 @export var move_speed: float = 7.0
 
 # --- Individuelle Geschwindigkeits-Streuung -------------------------------
@@ -221,6 +227,9 @@ func _abort_attack() -> void:
 	_is_attacking = false
 	_attack_timer = maxf(attack_abort_cooldown, 0.0)
 
+	# Sonst bleibt der Arm in der Ausholpose stehen.
+	_end_attack_swing()
+
 	if telegraph_inner:
 		telegraph_inner.visible = false
 	if telegraph_outer:
@@ -331,12 +340,115 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 # --- Debug ---
 @export var debug_logging: bool = false
 
+# --- 3D-Modell, Material & Animation --------------------------------------
+
+## Name des Kind-Knotens, unter dem die importierte .glb-Szene haengt.
+## Fehlt der Knoten, faellt alles auf den alten Kapsel-Platzhalter
+## ("MeshInstance3D") zurueck -- nicht umgebaute Szenen laufen unveraendert.
+@export var model_node_name: String = "CharacterModel"
+
+## Die .glb enthaelt ALLE drei Roboter (Armature.RA / .RB / .RC) in EINER
+## Szene, und der eine AnimationPlayer bespielt auch alle drei gleichzeitig.
+## Loeschen der ungenutzten Armatures wuerde tote Animations-Tracks
+## hinterlassen, deshalb werden sie hier zur Laufzeit nur ausgeblendet.
+## Der Vergleich laeuft ueber "Name enthaelt diesen Text", weil Godot beim
+## Import Punkte aus Node-Namen entfernt ("Armature.RA_26" -> "ArmatureRA_26").
+@export_enum("RA", "RB", "RC") var robot_variant: String = "RA"
+
+## Faerbt die Modell-Textur ein (Color.WHITE = Originaltextur unveraendert).
+## Praktisch, um RA/RB optisch auseinanderzuhalten.
+@export var model_tint: Color = Color(1, 1, 1, 1)
+
+## Das Rig schaut nach -Z (Godot-Standard), dieses Projekt benutzt aber +Z
+## als "vorne" (_face_player() rechnet atan2(dir.x, dir.z), die AttackHitbox
+## sitzt bei +z). Deshalb 180 Grad Grunddrehung auf dem Modell-Knoten.
+@export_range(-180.0, 180.0) var model_yaw_offset_deg: float = 180.0
+
+## Schiebt das Modell in X/Z so, dass die Skelett-Mitte exakt ueber dem
+## Ursprung des CharacterBody3D liegt. Die .glb hat alle drei Roboter
+## nebeneinander in EINEM Koordinatensystem, dadurch sitzt kein Modell von
+## sich aus mittig. Gerechnet wird ueber die Rest-Pose der Knochen, nicht
+## ueber die Mesh-AABB — die ist bei geskinnten Meshes die Bind-Pose und
+## damit genau um diesen Versatz daneben.
+@export var model_auto_center: bool = true
+
+## Zusaetzlich die Fuesse auf die Unterkante der CollisionShape3D setzen.
+## Standardmaessig aus, weil der unterste Knochen der Knoechel ist und nicht
+## die Sohle — bei Bedarf einschalten und model_ground_bias nachziehen.
+@export var model_auto_ground: bool = false
+@export var model_ground_bias: float = 0.0
+
+@export_range(4.0, 128.0) var psx_snap_resolution: float = 77.73
+@export_range(0.0, 1.0) var psx_vertex_jitter: float = 0.64
+
+## Name der Lauf-Animation im AnimationPlayer der .glb.
+## ACHTUNG: Das gelieferte Asset enthaelt exakt EINE Animation, und die heisst
+## schlicht "Animation" (1.0 s Lauf-Zyklus). Eine "Attack"-Animation ist NICHT
+## enthalten -- der Schlag wird deshalb weiter unten prozedural erzeugt.
+@export var locomotion_animation: String = "Animation"
+
+## Bei welcher Laufgeschwindigkeit die Animation mit speed_scale 1.0 laeuft.
+## <= 0 nimmt automatisch move_speed.
+@export var locomotion_speed_reference: float = 0.0
+@export var locomotion_min_speed_scale: float = 0.35
+@export var locomotion_max_speed_scale: float = 2.5
+
+## Im Stand die Animation anhalten statt sie auf der Stelle weiterlaufen zu
+## lassen. Ohne echte Idle-Animation sieht Einfrieren deutlich besser aus als
+## Laufen ohne Vorwaertsbewegung.
+@export var freeze_animation_when_idle: bool = true
+
+# --- Prozeduraler Schlag (Ersatz fuer die fehlende Attack-Animation) -------
+
+@export var attack_swing_enabled: bool = true
+
+## Knochen, die beim Schlag rotiert werden. Das Rig heisst z.B.
+## "UpperArm.R_8" / "LowerArm.R_7" -- Teil-Treffer genuegen, gesucht wird
+## ueber "Knochenname enthaelt diesen Text".
+@export var attack_swing_bones: PackedStringArray = PackedStringArray(["UpperArm.R", "LowerArm.R"])
+
+## Drehachse im lokalen Knochenraum. Je nach Bone-Roll kann Vector3(1,0,0)
+## oder Vector3(0,0,1) richtig sein -- im Editor kurz durchprobieren.
+@export var attack_swing_axis: Vector3 = Vector3(1, 0, 0)
+
+## Ausholen (negativ = nach hinten) und Zuschlagen (positiv = nach vorne).
+@export_range(-180.0, 180.0) var attack_windup_angle_deg: float = -55.0
+@export_range(-180.0, 180.0) var attack_strike_angle_deg: float = 80.0
+
+## Dauer des eigentlichen Zuschlagens. Sollte <= der Aktivzeit der Hitbox
+## (0.2 s) bleiben, damit Treffer und sichtbarer Schlag zusammenfallen.
+@export var attack_strike_time: float = 0.12
+@export var attack_recover_time: float = 0.25
+
+## Zusaetzliches Vorlehnen des ganzen Modells waehrend des Schlags.
+@export_range(0.0, 45.0) var attack_lean_angle_deg: float = 12.0
+
+## Bewusst als Node (nicht Node3D) typisiert: fehlt die .glb im Projekt,
+## ersetzt Godot die Instanz durch einen "MissingNode" — ein Cast auf Node3D
+## wuerde dann still null liefern und das echte Problem verschlucken.
+@onready var character_model: Node = get_node_or_null(NodePath(model_node_name))
 @onready var attack_hitbox: Hitbox = get_node_or_null("AttackHitbox")
 @onready var telegraph_inner: MeshInstance3D = get_node_or_null("AttackHitbox/TelegraphInner")
 @onready var telegraph_outer: MeshInstance3D = get_node_or_null("AttackHitbox/TelegraphOuterRing")
 @onready var health: Health = get_node_or_null("Health")
 @onready var mesh: MeshInstance3D = get_node_or_null("MeshInstance3D")
 @onready var nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
+
+## Knoten, der beim Tod zusammenschrumpft und den Angriffs-Lean bekommt:
+## das .glb-Modell, oder ersatzweise die alte Kapsel.
+var _visual_root: Node3D
+var _anim_player: AnimationPlayer
+var _mesh_materials: Array[ShaderMaterial] = []
+## Paare [Skeleton3D, bone_idx] fuer den prozeduralen Schlag.
+var _swing_bones: Array = []
+var _swing_tween: Tween
+var _lean_tween: Tween
+var _anim_was_playing: bool = false
+## Grunddrehung des Modells, damit der Angriffs-Lean sie nicht ueberschreibt.
+var _model_base_rotation: Vector3 = Vector3.ZERO
+## +1 oder -1: bei 180 Grad Grunddrehung zeigt die lokale X-Achse rueckwaerts,
+## der Lean muesste sonst nach hinten kippen.
+var _lean_sign: float = 1.0
 
 var _state: State = State.IDLE
 var _player: Node3D
@@ -480,19 +592,448 @@ func _ready() -> void:
 	if telegraph_outer:
 		telegraph_outer.visible = false
 
-	if mesh:
-		var mat := mesh.get_surface_override_material(0)
-		if mat is ShaderMaterial:
-			_mesh_material = mat.duplicate()
-			mesh.set_surface_override_material(0, _mesh_material)
-			_mesh_material.set_shader_parameter("flash_strength", 0.0)
-		else:
-			push_warning("EnemyAI (%s): Mesh hat kein ShaderMaterial mit alpha_multiplier — Transparenz-Effekt wird nicht funktionieren." % display_name)
+	_setup_visuals()
+	_setup_animation()
 
 	if health:
 		health.died.connect(_on_died)
 		health.health_changed.connect(_on_health_changed)
 		_on_health_changed(health.current_health, health.max_health)
+
+## Sucht das sichtbare Modell, blendet die beiden ungenutzten Roboter aus und
+## legt auf JEDE Surface ein eigenes PSX-ShaderMaterial.
+##
+## Warum eigene Materialien: alpha_multiplier (HP-Transparenz) und
+## flash_strength (Hit-Flash) sind Shader-Uniforms. Wuerden sich mehrere
+## Gegner ein Material teilen, blitzen beim Treffer ALLE gleichzeitig auf.
+## Deshalb wird pro Instanz dupliziert bzw. neu gebaut.
+func _setup_visuals() -> void:
+	var model_root: Node3D = null
+	if character_model != null:
+		if character_model is Node3D:
+			model_root = character_model as Node3D
+		else:
+			# Godot ersetzt eine Instanz, deren Szene beim Laden fehlte, durch
+			# einen MissingNode. Genau dann ist der Gegner unsichtbar.
+			push_error("EnemyAI (%s): '%s' ist ein %s statt Node3D. Die .glb unter res://assets/lowpoly_robots.glb fehlt, ist noch nicht importiert oder liegt als OneDrive-Platzhalter (nur online) auf der Platte. Szene NICHT speichern, sonst geht der Knoten verloren!" % [display_name, model_node_name, character_model.get_class()])
+
+	_visual_root = model_root if model_root != null else mesh
+	if _visual_root == null:
+		push_error("EnemyAI (%s): Kein sichtbares Modell — weder '%s' noch der alte Kapsel-Platzhalter 'MeshInstance3D' sind vorhanden." % [display_name, model_node_name])
+		return
+
+	if model_root != null:
+		_hide_unused_armatures(model_root)
+		_orient_model(model_root)
+
+	var meshes: Array[MeshInstance3D] = []
+	_collect_mesh_instances(_visual_root, meshes)
+	if meshes.is_empty():
+		push_warning("EnemyAI (%s): Unter '%s' liegt keine MeshInstance3D." % [display_name, _visual_root.name])
+		return
+
+	for mi: MeshInstance3D in meshes:
+		if mi.mesh == null:
+			continue
+
+		# Godot berechnet die Culling-Box eines geskinnten Meshes aus der
+		# Bind-Pose IN LOKALEN KOORDINATEN und skaliert sie erst dann mit dem
+		# Node-Transform hoch. Bei kraeftig hochskalierten Modellen (Colossus:
+		# x4) kann das knapp genug daneben liegen, dass die Engine das Mesh
+		# aus dem Kamera-Frustum wirft, obwohl es sichtbar im Bild stehen
+		# muesste — das Modell "verschwindet" dann je nach Blickwinkel
+		# komplett. Ein grosszuegiger Cull-Margin schaltet dieses Wegschneiden
+		# effektiv ab; kostet auf so wenigen Gegner-Instanzen nichts spuerbar.
+		mi.extra_cull_margin = 16.0
+
+		for surface: int in range(mi.mesh.get_surface_count()):
+			var source: Material = mi.get_surface_override_material(surface)
+			if source == null:
+				source = mi.get_active_material(surface)
+
+			var shader_mat: ShaderMaterial
+			if source is ShaderMaterial and (source as ShaderMaterial).shader == PSX_SHADER:
+				# Alte Kapsel-Platzhalter: im Editor eingestellte Werte behalten.
+				shader_mat = (source as ShaderMaterial).duplicate() as ShaderMaterial
+			else:
+				# Importiertes .glb-Material: Textur uebernehmen, Rest PSX-isieren.
+				shader_mat = ShaderMaterial.new()
+				shader_mat.shader = PSX_SHADER
+				var tint: Color = model_tint
+				if source is BaseMaterial3D:
+					var base: BaseMaterial3D = source as BaseMaterial3D
+					if base.albedo_texture != null:
+						shader_mat.set_shader_parameter("albedo_texture", base.albedo_texture)
+					tint = Color(
+						base.albedo_color.r * model_tint.r,
+						base.albedo_color.g * model_tint.g,
+						base.albedo_color.b * model_tint.b,
+						base.albedo_color.a * model_tint.a
+					)
+				shader_mat.set_shader_parameter("albedo_color", tint)
+				shader_mat.set_shader_parameter("snap_resolution", psx_snap_resolution)
+				shader_mat.set_shader_parameter("vertex_jitter_strength", psx_vertex_jitter)
+
+			shader_mat.set_shader_parameter("flash_strength", 0.0)
+			shader_mat.set_shader_parameter("alpha_multiplier", 1.0)
+			mi.set_surface_override_material(surface, shader_mat)
+			_mesh_materials.append(shader_mat)
+
+	# Rueckwaertskompatibel: aeltere Stellen im Code lesen noch _mesh_material.
+	if not _mesh_materials.is_empty():
+		_mesh_material = _mesh_materials[0]
+
+	_debug("_setup_visuals(): %d Surface(s) mit PSX-Material bestueckt." % _mesh_materials.size())
+
+
+## Dreht das Modell in Blickrichtung des Projekts und schiebt es mittig
+## ueber den Ursprung des CharacterBody3D.
+func _orient_model(model_root: Node3D) -> void:
+	model_root.rotation = Vector3(0.0, deg_to_rad(model_yaw_offset_deg), 0.0)
+	_model_base_rotation = model_root.rotation
+	_lean_sign = -1.0 if cos(deg_to_rad(model_yaw_offset_deg)) < 0.0 else 1.0
+
+	if not model_auto_center and not model_auto_ground:
+		return
+
+	var skeleton: Skeleton3D = _find_visible_skeleton(model_root)
+	if skeleton == null:
+		_debug("_orient_model(): kein sichtbares Skeleton3D — Zentrierung uebersprungen.")
+		return
+
+	# Rest-Pose der Knochen per Vorwaerts-Kinematik in den Raum des
+	# CharacterBody3D umrechnen. get_bone_rest() + get_bone_parent() sind
+	# versionsstabil; get_bone_global_pose() waere zu diesem Zeitpunkt noch
+	# nicht zwingend aktualisiert.
+	var to_body: Transform3D = global_transform.affine_inverse() * skeleton.global_transform
+	var lo: Vector3 = Vector3.INF
+	var hi: Vector3 = -Vector3.INF
+	for bone_index: int in range(skeleton.get_bone_count()):
+		var point: Vector3 = to_body * _rest_global_transform(skeleton, bone_index).origin
+		lo = lo.min(point)
+		hi = hi.max(point)
+
+	if lo.x > hi.x:
+		return
+
+	var shift: Vector3 = Vector3.ZERO
+	if model_auto_center:
+		shift.x = (lo.x + hi.x) * 0.5
+		shift.z = (lo.z + hi.z) * 0.5
+	if model_auto_ground:
+		var floor_y: float = 0.0
+		var shape_node: CollisionShape3D = _get_collision_shape_node()
+		if shape_node != null and shape_node.shape is CapsuleShape3D:
+			floor_y = shape_node.position.y - (shape_node.shape as CapsuleShape3D).height * 0.5
+		shift.y = lo.y - floor_y - model_ground_bias
+
+	model_root.position -= shift
+	_debug("_orient_model(): Yaw %.0f Grad, Versatz korrigiert um %s" % [model_yaw_offset_deg, shift])
+
+
+func _rest_global_transform(skeleton: Skeleton3D, bone_index: int) -> Transform3D:
+	var result: Transform3D = skeleton.get_bone_rest(bone_index)
+	var parent_index: int = skeleton.get_bone_parent(bone_index)
+	while parent_index >= 0:
+		result = skeleton.get_bone_rest(parent_index) * result
+		parent_index = skeleton.get_bone_parent(parent_index)
+	return result
+
+
+func _find_visible_skeleton(root: Node) -> Skeleton3D:
+	for node: Node in _iterate_descendants(root):
+		if node is Skeleton3D and (node as Skeleton3D).is_visible_in_tree():
+			return node as Skeleton3D
+	return null
+
+
+## Blendet die beiden nicht benoetigten Roboter aus der Sammel-.glb aus.
+##
+## BUGFIX: Vorher wurde JEDER Knoten mit "Armature" im Namen einzeln per
+## Substring gegen robot_variant geprueft. Das setzt voraus, dass Godots
+## Namens-Sanitizing beim Import ("Armature.RB_53" -> was auch immer daraus
+## wird) genau zu einem der drei geratenen Muster passt. War das bei EINER
+## Variante nicht der Fall (z.B. weil Godot Punkte anders behandelt als
+## angenommen), blieb deren Node unsichtbar, ohne dass "found == 0" das
+## bemerkt haette (die anderen zwei Varianten liefern ja Treffer).
+##
+## Jetzt zuerst strukturell: die drei Roboter sind im .glb IMMER Geschwister
+## unter demselben Elternknoten (garantiert durch die Reihenfolge in der
+## Quelldatei: RA, RB, RC). Namensabgleich bleibt die bevorzugte Methode,
+## faellt aber auf den Index dieser Geschwisterliste zurueck, wenn der Name
+## nicht passt -- das kann nicht mehr an Sanitizing-Details scheitern.
+func _hide_unused_armatures(root: Node) -> void:
+	var candidates: Array[Node3D] = []
+	_collect_armature_roots(root, candidates)
+
+	if candidates.is_empty():
+		_debug("_hide_unused_armatures(): keine Armature-Kandidaten gefunden (Modell evtl. schon vereinzelt).")
+		return
+
+	var wanted_node: Node3D = null
+	for candidate: Node3D in candidates:
+		var name_upper: String = String(candidate.name).to_upper()
+		if name_upper.contains("ARMATURE" + robot_variant.to_upper()) \
+			or name_upper.contains("ARMATURE." + robot_variant.to_upper()) \
+			or name_upper.contains("ARMATURE_" + robot_variant.to_upper()):
+			wanted_node = candidate
+			break
+
+	if wanted_node == null:
+		# Namensabgleich erfolglos -> Positions-Fallback ueber die feste
+		# Reihenfolge RA=0, RB=1, RC=2 aus der Quelldatei.
+		var order: PackedStringArray = ["RA", "RB", "RC"]
+		var index: int = order.find(robot_variant.to_upper())
+		if index >= 0 and index < candidates.size():
+			wanted_node = candidates[index]
+			_debug("_hide_unused_armatures(): Namenssuche erfolglos, benutze Geschwister-Index %d als Fallback." % index)
+
+	for candidate: Node3D in candidates:
+		candidate.visible = (candidate == wanted_node)
+
+	if wanted_node == null:
+		push_warning("EnemyAI (%s): Konnte robot_variant '%s' weder ueber Namen noch Index einem der %d gefundenen Roboter zuordnen — alle sind unsichtbar." % [display_name, robot_variant, candidates.size()])
+
+
+## Sucht die Ebene im Baum, auf der die Roboter als GESCHWISTER auftauchen
+## (jeder Kandidat traegt irgendwo unter sich ein Skeleton3D). Steigt so
+## lange durch Einzelkind-Wrapper ab (z.B. "Sketchfab_model" -> "root" ->
+## "GLTF_SceneRootNode"), bis eine Ebene mit mehreren Kandidaten gefunden
+## wird -- das sind dann RA/RB/RC in ihrer garantierten Quelldatei-Reihenfolge.
+func _collect_armature_roots(root: Node, into: Array[Node3D]) -> void:
+	var found: Array[Node3D] = []
+	for child: Node in root.get_children():
+		if child is Node3D and _contains_skeleton(child):
+			found.append(child as Node3D)
+
+	if found.size() >= 2:
+		into.append_array(found)
+		return
+
+	if found.size() == 1:
+		_collect_armature_roots(found[0], into)
+	else:
+		for child: Node in root.get_children():
+			_collect_armature_roots(child, into)
+
+
+func _contains_skeleton(node: Node) -> bool:
+	if node is Skeleton3D:
+		return true
+	for child: Node in node.get_children():
+		if _contains_skeleton(child):
+			return true
+	return false
+
+
+## Holt den AnimationPlayer aus der .glb, stellt die Lauf-Animation auf Loop
+## und merkt sich die Knochen fuer den prozeduralen Schlag.
+func _setup_animation() -> void:
+	if _visual_root == null:
+		return
+
+	for node: Node in _iterate_descendants(_visual_root):
+		if node is AnimationPlayer:
+			_anim_player = node as AnimationPlayer
+			break
+
+	if _anim_player == null:
+		_debug("_setup_animation(): kein AnimationPlayer im Modell — Animationen deaktiviert.")
+		return
+
+	if not _anim_player.has_animation(locomotion_animation):
+		push_warning("EnemyAI (%s): Animation '%s' existiert nicht. Vorhanden: %s" % [display_name, locomotion_animation, ", ".join(_anim_player.get_animation_list())])
+		_anim_player = null
+		return
+
+	# Importierte glTF-Animationen sind standardmaessig NICHT geloopt.
+	var clip: Animation = _anim_player.get_animation(locomotion_animation)
+	clip.loop_mode = Animation.LOOP_LINEAR
+
+	_anim_player.play(locomotion_animation)
+	# Zufaelliger Startpunkt, sonst laeuft eine ganze Welle im Gleichschritt.
+	_anim_player.seek(randf() * clip.length, true)
+
+	if attack_swing_enabled:
+		_cache_swing_bones()
+
+
+func _cache_swing_bones() -> void:
+	_swing_bones.clear()
+	for node: Node in _iterate_descendants(_visual_root):
+		if node is not Skeleton3D:
+			continue
+		var skeleton: Skeleton3D = node as Skeleton3D
+		if not skeleton.is_visible_in_tree():
+			continue
+		for bone_index: int in range(skeleton.get_bone_count()):
+			var bone_name: String = skeleton.get_bone_name(bone_index)
+			for pattern: String in attack_swing_bones:
+				if bone_name.contains(pattern):
+					_swing_bones.append([skeleton, bone_index])
+					break
+
+	if _swing_bones.is_empty():
+		_debug("_cache_swing_bones(): keine passenden Knochen gefunden — Schlag laeuft nur als Koerper-Lean.")
+
+
+func _collect_mesh_instances(root: Node, into: Array[MeshInstance3D]) -> void:
+	if root is MeshInstance3D:
+		into.append(root as MeshInstance3D)
+	for child: Node in root.get_children():
+		_collect_mesh_instances(child, into)
+
+
+func _iterate_descendants(root: Node) -> Array[Node]:
+	var out: Array[Node] = []
+	for child: Node in root.get_children():
+		out.append(child)
+		out.append_array(_iterate_descendants(child))
+	return out
+
+
+## Passt das Abspieltempo der Lauf-Animation an die echte Geschwindigkeit an.
+func _update_locomotion_animation() -> void:
+	if _anim_player == null or _is_attacking or _is_dead:
+		return
+
+	var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+	var reference: float = locomotion_speed_reference
+	if reference <= 0.0:
+		reference = maxf(move_speed, 0.001)
+
+	if horizontal_speed < 0.15:
+		if freeze_animation_when_idle:
+			if _anim_player.is_playing():
+				_anim_player.pause()
+			return
+		_anim_player.speed_scale = locomotion_min_speed_scale
+	else:
+		_anim_player.speed_scale = clampf(horizontal_speed / reference, locomotion_min_speed_scale, locomotion_max_speed_scale)
+
+	if not _anim_player.is_playing():
+		_anim_player.play(locomotion_animation)
+
+
+# --- Prozeduraler Schlag ---------------------------------------------------
+#
+# WICHTIG: Die gelieferte .glb enthaelt KEINE Attack-Animation, nur einen
+# 1-Sekunden-Laufzyklus. `$CharacterModel/AnimationPlayer.play("Attack")`
+# wuerde deshalb nur einen Fehler in die Konsole werfen. Stattdessen wird der
+# Arm hier direkt ueber die Bone-Pose animiert und exakt an die bestehenden
+# Zeiten von _do_attack() gekoppelt:
+#
+#   pre_attack_delay  -> nichts
+#   attack_windup_time -> _begin_attack_swing()  (Arm holt aus)
+#   Hitbox.activate()  -> _strike_attack_swing() (Arm schlaegt durch)
+#   Hitbox.deactivate()-> _end_attack_swing()    (zurueck in die Laufanimation)
+#
+# Der AnimationPlayer wird waehrenddessen pausiert, weil er sonst jeden Frame
+# die Bone-Poses ueberschreiben wuerde.
+
+## t = -1.0 (voll ausgeholt) .. 0.0 (Ruhe) .. +1.0 (voll durchgeschlagen)
+func _apply_swing(t: float) -> void:
+	var axis: Vector3 = attack_swing_axis
+	if axis.length_squared() < 0.0001:
+		axis = Vector3.RIGHT
+	axis = axis.normalized()
+
+	var angle_deg: float = 0.0
+	if t < 0.0:
+		angle_deg = attack_windup_angle_deg * -t
+	else:
+		angle_deg = attack_strike_angle_deg * t
+	var offset: Quaternion = Quaternion(axis, deg_to_rad(angle_deg))
+
+	for entry: Array in _swing_bones:
+		var skeleton: Skeleton3D = entry[0]
+		if not is_instance_valid(skeleton):
+			continue
+		var bone_index: int = entry[1]
+		var rest: Quaternion = skeleton.get_bone_rest(bone_index).basis.get_rotation_quaternion()
+		skeleton.set_bone_pose_rotation(bone_index, rest * offset)
+
+
+func _set_lean(angle_deg: float) -> void:
+	if _visual_root == null or not is_instance_valid(_visual_root):
+		return
+	# rotation komplett setzen statt nur .x — sonst wuerde die 180-Grad-
+	# Grunddrehung beim ersten Schlag verloren gehen.
+	_visual_root.rotation = Vector3(
+		deg_to_rad(angle_deg) * _lean_sign,
+		_model_base_rotation.y,
+		_model_base_rotation.z
+	)
+
+
+func _kill_swing_tweens() -> void:
+	if _swing_tween != null and _swing_tween.is_valid():
+		_swing_tween.kill()
+	if _lean_tween != null and _lean_tween.is_valid():
+		_lean_tween.kill()
+
+
+func _begin_attack_swing() -> void:
+	if not attack_swing_enabled or _is_dead:
+		return
+	if _anim_player != null:
+		_anim_was_playing = _anim_player.is_playing()
+		_anim_player.pause()
+
+	_kill_swing_tweens()
+	if not _swing_bones.is_empty():
+		_swing_tween = create_tween()
+		_swing_tween.tween_method(_apply_swing, 0.0, -1.0, maxf(attack_windup_time, 0.01)) \
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	if attack_lean_angle_deg > 0.0:
+		_lean_tween = create_tween()
+		_lean_tween.tween_method(_set_lean, 0.0, -attack_lean_angle_deg * 0.4, maxf(attack_windup_time, 0.01))
+
+
+func _strike_attack_swing() -> void:
+	if not attack_swing_enabled or _is_dead:
+		return
+	_kill_swing_tweens()
+	if not _swing_bones.is_empty():
+		_swing_tween = create_tween()
+		_swing_tween.tween_method(_apply_swing, -1.0, 1.0, maxf(attack_strike_time, 0.01)) \
+			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+	if attack_lean_angle_deg > 0.0:
+		_lean_tween = create_tween()
+		_lean_tween.tween_method(_set_lean, -attack_lean_angle_deg * 0.4, attack_lean_angle_deg, maxf(attack_strike_time, 0.01)) \
+			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+
+## Faehrt Arm und Koerper zurueck in die Ruhelage und uebergibt danach wieder
+## an den AnimationPlayer. Wird auch bei Abbruch und Tod aufgerufen, damit der
+## Gegner nie in der Schlagpose stehen bleibt.
+func _end_attack_swing() -> void:
+	_kill_swing_tweens()
+
+	if not _swing_bones.is_empty():
+		_swing_tween = create_tween()
+		_swing_tween.tween_method(_apply_swing, 1.0, 0.0, maxf(attack_recover_time, 0.01)) \
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		_swing_tween.tween_callback(_resume_locomotion)
+	else:
+		_resume_locomotion()
+
+	if attack_lean_angle_deg > 0.0:
+		_lean_tween = create_tween()
+		var current_lean: float = 0.0
+		if _visual_root != null and is_instance_valid(_visual_root):
+			current_lean = rad_to_deg(_visual_root.rotation.x) * _lean_sign
+		_lean_tween.tween_method(_set_lean, current_lean, 0.0, maxf(attack_recover_time, 0.01))
+
+
+func _resume_locomotion() -> void:
+	if _is_dead or _anim_player == null:
+		return
+	if _anim_was_playing or not freeze_animation_when_idle:
+		_anim_player.play(locomotion_animation)
+
 
 ## Haelt den Gegner auf Rampen am Boden.
 ##
@@ -536,6 +1077,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0.0
 		move_and_slide()
 		_update_telegraph_ground_position()
+		_update_locomotion_animation()
 		return
 
 	var distance: float = global_position.distance_to(_player.global_position)
@@ -607,6 +1149,9 @@ func _physics_process(delta: float) -> void:
 
 	# Telegraph-Ringe NACH move_and_slide() auf den echten Boden pinnen.
 	_update_telegraph_ground_position()
+
+	# Lauf-Animation an die tatsaechlich erreichte Geschwindigkeit koppeln.
+	_update_locomotion_animation()
 
 # Erkennt, ob der Gegner auf dem Player-Kopf steht, und verpasst ihm
 # einen einmaligen Impuls weg — mit Cooldown, damit move_and_slide()
@@ -1082,6 +1627,9 @@ func _do_attack() -> void:
 		grow_tween.tween_property(telegraph_inner, "scale", Vector3.ONE, attack_windup_time)\
 			.set_trans(Tween.TRANS_LINEAR)
 
+	# Arm holt waehrend des Windups sichtbar aus.
+	_begin_attack_swing()
+
 	if attack_windup_time > 0.0:
 		await get_tree().create_timer(attack_windup_time).timeout
 	if _is_dead or not is_instance_valid(self):
@@ -1099,6 +1647,9 @@ func _do_attack() -> void:
 		_abort_attack()
 		return
 
+	# Treffer-Fenster und sichtbarer Schlag starten im GLEICHEN Frame.
+	_strike_attack_swing()
+
 	if attack_hitbox:
 		attack_hitbox.activate()
 		await get_tree().create_timer(0.2).timeout
@@ -1107,7 +1658,11 @@ func _do_attack() -> void:
 		attack_hitbox.deactivate()
 	else:
 		push_warning("EnemyAI (%s): attack_hitbox ist null — Node 'AttackHitbox' fehlt." % display_name)
+		await get_tree().create_timer(maxf(attack_strike_time, 0.05)).timeout
+		if _is_dead or not is_instance_valid(self):
+			return
 
+	_end_attack_swing()
 	_is_attacking = false
 
 	if _state != State.ATTACK and telegraph_outer:
@@ -1125,11 +1680,11 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 	_last_known_health = current
 
 func _set_mesh_alpha(value: float) -> void:
-	if _mesh_material:
-		_mesh_material.set_shader_parameter("alpha_multiplier", value)
+	for material: ShaderMaterial in _mesh_materials:
+		material.set_shader_parameter("alpha_multiplier", value)
 
 func _play_hit_flash() -> void:
-	if not _mesh_material:
+	if _mesh_materials.is_empty():
 		return
 
 	if _alpha_tween and _alpha_tween.is_valid():
@@ -1145,8 +1700,8 @@ func _play_hit_flash() -> void:
 	_flash_tween.tween_method(_set_flash_strength, hit_color_flash_strength, 0.0, hit_color_flash_duration * 0.6)
 
 func _set_flash_strength(value: float) -> void:
-	if _mesh_material:
-		_mesh_material.set_shader_parameter("flash_strength", value)
+	for material: ShaderMaterial in _mesh_materials:
+		material.set_shader_parameter("flash_strength", value)
 
 # --- Tod ---
 
@@ -1169,9 +1724,15 @@ func _on_died() -> void:
 	if telegraph_outer:
 		telegraph_outer.visible = false
 
-	if mesh:
+	# Laufende Schlag-Tweens abbrechen, sonst schreiben sie waehrend der
+	# Todes-Animation weiter in Bone-Posen eines sterbenden Objekts.
+	_kill_swing_tweens()
+	if _anim_player != null:
+		_anim_player.pause()
+
+	if _visual_root != null and is_instance_valid(_visual_root):
 		var tween := create_tween()
-		tween.tween_property(mesh, "scale", Vector3.ZERO, 0.4)\
+		tween.tween_property(_visual_root, "scale", Vector3.ZERO, 0.4)\
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 		await tween.finished
 
