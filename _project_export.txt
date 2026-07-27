@@ -5584,6 +5584,103 @@ process/size_limit=0
 detect_3d/compress_to=0
 
 
+===== FILE: assets\lowpoly_robots.glb.import =====
+
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://cwxy54bgqns2d"
+path="res://.godot/imported/lowpoly_robots.glb-427f3212820155944520d1be70a1703b.scn"
+
+[deps]
+
+source_file="res://assets/lowpoly_robots.glb"
+dest_files=["res://.godot/imported/lowpoly_robots.glb-427f3212820155944520d1be70a1703b.scn"]
+
+[params]
+
+nodes/root_type=""
+nodes/root_name=""
+nodes/root_script=null
+mesh_library/use_node_names_as_mesh_names=false
+array_mesh/deduplicate_surfaces=true
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+nodes/use_name_suffixes=true
+nodes/use_node_type_suffixes=true
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+materials/extract=0
+materials/extract_format=0
+materials/extract_path=""
+_subresources={}
+gltf/naming_version=2
+gltf/embedded_image_handling=1
+gltf/texture_map_mode=1
+
+
+===== FILE: assets\lowpoly_robots_0.png.import =====
+
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://345bep2p20c4"
+path.s3tc="res://.godot/imported/lowpoly_robots_0.png-9d837c1e00154108abf301b87bbde3ed.s3tc.ctex"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+generator_parameters={
+"md5": "cba3894383edb0b3459f50f1164dc1bb"
+}
+
+[deps]
+
+source_file="res://assets/lowpoly_robots_0.png"
+dest_files=["res://.godot/imported/lowpoly_robots_0.png-9d837c1e00154108abf301b87bbde3ed.s3tc.ctex"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/channel_remap/red=0
+process/channel_remap/green=1
+process/channel_remap/blue=2
+process/channel_remap/alpha=3
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=0
+
+
 ===== FILE: export_presets.cfg =====
 
 [runnable_presets]
@@ -7800,24 +7897,11 @@ script = ExtResource("1_aie4f")
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="2_k5f3b"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_fva3d"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="5_dmgnum"]
+[ext_resource type="PackedScene" uid="uid://cwxy54bgqns2d" path="res://assets/lowpoly_robots.glb" id="6_robot"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 radius = 1.5
 height = 6.0
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_qbaa6"]
-radius = 1.5
-height = 6.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_k5f3b"]
-render_priority = 0
-shader = ExtResource("1_k5f3b")
-shader_parameter/albedo_color = Color(0.85, 0.45, 0.35, 1)
-shader_parameter/snap_resolution = 77.73
-shader_parameter/vertex_jitter_strength = 0.64
-shader_parameter/alpha_multiplier = 1.0
-shader_parameter/flash_color = Color(1, 0, 0, 1)
-shader_parameter/flash_strength = 0.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
 radius = 1.65
@@ -7874,15 +7958,11 @@ collision_layer = 4
 floor_snap_length = 0.4
 script = ExtResource("1_w4gkx")
 move_speed = 8.0
-speed_variance = 0.12
 detection_range = 45.0
-attack_range = 5.0
 attack_cooldown = 1.8
-gravity = 20.0
 attack_windup_time = 0.8
 pre_attack_delay = 0.5
 display_name = "Fighter"
-is_large_enemy = false
 is_heavy = true
 reticle_height_offset = 7.0
 reticle_forward_offset = 2.5
@@ -7891,63 +7971,46 @@ camera_lock_multiplier = 0.7
 separation_radius = 5.0
 separation_strength = 4.0
 min_alpha_at_zero_hp = 0.2
-hit_flash_alpha = 0.2
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
-telegraph_ground_snap = true
 telegraph_ground_clearance = 0.05
-telegraph_ground_raycast_mask = 1
 telegraph_ground_raycast_range = 25.0
-can_jump = true
 jump_height = 2.6
-obstacle_jump_margin = 0.3
 obstacle_check_distance = 2.2
 obstacle_check_low_height = 0.4
 ledge_check_forward_distance = 2.0
 ledge_check_drop_distance = 4.0
-ledge_wait_enabled = true
 can_jump_across_ledges = true
 jump_across_max_gap = 5.0
-ground_raycast_mask = 1
-ledge_check_scale_with_radius = true
 ledge_check_radius_margin = 0.8
-ledge_check_lateral_samples = true
 movement_acceleration = 26.0
-nav_target_update_interval = 0.2
-ledge_drop_enabled = true
 max_safe_drop_height = 5.0
 ledge_drop_probe_distance = 18.0
 ledge_drop_player_below_margin = 1.2
 player_head_slide_impulse = 14.0
 player_head_slide_min_height_above_player = 0.4
 knockback_friction = 12.0
-debug_logging = false
+model_tint = Color(1, 0.85, 0.78, 1)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=662295708]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-mesh = SubResource("CapsuleMesh_qbaa6")
-surface_material_override/0 = SubResource("ShaderMaterial_k5f3b")
+[node name="CharacterModel" parent="." unique_id=2020016892 instance=ExtResource("6_robot")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 0, 0, 0)
 
 [node name="Health" type="Node" parent="." unique_id=496713544]
 script = ExtResource("2_k5f3b")
-max_health = 100.0
 regen_enabled = false
 
 [node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.216951)
 collision_layer = 0
-collision_mask = 1
 script = ExtResource("4_fva3d")
 damage = 30.0
 knockback_force = 5.0
-stun_duration = 0.0
 damage_number_scene = ExtResource("5_dmgnum")
-debug_logging = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -4.4091864)
@@ -7969,8 +8032,8 @@ mesh = SubResource("CylinderMesh_fva3d")
 path_desired_distance = 1.5
 target_desired_distance = 3.0
 path_height_offset = 0.3
-radius = 1.5
 height = 6.0
+radius = 1.5
 
 
 ===== FILE: scenes\enemy_ai.gd =====
@@ -7979,6 +8042,12 @@ extends CharacterBody3D
 class_name EnemyAI
 
 enum State { IDLE, CHASE, ATTACK }
+
+## PSX-Shader fuer alle Oberflaechen des Gegners. Wird zur Laufzeit auf jede
+## Surface des importierten Modells gelegt, damit Hit-Flash und
+## HP-Transparenz weiterhin funktionieren (das .glb bringt normale
+## StandardMaterial3D mit, die keine alpha_multiplier/flash_strength kennen).
+const PSX_SHADER: Shader = preload("res://shaders/psx.gdshader")
 
 @export var move_speed: float = 7.0
 
@@ -8198,6 +8267,9 @@ func _abort_attack() -> void:
 	_is_attacking = false
 	_attack_timer = maxf(attack_abort_cooldown, 0.0)
 
+	# Sonst bleibt der Arm in der Ausholpose stehen.
+	_end_attack_swing()
+
 	if telegraph_inner:
 		telegraph_inner.visible = false
 	if telegraph_outer:
@@ -8308,12 +8380,115 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 # --- Debug ---
 @export var debug_logging: bool = false
 
+# --- 3D-Modell, Material & Animation --------------------------------------
+
+## Name des Kind-Knotens, unter dem die importierte .glb-Szene haengt.
+## Fehlt der Knoten, faellt alles auf den alten Kapsel-Platzhalter
+## ("MeshInstance3D") zurueck -- nicht umgebaute Szenen laufen unveraendert.
+@export var model_node_name: String = "CharacterModel"
+
+## Die .glb enthaelt ALLE drei Roboter (Armature.RA / .RB / .RC) in EINER
+## Szene, und der eine AnimationPlayer bespielt auch alle drei gleichzeitig.
+## Loeschen der ungenutzten Armatures wuerde tote Animations-Tracks
+## hinterlassen, deshalb werden sie hier zur Laufzeit nur ausgeblendet.
+## Der Vergleich laeuft ueber "Name enthaelt diesen Text", weil Godot beim
+## Import Punkte aus Node-Namen entfernt ("Armature.RA_26" -> "ArmatureRA_26").
+@export_enum("RA", "RB", "RC") var robot_variant: String = "RA"
+
+## Faerbt die Modell-Textur ein (Color.WHITE = Originaltextur unveraendert).
+## Praktisch, um RA/RB optisch auseinanderzuhalten.
+@export var model_tint: Color = Color(1, 1, 1, 1)
+
+## Das Rig schaut nach -Z (Godot-Standard), dieses Projekt benutzt aber +Z
+## als "vorne" (_face_player() rechnet atan2(dir.x, dir.z), die AttackHitbox
+## sitzt bei +z). Deshalb 180 Grad Grunddrehung auf dem Modell-Knoten.
+@export_range(-180.0, 180.0) var model_yaw_offset_deg: float = 180.0
+
+## Schiebt das Modell in X/Z so, dass die Skelett-Mitte exakt ueber dem
+## Ursprung des CharacterBody3D liegt. Die .glb hat alle drei Roboter
+## nebeneinander in EINEM Koordinatensystem, dadurch sitzt kein Modell von
+## sich aus mittig. Gerechnet wird ueber die Rest-Pose der Knochen, nicht
+## ueber die Mesh-AABB — die ist bei geskinnten Meshes die Bind-Pose und
+## damit genau um diesen Versatz daneben.
+@export var model_auto_center: bool = true
+
+## Zusaetzlich die Fuesse auf die Unterkante der CollisionShape3D setzen.
+## Standardmaessig aus, weil der unterste Knochen der Knoechel ist und nicht
+## die Sohle — bei Bedarf einschalten und model_ground_bias nachziehen.
+@export var model_auto_ground: bool = false
+@export var model_ground_bias: float = 0.0
+
+@export_range(4.0, 128.0) var psx_snap_resolution: float = 77.73
+@export_range(0.0, 1.0) var psx_vertex_jitter: float = 0.64
+
+## Name der Lauf-Animation im AnimationPlayer der .glb.
+## ACHTUNG: Das gelieferte Asset enthaelt exakt EINE Animation, und die heisst
+## schlicht "Animation" (1.0 s Lauf-Zyklus). Eine "Attack"-Animation ist NICHT
+## enthalten -- der Schlag wird deshalb weiter unten prozedural erzeugt.
+@export var locomotion_animation: String = "Animation"
+
+## Bei welcher Laufgeschwindigkeit die Animation mit speed_scale 1.0 laeuft.
+## <= 0 nimmt automatisch move_speed.
+@export var locomotion_speed_reference: float = 0.0
+@export var locomotion_min_speed_scale: float = 0.35
+@export var locomotion_max_speed_scale: float = 2.5
+
+## Im Stand die Animation anhalten statt sie auf der Stelle weiterlaufen zu
+## lassen. Ohne echte Idle-Animation sieht Einfrieren deutlich besser aus als
+## Laufen ohne Vorwaertsbewegung.
+@export var freeze_animation_when_idle: bool = true
+
+# --- Prozeduraler Schlag (Ersatz fuer die fehlende Attack-Animation) -------
+
+@export var attack_swing_enabled: bool = true
+
+## Knochen, die beim Schlag rotiert werden. Das Rig heisst z.B.
+## "UpperArm.R_8" / "LowerArm.R_7" -- Teil-Treffer genuegen, gesucht wird
+## ueber "Knochenname enthaelt diesen Text".
+@export var attack_swing_bones: PackedStringArray = PackedStringArray(["UpperArm.R", "LowerArm.R"])
+
+## Drehachse im lokalen Knochenraum. Je nach Bone-Roll kann Vector3(1,0,0)
+## oder Vector3(0,0,1) richtig sein -- im Editor kurz durchprobieren.
+@export var attack_swing_axis: Vector3 = Vector3(1, 0, 0)
+
+## Ausholen (negativ = nach hinten) und Zuschlagen (positiv = nach vorne).
+@export_range(-180.0, 180.0) var attack_windup_angle_deg: float = -55.0
+@export_range(-180.0, 180.0) var attack_strike_angle_deg: float = 80.0
+
+## Dauer des eigentlichen Zuschlagens. Sollte <= der Aktivzeit der Hitbox
+## (0.2 s) bleiben, damit Treffer und sichtbarer Schlag zusammenfallen.
+@export var attack_strike_time: float = 0.12
+@export var attack_recover_time: float = 0.25
+
+## Zusaetzliches Vorlehnen des ganzen Modells waehrend des Schlags.
+@export_range(0.0, 45.0) var attack_lean_angle_deg: float = 12.0
+
+## Bewusst als Node (nicht Node3D) typisiert: fehlt die .glb im Projekt,
+## ersetzt Godot die Instanz durch einen "MissingNode" — ein Cast auf Node3D
+## wuerde dann still null liefern und das echte Problem verschlucken.
+@onready var character_model: Node = get_node_or_null(NodePath(model_node_name))
 @onready var attack_hitbox: Hitbox = get_node_or_null("AttackHitbox")
 @onready var telegraph_inner: MeshInstance3D = get_node_or_null("AttackHitbox/TelegraphInner")
 @onready var telegraph_outer: MeshInstance3D = get_node_or_null("AttackHitbox/TelegraphOuterRing")
 @onready var health: Health = get_node_or_null("Health")
 @onready var mesh: MeshInstance3D = get_node_or_null("MeshInstance3D")
 @onready var nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
+
+## Knoten, der beim Tod zusammenschrumpft und den Angriffs-Lean bekommt:
+## das .glb-Modell, oder ersatzweise die alte Kapsel.
+var _visual_root: Node3D
+var _anim_player: AnimationPlayer
+var _mesh_materials: Array[ShaderMaterial] = []
+## Paare [Skeleton3D, bone_idx] fuer den prozeduralen Schlag.
+var _swing_bones: Array = []
+var _swing_tween: Tween
+var _lean_tween: Tween
+var _anim_was_playing: bool = false
+## Grunddrehung des Modells, damit der Angriffs-Lean sie nicht ueberschreibt.
+var _model_base_rotation: Vector3 = Vector3.ZERO
+## +1 oder -1: bei 180 Grad Grunddrehung zeigt die lokale X-Achse rueckwaerts,
+## der Lean muesste sonst nach hinten kippen.
+var _lean_sign: float = 1.0
 
 var _state: State = State.IDLE
 var _player: Node3D
@@ -8457,19 +8632,448 @@ func _ready() -> void:
 	if telegraph_outer:
 		telegraph_outer.visible = false
 
-	if mesh:
-		var mat := mesh.get_surface_override_material(0)
-		if mat is ShaderMaterial:
-			_mesh_material = mat.duplicate()
-			mesh.set_surface_override_material(0, _mesh_material)
-			_mesh_material.set_shader_parameter("flash_strength", 0.0)
-		else:
-			push_warning("EnemyAI (%s): Mesh hat kein ShaderMaterial mit alpha_multiplier — Transparenz-Effekt wird nicht funktionieren." % display_name)
+	_setup_visuals()
+	_setup_animation()
 
 	if health:
 		health.died.connect(_on_died)
 		health.health_changed.connect(_on_health_changed)
 		_on_health_changed(health.current_health, health.max_health)
+
+## Sucht das sichtbare Modell, blendet die beiden ungenutzten Roboter aus und
+## legt auf JEDE Surface ein eigenes PSX-ShaderMaterial.
+##
+## Warum eigene Materialien: alpha_multiplier (HP-Transparenz) und
+## flash_strength (Hit-Flash) sind Shader-Uniforms. Wuerden sich mehrere
+## Gegner ein Material teilen, blitzen beim Treffer ALLE gleichzeitig auf.
+## Deshalb wird pro Instanz dupliziert bzw. neu gebaut.
+func _setup_visuals() -> void:
+	var model_root: Node3D = null
+	if character_model != null:
+		if character_model is Node3D:
+			model_root = character_model as Node3D
+		else:
+			# Godot ersetzt eine Instanz, deren Szene beim Laden fehlte, durch
+			# einen MissingNode. Genau dann ist der Gegner unsichtbar.
+			push_error("EnemyAI (%s): '%s' ist ein %s statt Node3D. Die .glb unter res://assets/lowpoly_robots.glb fehlt, ist noch nicht importiert oder liegt als OneDrive-Platzhalter (nur online) auf der Platte. Szene NICHT speichern, sonst geht der Knoten verloren!" % [display_name, model_node_name, character_model.get_class()])
+
+	_visual_root = model_root if model_root != null else mesh
+	if _visual_root == null:
+		push_error("EnemyAI (%s): Kein sichtbares Modell — weder '%s' noch der alte Kapsel-Platzhalter 'MeshInstance3D' sind vorhanden." % [display_name, model_node_name])
+		return
+
+	if model_root != null:
+		_hide_unused_armatures(model_root)
+		_orient_model(model_root)
+
+	var meshes: Array[MeshInstance3D] = []
+	_collect_mesh_instances(_visual_root, meshes)
+	if meshes.is_empty():
+		push_warning("EnemyAI (%s): Unter '%s' liegt keine MeshInstance3D." % [display_name, _visual_root.name])
+		return
+
+	for mi: MeshInstance3D in meshes:
+		if mi.mesh == null:
+			continue
+
+		# Godot berechnet die Culling-Box eines geskinnten Meshes aus der
+		# Bind-Pose IN LOKALEN KOORDINATEN und skaliert sie erst dann mit dem
+		# Node-Transform hoch. Bei kraeftig hochskalierten Modellen (Colossus:
+		# x4) kann das knapp genug daneben liegen, dass die Engine das Mesh
+		# aus dem Kamera-Frustum wirft, obwohl es sichtbar im Bild stehen
+		# muesste — das Modell "verschwindet" dann je nach Blickwinkel
+		# komplett. Ein grosszuegiger Cull-Margin schaltet dieses Wegschneiden
+		# effektiv ab; kostet auf so wenigen Gegner-Instanzen nichts spuerbar.
+		mi.extra_cull_margin = 16.0
+
+		for surface: int in range(mi.mesh.get_surface_count()):
+			var source: Material = mi.get_surface_override_material(surface)
+			if source == null:
+				source = mi.get_active_material(surface)
+
+			var shader_mat: ShaderMaterial
+			if source is ShaderMaterial and (source as ShaderMaterial).shader == PSX_SHADER:
+				# Alte Kapsel-Platzhalter: im Editor eingestellte Werte behalten.
+				shader_mat = (source as ShaderMaterial).duplicate() as ShaderMaterial
+			else:
+				# Importiertes .glb-Material: Textur uebernehmen, Rest PSX-isieren.
+				shader_mat = ShaderMaterial.new()
+				shader_mat.shader = PSX_SHADER
+				var tint: Color = model_tint
+				if source is BaseMaterial3D:
+					var base: BaseMaterial3D = source as BaseMaterial3D
+					if base.albedo_texture != null:
+						shader_mat.set_shader_parameter("albedo_texture", base.albedo_texture)
+					tint = Color(
+						base.albedo_color.r * model_tint.r,
+						base.albedo_color.g * model_tint.g,
+						base.albedo_color.b * model_tint.b,
+						base.albedo_color.a * model_tint.a
+					)
+				shader_mat.set_shader_parameter("albedo_color", tint)
+				shader_mat.set_shader_parameter("snap_resolution", psx_snap_resolution)
+				shader_mat.set_shader_parameter("vertex_jitter_strength", psx_vertex_jitter)
+
+			shader_mat.set_shader_parameter("flash_strength", 0.0)
+			shader_mat.set_shader_parameter("alpha_multiplier", 1.0)
+			mi.set_surface_override_material(surface, shader_mat)
+			_mesh_materials.append(shader_mat)
+
+	# Rueckwaertskompatibel: aeltere Stellen im Code lesen noch _mesh_material.
+	if not _mesh_materials.is_empty():
+		_mesh_material = _mesh_materials[0]
+
+	_debug("_setup_visuals(): %d Surface(s) mit PSX-Material bestueckt." % _mesh_materials.size())
+
+
+## Dreht das Modell in Blickrichtung des Projekts und schiebt es mittig
+## ueber den Ursprung des CharacterBody3D.
+func _orient_model(model_root: Node3D) -> void:
+	model_root.rotation = Vector3(0.0, deg_to_rad(model_yaw_offset_deg), 0.0)
+	_model_base_rotation = model_root.rotation
+	_lean_sign = -1.0 if cos(deg_to_rad(model_yaw_offset_deg)) < 0.0 else 1.0
+
+	if not model_auto_center and not model_auto_ground:
+		return
+
+	var skeleton: Skeleton3D = _find_visible_skeleton(model_root)
+	if skeleton == null:
+		_debug("_orient_model(): kein sichtbares Skeleton3D — Zentrierung uebersprungen.")
+		return
+
+	# Rest-Pose der Knochen per Vorwaerts-Kinematik in den Raum des
+	# CharacterBody3D umrechnen. get_bone_rest() + get_bone_parent() sind
+	# versionsstabil; get_bone_global_pose() waere zu diesem Zeitpunkt noch
+	# nicht zwingend aktualisiert.
+	var to_body: Transform3D = global_transform.affine_inverse() * skeleton.global_transform
+	var lo: Vector3 = Vector3.INF
+	var hi: Vector3 = -Vector3.INF
+	for bone_index: int in range(skeleton.get_bone_count()):
+		var point: Vector3 = to_body * _rest_global_transform(skeleton, bone_index).origin
+		lo = lo.min(point)
+		hi = hi.max(point)
+
+	if lo.x > hi.x:
+		return
+
+	var shift: Vector3 = Vector3.ZERO
+	if model_auto_center:
+		shift.x = (lo.x + hi.x) * 0.5
+		shift.z = (lo.z + hi.z) * 0.5
+	if model_auto_ground:
+		var floor_y: float = 0.0
+		var shape_node: CollisionShape3D = _get_collision_shape_node()
+		if shape_node != null and shape_node.shape is CapsuleShape3D:
+			floor_y = shape_node.position.y - (shape_node.shape as CapsuleShape3D).height * 0.5
+		shift.y = lo.y - floor_y - model_ground_bias
+
+	model_root.position -= shift
+	_debug("_orient_model(): Yaw %.0f Grad, Versatz korrigiert um %s" % [model_yaw_offset_deg, shift])
+
+
+func _rest_global_transform(skeleton: Skeleton3D, bone_index: int) -> Transform3D:
+	var result: Transform3D = skeleton.get_bone_rest(bone_index)
+	var parent_index: int = skeleton.get_bone_parent(bone_index)
+	while parent_index >= 0:
+		result = skeleton.get_bone_rest(parent_index) * result
+		parent_index = skeleton.get_bone_parent(parent_index)
+	return result
+
+
+func _find_visible_skeleton(root: Node) -> Skeleton3D:
+	for node: Node in _iterate_descendants(root):
+		if node is Skeleton3D and (node as Skeleton3D).is_visible_in_tree():
+			return node as Skeleton3D
+	return null
+
+
+## Blendet die beiden nicht benoetigten Roboter aus der Sammel-.glb aus.
+##
+## BUGFIX: Vorher wurde JEDER Knoten mit "Armature" im Namen einzeln per
+## Substring gegen robot_variant geprueft. Das setzt voraus, dass Godots
+## Namens-Sanitizing beim Import ("Armature.RB_53" -> was auch immer daraus
+## wird) genau zu einem der drei geratenen Muster passt. War das bei EINER
+## Variante nicht der Fall (z.B. weil Godot Punkte anders behandelt als
+## angenommen), blieb deren Node unsichtbar, ohne dass "found == 0" das
+## bemerkt haette (die anderen zwei Varianten liefern ja Treffer).
+##
+## Jetzt zuerst strukturell: die drei Roboter sind im .glb IMMER Geschwister
+## unter demselben Elternknoten (garantiert durch die Reihenfolge in der
+## Quelldatei: RA, RB, RC). Namensabgleich bleibt die bevorzugte Methode,
+## faellt aber auf den Index dieser Geschwisterliste zurueck, wenn der Name
+## nicht passt -- das kann nicht mehr an Sanitizing-Details scheitern.
+func _hide_unused_armatures(root: Node) -> void:
+	var candidates: Array[Node3D] = []
+	_collect_armature_roots(root, candidates)
+
+	if candidates.is_empty():
+		_debug("_hide_unused_armatures(): keine Armature-Kandidaten gefunden (Modell evtl. schon vereinzelt).")
+		return
+
+	var wanted_node: Node3D = null
+	for candidate: Node3D in candidates:
+		var name_upper: String = String(candidate.name).to_upper()
+		if name_upper.contains("ARMATURE" + robot_variant.to_upper()) \
+			or name_upper.contains("ARMATURE." + robot_variant.to_upper()) \
+			or name_upper.contains("ARMATURE_" + robot_variant.to_upper()):
+			wanted_node = candidate
+			break
+
+	if wanted_node == null:
+		# Namensabgleich erfolglos -> Positions-Fallback ueber die feste
+		# Reihenfolge RA=0, RB=1, RC=2 aus der Quelldatei.
+		var order: PackedStringArray = ["RA", "RB", "RC"]
+		var index: int = order.find(robot_variant.to_upper())
+		if index >= 0 and index < candidates.size():
+			wanted_node = candidates[index]
+			_debug("_hide_unused_armatures(): Namenssuche erfolglos, benutze Geschwister-Index %d als Fallback." % index)
+
+	for candidate: Node3D in candidates:
+		candidate.visible = (candidate == wanted_node)
+
+	if wanted_node == null:
+		push_warning("EnemyAI (%s): Konnte robot_variant '%s' weder ueber Namen noch Index einem der %d gefundenen Roboter zuordnen — alle sind unsichtbar." % [display_name, robot_variant, candidates.size()])
+
+
+## Sucht die Ebene im Baum, auf der die Roboter als GESCHWISTER auftauchen
+## (jeder Kandidat traegt irgendwo unter sich ein Skeleton3D). Steigt so
+## lange durch Einzelkind-Wrapper ab (z.B. "Sketchfab_model" -> "root" ->
+## "GLTF_SceneRootNode"), bis eine Ebene mit mehreren Kandidaten gefunden
+## wird -- das sind dann RA/RB/RC in ihrer garantierten Quelldatei-Reihenfolge.
+func _collect_armature_roots(root: Node, into: Array[Node3D]) -> void:
+	var found: Array[Node3D] = []
+	for child: Node in root.get_children():
+		if child is Node3D and _contains_skeleton(child):
+			found.append(child as Node3D)
+
+	if found.size() >= 2:
+		into.append_array(found)
+		return
+
+	if found.size() == 1:
+		_collect_armature_roots(found[0], into)
+	else:
+		for child: Node in root.get_children():
+			_collect_armature_roots(child, into)
+
+
+func _contains_skeleton(node: Node) -> bool:
+	if node is Skeleton3D:
+		return true
+	for child: Node in node.get_children():
+		if _contains_skeleton(child):
+			return true
+	return false
+
+
+## Holt den AnimationPlayer aus der .glb, stellt die Lauf-Animation auf Loop
+## und merkt sich die Knochen fuer den prozeduralen Schlag.
+func _setup_animation() -> void:
+	if _visual_root == null:
+		return
+
+	for node: Node in _iterate_descendants(_visual_root):
+		if node is AnimationPlayer:
+			_anim_player = node as AnimationPlayer
+			break
+
+	if _anim_player == null:
+		_debug("_setup_animation(): kein AnimationPlayer im Modell — Animationen deaktiviert.")
+		return
+
+	if not _anim_player.has_animation(locomotion_animation):
+		push_warning("EnemyAI (%s): Animation '%s' existiert nicht. Vorhanden: %s" % [display_name, locomotion_animation, ", ".join(_anim_player.get_animation_list())])
+		_anim_player = null
+		return
+
+	# Importierte glTF-Animationen sind standardmaessig NICHT geloopt.
+	var clip: Animation = _anim_player.get_animation(locomotion_animation)
+	clip.loop_mode = Animation.LOOP_LINEAR
+
+	_anim_player.play(locomotion_animation)
+	# Zufaelliger Startpunkt, sonst laeuft eine ganze Welle im Gleichschritt.
+	_anim_player.seek(randf() * clip.length, true)
+
+	if attack_swing_enabled:
+		_cache_swing_bones()
+
+
+func _cache_swing_bones() -> void:
+	_swing_bones.clear()
+	for node: Node in _iterate_descendants(_visual_root):
+		if node is not Skeleton3D:
+			continue
+		var skeleton: Skeleton3D = node as Skeleton3D
+		if not skeleton.is_visible_in_tree():
+			continue
+		for bone_index: int in range(skeleton.get_bone_count()):
+			var bone_name: String = skeleton.get_bone_name(bone_index)
+			for pattern: String in attack_swing_bones:
+				if bone_name.contains(pattern):
+					_swing_bones.append([skeleton, bone_index])
+					break
+
+	if _swing_bones.is_empty():
+		_debug("_cache_swing_bones(): keine passenden Knochen gefunden — Schlag laeuft nur als Koerper-Lean.")
+
+
+func _collect_mesh_instances(root: Node, into: Array[MeshInstance3D]) -> void:
+	if root is MeshInstance3D:
+		into.append(root as MeshInstance3D)
+	for child: Node in root.get_children():
+		_collect_mesh_instances(child, into)
+
+
+func _iterate_descendants(root: Node) -> Array[Node]:
+	var out: Array[Node] = []
+	for child: Node in root.get_children():
+		out.append(child)
+		out.append_array(_iterate_descendants(child))
+	return out
+
+
+## Passt das Abspieltempo der Lauf-Animation an die echte Geschwindigkeit an.
+func _update_locomotion_animation() -> void:
+	if _anim_player == null or _is_attacking or _is_dead:
+		return
+
+	var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+	var reference: float = locomotion_speed_reference
+	if reference <= 0.0:
+		reference = maxf(move_speed, 0.001)
+
+	if horizontal_speed < 0.15:
+		if freeze_animation_when_idle:
+			if _anim_player.is_playing():
+				_anim_player.pause()
+			return
+		_anim_player.speed_scale = locomotion_min_speed_scale
+	else:
+		_anim_player.speed_scale = clampf(horizontal_speed / reference, locomotion_min_speed_scale, locomotion_max_speed_scale)
+
+	if not _anim_player.is_playing():
+		_anim_player.play(locomotion_animation)
+
+
+# --- Prozeduraler Schlag ---------------------------------------------------
+#
+# WICHTIG: Die gelieferte .glb enthaelt KEINE Attack-Animation, nur einen
+# 1-Sekunden-Laufzyklus. `$CharacterModel/AnimationPlayer.play("Attack")`
+# wuerde deshalb nur einen Fehler in die Konsole werfen. Stattdessen wird der
+# Arm hier direkt ueber die Bone-Pose animiert und exakt an die bestehenden
+# Zeiten von _do_attack() gekoppelt:
+#
+#   pre_attack_delay  -> nichts
+#   attack_windup_time -> _begin_attack_swing()  (Arm holt aus)
+#   Hitbox.activate()  -> _strike_attack_swing() (Arm schlaegt durch)
+#   Hitbox.deactivate()-> _end_attack_swing()    (zurueck in die Laufanimation)
+#
+# Der AnimationPlayer wird waehrenddessen pausiert, weil er sonst jeden Frame
+# die Bone-Poses ueberschreiben wuerde.
+
+## t = -1.0 (voll ausgeholt) .. 0.0 (Ruhe) .. +1.0 (voll durchgeschlagen)
+func _apply_swing(t: float) -> void:
+	var axis: Vector3 = attack_swing_axis
+	if axis.length_squared() < 0.0001:
+		axis = Vector3.RIGHT
+	axis = axis.normalized()
+
+	var angle_deg: float = 0.0
+	if t < 0.0:
+		angle_deg = attack_windup_angle_deg * -t
+	else:
+		angle_deg = attack_strike_angle_deg * t
+	var offset: Quaternion = Quaternion(axis, deg_to_rad(angle_deg))
+
+	for entry: Array in _swing_bones:
+		var skeleton: Skeleton3D = entry[0]
+		if not is_instance_valid(skeleton):
+			continue
+		var bone_index: int = entry[1]
+		var rest: Quaternion = skeleton.get_bone_rest(bone_index).basis.get_rotation_quaternion()
+		skeleton.set_bone_pose_rotation(bone_index, rest * offset)
+
+
+func _set_lean(angle_deg: float) -> void:
+	if _visual_root == null or not is_instance_valid(_visual_root):
+		return
+	# rotation komplett setzen statt nur .x — sonst wuerde die 180-Grad-
+	# Grunddrehung beim ersten Schlag verloren gehen.
+	_visual_root.rotation = Vector3(
+		deg_to_rad(angle_deg) * _lean_sign,
+		_model_base_rotation.y,
+		_model_base_rotation.z
+	)
+
+
+func _kill_swing_tweens() -> void:
+	if _swing_tween != null and _swing_tween.is_valid():
+		_swing_tween.kill()
+	if _lean_tween != null and _lean_tween.is_valid():
+		_lean_tween.kill()
+
+
+func _begin_attack_swing() -> void:
+	if not attack_swing_enabled or _is_dead:
+		return
+	if _anim_player != null:
+		_anim_was_playing = _anim_player.is_playing()
+		_anim_player.pause()
+
+	_kill_swing_tweens()
+	if not _swing_bones.is_empty():
+		_swing_tween = create_tween()
+		_swing_tween.tween_method(_apply_swing, 0.0, -1.0, maxf(attack_windup_time, 0.01)) \
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	if attack_lean_angle_deg > 0.0:
+		_lean_tween = create_tween()
+		_lean_tween.tween_method(_set_lean, 0.0, -attack_lean_angle_deg * 0.4, maxf(attack_windup_time, 0.01))
+
+
+func _strike_attack_swing() -> void:
+	if not attack_swing_enabled or _is_dead:
+		return
+	_kill_swing_tweens()
+	if not _swing_bones.is_empty():
+		_swing_tween = create_tween()
+		_swing_tween.tween_method(_apply_swing, -1.0, 1.0, maxf(attack_strike_time, 0.01)) \
+			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+	if attack_lean_angle_deg > 0.0:
+		_lean_tween = create_tween()
+		_lean_tween.tween_method(_set_lean, -attack_lean_angle_deg * 0.4, attack_lean_angle_deg, maxf(attack_strike_time, 0.01)) \
+			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+
+## Faehrt Arm und Koerper zurueck in die Ruhelage und uebergibt danach wieder
+## an den AnimationPlayer. Wird auch bei Abbruch und Tod aufgerufen, damit der
+## Gegner nie in der Schlagpose stehen bleibt.
+func _end_attack_swing() -> void:
+	_kill_swing_tweens()
+
+	if not _swing_bones.is_empty():
+		_swing_tween = create_tween()
+		_swing_tween.tween_method(_apply_swing, 1.0, 0.0, maxf(attack_recover_time, 0.01)) \
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		_swing_tween.tween_callback(_resume_locomotion)
+	else:
+		_resume_locomotion()
+
+	if attack_lean_angle_deg > 0.0:
+		_lean_tween = create_tween()
+		var current_lean: float = 0.0
+		if _visual_root != null and is_instance_valid(_visual_root):
+			current_lean = rad_to_deg(_visual_root.rotation.x) * _lean_sign
+		_lean_tween.tween_method(_set_lean, current_lean, 0.0, maxf(attack_recover_time, 0.01))
+
+
+func _resume_locomotion() -> void:
+	if _is_dead or _anim_player == null:
+		return
+	if _anim_was_playing or not freeze_animation_when_idle:
+		_anim_player.play(locomotion_animation)
+
 
 ## Haelt den Gegner auf Rampen am Boden.
 ##
@@ -8513,6 +9117,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0.0
 		move_and_slide()
 		_update_telegraph_ground_position()
+		_update_locomotion_animation()
 		return
 
 	var distance: float = global_position.distance_to(_player.global_position)
@@ -8584,6 +9189,9 @@ func _physics_process(delta: float) -> void:
 
 	# Telegraph-Ringe NACH move_and_slide() auf den echten Boden pinnen.
 	_update_telegraph_ground_position()
+
+	# Lauf-Animation an die tatsaechlich erreichte Geschwindigkeit koppeln.
+	_update_locomotion_animation()
 
 # Erkennt, ob der Gegner auf dem Player-Kopf steht, und verpasst ihm
 # einen einmaligen Impuls weg — mit Cooldown, damit move_and_slide()
@@ -9059,6 +9667,9 @@ func _do_attack() -> void:
 		grow_tween.tween_property(telegraph_inner, "scale", Vector3.ONE, attack_windup_time)\
 			.set_trans(Tween.TRANS_LINEAR)
 
+	# Arm holt waehrend des Windups sichtbar aus.
+	_begin_attack_swing()
+
 	if attack_windup_time > 0.0:
 		await get_tree().create_timer(attack_windup_time).timeout
 	if _is_dead or not is_instance_valid(self):
@@ -9076,6 +9687,9 @@ func _do_attack() -> void:
 		_abort_attack()
 		return
 
+	# Treffer-Fenster und sichtbarer Schlag starten im GLEICHEN Frame.
+	_strike_attack_swing()
+
 	if attack_hitbox:
 		attack_hitbox.activate()
 		await get_tree().create_timer(0.2).timeout
@@ -9084,7 +9698,11 @@ func _do_attack() -> void:
 		attack_hitbox.deactivate()
 	else:
 		push_warning("EnemyAI (%s): attack_hitbox ist null — Node 'AttackHitbox' fehlt." % display_name)
+		await get_tree().create_timer(maxf(attack_strike_time, 0.05)).timeout
+		if _is_dead or not is_instance_valid(self):
+			return
 
+	_end_attack_swing()
 	_is_attacking = false
 
 	if _state != State.ATTACK and telegraph_outer:
@@ -9102,11 +9720,11 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 	_last_known_health = current
 
 func _set_mesh_alpha(value: float) -> void:
-	if _mesh_material:
-		_mesh_material.set_shader_parameter("alpha_multiplier", value)
+	for material: ShaderMaterial in _mesh_materials:
+		material.set_shader_parameter("alpha_multiplier", value)
 
 func _play_hit_flash() -> void:
-	if not _mesh_material:
+	if _mesh_materials.is_empty():
 		return
 
 	if _alpha_tween and _alpha_tween.is_valid():
@@ -9122,8 +9740,8 @@ func _play_hit_flash() -> void:
 	_flash_tween.tween_method(_set_flash_strength, hit_color_flash_strength, 0.0, hit_color_flash_duration * 0.6)
 
 func _set_flash_strength(value: float) -> void:
-	if _mesh_material:
-		_mesh_material.set_shader_parameter("flash_strength", value)
+	for material: ShaderMaterial in _mesh_materials:
+		material.set_shader_parameter("flash_strength", value)
 
 # --- Tod ---
 
@@ -9146,9 +9764,15 @@ func _on_died() -> void:
 	if telegraph_outer:
 		telegraph_outer.visible = false
 
-	if mesh:
+	# Laufende Schlag-Tweens abbrechen, sonst schreiben sie waehrend der
+	# Todes-Animation weiter in Bone-Posen eines sterbenden Objekts.
+	_kill_swing_tweens()
+	if _anim_player != null:
+		_anim_player.pause()
+
+	if _visual_root != null and is_instance_valid(_visual_root):
 		var tween := create_tween()
-		tween.tween_property(mesh, "scale", Vector3.ZERO, 0.4)\
+		tween.tween_property(_visual_root, "scale", Vector3.ZERO, 0.4)\
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 		await tween.finished
 
@@ -20477,22 +21101,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 2.1, 4.0)
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_m4cp6"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_r5myi"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="5_dmgnum"]
+[ext_resource type="PackedScene" uid="uid://cwxy54bgqns2d" path="res://assets/lowpoly_robots.glb" id="6_robot"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 radius = 0.4
 height = 1.2
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_qbaa6"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_k5f3b"]
-render_priority = 0
-shader = ExtResource("2_dtsht")
-shader_parameter/albedo_color = Color(1, 1, 1, 1)
-shader_parameter/snap_resolution = 77.73
-shader_parameter/vertex_jitter_strength = 0.64
-shader_parameter/alpha_multiplier = 1.0
-shader_parameter/flash_color = Color(1, 0, 0, 1)
-shader_parameter/flash_strength = 0.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
 height = 1.0
@@ -20551,7 +21164,6 @@ speed_variance = 0.16
 detection_range = 50.0
 attack_range = 2.1
 attack_cooldown = 1.4
-gravity = 20.0
 attack_windup_time = 0.35
 pre_attack_delay = 0.25
 display_name = "Stinger"
@@ -20566,28 +21178,24 @@ zigzag_angle_degrees = 58.0
 zigzag_leg_time = 0.32
 zigzag_pause_time = 0.1
 zigzag_brake_acceleration = 110.0
-zigzag_min_distance = 3.5
 zigzag_fade_distance = 11.0
 focus_loss_enabled = true
 focus_loss_chance_per_second = 0.4
-focus_loss_duration_min = 0.5
-focus_loss_duration_max = 1.4
 focus_loss_wander_speed_factor = 0.55
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
 hit_color_flash_duration = 0.5
 movement_acceleration = 55.0
 nav_target_update_interval = 0.15
-debug_logging = false
+robot_variant = "RC"
+model_tint = Color(0.78, 0.95, 0.85, 1)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=662295708]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-mesh = SubResource("CapsuleMesh_qbaa6")
-surface_material_override/0 = SubResource("ShaderMaterial_k5f3b")
+[node name="CharacterModel" parent="." unique_id=895800740 instance=ExtResource("6_robot")]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0.4, 0)
 
 [node name="Health" type="Node" parent="." unique_id=496713544]
 script = ExtResource("3_m4cp6")
@@ -20597,13 +21205,11 @@ regen_enabled = false
 [node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.8)
 collision_layer = 0
-collision_mask = 1
 script = ExtResource("4_r5myi")
 damage = 6.0
 knockback_force = 3.0
 stun_duration = 0.7
 damage_number_scene = ExtResource("5_dmgnum")
-debug_logging = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
@@ -20622,10 +21228,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6418824, -1.8)
 mesh = SubResource("CylinderMesh_fva3d")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=2082225921]
-path_desired_distance = 1.0
 target_desired_distance = 1.5
 path_height_offset = 0.2
-radius = 0.5
 height = 2.0
 
 
@@ -22223,24 +22827,11 @@ func hide_submersion() -> void:
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_vm80r"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_1v3u1"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="5_dmgnum"]
+[ext_resource type="PackedScene" path="res://assets/lowpoly_robots.glb" id="6_robot"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 radius = 3.0
 height = 12.0
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_qbaa6"]
-radius = 3.0
-height = 12.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_k5f3b"]
-render_priority = 0
-shader = ExtResource("2_0p5eo")
-shader_parameter/albedo_color = Color(1, 1, 1, 1)
-shader_parameter/snap_resolution = 77.73
-shader_parameter/vertex_jitter_strength = 0.64
-shader_parameter/alpha_multiplier = 1.0
-shader_parameter/flash_color = Color(1, 0, 0, 1)
-shader_parameter/flash_strength = 0.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
 radius = 3.3
@@ -22305,6 +22896,15 @@ gravity = 20.0
 attack_windup_time = 2.0
 pre_attack_delay = 0.6
 display_name = "Colossus"
+model_node_name = "CharacterModel"
+robot_variant = "RB"
+model_tint = Color(0.95, 0.7, 0.7, 1)
+psx_snap_resolution = 77.73
+psx_vertex_jitter = 0.64
+model_yaw_offset_deg = 180.0
+model_auto_center = true
+model_auto_ground = false
+locomotion_animation = "Animation"
 is_large_enemy = true
 is_heavy = true
 reticle_height_offset = 13.0
@@ -22352,10 +22952,8 @@ debug_logging = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.0, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=662295708]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.0, 0)
-mesh = SubResource("CapsuleMesh_qbaa6")
-surface_material_override/0 = SubResource("ShaderMaterial_k5f3b")
+[node name="CharacterModel" parent="." instance=ExtResource("6_robot")]
+transform = Transform3D(3.19, 0, 0, 0, 3.19, 0, 0, 0, 3.19, 0, 0.0, 0)
 
 [node name="Health" type="Node" parent="." unique_id=496713544]
 script = ExtResource("3_vm80r")
@@ -26361,12 +26959,32 @@ static func make(seed_value: int) -> RandomNumberGenerator:
 ## Addition: benachbarte Salts ("spawn:(0,0)" und "spawn:(0,1)") sollen
 ## weit auseinander liegende Seeds liefern, sonst haetten benachbarte
 ## Raeume sichtbar aehnliche Gegner-Rolls.
+## BUGFIX: 0x9E3779B97F4A7C15 & Co. sind die drei bekannten SplitMix64-
+## Mischkonstanten (Steele/Vigna) — als UNSIGNED 64-Bit-Zahlen gedacht.
+## GDScript kennt aber keinen unsigned int: "int" ist immer signed-64-Bit,
+## und ein Hex-Literal, dessen Wert 0x7FFFFFFFFFFFFFFF ueberschreitet, laesst
+## sich gar nicht erst parsen ("Cannot represent ... as a 64-bit signed
+## integer"). Deshalb hier die Zweierkomplement-Form (= Wert - 2^64) als
+## negatives Literal. Das Bit-Muster und damit die Mischqualitaet bleiben
+## identisch — nur die Lesart als "negative Zahl" statt "riesige positive
+## Zahl" aendert sich.
 static func derive(base_seed: int, salt: String) -> int:
-	var x: int = base_seed ^ (hash(salt) * 0x9E3779B97F4A7C15)
-	x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9
-	x = (x ^ (x >> 27)) * 0x94D049BB133111EB
-	x = x ^ (x >> 31)
+	var x: int = base_seed ^ (hash(salt) * -0x61C8864680B583EB)
+	x = (x ^ _unsigned_shift_right(x, 30)) * -0x40A7B892E31B1A47
+	x = (x ^ _unsigned_shift_right(x, 27)) * -0x6B2FB644ECCEEE15
+	x = x ^ _unsigned_shift_right(x, 31)
 	return x
+
+
+## GDScripts ">>" ist bei negativen Zahlen eine ARITHMETISCHE Verschiebung
+## (fuellt von links mit Einsen statt Nullen auf). Das Original-SplitMix64
+## rechnet mit unsigned Werten und braucht eine LOGISCHE Verschiebung — sonst
+## haengen an jedem negativen Zwischenwert kuenstliche Einsen, die die
+## Streuung der abgeleiteten Seeds verschlechtern (Verhalten bleibt korrekt,
+## nur die Durchmischung waere schwaecher). Die Maske entfernt die
+## faelschlich eingefuegten Einsen wieder.
+static func _unsigned_shift_right(x: int, bits: int) -> int:
+	return (x >> bits) & ((1 << (64 - bits)) - 1)
 
 
 ## Fisher-Yates ueber einen ANGEGEBENEN RNG. Array.shuffle() waere hier
@@ -26425,6 +27043,8 @@ static func code_to_seed(code: String) -> int:
 		if value > MAX_SEED:
 			return 0
 	return value
+
+
 
 
 ===== FILE: scripts\dungeon_atmosphere.gd =====
@@ -29143,6 +29763,27 @@ class_name ItemSummaryList
 # auf MOUSE_FILTER_IGNORE (Wert 2), damit sie keine Klicks abfangen — wer
 # das hier uebernimmt, bekommt nie ein mouse_entered und wundert sich, warum
 # der Hover "nicht funktioniert", obwohl der Code laeuft.
+#
+# ---------------------------------------------------------------------------
+# WARUM DIE BESCHREIBUNGSKARTE NICHT MEHR TEIL DIESER LISTE IST (behobener
+# Bug: "hoveren veraendert das Format")
+# ---------------------------------------------------------------------------
+# ItemSummaryList selbst ist ein VBoxContainer. Die Detailkarte stand bisher
+# als normales Kind DARIN — ein Container legt die Groesse und Position
+# JEDES Kindes bei jedem Layout-Durchlauf selbst fest. Sobald die Karte beim
+# Hovern auf visible = true wechselte, hat der VBoxContainer sie in seinen
+# Stapel eingerechnet und ALLES darunter (Waehrungszeile, ggf. der ganze
+# Rest der Pause-/Tod-/Siegkarte) nach unten verschoben — das Popup hat
+# buchstaeblich das Format des Bildschirms veraendert, weil es keins war,
+# sondern eine ganz normale, layoutwirksame Zeile.
+#
+# Ein "Popup" darf per Definition NICHT layoutwirksam sein. Die Karte haengt
+# deshalb jetzt an der TOPMOST Control der jeweiligen Szene (Pause-/Tod-/
+# Siegbildschirm-Wurzel) — die ist ein einfaches Control, KEIN Container,
+# und positioniert ihre Kinder nicht selbst um. Von dort aus wird die Karte
+# manuell neben die gerade ueberfahrene Zeile gesetzt (_position_detail_panel).
+# Das ist derselbe Trick wie bei der Item-Karte im normalen HUD
+# (item_description_hud.gd) — dort aus demselben Grund.
 
 ## Ueberschrift ueber der Liste. Leer lassen = keine Ueberschrift.
 @export var title_text: String = "GESAMMELTE ITEMS"
@@ -29170,16 +29811,46 @@ var _detail_text: Label = null
 var _items: Node = null
 
 
+func _exit_tree() -> void:
+	# _detail_panel haengt an der Bildschirm-Wurzel, nicht an self — bei
+	# einem Szenenwechsel (Level-Neustart) wird sie zwar META im selben
+	# Teilbaum mitgeloescht, aber ein manuelles Aufraeumen ist billiger als
+	# sich auf implizite Baum-Reihenfolge zu verlassen.
+	if _detail_panel and is_instance_valid(_detail_panel):
+		_detail_panel.queue_free()
+	_detail_panel = null
+
+
 func _ready() -> void:
 	# STOP statt IGNORE — sonst kommt kein mouse_entered an. Siehe Kopf.
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	add_theme_constant_override("separation", 6)
 
-	_build()
+	# Deferred: die Liste selbst wird von aussen per add_child() in
+	# "Panel/VBoxContainer" gehaengt (death_screen.gd / pause_menu.gd /
+	# win_screen.gd). _find_floating_host() muss dabei bereits die volle
+	# Vorfahrenkette bis zur Bildschirmwurzel sehen — unmittelbar in _ready()
+	# ist das zwar meistens schon der Fall, aber ein Frame Sicherheitsabstand
+	# kostet nichts und macht die Reihenfolge robust gegen kuenftige
+	# Umbauten der drei Screens.
+	_build.call_deferred()
 	_items = get_node_or_null("/root/Items")
 	if _items and _items.has_signal("inventory_changed"):
 		_items.inventory_changed.connect(refresh)
 	refresh()
+
+
+## Oberster Control-Vorfahr = die Bildschirm-Wurzel (PauseMenu, DeathScreen
+## oder WinScreen, alle "extends Control" OHNE Container-Verhalten). Dort
+## haengt die Detailkarte, weil ein einfaches Control seine Kinder NICHT
+## selbst positioniert — im Gegensatz zu einem VBoxContainer.
+func _find_floating_host() -> Control:
+	var host: Control = self
+	var node: Node = get_parent()
+	while node is Control:
+		host = node as Control
+		node = node.get_parent()
+	return host
 
 
 # ============================================================================
@@ -29224,6 +29895,13 @@ func _build() -> void:
 	style.content_margin_top = 7.0
 	style.content_margin_bottom = 7.0
 	_detail_panel.add_theme_stylebox_override("panel", style)
+	# TOP_LEFT: Position wird ueber .position gesetzt (siehe
+	# _position_detail_panel), nicht ueber Anker relativ zu einem Container.
+	_detail_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	# Fixe Breite, damit die Beschreibung nicht bei jedem Item unterschiedlich
+	# breit aufklappt — das waere fuer ein Popup, das direkt neben wechselnden
+	# Zeilen erscheint, unruhiger als eine konstante Breite.
+	_detail_panel.custom_minimum_size = Vector2(280.0, 0.0)
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 2)
@@ -29240,7 +29918,10 @@ func _build() -> void:
 	_detail_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_detail_text)
 
-	add_child(_detail_panel)
+	# NICHT add_child(_detail_panel) auf self (VBoxContainer) — das ist
+	# genau der Fehler, den dieser Umbau behebt. Stattdessen an die Wurzel
+	# der Szene haengen, wo kein Container mehr mitredet.
+	_find_floating_host().add_child(_detail_panel)
 
 	if show_currencies:
 		_currency_label = Label.new()
@@ -29359,15 +30040,15 @@ func _make_row(item: ItemData, count: int) -> Control:
 	kind_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(kind_label)
 
-	# bind() haengt das Item an — sonst wuesste der Empfaenger nicht, WELCHE
-	# Zeile ueberfahren wurde.
-	row.mouse_entered.connect(_show_detail.bind(item, style, color))
+	# bind() haengt Item UND Zeile an — die Zeile braucht es fuer die
+	# Positionierung der Karte (siehe _position_detail_panel).
+	row.mouse_entered.connect(_show_detail.bind(item, style, color, row))
 	row.mouse_exited.connect(_on_row_exited.bind(style, color))
 
 	return row
 
 
-func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color) -> void:
+func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Control) -> void:
 	if _detail_panel == null:
 		return
 
@@ -29384,9 +30065,33 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color) -> void:
 		(panel_style as StyleBoxFlat).border_color = Color(color.r, color.g, color.b, 0.85)
 
 	_detail_panel.visible = true
+	_position_detail_panel(row)
 
 	# Zeile hervorheben, damit klar ist, wozu die Beschreibung gehoert.
 	style.bg_color = Color(color.r, color.g, color.b, 0.16)
+
+
+## Setzt die Karte neben die ueberfahrene Zeile — rechts bevorzugt, links
+## als Ausweichroute, wenn rechts kein Platz mehr ist, und in beiden Faellen
+## innerhalb des Bildschirms geklemmt. get_combined_minimum_size() liefert
+## die Groesse SOFORT auf Basis des gerade gesetzten Texts, ohne auf einen
+## Layout-Durchlauf warten zu muessen.
+func _position_detail_panel(row: Control) -> void:
+	if _detail_panel == null or row == null or not is_instance_valid(row):
+		return
+
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var row_rect: Rect2 = row.get_global_rect()
+	var panel_size: Vector2 = _detail_panel.get_combined_minimum_size()
+
+	var pos := Vector2(row_rect.position.x + row_rect.size.x + 12.0, row_rect.position.y)
+	if pos.x + panel_size.x > viewport_size.x - 8.0:
+		pos.x = row_rect.position.x - panel_size.x - 12.0
+
+	pos.x = clampf(pos.x, 8.0, maxf(viewport_size.x - panel_size.x - 8.0, 8.0))
+	pos.y = clampf(pos.y, 8.0, maxf(viewport_size.y - panel_size.y - 8.0, 8.0))
+
+	_detail_panel.position = pos
 
 
 func _on_row_exited(style: StyleBoxFlat, _color: Color) -> void:
@@ -31576,6 +32281,12 @@ func _ready() -> void:
 	visible = false
 	z_index = Z_INDEX_MENU
 
+	# Gruppe statt fester Pfad: ResetOverlay haengt in einem ganz anderen
+	# Teil des Baums (eigener Autoload-CanvasLayer, siehe hud_extra.gd) und
+	# braucht einen Weg, DIESES PauseMenu zu finden, ohne einen Node-Pfad
+	# zu raten. Gleiches Muster wie "level_generator" oder "minimap".
+	add_to_group("pause_menu")
+
 	_blur_overlay = _get_or_create_shared_blur()
 	_fix_panel_background()
 
@@ -31652,6 +32363,13 @@ func lock_out() -> void:
 			_blur_overlay.visible = false
 
 
+## Oeffentliche Sammel-Abfrage fuer reset_overlay.gd: darf ein Reset gerade
+## VORGENOMMEN werden? Buendelt beide Sperren an EINER Stelle, damit sie
+## nicht an zwei Orten im Code auseinanderlaufen koennen.
+func is_reset_blocked() -> bool:
+	return _locked_out or _is_endscreen_active()
+
+
 func _is_endscreen_active() -> bool:
 	var parent := get_parent()
 
@@ -31680,18 +32398,38 @@ func _close_open_big_map() -> bool:
 	return false
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	# --- Level-Reset -----------------------------------------------------
-	# Bewusst VOR dem ESC-Check: der Reset soll auch aus dem offenen
-	# Pausemenue heraus funktionieren. Nach Tod/Sieg ist er gesperrt —
-	# dort gibt es eigene Restart-Buttons, und ein Reset waehrend des
-	# laufenden Death-Delays wuerde die Screens durcheinanderbringen.
-	if InputMap.has_action(RESET_ACTION) and event.is_action_pressed(RESET_ACTION):
-		if not (_locked_out or _is_endscreen_active()):
-			_restart_level()
-		get_viewport().set_input_as_handled()
-		return
+# ============================================================================
+# WARUM ES HIER KEINEN "R"-HANDLER MEHR GIBT (behobener Bug)
+# ============================================================================
+# Bis vor Kurzem stand hier ein ZWEITER, unabhaengiger Reset-Pfad: ein
+# einzelner Tastendruck auf R fuehrte SOFORT zu reload_current_scene() —
+# parallel zu reset_overlay.gd, das dieselbe Taste per Input.is_action_pressed()
+# ABFRAGT (Polling, nicht Event-basiert) und daraus die 1,5-Sekunden-
+# Halten-Animation baut.
+#
+# get_viewport().set_input_as_handled() hier hat auf das Polling in
+# reset_overlay.gd KEINERLEI Wirkung — "handled" gilt nur fuer die
+# Input-Event-Pipeline (_unhandled_input), nicht fuer Input.is_action_pressed().
+# Das Ergebnis bei jedem R-Druck:
+#   1. DIESES Script startete den Neustart SOFORT, ohne jede Bestaetigung —
+#      die ganze "gedrueckt halten" Absicherung war dadurch wirkungslos.
+#   2. Falls R laenger als 1,5 s gehalten wurde, loeste ZUSAETZLICH
+#      reset_overlay.gd einen ZWEITEN reload_current_scene() aus — auf
+#      einer Szene, die durch den ersten Reload gerade schon abgebaut
+#      wurde. Zwei Szenenwechsel im selben kurzen Zeitfenster sind genau
+#      die Art von Zustand, die zu Abstuerzen (das Spiel schliesst sich
+#      kommentarlos) und zu "Cannot call method ... on a null value"
+#      fuehrt, wenn ein Node nach dem ersten Reload auf sich selbst
+#      zugreift.
+#
+# reset_overlay.gd ist jetzt der EINZIGE Besitzer der "reset"-Action. Die
+# Sperre waehrend Tod/Sieg (_locked_out / _is_endscreen_active()), die
+# fruehen hier stand, ist NICHT verlorengegangen — sie wurde nach
+# is_reset_blocked() verschoben, das reset_overlay.gd jetzt selbst abfragt
+# (siehe dort). Der Restart-BUTTON unten (_on_restart_pressed) bleibt
+# unveraendert; ein Klick ist kein Polling-Konflikt.
 
+func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		return
 
@@ -33515,9 +34253,20 @@ class_name ResetOverlay
 
 const RESET_ACTION: String = "reset"
 
+## Gruppe, unter der sich PauseMenu selbst eintraegt. Siehe die ausfuehrliche
+## Begruendung in pause_menu.gd, wo frueher ein zweiter, konkurrierender
+## Reset-Pfad lag: dieser Guard ist der Ersatz dafuer, jetzt an der einzigen
+## Stelle, die die Taste tatsaechlich verarbeitet.
+const PAUSE_MENU_GROUP: String = "pause_menu"
+
 var _hold_time: float = 0.0
 var _preview_seed_code: String = ""
 var _is_restarting: bool = false
+
+## Lazy gebunden und bei Ungueltigkeit neu gesucht — PauseMenu wird bei
+## jedem reload_current_scene() neu instanziiert, eine einmal gecachte
+## Referenz waere nach dem ersten Neustart bereits eine Leiche.
+var _pause_menu: PauseMenu = null
 
 var _fade: ColorRect = null
 var _preview_box: PanelContainer = null
@@ -33593,6 +34342,16 @@ func _process(delta: float) -> void:
 	if not InputMap.has_action(RESET_ACTION):
 		return
 
+	# Waehrend Tod/Sieg gesperrt: dort gibt es eigene Restart-Buttons, und
+	# ein Reset waehrend des laufenden Death-Delays wuerde die Screens
+	# durcheinanderbringen. Diese Sperre stand FRUEHER in pause_menu.gd, das
+	# parallel dazu die Taste selbst auswertete — mit den in _restart_level()
+	# beschriebenen Folgen. Jetzt fragt der einzige verbliebene Reset-Pfad
+	# sie direkt bei PauseMenu ab.
+	if _is_reset_blocked():
+		_cancel()
+		return
+
 	if not Input.is_action_pressed(RESET_ACTION):
 		_cancel()
 		return
@@ -33610,6 +34369,19 @@ func _process(delta: float) -> void:
 
 	if progress >= 1.0:
 		_restart()
+
+
+## true, wenn PauseMenu gerade sagt, dass kein Reset stattfinden soll (Tod/
+## Sieg-Uebergang oder ein Endscreen ist sichtbar). Liefert false, solange
+## kein PauseMenu gefunden wird — Testszenen ohne Pausemenue sollen weiter
+## normal neustarten koennen.
+func _is_reset_blocked() -> bool:
+	if _pause_menu == null or not is_instance_valid(_pause_menu):
+		var found: Array[Node] = get_tree().get_nodes_in_group(PAUSE_MENU_GROUP)
+		_pause_menu = found[0] as PauseMenu if not found.is_empty() else null
+	if _pause_menu == null or not is_instance_valid(_pause_menu):
+		return false
+	return _pause_menu.is_reset_blocked()
 
 
 func _begin_hold() -> void:
@@ -33673,6 +34445,8 @@ func _peek_next_seed_code() -> String:
 			return DetRng.seed_to_code(absi(next_seed) % DetRng.MAX_SEED)
 
 	return DetRng.seed_to_code(DetRng.random_seed_value())
+
+
 
 
 ===== FILE: scripts\room_commit_guard.gd =====
@@ -36416,6 +37190,10 @@ const INTERACT_ACTION: String = "interact"
 ## Gruppe, in der sich ItemDescriptionHud anmeldet.
 const ITEM_HUD_GROUP: String = "item_hud"
 
+## Gruppe, in der sich der LevelGenerator selbst eintraegt — fuer das
+## map_updated-Signal, siehe _sync_minimap_visibility().
+const GENERATOR_GROUP: String = "level_generator"
+
 ## Das Item, das auf diesem Sockel liegt. Wird vom TreasureManager gesetzt,
 ## BEVOR der Sockel in den Baum gehaengt wird.
 var item_data: ItemData = null
@@ -36432,6 +37210,12 @@ var _name_label: Label3D = null
 var _prompt_label: Label3D = null
 var _preview_shown: bool = false
 var _accent: Color = Color(0.95, 0.85, 0.35)
+
+## Der Raum, in dem dieser Sockel steht. Wird beim _ready() gesetzt (der
+## Sockel ist immer ein direktes Kind des Raums, siehe treasure_manager.gd).
+## Bleibt null bei debug_spawn_at_player() — dort greift keine Fog-Logik.
+var _room: RoomInstance = null
+var _generator: Node = null
 
 
 ## Bequemer Konstruktor fuer den TreasureManager.
@@ -36454,6 +37238,37 @@ func _ready() -> void:
 	_build_float_group()
 	_build_light()
 	_build_labels()
+
+	# ------------------------------------------------------------------
+	# Fog-of-War-Anschluss (behobener Bug: Sockel leuchtet durch die Wand
+	# eines noch nicht besuchten Schatzraums auf der Karte)
+	# ------------------------------------------------------------------
+	# room_instance.gd blendet einen kompletten unbesuchten Raum auf der
+	# 3D-Minimap aus, indem es EINMALIG alle VisualInstance3D-Kinder auf
+	# einen Layer verschiebt, den die Kartenkamera nicht rendert
+	# (set_minimap_revealed() -> _apply_minimap_layer()). "Einmalig" ist der
+	# entscheidende Teil: ein zweiter Aufruf mit demselben Sichtbarkeits-
+	# zustand ist ein bewusster No-Op (siehe die Sperre dort), damit der
+	# Baum nicht bei jedem Kartenupdate neu durchlaufen wird.
+	#
+	# treasure_manager.gd haengt diesen Sockel aber ERST ein bis zwei
+	# Physik-Frames NACH der Raumgenerierung ein (siehe dort: der Boden fuer
+	# die Sockelposition muss erst kollidierbar sein). Zu diesem Zeitpunkt
+	# hat der Raum sein "verstecken" laengst hinter sich — der Sockel wird
+	# also NIE von _apply_minimap_layer() erfasst und bleibt fuer die
+	# Kartenkamera dauerhaft auf dem normalen, sichtbaren Layer. Ergebnis:
+	# eine helle, mehrere Meter hohe Lichtsaeule schwebt sichtbar in einem
+	# Raum, dessen Waende und Boden korrekt ausgeblendet sind — auf der
+	# Karte sieht das aus wie "man sieht durch die Wand".
+	#
+	# Die Lösung hier dupliziert NICHT die Versteck-Logik, sondern fragt bei
+	# jeder Kartenaktualisierung (map_updated-Signal des Generators) aktiv
+	# nach dem AKTUELLEN Sichtbarkeitszustand des eigenen Elternraums und
+	# wendet ihn auf die eigenen Kinder an. Kein Eingriff in room_instance.gd
+	# noetig.
+	_room = get_parent() as RoomInstance
+	_sync_minimap_visibility.call_deferred()
+	_bind_generator.call_deferred()
 
 
 # ============================================================================
@@ -36845,6 +37660,72 @@ func _finish_take() -> void:
 
 func is_taken() -> bool:
 	return _taken
+
+
+# ============================================================================
+# Fog-of-War-Anschluss
+# ============================================================================
+func _bind_generator() -> void:
+	if _room == null:
+		# debug_spawn_at_player() haengt den Sockel direkt in current_scene,
+		# nicht in einen Raum — dort gibt es keine Fog-of-War-Zustaende, mit
+		# denen synchronisiert werden muesste.
+		return
+
+	var found: Array[Node] = get_tree().get_nodes_in_group(GENERATOR_GROUP)
+	if found.is_empty():
+		return
+	_generator = found[0]
+	if _generator.has_signal("map_updated") and not _generator.is_connected("map_updated", _on_map_updated):
+		_generator.connect("map_updated", _on_map_updated)
+
+
+func _on_map_updated() -> void:
+	_sync_minimap_visibility()
+
+
+## Spiegelt den AKTUELLEN Sichtbarkeitszustand des Elternraums auf die
+## eigenen Kinder — Meshes UND Licht. Wird beim Bauen einmal aufgerufen und
+## danach bei jedem map_updated erneut (Raum wird betreten -> aufgedeckt).
+func _sync_minimap_visibility() -> void:
+	if _room == null or not is_instance_valid(_room):
+		return
+
+	# _minimap_revealed ist ein gewoehnliches Skript-Feld (kein echtes
+	# "private" in GDScript) und traegt IMMER einen gueltigen Wert, auch
+	# ohne LevelGenerator (Default true) — Testszenen ohne Fog bleiben damit
+	# unangetastet sichtbar.
+	var revealed: bool = true
+	if "_minimap_revealed" in _room:
+		revealed = bool(_room.get("_minimap_revealed"))
+
+	_apply_own_minimap_layer(self, revealed)
+
+	# Fuer Lichter reicht das Verschieben auf einen unsichtbaren Layer NICHT:
+	# layers steuert bei Light3D nur, was der Editor-Gizmo tut, nicht ob das
+	# Licht real weiterstrahlt. .visible = false schaltet das Licht dagegen
+	# vollstaendig ab — sonst wuerde eine unsichtbar gewordene Lichtquelle
+	# trotzdem noch Flaechen in einem eigentlich verdeckten Raum aufhellen.
+	if _light:
+		_light.visible = revealed
+
+
+## Rekursiv wie room_instance.gd::_apply_minimap_layer(), aber nur auf den
+## eigenen Unterbaum angewendet. RoomInstance.MINIMAP_HIDDEN_LAYER ist die
+## SELBE Konstante, die die Kartenkamera aus ihrer cull_mask streicht — auf
+## einen eigenen, zweiten Layer-Wert zu bestehen waere eine zweite Quelle
+## der Wahrheit, die irgendwann auseinanderlaufen kann.
+func _apply_own_minimap_layer(node: Node, revealed: bool) -> void:
+	for child: Node in node.get_children():
+		if child is VisualInstance3D:
+			var visual: VisualInstance3D = child as VisualInstance3D
+			if not visual.has_meta("minimap_base_layers"):
+				visual.set_meta("minimap_base_layers", visual.layers)
+			if revealed:
+				visual.layers = int(visual.get_meta("minimap_base_layers"))
+			else:
+				visual.layers = 1 << (RoomInstance.MINIMAP_HIDDEN_LAYER - 1)
+		_apply_own_minimap_layer(child, revealed)
 
 
 ===== FILE: scripts\vfx_manager.gd =====
