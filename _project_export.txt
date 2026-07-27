@@ -6073,6 +6073,11 @@ enum HazardMode { POOL, SURFACE }
 ## jeden Frame aufgefrischt, damit er beim Verlassen sofort ausleuft.
 @export_range(0.0, 0.9) var surface_slow_amount: float = 0.45
 
+## Ab welchem Hazard-Multiplikator die Verlangsamung ganz entfaellt.
+## Die Saeurefesten Stiefel setzen den Multiplikator auf 0.25 — der
+## Standardwert liegt bewusst knapp darueber.
+@export_range(0.0, 1.0) var wade_slow_immunity_threshold: float = 0.3
+
 ## Wie weit ueber der berechneten Oberflaeche noch als "drin" zaehlt.
 ## Im SURFACE-Modus bewusst grosszuegiger, weil die Fuesse dort auf dem
 ## Boden UNTER der Lache stehen und nie richtig eintauchen koennen.
@@ -6309,8 +6314,16 @@ func _register(body: Node3D) -> void:
 func _damage_body(body: Node3D) -> void:
 	var health: Node = body.find_child("Health", true, false)
 	if health and health is Health:
-		health.take_damage(damage_per_tick, self)
-		_debug("Tick-Schaden %.1f an '%s'" % [damage_per_tick, body.name])
+		# HAZARD_RESIST wird hier eingerechnet — vorher gar nicht.
+		#
+		# Das war der Grund, warum die "Saeurefesten Stiefel" wirkungslos
+		# waren: das Item traegt korrekt einen Multiplikator von 0.25 in
+		# PlayerStats ein, aber niemand hat ihn je gelesen. Der Stat war
+		# definiert, angezeigt und komplett folgenlos — ein Fehler, der sich
+		# nur dadurch bemerkbar macht, dass ein Item "nichts tut".
+		var amount: float = damage_per_tick * _get_hazard_multiplier(body)
+		health.take_damage(amount, self)
+		_debug("Tick-Schaden %.1f an '%s'" % [amount, body.name])
 
 	# --- VFX ---
 	# Engine.is_editor_hint() ist Pflicht: dieses Script ist @tool, das
@@ -6326,8 +6339,28 @@ func _damage_body(body: Node3D) -> void:
 
 ## Im SURFACE-Modus haelt sich der Slow nur solange, wie man drin steht:
 ## kurze Dauer, jeden Frame aufgefrischt.
+## Schadensmultiplikator aus PlayerStats.STAT_HAZARD_RESIST. Gegner haben
+## keine PlayerStats-Komponente und bekommen deshalb immer 1.0 — das ist
+## Absicht, sonst wuerden die Stiefel auch die Gegner in der Limonade
+## schuetzen.
+func _get_hazard_multiplier(body: Node3D) -> float:
+	if Engine.is_editor_hint():
+		return 1.0
+	var stats := body.get_node_or_null("PlayerStats")
+	if stats == null or not (stats is PlayerStats):
+		return 1.0
+	return maxf((stats as PlayerStats).get_hazard_resist(), 0.0)
+
+
 func _apply_wade_slow(body: Node3D) -> void:
 	if hazard_mode != HazardMode.SURFACE:
+		return
+	# Dieselbe Resistenz entscheidet auch ueber die Verlangsamung: bei einem
+	# Multiplikator unter dieser Schwelle watet man ohne Tempoverlust durch.
+	# Die Design-Vorgabe zu den Stiefeln nennt beides in einem Satz
+	# ("75 % weniger Schaden UND keine Verlangsamung") — es waere kaum
+	# nachvollziehbar, wenn nur die eine Haelfte griffe.
+	if _get_hazard_multiplier(body) <= wade_slow_immunity_threshold:
 		return
 	if surface_slow_amount <= 0.0:
 		return
@@ -7338,6 +7371,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage = 30.0
 damage_number_scene = ExtResource("4_o7r84")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=54088038]
@@ -7352,7 +7386,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-damage = 9.0
+damage = 14.0
 damage_number_scene = ExtResource("4_o7r84")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1478091659]
@@ -7373,6 +7407,8 @@ script = ExtResource("3_qhqgy")
 
 [node name="Combat" type="Node" parent="." unique_id=1120459944]
 script = ExtResource("5_gisellecombat")
+
+
 
 
 ===== FILE: scenes\characters\char_karina.tscn =====
@@ -7426,6 +7462,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage = 30.0
 damage_number_scene = ExtResource("4_71isp")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=1947348745]
@@ -7440,7 +7477,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-damage = 9.0
+damage = 14.0
 damage_number_scene = ExtResource("4_71isp")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1270968494]
@@ -7461,6 +7498,8 @@ script = ExtResource("3_qhqgy")
 
 [node name="Combat" type="Node" parent="." unique_id=2032550543]
 script = ExtResource("5_karinacombat")
+
+
 
 
 ===== FILE: scenes\characters\char_ningning.tscn =====
@@ -7514,6 +7553,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage = 30.0
 damage_number_scene = ExtResource("4_u6hti")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=474198894]
@@ -7528,7 +7568,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-damage = 9.0
+damage = 14.0
 damage_number_scene = ExtResource("4_u6hti")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=498811588]
@@ -7549,6 +7589,8 @@ script = ExtResource("3_qhqgy")
 
 [node name="Combat" type="Node" parent="." unique_id=932916164]
 script = ExtResource("5_ningcombat")
+
+
 
 
 ===== FILE: scenes\characters\char_winter.tscn =====
@@ -7602,6 +7644,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage = 30.0
 damage_number_scene = ExtResource("4_i32li")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=2036259035]
@@ -7616,7 +7659,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-damage = 9.0
+damage = 14.0
 damage_number_scene = ExtResource("4_i32li")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1249222209]
@@ -7637,6 +7680,8 @@ script = ExtResource("3_qhqgy")
 
 [node name="Combat" type="Node" parent="." unique_id=873002602]
 script = ExtResource("5_wintercombat")
+
+
 
 
 ===== FILE: scenes\damage_number.gd =====
@@ -7969,6 +8014,26 @@ enum State { IDLE, CHASE, ATTACK }
 # wieder nachsetzen kann, aber lang genug um kein Telegraph-Flackern zu
 # erzeugen.
 @export var attack_abort_cooldown: float = 0.3
+
+## Wie stark die Separation von anderen Gegnern waehrend eines laufenden
+## Angriffs noch wirkt. 0 = gar nicht.
+##
+## WARUM ES DIESEN WERT BRAUCHT (behobener Fehler "Angriff trifft nie"):
+## Die State-Machine setzt im ATTACK-Zustand velocity.x/z auf 0 — der Gegner
+## soll beim Zuschlagen stehenbleiben. Direkt danach wurde aber
+## BEDINGUNGSLOS _get_separation_velocity() draufaddiert.
+##
+## Genau im Angriffsmoment stehen alle Gegner dicht am Spieler, also auch
+## dicht beieinander. Die Separation zeigt damit vom Pulk weg — und der Pulk
+## ist der Spieler. Ueber pre_attack_delay + attack_windup_time (Standard
+## 0.8 + 1.0 = 1.8 s) driftete ein Fighter so weit zurueck, dass die
+## AttackHitbox beim Zuschlagen ins Leere zeigte. Fuer den Spieler sah es
+## aus, als wuerde der Gegner ausholen und dann grundlos zurueckweichen.
+##
+## Ein kleiner Restwert (Standard 0.12) bleibt bewusst stehen: bei zwei
+## Gegnern, die exakt uebereinander stehen, waere 0.0 eine Einladung, sich
+## dauerhaft zu verkeilen.
+@export_range(0.0, 1.0) var attack_separation_factor: float = 0.12
 
 # Minimaler Blickrichtungs-Abgleich, damit ein Angriff ueberhaupt startet.
 # Verhindert Schlaege, die seitlich am Spieler vorbeigehen, weil der Gegner
@@ -8495,7 +8560,15 @@ func _physics_process(delta: float) -> void:
 
 	# Sanfte Separation von anderen Gegnern draufaddieren — verhindert,
 	# dass sie sich stapeln/ueberlappen, ohne harte Physik-Pops.
-	velocity += _get_separation_velocity()
+	#
+	# WAEHREND EINES ANGRIFFS wird sie stark gedaempft. Siehe die
+	# ausfuehrliche Begruendung bei attack_separation_factor: ohne die
+	# Daempfung schiebt sich ein ausholender Gegner selbst aus seiner
+	# eigenen Reichweite und der Schlag geht ins Leere.
+	var separation: Vector3 = _get_separation_velocity()
+	if _is_attacking or _state == State.ATTACK:
+		separation *= clampf(attack_separation_factor, 0.0, 1.0)
+	velocity += separation
 
 	# Knockback-Puffer additiv drauf, NACH der State-Machine-Logik, damit er
 	# nicht von velocity.x/z = 0 (IDLE/ATTACK) oder move_toward (CHASE)
@@ -8521,6 +8594,12 @@ func _handle_standing_on_player() -> void:
 
 	# Cooldown aktiv: Impuls wurde bereits gesetzt, abwarten.
 	if _slide_cooldown > 0.0:
+		return
+
+	# Waehrend eines laufenden Angriffs KEIN Wegschubser. Der Impuls zeigt
+	# per Definition vom Spieler weg und wuerde denselben Effekt erzeugen
+	# wie die ungedaempfte Separation: Ausholen, wegrutschen, verfehlen.
+	if _is_attacking:
 		return
 
 	var to_player_xz: Vector3 = global_position - _player.global_position
@@ -9252,6 +9331,8 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 [ext_resource type="Texture2D" uid="uid://bd0s34jsplqb6" path="res://textures/image-removebg-preview (13).png" id="3_uo2fv"]
 [ext_resource type="PackedScene" uid="uid://bablslot001" path="res://scenes/ability_slot.tscn" id="4_abslot"]
 [ext_resource type="Script" path="res://scripts/run_timer.gd" id="5_timer"]
+[ext_resource type="Script" path="res://scripts/item_description_hud.gd" id="6_itemhud"]
+[ext_resource type="Script" path="res://scripts/stats_panel.gd" id="7_stats"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
 bg_color = Color(0.06, 0.06, 0.09, 0.82)
@@ -9574,6 +9655,35 @@ theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 20
 text = "COMBO!"
 horizontal_alignment = 1
+
+[node name="BottomLeft" type="VBoxContainer" parent="." unique_id=1613643600]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = -330.0
+offset_right = 244.0
+offset_bottom = -14.0
+grow_vertical = 0
+alignment = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ItemBar" type="VBoxContainer" parent="BottomLeft" unique_id=1613643601]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
+mouse_filter = 2
+script = ExtResource("6_itemhud")
+
+[node name="StatsPanel" type="PanelContainer" parent="BottomLeft" unique_id=1613643602]
+custom_minimum_size = Vector2(210, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
+mouse_filter = 2
+script = ExtResource("7_stats")
 
 
 ===== FILE: scenes\kill_gate.gd =====
@@ -16508,6 +16618,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage = 30.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=996971260]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
@@ -16521,7 +16632,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-damage = 9.0
+damage = 14.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=779664953]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
@@ -16541,6 +16652,8 @@ script = ExtResource("3_qhqgy")
 
 [node name="Combat" type="Node" parent="." unique_id=1214410704]
 script = ExtResource("5_qlg0r")
+
+
 
 
 ===== FILE: scenes\rooms\boss\room_boss_01.tscn =====
@@ -23731,6 +23844,10 @@ class_name WinScreen
 var _time_label: Label = null
 
 var _blur_overlay: ColorRect = null
+
+## Ueberschrift ueber der Item-Liste.
+const ITEM_LIST_TITLE: String = "DIESER RUN"
+var _item_list: ItemSummaryList = null
 var _pause_menu: PauseMenu = null
 
 ## Leaderboard-Block wird - wie das Zeit-Label - zur Laufzeit gebaut,
@@ -23763,6 +23880,7 @@ func _ready() -> void:
 
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+	_build_item_list()
 
 
 ## Setzt das Zeit-Label direkt unter die Ueberschrift (Index 1), damit es
@@ -23966,6 +24084,37 @@ func _on_quit_pressed() -> void:
 	get_tree().quit()
 
 
+# ============================================================================
+# Item-Uebersicht
+# ============================================================================
+# Wird zur Laufzeit gebaut, damit keine der Szenen angefasst werden muss, in
+# denen dieser Screen instanziiert ist — dieselbe Begruendung wie beim
+# Zeit-Label und beim Leaderboard-Block.
+func _build_item_list() -> void:
+	if _item_list != null and is_instance_valid(_item_list):
+		return
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Item-Liste faellt aus." % name)
+		return
+
+	_item_list = ItemSummaryList.create(ITEM_LIST_TITLE)
+	column.add_child(_item_list)
+	# Vor den ersten Button schieben: die Liste ist Information, die Buttons
+	# sind die Handlung. Umgekehrt muesste man an den Buttons vorbeilesen.
+	column.move_child(_item_list, _first_button_index(column))
+
+
+## Index des ersten Buttons in der Spalte. Ueber den Typ gesucht statt ueber
+## einen festen Index, weil die drei Screens unterschiedlich viele Labels
+## ueber den Buttons haben.
+func _first_button_index(column: VBoxContainer) -> int:
+	for i: int in range(column.get_child_count()):
+		if column.get_child(i) is Button:
+			return i
+	return column.get_child_count()
+
+
 ===== FILE: scripts\ability_slot.gd =====
 
 extends Control
@@ -24070,19 +24219,49 @@ class_name Bomb
 # ueberlappende CharacterBody3D-Nodes einsammelt und ihnen anhand ihrer
 # eigenen Geschwindigkeit einen passenden Impuls auf die Bombe uebersetzt.
 # Ohne diesen Umweg fuehlt sich die Bombe an wie ein festgeschraubter Stein.
+#
+# ---------------------------------------------------------------------------
+# AENDERUNG: GROESSERE EXPLOSION UND WEITERE WUERFE
+# ---------------------------------------------------------------------------
+# explosion_radius liegt jetzt bei 9.0 statt 4.5 — also 4x4 Kacheln statt
+# 2x2. Damit sind zwei Folgeaenderungen zwingend, sonst fuehlt sich die
+# groessere Bombe schlechter an als die kleine:
+#
+#   * SELBSTSCHADEN-RADIUS ist ENTKOPPELT (self_damage_radius_factor).
+#     Bei 9 m Radius steht der Spieler nach einem Wurf fast immer noch in
+#     der eigenen Explosion. Ohne eigenen, kleineren Radius fuer Eigen-
+#     schaden waere die Bombe kein Werkzeug mehr, sondern eine Falle — und
+#     zwar eine, die der Spieler nicht sehen kann. Der Schaden am eigenen
+#     Koerper bleibt also auf den Kern beschraenkt (Standard 55 % des
+#     Radius); wer nah dran steht, wird weiterhin bestraft.
+#
+#   * FLUGMODUS (launch()). Die eigentliche Ursache fuer kurze Wuerfe war
+#     NICHT die Wurfkraft, sondern linear_damp = 3.0: eine geworfene Bombe
+#     verlor ihre Geschwindigkeit schon in der Luft und fiel wie ein nasser
+#     Sack. Waehrend des Flugs laeuft die Bombe deshalb mit sehr geringer
+#     Daempfung; erst bei Bodenkontakt wird auf die hohe Roll-Daempfung
+#     umgeschaltet, damit sie liegenbleibt statt wie eine Bowlingkugel
+#     durch den Raum zu schiessen. Einfach nur den Impuls hochzudrehen
+#     haette eine Bombe ergeben, die weit fliegt UND unkontrolliert
+#     weiterrollt.
 
 signal exploded(position: Vector3)
 
 @export var fuse_time: float = 2.0
 @export var damage: float = 50.0
 
-## Standardmaessig 2 x 2 Kacheln. Die Kachelgroesse haengt am Level-Setup —
-## bei 2,25 m pro Kachel entspricht ein Radius von 4,5 genau einem 2x2-Feld
-## um die Bombe herum. Notfalls hier nachziehen, nicht im Explosionscode.
-@export var explosion_radius: float = 4.5
+## Deutlich groesser als die urspruenglichen 4,5. Bei ca. 2,25 m pro Kachel
+## entspricht 9,0 einem Areal von rund 4x4 Kacheln um die Bombe herum.
+## Notfalls hier nachziehen, nicht im Explosionscode.
+@export var explosion_radius: float = 9.0
 
-## Wie stark Getroffene weggeschoben werden.
-@export var knockback_force: float = 16.0
+## Anteil des Explosionsradius, in dem der SPIELER Schaden nimmt. Siehe
+## Begruendung im Kopf der Datei.
+@export_range(0.1, 1.0) var self_damage_radius_factor: float = 0.55
+
+## Wie stark Getroffene weggeschoben werden. Mit dem groesseren Radius
+## angehoben, damit der Rand der Explosion noch spuerbar ist.
+@export var knockback_force: float = 26.0
 
 ## Wie stark der Spieler die Bombe wegschieben kann.
 @export var push_strength: float = 5.0
@@ -24093,6 +24272,18 @@ signal exploded(position: Vector3)
 ## Anteil des Schadens, den der Spieler abbekommt.
 @export_range(0.0, 1.0) var self_damage_ratio: float = 0.5
 
+## --- Flug- und Rollverhalten -----------------------------------------
+## Daempfung, solange die Bombe fliegt. Nahe 0 = echte Wurfparabel.
+@export var flight_damp: float = 0.12
+## Daempfung am Boden. Hoch, damit die Bombe nach kurzem Rollen liegt.
+@export var ground_damp: float = 3.0
+## Notbremse: nach so vielen Sekunden endet der Flugmodus auf jeden Fall.
+## Ohne diese Grenze bliebe eine Bombe, die in einer Ecke haengt und den
+## Boden-Raycast nie ausloest, dauerhaft ungedaempft.
+@export var max_flight_time: float = 2.5
+## Wie weit unter dem Bombenmittelpunkt nach Boden gesucht wird.
+@export var ground_probe_length: float = 0.45
+
 @export var debug_logging: bool = false
 
 var _fuse_remaining: float = 0.0
@@ -24100,6 +24291,8 @@ var _exploded: bool = false
 var _mesh: MeshInstance3D = null
 var _push_area: Area3D = null
 var _blink_accumulator: float = 0.0
+var _in_flight: bool = false
+var _flight_time: float = 0.0
 
 ## Wer die Bombe gelegt hat. Wird als Schadensquelle durchgereicht, damit
 ## Health.last_damage_source (Richtung der Todesanimation) stimmt.
@@ -24117,10 +24310,7 @@ func _ready() -> void:
 	_fuse_remaining = fuse_time
 
 	mass = 2.5
-	# Hohe lineare Daempfung: eine Bombe soll angeschoben ein Stueck rollen
-	# und dann liegenbleiben, nicht wie eine Bowlingkugel durch den Raum
-	# schiessen.
-	linear_damp = 3.0
+	linear_damp = ground_damp
 	angular_damp = 4.0
 	continuous_cd = true
 	contact_monitor = false
@@ -24180,11 +24370,58 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_fuse_remaining -= delta
+	_update_flight(delta)
 	_update_blink(delta)
 	_apply_push_from_bodies()
 
 	if _fuse_remaining <= 0.0:
 		explode()
+
+
+# ============================================================================
+# Wurf und Flug
+# ============================================================================
+## Vom BombCarrier statt apply_central_impulse() aufzurufen. Setzt zusaetzlich
+## die Daempfung fuer die Flugphase herunter — genau das entscheidet ueber die
+## Wurfweite.
+func launch(impulse: Vector3) -> void:
+	if impulse.length() <= 0.01:
+		return
+	_in_flight = true
+	_flight_time = 0.0
+	linear_damp = flight_damp
+	apply_central_impulse(impulse)
+	_debug("Geworfen mit Impuls %.1f." % impulse.length())
+
+
+## Beendet den Flugmodus, sobald die Bombe Boden beruehrt oder die Notbremse
+## greift. Der Raycast fragt die echte Welt ab statt sich auf
+## linear_velocity.y zu verlassen: am Scheitelpunkt der Wurfparabel ist die
+## Vertikalgeschwindigkeit ebenfalls 0, und die Bombe wuerde mitten in der
+## Luft abgebremst.
+func _update_flight(delta: float) -> void:
+	if not _in_flight:
+		return
+
+	_flight_time += delta
+	if _flight_time >= max_flight_time or _is_grounded():
+		_in_flight = false
+		linear_damp = ground_damp
+		_debug("Landung nach %.2f s." % _flight_time)
+
+
+func _is_grounded() -> bool:
+	var world: World3D = get_world_3d()
+	if world == null:
+		return true
+
+	var query := PhysicsRayQueryParameters3D.create(
+		global_position,
+		global_position + Vector3(0.0, -ground_probe_length, 0.0)
+	)
+	query.collide_with_areas = false
+	query.exclude = [get_rid()]
+	return not world.direct_space_state.intersect_ray(query).is_empty()
 
 
 ## Das Blinken beschleunigt sich, je kuerzer die Zuendschnur wird — das ist
@@ -24246,41 +24483,43 @@ func explode() -> void:
 	exploded.emit(origin)
 
 	Juice.hit_stop(Juice.DURATION_EXPLOSION)
-	Juice.shake(0.9)
+	# Mit dem groesseren Radius auch mehr Wucht auf der Kamera.
+	Juice.shake(1.4)
 
 	_spawn_flash(origin)
 	queue_free()
 
 
 func _damage_targets(origin: Vector3) -> void:
-	# Gegner
+	# Gegner — voller Radius.
 	for node: Node in get_tree().get_nodes_in_group("enemies"):
 		if not (node is Node3D) or not is_instance_valid(node):
 			continue
-		_damage_one(node as Node3D, origin, damage)
+		_damage_one(node as Node3D, origin, damage, explosion_radius)
 
-	# Spieler
+	# Spieler — nur der Kern der Explosion.
 	if not damages_player:
 		return
+	var self_radius: float = explosion_radius * self_damage_radius_factor
 	for node: Node in get_tree().get_nodes_in_group("player"):
 		if not (node is Node3D) or not is_instance_valid(node):
 			continue
-		_damage_one(node as Node3D, origin, damage * self_damage_ratio)
+		_damage_one(node as Node3D, origin, damage * self_damage_ratio, self_radius)
 
 
 ## Schaden faellt linear mit der Entfernung ab. Am Rand des Radius bleiben
 ## noch 40 % uebrig: ein harter Cutoff fuehlt sich unfair an, weil man den
 ## Radius im Spiel nicht sieht.
-func _damage_one(target: Node3D, origin: Vector3, full_damage: float) -> void:
+func _damage_one(target: Node3D, origin: Vector3, full_damage: float, radius: float) -> void:
 	var distance: float = target.global_position.distance_to(origin)
-	if distance > explosion_radius:
+	if distance > radius:
 		return
 
 	var health := target.find_child("Health", true, false) as Health
 	if health == null or not health.is_alive():
 		return
 
-	var falloff: float = lerpf(1.0, 0.4, clampf(distance / maxf(explosion_radius, 0.01), 0.0, 1.0))
+	var falloff: float = lerpf(1.0, 0.4, clampf(distance / maxf(radius, 0.01), 0.0, 1.0))
 	health.take_damage(full_damage * falloff, thrower if thrower else self)
 
 	if target.get("is_heavy") == true:
@@ -24317,25 +24556,35 @@ func trigger_now() -> void:
 	explode()
 
 
-## Kurzer, heller Blitz als Platzhalter fuer ein richtiges VFX. Sobald es
-## eine Partikelszene gibt, hier VFX.spawn() aufrufen und diese Funktion
-## loeschen.
+# ============================================================================
+# Explosions-VFX
+# ============================================================================
+## Drei Ebenen statt einer einzelnen Kugel: greller Kern, aufreissende
+## Feuerkugel auf VOLLEM Radius und eine flache Schockwelle am Boden.
+##
+## Die Schockwelle ist der wichtigste Teil: sie ist das einzige Element, das
+## dem Spieler zeigt, WIE WEIT die Explosion tatsaechlich reicht. Bei 9 m
+## Radius ist das kein Detail mehr — ohne diese Rueckmeldung wirkt jeder
+## Treffer am Rand wie ein Zufallstreffer.
 func _spawn_flash(origin: Vector3) -> void:
 	var parent: Node = get_tree().current_scene
 	if parent == null:
 		return
 
+	_spawn_fireball(parent, origin)
+	_spawn_core(parent, origin)
+	_spawn_shockwave(parent, origin)
+	_spawn_light(parent, origin)
+
+
+func _spawn_fireball(parent: Node, origin: Vector3) -> void:
 	var sphere := SphereMesh.new()
 	sphere.radius = explosion_radius * 0.5
 	sphere.height = explosion_radius
 	sphere.radial_segments = 12
 	sphere.rings = 8
 
-	var material := StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color = Color(1.0, 0.75, 0.30, 0.65)
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var material := _make_flash_material(Color(1.0, 0.62, 0.22, 0.62))
 
 	var flash := MeshInstance3D.new()
 	flash.mesh = sphere
@@ -24343,18 +24592,104 @@ func _spawn_flash(origin: Vector3) -> void:
 	flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(flash)
 	flash.global_position = origin
-	flash.scale = Vector3.ONE * 0.3
+	flash.scale = Vector3.ONE * 0.25
 
 	var tween := flash.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(flash, "scale", Vector3.ONE * 1.15, 0.22)\
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(material, "albedo_color:a", 0.0, 0.28)
+	tween.tween_property(flash, "scale", Vector3.ONE * 1.05, 0.30) \
+		.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.42)
 	tween.chain().tween_callback(flash.queue_free)
+
+
+func _spawn_core(parent: Node, origin: Vector3) -> void:
+	var sphere := SphereMesh.new()
+	sphere.radius = explosion_radius * 0.22
+	sphere.height = explosion_radius * 0.44
+	sphere.radial_segments = 10
+	sphere.rings = 6
+
+	var material := _make_flash_material(Color(1.0, 0.97, 0.85, 0.95))
+
+	var core := MeshInstance3D.new()
+	core.mesh = sphere
+	core.material_override = material
+	core.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(core)
+	core.global_position = origin
+	core.scale = Vector3.ONE * 0.4
+
+	var tween := core.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(core, "scale", Vector3.ONE * 1.3, 0.14) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.18)
+	tween.chain().tween_callback(core.queue_free)
+
+
+## Flacher, sich aufweitender Zylinder direkt ueber dem Boden. Startet bei
+## Radius 0 und endet exakt auf explosion_radius — die Kante der Welle IST
+## die Reichweitenanzeige.
+func _spawn_shockwave(parent: Node, origin: Vector3) -> void:
+	var ring := CylinderMesh.new()
+	ring.top_radius = 1.0
+	ring.bottom_radius = 1.0
+	ring.height = 0.35
+	ring.radial_segments = 24
+	ring.rings = 1
+
+	var material := _make_flash_material(Color(1.0, 0.85, 0.55, 0.45))
+
+	var wave := MeshInstance3D.new()
+	wave.mesh = ring
+	wave.material_override = material
+	wave.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(wave)
+	wave.global_position = origin + Vector3(0.0, 0.2, 0.0)
+	wave.scale = Vector3(0.2, 1.0, 0.2)
+
+	var tween := wave.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(wave, "scale", Vector3(explosion_radius, 0.35, explosion_radius), 0.34) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.38)
+	tween.chain().tween_callback(wave.queue_free)
+
+
+## Kurzer Lichtblitz. Ohne ihn bleibt die Umgebung waehrend der Explosion
+## unveraendert dunkel, und die Wucht endet an der Kante der Meshes.
+func _spawn_light(parent: Node, origin: Vector3) -> void:
+	var light := OmniLight3D.new()
+	light.light_color = Color(1.0, 0.72, 0.35)
+	light.light_energy = 6.0
+	light.omni_range = explosion_radius * 1.4
+	light.shadow_enabled = false
+	parent.add_child(light)
+	light.global_position = origin + Vector3(0.0, 0.8, 0.0)
+
+	var tween := light.create_tween()
+	tween.tween_property(light, "light_energy", 0.0, 0.32) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(light.queue_free)
+
+
+func _make_flash_material(color: Color) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.albedo_color = color
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.disable_receive_shadows = true
+	return material
 
 
 func get_fuse_remaining() -> float:
 	return _fuse_remaining
+
+
+func is_in_flight() -> bool:
+	return _in_flight
 
 
 ===== FILE: scripts\bomb_carrier.gd =====
@@ -24384,6 +24719,23 @@ class_name BombCarrier
 # stillgelegt (set_process(false)). Das ist derselbe Ansatz, den Godot
 # selbst fuer sich gegenseitig ausschliessende Zustaende empfiehlt, und er
 # kommt ohne einen Eingriff in combat_base.gd aus.
+#
+# ---------------------------------------------------------------------------
+# AENDERUNG: DEUTLICH WEITERE WUERFE
+# ---------------------------------------------------------------------------
+# throw_force liegt jetzt bei 26 statt 14, throw_arc bei 9 statt 5. Der
+# entscheidende Teil steckt aber NICHT in diesen Zahlen, sondern in
+# Bomb.launch(): die Bombe lief bisher schon in der Luft mit
+# linear_damp = 3.0 und verlor ihren Schwung, bevor sie ueberhaupt
+# irgendwo ankam. Ein hoeherer Impuls allein haette daran wenig geaendert —
+# er waere einfach schneller weggedaempft worden. launch() senkt die
+# Daempfung fuer die Flugphase und stellt sie bei Bodenkontakt wieder her.
+#
+# BLICKRICHTUNG: das Projekt nutzt +Z als Vorne. _get_forward() gibt
+# deshalb bewusst -basis.z des CameraPivot zurueck (Godots eigene
+# Vorwaertsachse), weil hier die KAMERA-Blickrichtung gemeint ist und nicht
+# die Charakter-Ausrichtung. Wer das auf die Figur umstellt, muss auf +Z
+# wechseln — sonst wirft der Spieler nach hinten.
 
 signal bomb_equipped(fuse_remaining: float)
 signal bomb_released
@@ -24396,12 +24748,19 @@ const BOMB_ACTION: String = "bomb"
 ## Wie weit vor dem Spieler eine abgelegte Bombe landet.
 @export var place_distance: float = 1.2
 ## Wurfkraft nach vorne.
-@export var throw_force: float = 14.0
+@export var throw_force: float = 26.0
 ## Zusaetzlicher Bogen nach oben, damit der Wurf nicht am Boden entlangschrammt.
-@export var throw_arc: float = 5.0
+@export var throw_arc: float = 9.0
 ## Zuendschnur — bewusst hier und nicht in bomb.gd, damit Items sie spaeter
 ## verlaengern koennen, ohne die Bombe selbst zu kennen.
 @export var fuse_time: float = 2.0
+
+## Vorschau-Bogen, waehrend die Bombe in der Hand liegt. Bei der neuen
+## Wurfweite kann man das Ziel sonst nicht mehr abschaetzen: die Bombe
+## fliegt weiter, als der Bildausschnitt bei enger Kamera hergibt.
+@export var show_aim_preview: bool = true
+@export var aim_preview_points: int = 14
+@export var aim_preview_step: float = 0.075
 
 var _player: CharacterBody3D = null
 var _combat: CombatBase = null
@@ -24410,6 +24769,8 @@ var _pivot: Node3D = null
 var _equipped: bool = false
 var _fuse_remaining: float = 0.0
 var _held_visual: Node3D = null
+var _aim_preview: Node3D = null
+var _aim_dots: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:
@@ -24433,6 +24794,7 @@ func _process(delta: float) -> void:
 
 	_fuse_remaining -= delta
 	fuse_ticked.emit(_fuse_remaining)
+	_update_aim_preview()
 
 	if _fuse_remaining <= 0.0:
 		# In der Hand hochgegangen. Die Bombe wird trotzdem gespawnt, damit
@@ -24472,6 +24834,7 @@ func _equip() -> void:
 	_fuse_remaining = fuse_time
 	_set_combat_enabled(false)
 	_build_held_visual()
+	_build_aim_preview()
 	bomb_equipped.emit(_fuse_remaining)
 
 
@@ -24492,6 +24855,7 @@ func _release_bomb(impulse: Vector3) -> Bomb:
 	_equipped = false
 	_set_combat_enabled(true)
 	_clear_held_visual()
+	_clear_aim_preview()
 	bomb_released.emit()
 
 	var parent: Node = get_tree().current_scene
@@ -24508,10 +24872,16 @@ func _release_bomb(impulse: Vector3) -> Bomb:
 	bomb.set("_fuse_remaining", maxf(_fuse_remaining, 0.05))
 
 	var forward: Vector3 = _get_forward()
-	bomb.global_position = _player.global_position + forward * place_distance + Vector3(0.0, 0.4, 0.0)
+	# Etwas hoeher als frueher (0.9 statt 0.4): der Wurf startet damit auf
+	# Brusthoehe statt an den Fuessen. Bei der groesseren Wurfweite ist das
+	# der Unterschied zwischen einer Parabel und einem Aufprall auf der
+	# naechsten Stufe.
+	bomb.global_position = _player.global_position + forward * place_distance + Vector3(0.0, 0.9, 0.0)
 
+	# launch() statt apply_central_impulse(): nur so faellt die Daempfung
+	# fuer die Flugphase weg. Siehe Kopf der Datei.
 	if impulse.length() > 0.01:
-		bomb.apply_central_impulse(impulse)
+		bomb.launch(impulse)
 
 	return bomb
 
@@ -24568,6 +24938,82 @@ func _clear_held_visual() -> void:
 	if _held_visual and is_instance_valid(_held_visual):
 		_held_visual.queue_free()
 	_held_visual = null
+
+
+# ============================================================================
+# Ziel-Vorschau
+# ============================================================================
+# Punktreihe entlang der Wurfparabel. Sie wird NICHT physikalisch simuliert,
+# sondern analytisch berechnet (p = p0 + v*t + 0.5*g*t^2). Eine echte
+# Simulation muesste die Bombe probeweise durch die Welt schicken, und das
+# jeden Frame — fuer eine reine Zielhilfe waere das voellig unverhaeltnis-
+# maessig. Die Punkte ignorieren deshalb Hindernisse; sie zeigen die
+# Flugbahn, nicht den Einschlag.
+func _build_aim_preview() -> void:
+	_clear_aim_preview()
+	if not show_aim_preview:
+		return
+
+	_aim_preview = Node3D.new()
+	_aim_preview.name = "BombAimPreview"
+	# Direkt an die Szene, nicht an den Spieler: sonst wandern die Punkte
+	# mit, sobald sich der Spieler beim Zielen dreht.
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		return
+	parent.add_child(_aim_preview)
+
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.09
+	sphere.height = 0.18
+	sphere.radial_segments = 6
+	sphere.rings = 3
+
+	for i: int in range(aim_preview_points):
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		# Nach hinten ausblenden: die Bahn soll gerichtet wirken.
+		var fade: float = 1.0 - float(i) / float(maxi(aim_preview_points, 1))
+		material.albedo_color = Color(1.0, 0.55, 0.25, 0.25 + fade * 0.55)
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+		var dot := MeshInstance3D.new()
+		dot.mesh = sphere
+		dot.material_override = material
+		dot.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		dot.scale = Vector3.ONE * (0.5 + fade * 0.8)
+		_aim_preview.add_child(dot)
+		_aim_dots.append(dot)
+
+
+func _update_aim_preview() -> void:
+	if _aim_preview == null or not is_instance_valid(_aim_preview):
+		return
+	if _player == null or not is_instance_valid(_player):
+		return
+
+	var forward: Vector3 = _get_forward()
+	var start: Vector3 = _player.global_position + forward * place_distance + Vector3(0.0, 0.9, 0.0)
+
+	# Impuls / Masse = Startgeschwindigkeit. Die Masse steht in bomb.gd auf
+	# 2.5 — wer sie dort aendert, muss sie hier mitziehen, sonst zeigt die
+	# Vorschau eine andere Bahn als der tatsaechliche Wurf.
+	var velocity: Vector3 = (forward * throw_force + Vector3.UP * throw_arc) / 2.5
+	var gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
+
+	for i: int in range(_aim_dots.size()):
+		var t: float = float(i + 1) * aim_preview_step
+		var point: Vector3 = start + velocity * t + Vector3.DOWN * (0.5 * gravity * t * t)
+		_aim_dots[i].global_position = point
+
+
+func _clear_aim_preview() -> void:
+	_aim_dots.clear()
+	if _aim_preview and is_instance_valid(_aim_preview):
+		_aim_preview.queue_free()
+	_aim_preview = null
 
 
 func is_equipped() -> bool:
@@ -25638,6 +26084,10 @@ class_name DeathScreen
 
 var _health_node: Health
 var _blur_overlay: ColorRect = null
+
+## Ueberschrift ueber der Item-Liste.
+const ITEM_LIST_TITLE: String = "DIESER RUN"
+var _item_list: ItemSummaryList = null
 var _pause_menu: PauseMenu = null
 
 
@@ -25658,6 +26108,7 @@ func _ready() -> void:
 
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+	_build_item_list()
 
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
@@ -25800,11 +26251,20 @@ func _get_killer_name() -> String:
 	return source.name
 
 
+## Die alte Fassung schrieb hier fest "Keine Items gesammelt" hinein — ein
+## Platzhalter aus der Zeit vor dem Item-System, der nie ersetzt wurde. Genau
+## deshalb sah die Auflistung nach jedem Run gleich aus, egal was man
+## eingesammelt hatte.
+##
+## Die eigentliche Liste baut jetzt ItemSummaryList. Das alte Label wird nur
+## noch versteckt statt geloescht, damit die Szenendatei unveraendert bleibt.
 func _update_items_display() -> void:
-	# PLATZHALTER: Sobald dein Item-System existiert, hier die tatsächlich
-	# gesammelten Items reinschreiben, z.B.:
-	#   items_label.text = "\n".join(item_names)
-	items_label.text = "Keine Items gesammelt"
+	if items_label:
+		items_label.visible = false
+	if items_box:
+		items_box.visible = false
+	if _item_list and is_instance_valid(_item_list):
+		_item_list.refresh()
 
 
 func _on_restart_pressed() -> void:
@@ -25816,6 +26276,37 @@ func _on_restart_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+# ============================================================================
+# Item-Uebersicht
+# ============================================================================
+# Wird zur Laufzeit gebaut, damit keine der Szenen angefasst werden muss, in
+# denen dieser Screen instanziiert ist — dieselbe Begruendung wie beim
+# Zeit-Label und beim Leaderboard-Block.
+func _build_item_list() -> void:
+	if _item_list != null and is_instance_valid(_item_list):
+		return
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Item-Liste faellt aus." % name)
+		return
+
+	_item_list = ItemSummaryList.create(ITEM_LIST_TITLE)
+	column.add_child(_item_list)
+	# Vor den ersten Button schieben: die Liste ist Information, die Buttons
+	# sind die Handlung. Umgekehrt muesste man an den Buttons vorbeilesen.
+	column.move_child(_item_list, _first_button_index(column))
+
+
+## Index des ersten Buttons in der Spalte. Ueber den Typ gesucht statt ueber
+## einen festen Index, weil die drei Screens unterschiedlich viele Labels
+## ueber den Buttons haben.
+func _first_button_index(column: VBoxContainer) -> int:
+	for i: int in range(column.get_child_count()):
+		if column.get_child(i) is Button:
+			return i
+	return column.get_child_count()
 
 
 ===== FILE: scripts\det_rng.gd =====
@@ -26865,99 +27356,70 @@ func _play_combo_expire_animation() -> void:
 extends Node
 
 # ============================================================================
-# HudExtra — Autoload, das die neuen HUD-Elemente in JEDE Szene einhaengt.
+# HudExtra — Autoload, das nur noch das Reset-Overlay bereitstellt.
 # Muss unter Project Settings -> Autoload als "HudExtra" stehen.
 # ============================================================================
 #
-# WARUM EIN AUTOLOAD STATT NODES IN hud.tscn:
-# hud.tscn wird nicht in jeder Szene benutzt (Testlevel, Menue-Szenen), und
-# jede Aenderung daran betrifft eine Datei, an der ohnehin schon viel
-# haengt. Ein eigener CanvasLayer ueber allem ist unabhaengig davon,
-# ueberlebt reload_current_scene() und braucht keinen einzigen Klick im
-# Editor.
+# WAS SICH GEAENDERT HAT
+# ----------------------
+# Dieses Autoload hat frueher auch das Stats-Panel und die Item-Anzeige
+# gebaut und in einen eigenen CanvasLayer gehaengt. Beides sitzt jetzt als
+# echter Node in hud.tscn (BottomLeft/StatsPanel und BottomLeft/ItemBar).
 #
-# LAYER 10: hoch genug, um ueber dem normalen HUD zu liegen, aber unter
-# typischen Pause-/Death-Screens (die liegen meist bei 100+). Das
-# Reset-Overlay muss beim Abblenden das komplette Spiel verdecken, deshalb
-# sitzt es in einem eigenen, hoeheren Layer.
+# WARUM DER UMZUG RICHTIG IST:
+# Es gab damit zwei getrennte HUD-Systeme mit zwei getrennten Layouts, zwei
+# Sichtbarkeitslogiken und zwei Stellen, an denen man nach einem verrutschten
+# Element sucht. Ein Element, das aussieht wie HUD und sich verhaelt wie HUD,
+# gehoert in die HUD-Szene — dann sieht man es im Editor an der richtigen
+# Stelle liegen, kann es dort verschieben und muss den Abstand zum Bildrand
+# nicht als Konstante in einem Script pflegen.
+#
+# WAS DER UMZUG KOSTET (bewusst in Kauf genommen):
+# Szenen OHNE hud.tscn — also die reinen Testlevel — haben jetzt kein
+# Stats-Panel und keine Item-Leiste mehr. Genau dafuer gab es dieses
+# Autoload. Wer im Testlevel beides braucht, zieht hud.tscn dort einmal als
+# Kind in die Szene; das ist ein Handgriff und dafuer eine Anzeige weniger,
+# die sich anders verhaelt als im echten Spiel.
+#
+# WARUM DAS RESET-OVERLAY HIER BLEIBT:
+# Es ist kein HUD-Element, sondern eine Vollbild-Abdunklung, die beim Halten
+# von [R] das komplette Spiel verdecken muss — inklusive HUD, Pause-Menue und
+# allem anderen. Es braucht deshalb einen eigenen, sehr hohen CanvasLayer und
+# PROCESS_MODE_ALWAYS. In hud.tscn waere es zwangslaeufig unter dem HUD und
+# wuerde beim Ausblenden des HUD mitverschwinden.
 
-const HUD_LAYER: int = 10
+## Sehr hoch: das Overlay muss beim Abblenden ueber Pause- und Death-Screen
+## liegen (die sitzen typischerweise bei 100+).
 const OVERLAY_LAYER: int = 128
 
-## Abstand der Panels zum Bildschirmrand.
-const MARGIN: float = 14.0
-## Wie weit das Stats-Panel unter dem oberen Rand beginnt. Bewusst so
-## gewaehlt, dass es NICHT mit der Minimap kollidiert, die links oben sitzt.
-const STATS_TOP_OFFSET: float = 250.0
-
-var hud_layer: CanvasLayer = null
 var overlay_layer: CanvasLayer = null
-
-var stats_panel: StatsPanel = null
-var item_hud: ItemDescriptionHud = null
 var reset_overlay: ResetOverlay = null
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_build_layers()
+	_build_overlay_layer()
 
 
-func _build_layers() -> void:
-	hud_layer = CanvasLayer.new()
-	hud_layer.name = "HudExtraLayer"
-	hud_layer.layer = HUD_LAYER
-	add_child(hud_layer)
-
+func _build_overlay_layer() -> void:
 	overlay_layer = CanvasLayer.new()
 	overlay_layer.name = "ResetLayer"
 	overlay_layer.layer = OVERLAY_LAYER
 	overlay_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(overlay_layer)
 
-	_build_stats_panel()
-	_build_item_hud()
-	_build_reset_overlay()
-
-
-## Links, unterhalb der Minimap.
-func _build_stats_panel() -> void:
-	stats_panel = StatsPanel.new()
-	stats_panel.name = "StatsPanel"
-	stats_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	stats_panel.grow_horizontal = Control.GROW_DIRECTION_END
-	stats_panel.grow_vertical = Control.GROW_DIRECTION_END
-	stats_panel.position = Vector2(MARGIN, STATS_TOP_OFFSET)
-	stats_panel.custom_minimum_size = Vector2(190.0, 0.0)
-	hud_layer.add_child(stats_panel)
-
-
-## Unten links, waechst nach oben.
-func _build_item_hud() -> void:
-	item_hud = ItemDescriptionHud.new()
-	item_hud.name = "ItemDescriptionHud"
-	item_hud.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	item_hud.grow_horizontal = Control.GROW_DIRECTION_END
-	# Nach OBEN wachsen: sonst schiebt eine laenger werdende Item-Liste den
-	# Block aus dem Bild heraus.
-	item_hud.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	item_hud.position = Vector2(MARGIN, -MARGIN)
-	item_hud.alignment = BoxContainer.ALIGNMENT_END
-	# Bewusst im normalen HUD-Layer und nicht im Overlay-Layer: das Item-HUD
-	# gehoert zum Spielbild und soll von der Reset-Abblende verdeckt werden.
-	hud_layer.add_child(item_hud)
-
-
-func _build_reset_overlay() -> void:
 	reset_overlay = ResetOverlay.new()
 	reset_overlay.name = "ResetOverlay"
 	overlay_layer.add_child(reset_overlay)
 
 
-## Blendet alle Zusatz-Elemente aus — z.B. fuer Screenshots oder Cutscenes.
-func set_extra_hud_visible(is_visible: bool) -> void:
-	if hud_layer:
-		hud_layer.visible = is_visible
+## Schaltet das Reset-Overlay ab — z.B. fuer Screenshots oder Cutscenes, in
+## denen ein versehentlich gehaltenes [R] nicht abdunkeln soll.
+func set_overlay_enabled(enabled: bool) -> void:
+	if overlay_layer:
+		overlay_layer.visible = enabled
+	if reset_overlay:
+		reset_overlay.set_process_input(enabled)
 
 
 ===== FILE: scripts\item_behaviours.gd =====
@@ -27715,40 +28177,104 @@ extends VBoxContainer
 class_name ItemDescriptionHud
 
 # ============================================================================
-# ItemDescriptionHud — unten links: Liste der gesammelten Items plus eine
-# ausfuehrliche Karte, sobald etwas Neues aufgenommen wurde.
+# ItemDescriptionHud — Chip-Leiste unten links + freischwebende Item-Karte.
 # ============================================================================
+# Sitzt als Node IN hud.tscn (BottomLeft/ItemBar) und ist damit Teil des
+# normalen HUD — kein eigener CanvasLayer, kein Autoload mehr.
+#
 # ZWEI EBENEN, WEIL ZWEI BEDUERFNISSE:
-#   * Beim Aufsammeln will man WISSEN, was das Ding tut -> grosse Karte mit
-#     Name, Flavour und Mechanik, blendet nach ein paar Sekunden aus.
+#   * Am Sockel will man WISSEN, was das Ding tut -> grosse Karte mittig auf
+#     dem Bildschirm, im freien Feld, gut lesbar.
 #   * Waehrend des Laufens will man nur SEHEN, was man hat -> kompakte
-#     Dauerliste darunter.
-# Eine einzige Anzeige haette entweder staendig den halben Bildschirm belegt
-# oder die Mechanik nie gezeigt.
+#     Chip-Leiste unten links.
+#
+# ---------------------------------------------------------------------------
+# WARUM DIE KARTE NICHT MEHR UNTEN LINKS HAENGT
+# ---------------------------------------------------------------------------
+# Unten links stand sie im selben Block wie die Chips und das Stats-Panel und
+# musste sich den Platz mit ihnen teilen — deshalb war sie schmal, deshalb
+# schob sie beim Einblenden alles darunter nach oben, und deshalb las man sie
+# beilaeufig statt bewusst.
+#
+# Jetzt haengt sie als eigenes Kind am HUD-Wurzelknoten, mittig verankert und
+# leicht unterhalb der Bildmitte. Dort ist der einzige wirklich freie Bereich:
+# darueber sitzt die Combo-Anzeige, rechts die Party- und Faehigkeitsleiste,
+# links unten Chips und Stats. Sie verdeckt damit nichts und ist trotzdem da,
+# wo der Blick beim Stehenbleiben ohnehin ist.
+#
+# WARUM SIE AM HUD-WURZELKNOTEN HAENGT UND NICHT AN DIESEM NODE:
+# Dieser Node steht in einem VBoxContainer unten links. Ein Container
+# ueberschreibt Position UND Groesse seiner Kinder bei jedem Layout-Durchlauf.
+# Eine mittig verankerte Karte darin waere nach dem naechsten Frame wieder
+# unten links — und zwar ohne Fehlermeldung.
+#
+# ---------------------------------------------------------------------------
+# SICHTBARKEITS-REGEL DER KARTE
+# ---------------------------------------------------------------------------
+#   * Sockel in Reichweite  -> Karte an, DAUERHAFT, bis man weggeht.
+#   * Sockel verlassen      -> Karte sofort weg (hide_item()).
+#   * Item aufgesammelt     -> Karte an, blendet nach card_display_time aus.
+# Vorher blieb die Karte nach jedem Trigger feste sechs Sekunden stehen — man
+# lief also mit der Beschreibung eines Items durch die Gegend, das drei Raeume
+# hinter einem lag.
 
 const HUD_ELEMENT: String = "items"
 
-## Wie lange die Detailkarte nach dem Aufsammeln stehen bleibt.
-@export var card_display_time: float = 6.0
-@export var card_fade_time: float = 0.6
+## Wie lange die Karte nach dem AUFSAMMELN stehen bleibt. Fuer die Anzeige am
+## Sockel gilt sie nicht — die haengt allein an der Entfernung.
+@export var card_display_time: float = 5.0
+@export var card_fade_time: float = 0.45
+
+## Breite der Chip-Leiste, bevor sie umbricht. Deckt sich mit der Breite des
+## Stats-Panels darunter, damit die Spalte buendig steht.
+@export var chip_row_width: float = 210.0
+
+## Groesse und Lage der Karte. offset_y wird von der Bildmitte aus gemessen;
+## positiv = nach unten.
+@export var card_width: float = 420.0
+@export var card_offset_y: float = 70.0
+
+const CHIP_SIZE: float = 26.0
+const BG_COLOR: Color = Color(0.045, 0.052, 0.065, 0.94)
+const MUTED_COLOR: Color = Color(0.62, 0.66, 0.72)
+const TEXT_COLOR: Color = Color(0.91, 0.91, 0.94)
 
 var _card: PanelContainer = null
+var _card_style: StyleBoxFlat = null
+var _card_icon: Panel = null
+var _card_icon_label: Label = null
 var _card_name: Label = null
+var _card_tag: Label = null
+var _card_tag_panel: PanelContainer = null
 var _card_flavor: Label = null
 var _card_description: Label = null
 var _card_charge: Label = null
+var _card_hint: Label = null
 
-var _list: VBoxContainer = null
+var _active_slot: PanelContainer = null
+var _active_name: Label = null
+var _active_pips: HBoxContainer = null
+
+var _chip_row: HFlowContainer = null
 var _items: Node = null
 var _card_tween: Tween = null
+## true = Karte haengt an einer Entfernung (Sockel) und blendet NICHT selbst aus.
+var _card_persistent: bool = false
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override("separation", 6)
+	# TreasurePedestal findet das HUD ueber diese Gruppe. Ein fester
+	# Knotenpfad waere bei der ersten Umbenennung in hud.tscn stillschweigend
+	# kaputtgegangen.
+	add_to_group("item_hud")
 
-	_build_card()
-	_build_list()
+	_build_active_slot()
+	_build_chip_row()
+	# Die Karte wird erst gebaut, wenn der Baum steht — sie braucht den
+	# HUD-Wurzelknoten als Elternteil.
+	_build_card.call_deferred()
 
 	_items = get_node_or_null("/root/Items")
 	if _items:
@@ -27762,80 +28288,174 @@ func _ready() -> void:
 	_apply_visibility()
 
 
-# ============================================================================
-# Aufbau
-# ============================================================================
-func _build_card() -> void:
-	_card = PanelContainer.new()
-	_card.custom_minimum_size = Vector2(340.0, 0.0)
-	_card.modulate.a = 0.0
-	_card.visible = false
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.07, 0.09, 0.88)
-	style.border_color = Color(0.98, 0.80, 0.22, 0.85)
-	style.set_border_width_all(1)
-	style.border_width_left = 3
-	style.set_corner_radius_all(3)
-	style.content_margin_left = 12.0
-	style.content_margin_right = 12.0
-	style.content_margin_top = 9.0
-	style.content_margin_bottom = 9.0
-	_card.add_theme_stylebox_override("panel", style)
-
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 3)
-	_card.add_child(column)
-
-	_card_name = Label.new()
-	_card_name.add_theme_font_size_override("font_size", 15)
-	_card_name.add_theme_color_override("font_color", Color(0.98, 0.94, 0.80))
-	column.add_child(_card_name)
-
-	_card_flavor = Label.new()
-	_card_flavor.add_theme_font_size_override("font_size", 11)
-	_card_flavor.add_theme_color_override("font_color", Color(0.62, 0.66, 0.72))
-	_card_flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(_card_flavor)
-
-	_card_description = Label.new()
-	_card_description.add_theme_font_size_override("font_size", 12)
-	_card_description.add_theme_color_override("font_color", Color(0.88, 0.88, 0.90))
-	_card_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(_card_description)
-
-	_card_charge = Label.new()
-	_card_charge.add_theme_font_size_override("font_size", 11)
-	_card_charge.add_theme_color_override("font_color", Color(0.45, 0.85, 0.95))
-	_card_charge.visible = false
-	column.add_child(_card_charge)
-
-	add_child(_card)
+func _exit_tree() -> void:
+	# Die Karte ist KEIN Kind dieses Nodes — sie wuerde beim Szenenwechsel
+	# sonst als Waise stehenbleiben.
+	if _card and is_instance_valid(_card):
+		_card.queue_free()
+	_card = null
 
 
-func _build_list() -> void:
-	_list = VBoxContainer.new()
-	_list.add_theme_constant_override("separation", 1)
-	add_child(_list)
+## Oberster Control-Vorfahr = der HUD-Wurzelknoten aus hud.tscn. Dort haengt
+## die Karte, weil er den ganzen Bildschirm aufspannt und kein Container ist.
+func _find_card_host() -> Control:
+	var host: Control = self
+	var node: Node = get_parent()
+	while node is Control:
+		host = node as Control
+		node = node.get_parent()
+	return host
 
 
 # ============================================================================
 # Detailkarte
 # ============================================================================
+func _build_card() -> void:
+	if _card != null and is_instance_valid(_card):
+		return
+
+	_card = PanelContainer.new()
+	_card.name = "ItemInfoCard"
+	_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card.visible = false
+	_card.modulate.a = 0.0
+
+	# Mittig verankert, um card_offset_y nach unten versetzt. Die Hoehe
+	# bleibt offen (offset_bottom = offset_top), PanelContainer waechst mit
+	# dem Inhalt.
+	_card.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_card.anchor_left = 0.5
+	_card.anchor_right = 0.5
+	_card.anchor_top = 0.5
+	_card.anchor_bottom = 0.5
+	_card.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_card.grow_vertical = Control.GROW_DIRECTION_END
+	_card.offset_left = -card_width * 0.5
+	_card.offset_right = card_width * 0.5
+	_card.offset_top = card_offset_y
+	_card.offset_bottom = card_offset_y
+	_card.pivot_offset = Vector2(card_width * 0.5, 0.0)
+
+	_card_style = StyleBoxFlat.new()
+	_card_style.bg_color = BG_COLOR
+	_card_style.border_color = Color(0.98, 0.80, 0.22, 0.85)
+	_card_style.set_border_width_all(1)
+	# Der breite Streifen links wird pro Item in die Item-Farbe gesetzt.
+	_card_style.border_width_left = 4
+	_card_style.set_corner_radius_all(2)
+	_card_style.content_margin_left = 14.0
+	_card_style.content_margin_right = 16.0
+	_card_style.content_margin_top = 12.0
+	_card_style.content_margin_bottom = 12.0
+	# Schlagschatten: die Karte schwebt jetzt ueber der Spielwelt statt in
+	# einer Bildschirmecke zu kleben und braucht eine Kante gegen unruhige
+	# Hintergruende.
+	_card_style.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
+	_card_style.shadow_size = 8
+	_card.add_theme_stylebox_override("panel", _card_style)
+
+	var outer := HBoxContainer.new()
+	outer.add_theme_constant_override("separation", 12)
+	_card.add_child(outer)
+
+	# --- Farbfeld links: dasselbe Kuerzel wie auf dem Chip -------------
+	_card_icon = Panel.new()
+	_card_icon.custom_minimum_size = Vector2(48.0, 48.0)
+	_card_icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_card_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	outer.add_child(_card_icon)
+
+	_card_icon_label = Label.new()
+	_card_icon_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_card_icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_card_icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_card_icon_label.add_theme_font_size_override("font_size", 18)
+	_card_icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card_icon.add_child(_card_icon_label)
+
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 3)
+	outer.add_child(column)
+
+	# --- Kopfzeile: Name + Kategorie-Tag -------------------------------
+	var title_row := HBoxContainer.new()
+	title_row.add_theme_constant_override("separation", 8)
+	column.add_child(title_row)
+
+	_card_name = Label.new()
+	_card_name.add_theme_font_size_override("font_size", 18)
+	_card_name.add_theme_color_override("font_color", Color(0.98, 0.95, 0.84))
+	title_row.add_child(_card_name)
+
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_row.add_child(spacer)
+
+	_card_tag_panel = PanelContainer.new()
+	_card_tag_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	title_row.add_child(_card_tag_panel)
+
+	_card_tag = Label.new()
+	_card_tag.add_theme_font_size_override("font_size", 10)
+	_card_tag_panel.add_child(_card_tag)
+
+	_card_flavor = Label.new()
+	_card_flavor.add_theme_font_size_override("font_size", 12)
+	_card_flavor.add_theme_color_override("font_color", MUTED_COLOR)
+	_card_flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_card_flavor)
+
+	_card_description = Label.new()
+	_card_description.add_theme_font_size_override("font_size", 14)
+	_card_description.add_theme_color_override("font_color", TEXT_COLOR)
+	_card_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_card_description)
+
+	_card_charge = Label.new()
+	_card_charge.add_theme_font_size_override("font_size", 12)
+	_card_charge.add_theme_color_override("font_color", Color(0.45, 0.85, 0.95))
+	_card_charge.visible = false
+	column.add_child(_card_charge)
+
+	_card_hint = Label.new()
+	_card_hint.add_theme_font_size_override("font_size", 12)
+	_card_hint.add_theme_color_override("font_color", Color(0.98, 0.80, 0.22))
+	_card_hint.visible = false
+	column.add_child(_card_hint)
+
+	_find_card_host().add_child(_card)
+
+
 func _on_item_added(item: ItemData) -> void:
 	show_item(item)
 
 
-## Auch von aussen aufrufbar — z.B. wenn der Spieler an einem Sockel steht
-## und das Item noch nicht genommen hat (Vorschau).
-func show_item(item: ItemData) -> void:
-	if item == null or _card == null:
+## persistent = true: die Karte bleibt stehen, bis hide_item() kommt. Genau
+## das benutzt TreasurePedestal, solange der Spieler in Reichweite ist.
+## persistent = false: die Karte blendet nach card_display_time aus — der
+## Fall "gerade eingesammelt".
+func show_item(item: ItemData, persistent: bool = false) -> void:
+	if item == null:
 		return
+	if _card == null or not is_instance_valid(_card):
+		_build_card()
+	if _card == null:
+		return
+
+	var color: Color = item.pedestal_color
+
+	_card_style.border_color = Color(color.r, color.g, color.b, 0.85)
+	_apply_icon_style(_card_icon, color)
+	_card_icon_label.text = _initials(item.display_name)
+	_card_icon_label.add_theme_color_override("font_color", color)
 
 	_card_name.text = item.display_name
 	_card_flavor.text = "\u201c%s\u201d" % item.flavor_text if item.flavor_text != "" else ""
 	_card_flavor.visible = item.flavor_text != ""
 	_card_description.text = item.description
+
+	_apply_tag(item)
 
 	if item.is_active_item():
 		_card_charge.visible = true
@@ -27843,20 +28463,89 @@ func show_item(item: ItemData) -> void:
 	else:
 		_card_charge.visible = false
 
+	# Der Aufnehmen-Hinweis steht NUR am Sockel. Nach dem Einsammeln waere er
+	# eine Aufforderung zu etwas, das man gerade getan hat.
+	_card_hint.visible = persistent
+	if persistent:
+		_card_hint.text = "[F] Nehmen"
+
+	_card_persistent = persistent
+	_play_card_intro()
+
+
+## Blendet die Karte aus. TreasurePedestal ruft das auf, sobald der Spieler
+## die Reichweite verlaesst.
+func hide_item() -> void:
+	if _card == null or not is_instance_valid(_card) or not _card.visible:
+		return
+	if _card_tween and _card_tween.is_valid():
+		_card_tween.kill()
+
+	_card_persistent = false
+	_card_tween = create_tween()
+	_card_tween.tween_property(_card, "modulate:a", 0.0, card_fade_time * 0.6)
+	_card_tween.tween_callback(func() -> void:
+		if is_instance_valid(_card):
+			_card.visible = false
+	)
+
+
+## Kategorie-Chip rechts oben. Passiv und Aktiv unterscheiden sich zusaetzlich
+## in der Farbe, weil das die einzige Eigenschaft ist, die die BEDIENUNG
+## veraendert — alles andere ist Geschmack.
+func _apply_tag(item: ItemData) -> void:
+	var is_active: bool = item.is_active_item()
+	var tag_color: Color = Color(0.45, 0.85, 0.95) if is_active else Color(0.62, 0.68, 0.76)
+
+	_card_tag.text = ("AKTIV \u00b7 " + item.get_category_name().to_upper()) if is_active \
+		else item.get_category_name().to_upper()
+	_card_tag.add_theme_color_override("font_color", tag_color)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(tag_color.r, tag_color.g, tag_color.b, 0.14)
+	style.border_color = Color(tag_color.r, tag_color.g, tag_color.b, 0.5)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(2)
+	style.content_margin_left = 6.0
+	style.content_margin_right = 6.0
+	style.content_margin_top = 1.0
+	style.content_margin_bottom = 1.0
+	_card_tag_panel.add_theme_stylebox_override("panel", style)
+
+
+## Aufklappen statt hartem Einblenden. scale wird benutzt und nicht position:
+## die Karte haengt zwar an einem freien Control, aber scale laesst den
+## Anker-Mittelpunkt in Ruhe — eine Positionsanimation muesste die Anker
+## nachrechnen.
+func _play_card_intro() -> void:
 	if _card_tween and _card_tween.is_valid():
 		_card_tween.kill()
 
 	_card.visible = true
 	_card.modulate.a = 1.0
+	_card.scale = Vector2(0.97, 0.97)
 
 	_card_tween = create_tween()
+	_card_tween.tween_property(_card, "scale", Vector2.ONE, 0.14) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	if _card_persistent:
+		return
+
 	_card_tween.tween_interval(card_display_time)
 	_card_tween.tween_property(_card, "modulate:a", 0.0, card_fade_time)
-	_card_tween.tween_callback(func() -> void: _card.visible = false)
+	_card_tween.tween_callback(func() -> void:
+		if is_instance_valid(_card):
+			_card.visible = false
+	)
 
 
 func _on_charge_changed(current: int, needed: int) -> void:
-	if _card == null or not _card.visible or not _card_charge.visible:
+	_refresh_active_slot()
+
+	if _card == null or not is_instance_valid(_card):
+		return
+	if not _card.visible or not _card_charge.visible:
 		return
 	if current <= 0:
 		_card_charge.text = "Aktiv \u2014 [C] \u00b7 BEREIT"
@@ -27865,18 +28554,109 @@ func _on_charge_changed(current: int, needed: int) -> void:
 
 
 # ============================================================================
-# Dauerliste
+# Slot fuer das aktive Item
 # ============================================================================
-func _refresh_list() -> void:
-	if _list == null or _items == null:
+func _build_active_slot() -> void:
+	_active_slot = PanelContainer.new()
+	_active_slot.visible = false
+	_active_slot.custom_minimum_size = Vector2(chip_row_width, 0.0)
+	_active_slot.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_active_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = BG_COLOR
+	style.border_color = Color(0.45, 0.85, 0.95, 0.6)
+	style.set_border_width_all(1)
+	style.border_width_left = 3
+	style.set_corner_radius_all(2)
+	style.content_margin_left = 8.0
+	style.content_margin_right = 8.0
+	style.content_margin_top = 4.0
+	style.content_margin_bottom = 4.0
+	_active_slot.add_theme_stylebox_override("panel", style)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	_active_slot.add_child(row)
+
+	var key := Label.new()
+	key.text = "[C]"
+	key.add_theme_font_size_override("font_size", 10)
+	key.add_theme_color_override("font_color", Color(0.45, 0.85, 0.95))
+	row.add_child(key)
+
+	_active_name = Label.new()
+	_active_name.add_theme_font_size_override("font_size", 11)
+	_active_name.add_theme_color_override("font_color", TEXT_COLOR)
+	_active_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(_active_name)
+
+	_active_pips = HBoxContainer.new()
+	_active_pips.add_theme_constant_override("separation", 2)
+	row.add_child(_active_pips)
+
+	add_child(_active_slot)
+
+
+## Ladepunkte statt Text: "noch 2 Raeume" muss man lesen, zwei dunkle Punkte
+## nicht.
+func _refresh_active_slot() -> void:
+	if _active_slot == null or _items == null:
 		return
 
-	for child: Node in _list.get_children():
+	var active = _items.active_item
+	if not (active is ItemData):
+		_active_slot.visible = false
+		return
+
+	var item: ItemData = active as ItemData
+	_active_slot.visible = true
+	_active_name.text = item.display_name
+
+	for child: Node in _active_pips.get_children():
 		child.queue_free()
 
-	# Gleiche Items zusammenfassen statt untereinander zu stapeln — mit drei
-	# Exemplaren desselben Items waere die Liste sonst schnell laenger als
-	# der Bildschirm.
+	var needed: int = maxi(item.charge_rooms, 1)
+	var remaining: int = int(_items.active_item_charge)
+	var filled: int = clampi(needed - remaining, 0, needed)
+
+	for i: int in range(needed):
+		var pip := Panel.new()
+		pip.custom_minimum_size = Vector2(7.0, 7.0)
+		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var pip_style := StyleBoxFlat.new()
+		pip_style.set_corner_radius_all(4)
+		pip_style.bg_color = Color(0.45, 0.85, 0.95, 0.95) if i < filled \
+			else Color(0.22, 0.25, 0.29, 0.95)
+		pip.add_theme_stylebox_override("panel", pip_style)
+		_active_pips.add_child(pip)
+
+
+# ============================================================================
+# Chip-Leiste
+# ============================================================================
+func _build_chip_row() -> void:
+	_chip_row = HFlowContainer.new()
+	_chip_row.custom_minimum_size = Vector2(chip_row_width, 0.0)
+	_chip_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_chip_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_chip_row.add_theme_constant_override("h_separation", 3)
+	_chip_row.add_theme_constant_override("v_separation", 3)
+	add_child(_chip_row)
+
+
+func _refresh_list() -> void:
+	_refresh_active_slot()
+
+	if _chip_row == null or _items == null:
+		return
+
+	for child: Node in _chip_row.get_children():
+		child.queue_free()
+
+	# Gleiche Items zusammenfassen statt nebeneinander zu stapeln — mit drei
+	# Exemplaren desselben Items waere die Leiste sonst schnell breiter als
+	# der halbe Bildschirm.
 	var counts: Dictionary = {}
 	var order: Array[ItemData] = []
 	for item: ItemData in _items.inventory:
@@ -27887,12 +28667,74 @@ func _refresh_list() -> void:
 			order.append(item)
 
 	for item: ItemData in order:
-		var count: int = int(counts[item.id])
-		var label := Label.new()
-		label.text = item.display_name if count <= 1 else "%s  x%d" % [item.display_name, count]
-		label.add_theme_font_size_override("font_size", 11)
-		label.add_theme_color_override("font_color", Color(0.70, 0.72, 0.76))
-		_list.add_child(label)
+		_chip_row.add_child(_make_chip(item, int(counts[item.id])))
+
+
+## Ein Chip: farbiges Quadrat mit Kuerzel, bei mehreren Exemplaren mit
+## Zaehler. Die Farbe ist item.pedestal_color — dieselbe, in der das Item
+## auf dem Sockel im Schatzraum leuchtete.
+func _make_chip(item: ItemData, count: int) -> Control:
+	var color: Color = item.pedestal_color
+
+	var chip := Panel.new()
+	chip.custom_minimum_size = Vector2(CHIP_SIZE, CHIP_SIZE)
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_icon_style(chip, color)
+
+	var label := Label.new()
+	label.text = _initials(item.display_name)
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 11)
+	label.add_theme_color_override("font_color", color)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.add_child(label)
+
+	if count > 1:
+		var badge := Label.new()
+		badge.text = str(count)
+		badge.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		badge.offset_left = -12.0
+		badge.offset_top = -12.0
+		badge.offset_right = -1.0
+		badge.offset_bottom = -1.0
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		badge.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		badge.add_theme_font_size_override("font_size", 9)
+		badge.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.92))
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		chip.add_child(badge)
+
+	return chip
+
+
+## Gemeinsamer Stil fuer Chip und Karten-Farbfeld: getoenter Hintergrund,
+## kraeftiger Rand in der Item-Farbe.
+func _apply_icon_style(panel: Panel, color: Color) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(color.r, color.g, color.b, 0.16)
+	style.border_color = Color(color.r, color.g, color.b, 0.85)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(2)
+	panel.add_theme_stylebox_override("panel", style)
+
+
+## Kuerzel aus dem Anzeigenamen: "Mamas Kochloeffel" -> "MK".
+## Solange es keine Icon-Texturen gibt, ist das der einzige Weg, einen Chip
+## ohne Grafik unterscheidbar zu machen.
+func _initials(display_name: String) -> String:
+	var words: PackedStringArray = display_name.replace("-", " ").split(" ", false)
+	var result: String = ""
+	for word: String in words:
+		if word.is_empty():
+			continue
+		result += word.substr(0, 1).to_upper()
+		if result.length() >= 2:
+			break
+	if result.is_empty():
+		return "?"
+	return result
 
 
 # ============================================================================
@@ -27906,8 +28748,14 @@ func _on_element_setting_changed(_element: String, _is_visible: bool) -> void:
 	_apply_visibility()
 
 
+## Die Karte haengt woanders im Baum und wird deshalb getrennt geschaltet —
+## sonst bliebe sie beim Ausblenden des HUD als einziges Element stehen.
 func _apply_visibility() -> void:
-	visible = SettingsManager.hud_visible and SettingsManager.is_hud_element_visible(HUD_ELEMENT)
+	var show_hud: bool = SettingsManager.hud_visible \
+		and SettingsManager.is_hud_element_visible(HUD_ELEMENT)
+	visible = show_hud
+	if _card and is_instance_valid(_card) and not show_hud:
+		_card.visible = false
 
 
 ===== FILE: scripts\item_manager.gd =====
@@ -28264,6 +29112,313 @@ func get_luck() -> float:
 	if stats == null:
 		return 0.0
 	return stats.get_luck()
+
+
+===== FILE: scripts\item_summary_list.gd =====
+
+extends VBoxContainer
+class_name ItemSummaryList
+
+# ============================================================================
+# ItemSummaryList — Liste der gesammelten Items fuer Pause-, Tod- und
+# Siegbildschirm, mit Beschreibung beim Ueberfahren mit der Maus.
+# ============================================================================
+#
+# WARUM EIN GEMEINSAMES SCRIPT UND NICHT DREIMAL DERSELBE CODE:
+# Pause-, Tod- und Siegbildschirm brauchen exakt dieselbe Anzeige. Drei
+# Kopien haetten bedeutet, dass ein neues Feld in ItemData an drei Stellen
+# nachgetragen werden muss — und dass die dritte Stelle beim naechsten Mal
+# vergessen wird. Die drei Screens haengen sich stattdessen jeweils EINE
+# Instanz hiervon in ihren Baum.
+#
+# WARUM MAUS-HOVER UND NICHT DAUERHAFT ALLE BESCHREIBUNGEN:
+# Mit acht Items waeren acht Beschreibungsabsaetze untereinander laenger als
+# jeder dieser Bildschirme. Das In-Game-HUD loest dasselbe Problem ueber
+# Naehe zum Sockel; hier ist die Maus ohnehin sichtbar (alle drei Screens
+# pausieren das Spiel und geben den Cursor frei), also ist Hover das
+# naheliegende Mittel.
+#
+# WICHTIG ZUM MAUS-FILTER: Dieser Node und seine Zeilen muessen
+# MOUSE_FILTER_STOP bzw. PASS haben. Viele HUD-Elemente im Projekt stehen
+# auf MOUSE_FILTER_IGNORE (Wert 2), damit sie keine Klicks abfangen — wer
+# das hier uebernimmt, bekommt nie ein mouse_entered und wundert sich, warum
+# der Hover "nicht funktioniert", obwohl der Code laeuft.
+
+## Ueberschrift ueber der Liste. Leer lassen = keine Ueberschrift.
+@export var title_text: String = "GESAMMELTE ITEMS"
+
+## Text, wenn das Inventar leer ist.
+@export var empty_text: String = "Keine Items gesammelt"
+
+## Zeigt zusaetzlich Muenzen und Bomben unter der Liste.
+@export var show_currencies: bool = true
+
+const ROW_HEIGHT: float = 30.0
+const SWATCH_SIZE: float = 22.0
+const BG_COLOR: Color = Color(0.05, 0.06, 0.075, 0.55)
+const MUTED_COLOR: Color = Color(0.62, 0.66, 0.72)
+const TEXT_COLOR: Color = Color(0.90, 0.90, 0.93)
+
+var _title: Label = null
+var _rows_box: VBoxContainer = null
+var _empty_label: Label = null
+var _currency_label: Label = null
+var _detail_panel: PanelContainer = null
+var _detail_name: Label = null
+var _detail_text: Label = null
+
+var _items: Node = null
+
+
+func _ready() -> void:
+	# STOP statt IGNORE — sonst kommt kein mouse_entered an. Siehe Kopf.
+	mouse_filter = Control.MOUSE_FILTER_PASS
+	add_theme_constant_override("separation", 6)
+
+	_build()
+	_items = get_node_or_null("/root/Items")
+	if _items and _items.has_signal("inventory_changed"):
+		_items.inventory_changed.connect(refresh)
+	refresh()
+
+
+# ============================================================================
+# Aufbau
+# ============================================================================
+func _build() -> void:
+	if title_text != "":
+		_title = Label.new()
+		_title.text = title_text
+		_title.add_theme_font_size_override("font_size", 12)
+		_title.add_theme_color_override("font_color", MUTED_COLOR)
+		_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_title)
+
+	_rows_box = VBoxContainer.new()
+	_rows_box.add_theme_constant_override("separation", 2)
+	_rows_box.mouse_filter = Control.MOUSE_FILTER_PASS
+	add_child(_rows_box)
+
+	_empty_label = Label.new()
+	_empty_label.text = empty_text
+	_empty_label.add_theme_font_size_override("font_size", 13)
+	_empty_label.add_theme_color_override("font_color", MUTED_COLOR)
+	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_empty_label)
+
+	# --- Beschreibungsfeld, gefuellt beim Ueberfahren ------------------
+	_detail_panel = PanelContainer.new()
+	_detail_panel.visible = false
+	_detail_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.05, 0.065, 0.92)
+	style.border_color = Color(0.30, 0.33, 0.38, 0.9)
+	style.set_border_width_all(1)
+	style.border_width_left = 3
+	style.set_corner_radius_all(2)
+	style.content_margin_left = 10.0
+	style.content_margin_right = 10.0
+	style.content_margin_top = 7.0
+	style.content_margin_bottom = 7.0
+	_detail_panel.add_theme_stylebox_override("panel", style)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 2)
+	_detail_panel.add_child(column)
+
+	_detail_name = Label.new()
+	_detail_name.add_theme_font_size_override("font_size", 13)
+	_detail_name.add_theme_color_override("font_color", Color(0.98, 0.95, 0.84))
+	column.add_child(_detail_name)
+
+	_detail_text = Label.new()
+	_detail_text.add_theme_font_size_override("font_size", 12)
+	_detail_text.add_theme_color_override("font_color", TEXT_COLOR)
+	_detail_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_detail_text)
+
+	add_child(_detail_panel)
+
+	if show_currencies:
+		_currency_label = Label.new()
+		_currency_label.add_theme_font_size_override("font_size", 12)
+		_currency_label.add_theme_color_override("font_color", MUTED_COLOR)
+		_currency_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_currency_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_currency_label)
+
+
+# ============================================================================
+# Inhalt
+# ============================================================================
+## Oeffentlich, damit die Screens sie beim Einblenden erneut aufrufen koennen.
+func refresh() -> void:
+	if _rows_box == null:
+		return
+
+	for child: Node in _rows_box.get_children():
+		child.queue_free()
+
+	_hide_detail()
+
+	if _items == null:
+		_items = get_node_or_null("/root/Items")
+	if _items == null:
+		_empty_label.visible = true
+		return
+
+	# Gleiche Items zusammenfassen. Ohne das stuenden drei Exemplare
+	# desselben Items als drei identische Zeilen untereinander.
+	var counts: Dictionary = {}
+	var order: Array[ItemData] = []
+	for item: ItemData in _items.inventory:
+		if counts.has(item.id):
+			counts[item.id] = int(counts[item.id]) + 1
+		else:
+			counts[item.id] = 1
+			order.append(item)
+
+	_empty_label.visible = order.is_empty()
+
+	for item: ItemData in order:
+		_rows_box.add_child(_make_row(item, int(counts[item.id])))
+
+	if _currency_label:
+		_currency_label.text = "%d Muenzen  \u00b7  %d Bomben" % [
+			int(_items.coins), int(_items.bombs)
+		]
+
+
+func _make_row(item: ItemData, count: int) -> Control:
+	var color: Color = item.pedestal_color
+
+	var row := PanelContainer.new()
+	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
+	# PASS: die Zeile meldet Hover, schluckt aber keine Klicks, die an die
+	# Buttons dahinter gehen sollen.
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = BG_COLOR
+	style.border_color = Color(color.r, color.g, color.b, 0.55)
+	style.set_border_width_all(0)
+	style.border_width_left = 3
+	style.set_corner_radius_all(2)
+	style.content_margin_left = 8.0
+	style.content_margin_right = 10.0
+	style.content_margin_top = 3.0
+	style.content_margin_bottom = 3.0
+	row.add_theme_stylebox_override("panel", style)
+
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 9)
+	box.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(box)
+
+	# --- Farbfeld mit Kuerzel: dieselbe Farbe wie am Sockel ------------
+	var swatch := Panel.new()
+	swatch.custom_minimum_size = Vector2(SWATCH_SIZE, SWATCH_SIZE)
+	swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	swatch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var swatch_style := StyleBoxFlat.new()
+	swatch_style.bg_color = Color(color.r, color.g, color.b, 0.18)
+	swatch_style.border_color = Color(color.r, color.g, color.b, 0.9)
+	swatch_style.set_border_width_all(1)
+	swatch_style.set_corner_radius_all(2)
+	swatch.add_theme_stylebox_override("panel", swatch_style)
+	box.add_child(swatch)
+
+	var initials := Label.new()
+	initials.text = _initials(item.display_name)
+	initials.set_anchors_preset(Control.PRESET_FULL_RECT)
+	initials.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	initials.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	initials.add_theme_font_size_override("font_size", 10)
+	initials.add_theme_color_override("font_color", color)
+	initials.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	swatch.add_child(initials)
+
+	var name_label := Label.new()
+	name_label.text = item.display_name if count <= 1 else "%s  x%d" % [item.display_name, count]
+	name_label.add_theme_font_size_override("font_size", 13)
+	name_label.add_theme_color_override("font_color", TEXT_COLOR)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(name_label)
+
+	var kind_label := Label.new()
+	kind_label.text = "AKTIV" if item.is_active_item() else item.get_category_name().to_upper()
+	kind_label.add_theme_font_size_override("font_size", 9)
+	kind_label.add_theme_color_override("font_color",
+		Color(0.45, 0.85, 0.95) if item.is_active_item() else MUTED_COLOR)
+	kind_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	kind_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(kind_label)
+
+	# bind() haengt das Item an — sonst wuesste der Empfaenger nicht, WELCHE
+	# Zeile ueberfahren wurde.
+	row.mouse_entered.connect(_show_detail.bind(item, style, color))
+	row.mouse_exited.connect(_on_row_exited.bind(style, color))
+
+	return row
+
+
+func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color) -> void:
+	if _detail_panel == null:
+		return
+
+	_detail_name.text = item.display_name
+	var text: String = item.description
+	if item.flavor_text != "":
+		text = "\u201c%s\u201d\n%s" % [item.flavor_text, item.description]
+	if item.is_active_item():
+		text += "\n[C] \u00b7 laedt ueber %d Raeume" % item.charge_rooms
+	_detail_text.text = text
+
+	var panel_style: StyleBox = _detail_panel.get_theme_stylebox("panel")
+	if panel_style is StyleBoxFlat:
+		(panel_style as StyleBoxFlat).border_color = Color(color.r, color.g, color.b, 0.85)
+
+	_detail_panel.visible = true
+
+	# Zeile hervorheben, damit klar ist, wozu die Beschreibung gehoert.
+	style.bg_color = Color(color.r, color.g, color.b, 0.16)
+
+
+func _on_row_exited(style: StyleBoxFlat, _color: Color) -> void:
+	style.bg_color = BG_COLOR
+	_hide_detail()
+
+
+func _hide_detail() -> void:
+	if _detail_panel:
+		_detail_panel.visible = false
+
+
+## Kuerzel aus dem Anzeigenamen: "Mamas Kochloeffel" -> "MK".
+func _initials(display_name: String) -> String:
+	var words: PackedStringArray = display_name.replace("-", " ").split(" ", false)
+	var result: String = ""
+	for word: String in words:
+		if word.is_empty():
+			continue
+		result += word.substr(0, 1).to_upper()
+		if result.length() >= 2:
+			break
+	return result if result != "" else "?"
+
+
+## Bequemer Konstruktor fuer die Screens.
+static func create(p_title: String = "GESAMMELTE ITEMS", p_currencies: bool = true) -> ItemSummaryList:
+	var list := ItemSummaryList.new()
+	list.name = "ItemSummaryList"
+	list.title_text = p_title
+	list.show_currencies = p_currencies
+	return list
 
 
 ===== FILE: scripts\leaderboard_manager.gd =====
@@ -29542,7 +30697,14 @@ const OPPOSITE_DIR := {
 @export var color_current: Color = Color(1.0, 1.0, 1.0, 1.0)
 ## Fuellfarbe des offenen Durchgangs zwischen zwei bereits betretenen
 ## Raeumen (voll deckend - liest sich als begehbarer Gang).
-@export var color_door: Color = Color(0.85, 0.87, 0.80, 0.9)
+## Farbe eines OFFENEN Durchgangs.
+##
+## Deutlich gedaempfter als frueher (war 0.85/0.87/0.80 bei Alpha 0.9). Der
+## alte Wert war heller als JEDE Raumfarbe — ein offener Gang leuchtete
+## dadurch staerker als der Raum, zu dem er gehoert, und zog den Blick auf
+## die unwichtigste Information der ganzen Karte. Ein offener Durchgang soll
+## als LUECKE gelesen werden, nicht als Signal.
+@export var color_door: Color = Color(0.42, 0.45, 0.40, 0.85)
 ## Durchgang zu einem noch NICHT betretenen Nachbarn: nur angedeutet
 ## (kuerzer + durchsichtiger), damit die Neugier/Fog-of-War erhalten
 ## bleibt, man aber trotzdem sieht "hier geht es weiter".
@@ -29616,6 +30778,21 @@ func _draw() -> void:
 	var pitch: float = cell_px + gap_px
 	var center := size * 0.5
 
+	# Jeder Durchgang liegt zwischen ZWEI Zellen und wurde deshalb bisher
+	# zweimal gezeichnet: einmal aus Sicht jeder Seite, an dieselbe Stelle,
+	# mit derselben halbtransparenten Farbe.
+	#
+	# Zwei Fuellungen mit Alpha 0.9 uebereinander ergeben zusammen rund 0.99 —
+	# offene Durchgaenge zwischen zwei besuchten Raeumen wurden dadurch fast
+	# deckend und damit heller als alles andere auf der Karte. Genau das ist
+	# das "Leuchten". Zusaetzlich flackerte es beim Betreten eines Raums,
+	# weil in dem Moment aus einem einfach gezeichneten Durchgang (Nachbar
+	# noch unbesucht, Alpha 0.45) ein doppelt gezeichneter wurde.
+	#
+	# Der Schluessel ist die SORTIERTE Zellenpaarung — so landen beide
+	# Blickrichtungen auf demselben Eintrag.
+	var drawn_passages: Dictionary = {}
+
 	# --- Durchgaenge zuerst, damit die Raumquadrate spaeter sauber
 	# darueber gezeichnet werden und den ueberschuessigen Teil der
 	# Fuellung in der Raummitte automatisch abschneiden -----------------
@@ -29656,6 +30833,13 @@ func _draw() -> void:
 			var neighbor_data: Dictionary = cells[neighbor_grid]
 			var neighbor_visited: bool = bool(neighbor_data.get("visited", false))
 			var neighbor_center := _cell_center(neighbor_grid, current, center, pitch)
+
+			# Sortiertes Schluesselpaar: (A,B) und (B,A) ergeben denselben
+			# Eintrag, der Durchgang wird also genau einmal gefuellt.
+			var key: String = _passage_key(grid, neighbor_grid)
+			if drawn_passages.has(key):
+				continue
+			drawn_passages[key] = true
 
 			# Der restriktivere der beiden Zustaende gewinnt - eine Seite
 			# offen und die andere verriegelt heisst: man kommt nicht durch.
@@ -29708,6 +30892,18 @@ func _draw() -> void:
 			HORIZONTAL_ALIGNMENT_CENTER, size.x, 11, color_cleared_tint)
 
 
+## Eindeutiger Schluessel fuer ein Zellenpaar, unabhaengig von der
+## Reihenfolge. Ohne die Sortierung waeren "(0,0)->(0,1)" und "(0,1)->(0,0)"
+## zwei verschiedene Eintraege und die Deduplizierung liefe ins Leere.
+func _passage_key(a: Vector2i, b: Vector2i) -> String:
+	var first: Vector2i = a
+	var second: Vector2i = b
+	if b.x < a.x or (b.x == a.x and b.y < a.y):
+		first = b
+		second = a
+	return "%d,%d|%d,%d" % [first.x, first.y, second.x, second.y]
+
+
 ## Fuellt den Durchgang zwischen zwei Zellen als FLAECHE statt als
 ## duenne Linie - das ist der eigentliche Unterschied zwischen "sieht
 ## nach Gitter/Riegel aus" und "sieht nach offenem Gang aus".
@@ -29728,15 +30924,30 @@ func _draw_passage(here: Vector2, neighbor: Vector2, cell_size: float, neighbor_
 	var mid: Vector2 = (here + neighbor) * 0.5
 	var far_point: Vector2 = neighbor if neighbor_visited else mid
 
-	var fill: Color = _color_for_door_state(state)
+	# SPOILER-SPERRE: Zu einem noch NICHT betretenen Nachbarn wird immer die
+	# neutrale Tuerfarbe gezeichnet, nie die von Zustand oder Raumtyp.
+	#
+	# Vorher verriet die Karte den halben Grundriss, bevor man ihn gesehen
+	# hatte: eine Tuer zum Schatzraum kam als goldener, pulsierender Riegel
+	# heraus, eine Bossturm als brauner. Man musste also gar nicht erkunden —
+	# ein Blick auf die Minimap sagte, in welcher Richtung das Item liegt und
+	# wo der Boss wartet. Fog-of-War, der die Raeume verdeckt, aber ihre
+	# Tueren durchscheinen laesst, ist kein Fog-of-War.
+	#
+	# Sobald der Nachbarraum betreten wurde, greift wieder die volle
+	# Zustandsfarbe — dann ist die Information ja verdient.
+	var fill: Color = _color_for_door_state(state) if neighbor_visited else color_door
 	if not neighbor_visited:
 		fill.a = fill.a * color_door_unexplored_alpha
 
 	# Nur ein OFFENER Durchgang wird in voller Zellbreite gefuellt. Alles
 	# Verriegelte wird bewusst SCHMALER gezeichnet, damit es sich optisch
 	# klar als Riegel und nicht als Gang liest.
+	#
+	# Auch die BREITE bleibt bei unbesuchten Nachbarn neutral: ein schmal
+	# gezeichneter Riegel haette denselben Hinweis gegeben wie die Farbe.
 	var width: float = cell_size
-	if state != RoomInstance.DoorState.OPEN:
+	if neighbor_visited and state != RoomInstance.DoorState.OPEN:
 		width = cell_size * locked_door_width_factor
 
 	if horizontal:
@@ -30348,6 +31559,10 @@ var settings_menu: SettingsMenu
 
 var _blur_overlay: ColorRect = null
 
+## Ueberschrift ueber der Item-Liste.
+const ITEM_LIST_TITLE: String = "GESAMMELTE ITEMS"
+var _item_list: ItemSummaryList = null
+
 # Wird von death_screen.gd / win_screen.gd SOFORT beim Tod/Sieg gesetzt
 # (nicht erst wenn der jeweilige Screen sichtbar wird — bei DeathScreen
 # liegt dazwischen noch eine Verzögerung, siehe death_screen_delay). Damit
@@ -30376,6 +31591,7 @@ func _ready() -> void:
 	settings_button.pressed.connect(_on_settings_pressed)
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+	_build_item_list()
 
 
 func _fix_panel_background() -> void:
@@ -30558,6 +31774,37 @@ func _restart_level() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+# ============================================================================
+# Item-Uebersicht
+# ============================================================================
+# Wird zur Laufzeit gebaut, damit keine der Szenen angefasst werden muss, in
+# denen dieser Screen instanziiert ist — dieselbe Begruendung wie beim
+# Zeit-Label und beim Leaderboard-Block.
+func _build_item_list() -> void:
+	if _item_list != null and is_instance_valid(_item_list):
+		return
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Item-Liste faellt aus." % name)
+		return
+
+	_item_list = ItemSummaryList.create(ITEM_LIST_TITLE)
+	column.add_child(_item_list)
+	# Vor den ersten Button schieben: die Liste ist Information, die Buttons
+	# sind die Handlung. Umgekehrt muesste man an den Buttons vorbeilesen.
+	column.move_child(_item_list, _first_button_index(column))
+
+
+## Index des ersten Buttons in der Spalte. Ueber den Typ gesucht statt ueber
+## einen festen Index, weil die drei Screens unterschiedlich viele Labels
+## ueber den Buttons haben.
+func _first_button_index(column: VBoxContainer) -> int:
+	for i: int in range(column.get_child_count()):
+		if column.get_child(i) is Button:
+			return i
+	return column.get_child_count()
 
 
 ===== FILE: scripts\pickup.gd =====
@@ -32428,6 +33675,243 @@ func _peek_next_seed_code() -> String:
 	return DetRng.seed_to_code(DetRng.random_seed_value())
 
 
+===== FILE: scripts\room_commit_guard.gd =====
+
+extends Node
+
+# ============================================================================
+# RoomGuard — Autoload: schliesst die Luecke, durch die man Raeume umgehen
+# kann, ohne den Kampf auszuloesen.
+# Muss unter Project Settings -> Autoload als "RoomGuard" stehen.
+# ============================================================================
+#
+# DAS PROBLEM
+# -----------
+# room_instance.gd loest den Kampf ueber den EntryTrigger aus. Dessen Box
+# wird von JEDER Seite um entry_trigger_depth eingerueckt:
+#
+#     size_x = room_footprint.x - entry_trigger_depth * 2.0
+#            = 48 - 18 = 30
+#
+# In einem 48x48-Raum bleibt damit ringsum ein 9 m breiter Streifen, in dem
+# nichts passiert. Die Tueren sitzen mittig in den Waenden — man kann also
+# durch die Nordtuer hereinkommen, an der Wand entlang zur Osttuer laufen
+# und den Raum verlassen, ohne den 30x30-Kern je zu beruehren. Die Gegner
+# spawnen nie, die Tueren verriegeln nie.
+#
+# WARUM DER EINRUECKUNG TROTZDEM RECHT HAT
+# ----------------------------------------
+# Sie ist Absicht und heisst im Original-Kommentar "Anti-Baiting": man soll
+# in einen Raum hineinschauen duerfen, ohne sofort einen Kampf zu starten.
+# Diese Eigenschaft will man behalten. Den EntryTrigger einfach auf
+# Raumgroesse aufzublasen wuerde sie zerstoeren — dann startet der Kampf
+# schon, wenn man im Tuerrahmen steht und ueberlegt.
+#
+# DIE LOESUNG: ZWEITE, LANGSAMERE STUFE
+# -------------------------------------
+# Dieses Script haengt jedem Raum eine ZUSAETZLICHE Area ueber den vollen
+# Grundriss und startet den Kampf erst, wenn der Spieler dort
+# commit_dwell_time Sekunden am Stueck drin ist.
+#
+# Damit gilt:
+#   * Kurz reinschauen und zurueck  -> nichts passiert (wie bisher).
+#   * In die Raummitte laufen       -> sofort Kampf (EntryTrigger, wie bisher).
+#   * An der Wand entlangschleichen -> nach gut einer Sekunde Kampf (NEU).
+#
+# Der Trick ist damit nicht "verboten", sondern nur nicht mehr schneller als
+# der ehrliche Weg — und genau das ist bei einer Abkuerzung die richtige
+# Antwort. Wer wirklich in unter einer Sekunde quer durch einen 48 m breiten
+# Raum kommt, hat sich das Durchhuschen verdient.
+#
+# WARUM ALS AUTOLOAD UND NICHT IN room_instance.gd:
+# Dieselbe Begruendung wie bei Loot und Treasure — room_instance.gd hat
+# 1800 Zeilen und sehr viel Zustand. Ein zusaetzliches Volumen mit eigenem
+# Timer laesst sich vollstaendig von aussen anhaengen, und wenn sich das
+# Feature nicht bewaehrt, entfernt man einen Autoload-Eintrag statt einen
+# Merge-Konflikt aufzuloesen.
+
+signal room_committed(room: Node)
+
+## Wie lange der Spieler ununterbrochen im Raum sein muss, bis der Kampf
+## auch ohne Beruehrung des EntryTriggers startet.
+@export var commit_dwell_time: float = 1.1
+
+## Verkleinert die Commit-Area gegenueber dem Grundriss. 0 = exakt bis zur
+## Wandinnenseite.
+##
+## BEWUSST 0: der Ausnutz-Weg fuehrt DIREKT an der Wand entlang. Jede
+## Einrueckung, die groesser ist als der Radius der Spielerkapsel, laesst
+## genau diesen Pfad wieder offen — die Luecke waere dann nur schmaler, aber
+## nicht zu.
+@export var edge_inset: float = 0.0
+
+## Aus welcher Hoehe ueber dem Raumboden die Area beginnt. Etwas unter 0,
+## damit auch abgesenkte Bodenstuecke und Rampen erfasst werden.
+@export var floor_offset: float = -1.0
+
+@export var debug_logging: bool = false
+
+## room InstanceID -> { "room": RoomInstance, "area": Area3D, "timer": float }
+var _watched: Dictionary = {}
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("[RoomGuard] %s" % msg)
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_PAUSABLE
+	_debug("Autoload aktiv.")
+	get_tree().node_added.connect(_on_node_added)
+	_scan_existing.call_deferred()
+
+
+func _scan_existing() -> void:
+	var root: Node = get_tree().root
+	if root == null:
+		return
+	_scan_recursive(root)
+
+
+func _scan_recursive(node: Node) -> void:
+	_on_node_added(node)
+	for child: Node in node.get_children():
+		_scan_recursive(child)
+
+
+func _on_node_added(node: Node) -> void:
+	if not (node is RoomInstance):
+		return
+	var room: RoomInstance = node as RoomInstance
+	if _watched.has(room.get_instance_id()):
+		return
+	_attach_deferred.call_deferred(room)
+
+
+## Eine Physik-Frame warten, damit room_footprint, room_height und die
+## Welt-Transform stehen (der LevelGenerator setzt global_transform erst
+## NACH add_child).
+func _attach_deferred(room: RoomInstance) -> void:
+	if not is_instance_valid(room):
+		return
+	await get_tree().physics_frame
+	if not is_instance_valid(room) or not room.is_inside_tree():
+		return
+	_attach(room)
+
+
+func _attach(room: RoomInstance) -> void:
+	var id: int = room.get_instance_id()
+	if _watched.has(id):
+		return
+
+	var area := Area3D.new()
+	area.name = "CommitTrigger"
+	# Layer 0 / Maske 0b101: exakt dieselbe Konfiguration wie EntryTrigger
+	# und PresenceArea in room_instance.gd. Weicht sie ab, findet die Area
+	# den Spieler nicht — und das aeussert sich nicht als Fehler, sondern
+	# nur dadurch, dass das Feature stillschweigend nichts tut.
+	area.collision_layer = 0
+	area.collision_mask = 0b101
+	area.monitoring = true
+	area.monitorable = false
+	room.add_child(area)
+
+	var size_x: float = maxf(room.room_footprint.x - edge_inset * 2.0, 1.0)
+	var size_z: float = maxf(room.room_footprint.y - edge_inset * 2.0, 1.0)
+	var size_y: float = maxf(room.room_height, 1.0)
+
+	var box := BoxShape3D.new()
+	box.size = Vector3(size_x, size_y, size_z)
+
+	var shape := CollisionShape3D.new()
+	shape.shape = box
+	shape.position = Vector3(0.0, floor_offset + size_y * 0.5, 0.0)
+	area.add_child(shape)
+
+	_watched[id] = {"room": room, "area": area, "timer": 0.0}
+	_debug("Raum %s ueberwacht (%.0f x %.0f)." % [room.grid_position, size_x, size_z])
+
+
+# ============================================================================
+# Auswertung
+# ============================================================================
+func _physics_process(delta: float) -> void:
+	var stale: Array = []
+
+	for id in _watched.keys():
+		var entry: Dictionary = _watched[id]
+		var room = entry["room"]
+		var area = entry["area"]
+
+		if not is_instance_valid(room) or not is_instance_valid(area):
+			stale.append(id)
+			continue
+
+		if not _needs_commit(room):
+			entry["timer"] = 0.0
+			continue
+
+		if not _player_inside(area):
+			# Zuruecksetzen statt weiterlaufen zu lassen: gemessen wird
+			# ununterbrochene Anwesenheit. Sonst wuerde sich mehrfaches
+			# kurzes Reinschauen aufaddieren und irgendwann den Kampf
+			# ausloesen, obwohl der Spieler nie im Raum war.
+			entry["timer"] = 0.0
+			continue
+
+		entry["timer"] = float(entry["timer"]) + delta
+		if float(entry["timer"]) < maxf(commit_dwell_time, 0.0):
+			continue
+
+		entry["timer"] = 0.0
+		_commit(room)
+
+	for id in stale:
+		_watched.erase(id)
+
+
+## Nur Raeume, die ueberhaupt noch einen Kampf vor sich haben. Geclearte
+## Raeume, Korridore ohne Gegner und bereits ausgeloeste Raeume werden
+## uebersprungen.
+func _needs_commit(room: RoomInstance) -> bool:
+	if room.is_cleared() or not room.requires_clear():
+		return false
+	# _enemies_spawned ist die verlaessliche Sperre: on_player_entered()
+	# prueft sie selbst, aber ohne diesen Test wuerde der Timer nach dem
+	# Spawn sinnlos weiterlaufen.
+	return room.get("_enemies_spawned") != true
+
+
+func _player_inside(area: Area3D) -> bool:
+	for body in area.get_overlapping_bodies():
+		if body is Node3D and body.is_in_group(PartyManager.PLAYER_GROUP):
+			return true
+	return false
+
+
+## Startet den Kampf ueber denselben Einstiegspunkt, den auch der
+## EntryTrigger benutzt. on_player_entered() sichert sich selbst gegen
+## Doppelausloesung ab.
+##
+## _has_entered wird zusaetzlich gesetzt, weil room_instance.gd daran seinen
+## Flucht-Check (_check_escape) haengt. Ohne das Flag wuerde ein Raum, den
+## dieser Guard ausgeloest hat, nie zuruecksetzen, wenn der Spieler
+## anschliessend doch verschwindet — und das waere ein zweiter, schlimmerer
+## Exploit als der, den wir gerade schliessen.
+func _commit(room: RoomInstance) -> void:
+	room.set("_has_entered", true)
+	room.on_player_entered()
+	room_committed.emit(room)
+	_debug("Raum %s ausgeloest (Aufenthalt statt Kern-Trigger)." % room.grid_position)
+
+
+## Beim Start eines neuen Runs aufrufen.
+func reset_run() -> void:
+	_watched.clear()
+
+
 ===== FILE: scripts\run_record.gd =====
 
 extends RefCounted
@@ -32902,6 +34386,13 @@ const HUD_ELEMENT_ABILITIES: String = "abilities"
 const HUD_ELEMENT_KEYBINDS: String = "keybinds"
 const HUD_ELEMENT_TIMER: String = "timer"
 const HUD_ELEMENT_COMBO: String = "combo"
+## Diese beiden Schluessel muessen mit StatsPanel.HUD_ELEMENT bzw.
+## ItemDescriptionHud.HUD_ELEMENT uebereinstimmen. Die Panels fragen
+## is_hud_element_visible() mit genau diesen Strings ab; ein Tippfehler
+## faellt nicht als Fehler auf, sondern nur dadurch, dass der Schalter
+## im Menue nichts bewirkt.
+const HUD_ELEMENT_STATS: String = "stats"
+const HUD_ELEMENT_ITEMS: String = "items"
 
 const HUD_ELEMENTS: Dictionary = {
 	HUD_ELEMENT_MINIMAP: "Minimap",
@@ -32910,6 +34401,8 @@ const HUD_ELEMENTS: Dictionary = {
 	HUD_ELEMENT_KEYBINDS: "Keybinds / Cooldowns",
 	HUD_ELEMENT_TIMER: "Speedrun-Timer",
 	HUD_ELEMENT_COMBO: "Combo-Zaehler",
+	HUD_ELEMENT_STATS: "Stats-Panel",
+	HUD_ELEMENT_ITEMS: "Item-Anzeige",
 }
 
 # Colorblind Mode Enum
@@ -33644,16 +35137,44 @@ extends PanelContainer
 class_name StatsPanel
 
 # ============================================================================
-# StatsPanel — Dauer-Anzeige der Spieler-Stats an der linken Bildschirmseite.
+# StatsPanel — Dauer-Anzeige der Spieler-Stats unten links.
 # ============================================================================
 # Baut seine Zeilen im Code auf, damit keine weitere .tscn gepflegt werden
 # muss und ein neues Stat nur einen Eintrag in ROWS kostet.
 #
 # Es wird NICHT jeden Frame neu gezeichnet: das Panel haengt an
 # PlayerStats.stats_changed und an den Waehrungs-Signalen des ItemManagers.
-# Nur die Combo laeuft ueber _process, weil sie sich ohnehin staendig
-# aendert und kein eigenes "hat sich geaendert"-Signal mit Zahlenwert hat,
-# das haeufig genug feuert.
+# Nur die Combo laeuft ueber _process, weil sie
+# sich ohnehin staendig aendert und kein eigenes "hat sich geaendert"-Signal
+# mit Zahlenwert hat, das haeufig genug feuert.
+#
+# ---------------------------------------------------------------------------
+# UMBAU DER OPTIK
+# ---------------------------------------------------------------------------
+# Vorher war das Panel eine Liste aus grauen "Beschriftung .... Zahl"-Zeilen.
+# Das Problem daran ist nicht der Geschmack, sondern die Lesbarkeit im
+# Gefecht: alle Zeilen sahen gleich aus, also musste man sie LESEN, um eine
+# Veraenderung zu bemerken. In einem Spiel, in dem man permanent ausweicht,
+# passiert das schlicht nie.
+#
+# Was jetzt anders ist und warum:
+#   * BALKEN STATT NUR ZAHLEN. Eine Fuellstandsaenderung erkennt man im
+#     Augenwinkel, eine Ziffernaenderung nicht.
+#   * EIGENE FARBE PRO STAT. Damit ist die Zeile ohne Lesen identifizierbar;
+#     "der orange Balken ist laenger geworden" reicht als Information.
+#   * KEINE LEBENSANZEIGE. Bewusst weggelassen: die Lebensleiste steht
+#     bereits rechts im Haupt-HUD. Denselben Wert an zwei Stellen zu zeigen
+#     kostet nur Platz und zwingt den Blick zur Entscheidung, wo er
+#     hinschaut.
+#   * KURZE AUFBLITZ-ANIMATION bei Aenderungen (_flash_row). Wer gerade ein
+#     Item aufgehoben hat, sieht sofort, WELCHER Wert sich bewegt hat.
+#   * AKZENT-STREIFEN LINKS + Kopfzeile, damit der Block als eine Einheit
+#     gelesen wird und nicht als Text, der zufaellig auf dem Bild klebt.
+#
+# Die Balkenlaenge braucht einen Bezugswert. Fuer Multiplikator-Stats ist das
+# 1.0 (= unveraendert), fuer absolute Werte eine Anzeige-Obergrenze aus
+# BAR_MAX. Wichtig: das ist eine reine ANZEIGE-Skala, kein Cap. Werte
+# darueber fuellen den Balken einfach ganz aus.
 
 ## Schluessel fuer SettingsManager.is_hud_element_visible().
 const HUD_ELEMENT: String = "stats"
@@ -33668,17 +35189,52 @@ const ROWS: Array = [
 	PlayerStats.STAT_ARMOR,
 ]
 
-const LABEL_COLOR: Color = Color(0.72, 0.74, 0.78)
+## Eigene Farbe pro Stat — der eigentliche Grund, warum man die Zeilen ohne
+## Lesen auseinanderhalten kann.
+const STAT_COLORS: Dictionary = {
+	PlayerStats.STAT_DAMAGE: Color(0.98, 0.42, 0.30),
+	PlayerStats.STAT_MOVE_SPEED: Color(0.36, 0.86, 0.95),
+	PlayerStats.STAT_COOLDOWN: Color(0.75, 0.55, 0.98),
+	PlayerStats.STAT_LUCK: Color(0.50, 0.92, 0.52),
+	PlayerStats.STAT_PICKUP_RANGE: Color(0.45, 0.66, 0.98),
+	PlayerStats.STAT_ARMOR: Color(0.72, 0.78, 0.86),
+	PlayerStats.STAT_HAZARD_RESIST: Color(0.98, 0.72, 0.35),
+}
+
+## Obergrenze der ANZEIGE-Skala je Stat. Nur fuer die Balkenlaenge relevant.
+const BAR_MAX: Dictionary = {
+	PlayerStats.STAT_DAMAGE: 3.0,
+	PlayerStats.STAT_MOVE_SPEED: 30.0,
+	PlayerStats.STAT_COOLDOWN: 3.0,
+	PlayerStats.STAT_LUCK: 0.5,
+	PlayerStats.STAT_PICKUP_RANGE: 8.0,
+	PlayerStats.STAT_ARMOR: 2.0,
+	PlayerStats.STAT_HAZARD_RESIST: 2.0,
+}
+
+const BG_COLOR: Color = Color(0.035, 0.042, 0.055, 0.86)
+const BORDER_COLOR: Color = Color(0.18, 0.20, 0.24, 0.95)
+const TRACK_COLOR: Color = Color(0.11, 0.12, 0.15, 0.95)
+const LABEL_COLOR: Color = Color(0.62, 0.66, 0.72)
 const VALUE_COLOR: Color = Color(0.96, 0.94, 0.88)
 const ACCENT_COLOR: Color = Color(0.98, 0.80, 0.22)
+const BOMB_COLOR: Color = Color(0.95, 0.52, 0.38)
+const COMBO_COLOR: Color = Color(0.98, 0.45, 0.35)
 
-var _rows: Dictionary = {}       # stat -> Label (Wertspalte)
+const BAR_HEIGHT: float = 5.0
+const NAME_WIDTH: float = 74.0
+const VALUE_WIDTH: float = 48.0
+
+var _rows: Dictionary = {}        # stat -> { "value": Label, "fill": ColorRect }
 var _coin_label: Label = null
 var _bomb_label: Label = null
 var _combo_label: Label = null
+var _combo_panel: PanelContainer = null
+
 var _stats: PlayerStats = null
 var _items: Node = null
 var _last_combo: int = -1
+var _last_values: Dictionary = {}  # stat -> float
 
 
 func _ready() -> void:
@@ -33705,81 +35261,206 @@ func _ready() -> void:
 # ============================================================================
 func _build_ui() -> void:
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.06, 0.07, 0.72)
-	style.border_color = Color(0.25, 0.27, 0.30, 0.9)
+	style.bg_color = BG_COLOR
+	style.border_color = BORDER_COLOR
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(3)
+	# Breiter Akzentstreifen links: bindet den Block optisch zusammen und
+	# ist dieselbe Sprache wie die Item-Karte darueber.
+	style.border_width_left = 3
+	style.set_corner_radius_all(2)
 	style.content_margin_left = 10.0
-	style.content_margin_right = 12.0
-	style.content_margin_top = 8.0
+	style.content_margin_right = 10.0
+	style.content_margin_top = 7.0
 	style.content_margin_bottom = 8.0
 	add_theme_stylebox_override("panel", style)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 2)
+	column.add_theme_constant_override("separation", 4)
 	add_child(column)
 
-	column.add_child(_make_header("STATS"))
+	column.add_child(_build_header())
+	column.add_child(_build_currency_row())
 	column.add_child(_make_separator())
 
-	# --- Waehrungen ---------------------------------------------------
-	_coin_label = _add_row(column, "Muenzen", ACCENT_COLOR)
-	_bomb_label = _add_row(column, "Bomben", Color(0.85, 0.55, 0.45))
-	column.add_child(_make_separator())
-
-	# --- Stats --------------------------------------------------------
 	for stat: String in ROWS:
-		var label_text: String = String(PlayerStats.STAT_LABELS.get(stat, stat))
-		_rows[stat] = _add_row(column, label_text, VALUE_COLOR)
-
-	column.add_child(_make_separator())
-	_combo_label = _add_row(column, "Combo", Color(0.98, 0.45, 0.35))
+		column.add_child(_build_stat_row(stat))
 
 
-func _make_header(text: String) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", 11)
-	label.add_theme_color_override("font_color", Color(0.55, 0.58, 0.62))
-	return label
+## Kopfzeile: Titel links, Combo-Badge rechts. Die Combo steht bewusst OBEN
+## und nicht mehr als letzte Zeile — sie ist der einzige Wert hier, der sich
+## im Sekundentakt aendert, und gehoert damit an die auffaelligste Stelle.
+func _build_header() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+
+	var title := Label.new()
+	title.text = "STATUS"
+	title.add_theme_font_size_override("font_size", 10)
+	title.add_theme_color_override("font_color", Color(0.50, 0.54, 0.60))
+	row.add_child(title)
+
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+
+	_combo_panel = PanelContainer.new()
+	var combo_style := StyleBoxFlat.new()
+	combo_style.bg_color = Color(COMBO_COLOR.r, COMBO_COLOR.g, COMBO_COLOR.b, 0.18)
+	combo_style.border_color = Color(COMBO_COLOR.r, COMBO_COLOR.g, COMBO_COLOR.b, 0.75)
+	combo_style.set_border_width_all(1)
+	combo_style.set_corner_radius_all(2)
+	combo_style.content_margin_left = 6.0
+	combo_style.content_margin_right = 6.0
+	combo_style.content_margin_top = 1.0
+	combo_style.content_margin_bottom = 1.0
+	_combo_panel.add_theme_stylebox_override("panel", combo_style)
+	_combo_panel.visible = false
+	row.add_child(_combo_panel)
+
+	_combo_label = Label.new()
+	_combo_label.text = "x0"
+	_combo_label.add_theme_font_size_override("font_size", 12)
+	_combo_label.add_theme_color_override("font_color", COMBO_COLOR)
+	_combo_panel.add_child(_combo_label)
+
+	return row
+
+
+## Muenzen und Bomben.
+##
+## GEAENDERT: waren vorher zwei nebeneinanderliegende Chips mit einem
+## Unicode-Symbol als Icon. Zwei Probleme damit, die beide dazu fuehrten,
+## dass man die Zahlen praktisch nicht gesehen hat:
+##   * Die Symbole (Raute/Kreis) sind in vielen Standardschriften nicht
+##     enthalten und wurden als Platzhalterkasten gerendert — daneben ging
+##     die eigentliche Zahl optisch unter.
+##   * Zwei Chips nebeneinander in einem 210 px breiten Panel liessen jeder
+##     Zahl rund 90 px, davon die Haelfte fuer das Symbol.
+##
+## Jetzt zwei ausgeschriebene Zeilen im selben Raster wie die Stats
+## darunter — gleiche Ausrichtung, gleiche Lesart, und die Zahl steht
+## rechts, wo sie bei allen anderen Zeilen auch steht.
+func _build_currency_row() -> VBoxContainer:
+	var block := VBoxContainer.new()
+	block.add_theme_constant_override("separation", 2)
+
+	_coin_label = _add_value_row(block, "Muenzen", ACCENT_COLOR)
+	_bomb_label = _add_value_row(block, "Bomben", BOMB_COLOR)
+
+	return block
+
+
+## Zeile "Beschriftung ........ Wert" ohne Balken. Der Spacer in der Mitte
+## haelt den Wert rechtsbuendig, ohne dass eine feste Panelbreite noetig
+## waere.
+func _add_value_row(parent: VBoxContainer, label_text: String, value_color: Color) -> Label:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+
+	var name_label := Label.new()
+	name_label.text = label_text
+	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_color_override("font_color", LABEL_COLOR)
+	name_label.custom_minimum_size = Vector2(NAME_WIDTH, 0.0)
+	row.add_child(name_label)
+
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+
+	var value_label := Label.new()
+	value_label.text = "0"
+	value_label.add_theme_font_size_override("font_size", 14)
+	value_label.add_theme_color_override("font_color", value_color)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	value_label.custom_minimum_size = Vector2(VALUE_WIDTH, 0.0)
+	row.add_child(value_label)
+
+	parent.add_child(row)
+	return value_label
+
+
+## Eine Stat-Zeile: Name | Balken | Wert. Feste Breiten links und rechts
+## halten alle Balken buendig — ohne das hoppeln sie je nach Textlaenge und
+## der Block wirkt unruhig.
+func _build_stat_row(stat: String) -> VBoxContainer:
+	var color: Color = STAT_COLORS.get(stat, VALUE_COLOR)
+
+	var block := VBoxContainer.new()
+	block.add_theme_constant_override("separation", 1)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+
+	var name_label := Label.new()
+	name_label.text = String(PlayerStats.STAT_LABELS.get(stat, stat))
+	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_color_override("font_color", LABEL_COLOR)
+	name_label.custom_minimum_size = Vector2(NAME_WIDTH, 0.0)
+	row.add_child(name_label)
+
+	var value_label := Label.new()
+	value_label.text = "-"
+	value_label.add_theme_font_size_override("font_size", 12)
+	value_label.add_theme_color_override("font_color", color)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	value_label.custom_minimum_size = Vector2(VALUE_WIDTH, 0.0)
+	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(value_label)
+
+	block.add_child(row)
+
+	var bar := _make_bar(BAR_HEIGHT, color)
+	block.add_child(bar[0])
+
+	# Die Farbe wandert MIT in den Eintrag. Sie spaeter aus dem Label
+	# zurueckzulesen waere ein Fehler: startet ein zweiter Aufblitzer,
+	# waehrend der erste noch laeuft, waere der "Originalwert" bereits die
+	# Blitzfarbe — und die Zeile bliebe dauerhaft gruen oder rot.
+	_rows[stat] = {"value": value_label, "fill": bar[1], "color": color}
+	return block
+
+
+## Balken = dunkle Spur + farbige Fuellung. Die Fuellung sitzt per ANKER im
+## Track (anchor_right = Anteil), nicht per Groesse.
+##
+## Der Unterschied ist wichtig: eine per size gesetzte Fuellung wird vom
+## Container beim naechsten Layout-Durchlauf wieder ueberschrieben, und der
+## Balken springt scheinbar zufaellig auf null zurueck. Ueber Anker geht das
+## nicht, weil Anker das Layout-Ergebnis selbst sind.
+func _make_bar(height: float, color: Color) -> Array:
+	var track := Panel.new()
+	track.custom_minimum_size = Vector2(0.0, height)
+	track.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var track_style := StyleBoxFlat.new()
+	track_style.bg_color = TRACK_COLOR
+	track_style.set_corner_radius_all(1)
+	track.add_theme_stylebox_override("panel", track_style)
+
+	var fill := ColorRect.new()
+	fill.color = color
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fill.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	fill.anchor_right = 0.0
+	fill.offset_left = 0.0
+	fill.offset_top = 0.0
+	fill.offset_right = 0.0
+	fill.offset_bottom = 0.0
+	track.add_child(fill)
+
+	return [track, fill]
 
 
 func _make_separator() -> HSeparator:
 	var separator := HSeparator.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.25, 0.27, 0.30, 0.55)
-	style.content_margin_top = 3.0
-	style.content_margin_bottom = 3.0
+	style.bg_color = Color(0.20, 0.22, 0.26, 0.55)
+	style.content_margin_top = 2.0
+	style.content_margin_bottom = 2.0
 	separator.add_theme_stylebox_override("separator", style)
 	return separator
-
-
-## Eine Zeile "Beschriftung ........ Wert". Der Spacer in der Mitte haelt
-## die Werte rechtsbuendig, ohne dass eine feste Panelbreite noetig waere.
-func _add_row(parent: VBoxContainer, label_text: String, value_color: Color) -> Label:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-
-	var name_label := Label.new()
-	name_label.text = label_text
-	name_label.add_theme_font_size_override("font_size", 12)
-	name_label.add_theme_color_override("font_color", LABEL_COLOR)
-	row.add_child(name_label)
-
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.custom_minimum_size = Vector2(24.0, 0.0)
-	row.add_child(spacer)
-
-	var value_label := Label.new()
-	value_label.text = "-"
-	value_label.add_theme_font_size_override("font_size", 12)
-	value_label.add_theme_color_override("font_color", value_color)
-	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	row.add_child(value_label)
-
-	parent.add_child(row)
-	return value_label
 
 
 # ============================================================================
@@ -33803,8 +35484,44 @@ func _bind_stats(stats: PlayerStats) -> void:
 func _refresh_stats() -> void:
 	if _stats == null or not is_instance_valid(_stats):
 		return
+
 	for stat: String in _rows.keys():
-		(_rows[stat] as Label).text = _stats.format_stat(stat)
+		var entry: Dictionary = _rows[stat]
+		var value_label: Label = entry["value"]
+		var fill: ColorRect = entry["fill"]
+
+		var raw: float = _stats.get_stat(stat)
+		value_label.text = _stats.format_stat(stat)
+		fill.anchor_right = clampf(raw / float(BAR_MAX.get(stat, 2.0)), 0.0, 1.0)
+
+		# Nur bei echter Aenderung aufblitzen — sonst blinkt beim Binden
+		# eines neuen Charakters das komplette Panel auf einmal.
+		var previous = _last_values.get(stat)
+		if previous != null and not is_equal_approx(float(previous), raw):
+			_flash_row(entry, raw > float(previous))
+		_last_values[stat] = raw
+
+
+## Kurzer Aufblitzer auf Wert UND Balken. Grun = besser geworden, rot =
+## schlechter. Der Balken selbst bleibt in seiner Stat-Farbe, es faerbt sich
+## nur die Fuellung fuer den Moment um.
+func _flash_row(entry: Dictionary, improved: bool) -> void:
+	var value_label: Label = entry["value"]
+	var fill: ColorRect = entry["fill"]
+	var flash_color: Color = Color(0.55, 1.0, 0.60) if improved else Color(1.0, 0.45, 0.42)
+	var base_color: Color = entry["color"]
+
+	value_label.add_theme_color_override("font_color", flash_color)
+	fill.color = flash_color
+
+	var tween := create_tween()
+	tween.tween_interval(0.28)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(value_label):
+			value_label.add_theme_color_override("font_color", base_color)
+		if is_instance_valid(fill):
+			fill.color = base_color
+	)
 
 
 func _on_coins_changed(amount: int) -> void:
@@ -33824,7 +35541,12 @@ func _process(_delta: float) -> void:
 	if combo == _last_combo:
 		return
 	_last_combo = combo
-	_combo_label.text = ("x%d" % combo) if combo > 1 else "-"
+
+	var show_combo: bool = combo > 1
+	if _combo_panel:
+		_combo_panel.visible = show_combo
+	if show_combo:
+		_combo_label.text = "x%d" % combo
 
 
 # ============================================================================
@@ -34166,6 +35888,963 @@ func get_persona_name() -> String:
 ## im Spiel eine Fehlermeldung pro Frame produzieren.
 func has_api(method_name: String) -> bool:
 	return is_available() and _steam.has_method(method_name)
+
+
+===== FILE: scripts\treasure_manager.gd =====
+
+extends Node
+
+# ============================================================================
+# Treasure — Autoload: setzt in JEDEN Schatzraum genau EINEN Item-Sockel.
+# Muss unter Project Settings -> Autoload als "Treasure" stehen.
+# ============================================================================
+#
+# WARUM ES DIESES SCRIPT UEBERHAUPT GIBT:
+# Der Item-Katalog (item_catalog.gd), die Effekte (item_behaviours.gd), die
+# Stat-Anbindung (player_stats.gd) und die Anzeige (item_description_hud.gd)
+# waren bereits vollstaendig — aber Pickup.create_item() wurde im ganzen
+# Projekt an KEINER Stelle aufgerufen. Es gab also acht fertige Items, die
+# im Spiel nicht existierten. Dieses Script schliesst genau diese Luecke.
+#
+# DESIGN-VORGABE (Isaac): Items findet man ausschliesslich im Schatzraum,
+# einzeln, mitten im Raum, auf einem Sockel. Deshalb NICHT ueber den
+# LootManager: der wuerfelt nach dem Raum-Clear Verbrauchsgueter aus und
+# waere fuer eine garantierte, einmalige Belohnung der falsche Ort.
+#
+# WIE ES SICH AN DIE RAEUME HAENGT: ueber SceneTree.node_added, exakt wie
+# loot_manager.gd. Damit funktioniert es sowohl fuer generierte Level als
+# auch fuer handgebaute Testszenen, in denen RoomInstances direkt in der
+# .tscn stehen — und ohne eine einzige Zeile Aenderung an
+# level_generator.gd oder room_instance.gd.
+#
+# ---------------------------------------------------------------------------
+# WICHTIGE REIHENFOLGE-KORREKTUR GEGENUEBER DER ERSTEN FASSUNG
+# ---------------------------------------------------------------------------
+# level_generator.load_room() macht der Reihe nach:
+#     instantiate() -> add_child()   <-- HIER feuert node_added
+#     dann: instance.global_transform = ...
+#     dann (im Aufrufer): room.grid_position = grid_pos
+#
+# Die Erkennung lief bisher direkt in _on_node_added und sah deshalb einen
+# Raum, der noch bei (0,0,0) stand und dessen grid_position noch (0,0) war.
+# Der Pfad-Check hat das ueberdeckt, der Generator-Fallback war aber tot und
+# der RNG-Salt haette fuer alle Raeume gleich gelautet.
+#
+# Jetzt wird in _on_node_added NUR noch gemerkt, dass ein RoomInstance
+# aufgetaucht ist. Geprueft und gespawnt wird eine Physik-Frame spaeter,
+# wenn Transform, grid_position und die Kollisionsformen stehen.
+#
+# ---------------------------------------------------------------------------
+# DIAGNOSE
+# ---------------------------------------------------------------------------
+# Dieses Script meldet sich beim Start und bei JEDEM gesehenen Raum zu Wort,
+# solange debug_logging an ist. Wenn in der Konsole gar keine
+# "[Treasure]"-Zeile auftaucht, laeuft _ready() nicht — dann ist der Autoload
+# nicht eingetragen oder der Pfad stimmt nicht. Das ist die einzige
+# Fehlerursache, die man sonst nicht von "Raum nicht erkannt" unterscheiden
+# koennte, weil beides zu demselben Symptom fuehrt: kein Sockel.
+
+signal pedestal_spawned(item: ItemData, room: Node)
+signal treasure_item_taken(item: ItemData)
+
+## Gruppe, mit der sich ein Raum manuell als Schatzraum markieren laesst.
+const TREASURE_GROUP: String = "treasure_room"
+
+## Teilstring im Szenenpfad, an dem Schatzraum-Prefabs erkannt werden.
+const TREASURE_PATH_HINT: String = "/treasure/"
+
+## Wie hoch ueber dem gefundenen Boden der Sockelfuss sitzt.
+const GROUND_OFFSET: float = 0.02
+
+## Wie tief NACH UNTEN gesucht wird. Nach oben wird bewusst NICHT gesucht,
+## siehe _find_spawn_position().
+const PROBE_DEPTH: float = 40.0
+
+## Sicherheitsabstand, falls der Raycast ins Leere geht.
+const FALLBACK_HEIGHT: float = 1.6
+
+## Ein zweites Exemplar desselben Items ist bei nur acht Items im Katalog
+## eine Enttaeuschung. Erst wenn wirklich alles vergeben ist, wird der Pool
+## zurueckgesetzt.
+@export var avoid_duplicates: bool = true
+
+## Meldet jeden gesehenen Raum mitsamt Erkennungsergebnis. Nach der
+## Verifikation auf false stellen.
+@export var debug_logging: bool = true
+
+## NOTNAGEL FUER DIE FEHLERSUCHE: setzt in JEDEN Raum einen Sockel, egal
+## welcher Typ. Nur zum Testen — damit laesst sich in Sekunden klaeren, ob
+## das Problem bei der Raum-ERKENNUNG oder beim SPAWNEN selbst liegt.
+@export var debug_spawn_in_every_room: bool = false
+
+## Item-IDs, die in diesem Run bereits auf einem Sockel lagen.
+var _reserved_ids: Dictionary = {}   # String -> true
+## Raeume, die schon behandelt wurden (erkannt oder abgelehnt).
+var _handled_rooms: Dictionary = {}  # InstanceID -> true
+## Run-Seed beim letzten Spawn. Aendert er sich, beginnt ein neuer Lauf.
+var _last_seen_seed: int = -1
+## Nur fuers Log: wie viele Raeume ueberhaupt gesehen wurden.
+var _rooms_seen: int = 0
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("[Treasure] %s" % msg)
+
+
+func _ready() -> void:
+	# ALWAYS statt PAUSABLE: die Generierung laeuft zwar nie pausiert, aber
+	# ein Autoload, das sich beim Pausieren abschaltet, verliert im Zweifel
+	# genau das node_added, auf das es wartet.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+	# Diese Zeile ist der Lebensbeweis. Fehlt sie in der Konsole, ist der
+	# Autoload nicht eingetragen — alles andere ist dann Zeitverschwendung.
+	_debug("Autoload aktiv. Warte auf RoomInstances.")
+
+	get_tree().node_added.connect(_on_node_added)
+	_scan_existing.call_deferred()
+
+
+func _scan_existing() -> void:
+	var root: Node = get_tree().root
+	if root == null:
+		return
+	_scan_recursive(root)
+
+
+func _scan_recursive(node: Node) -> void:
+	_on_node_added(node)
+	for child: Node in node.get_children():
+		_scan_recursive(child)
+
+
+## Hier wird NICHTS mehr geprueft ausser dem Typ. Begruendung siehe Kopf der
+## Datei: zu diesem Zeitpunkt sind Transform und grid_position des Raums
+## noch nicht gesetzt.
+func _on_node_added(node: Node) -> void:
+	if not (node is RoomInstance):
+		return
+	var room: RoomInstance = node as RoomInstance
+	var id: int = room.get_instance_id()
+	if _handled_rooms.has(id):
+		return
+	# Sofort sperren, nicht erst nach dem await: sonst kann derselbe Raum
+	# ueber node_added UND ueber _scan_existing zweimal durchlaufen.
+	_handled_rooms[id] = true
+	_rooms_seen += 1
+
+	# Die laufende Nummer wird HIER festgehalten und mitgereicht. Wuerde sie
+	# erst im deferred Teil gelesen, stuende in jeder Log-Zeile dieselbe
+	# Endsumme — alle Raeume werden im selben Frame hinzugefuegt, die
+	# Auswertung laeuft aber erst danach.
+	_process_room_deferred.call_deferred(room, _rooms_seen)
+
+
+## Eine Physik-Frame spaeter: jetzt stehen Welt-Transform, grid_position und
+## die Kollisionsformen des Raums.
+func _process_room_deferred(room: RoomInstance, index: int) -> void:
+	if not is_instance_valid(room):
+		return
+	await get_tree().physics_frame
+	if not is_instance_valid(room) or not room.is_inside_tree():
+		return
+
+	var verdict: String = _detection_reason(room)
+	var is_treasure: bool = verdict != ""
+
+	_debug("Raum #%d gesehen: grid=%s szene='%s' -> %s" % [
+		index,
+		room.grid_position,
+		room.scene_file_path,
+		verdict if is_treasure else "kein Schatzraum"
+	])
+
+	if not is_treasure and not debug_spawn_in_every_room:
+		return
+
+	_spawn_pedestal(room)
+
+
+# ============================================================================
+# Erkennung
+# ============================================================================
+## Liefert den GRUND, warum der Raum als Schatzraum gilt — oder "" wenn
+## nicht. Ein String statt bool, damit im Log steht, WELCHER der drei Wege
+## gegriffen hat. Bei "kein Sockel gespawnt" ist genau das die Information,
+## die man braucht.
+func _detection_reason(room: RoomInstance) -> String:
+	if room.is_in_group(TREASURE_GROUP):
+		return "TREFFER (Gruppe '%s')" % TREASURE_GROUP
+
+	if room.scene_file_path.to_lower().contains(TREASURE_PATH_HINT):
+		return "TREFFER (Szenenpfad enthaelt '%s')" % TREASURE_PATH_HINT
+
+	if _generator_says_treasure(room):
+		return "TREFFER (LevelGenerator meldet RoomType.TREASURE)"
+
+	return ""
+
+
+## Dritter Weg: den LevelGenerator nach dem Typ der Rasterzelle fragen.
+func _generator_says_treasure(room: RoomInstance) -> bool:
+	var generator: Node = _find_generator()
+	if generator == null:
+		return false
+
+	var cells = generator.get("_map_cells")
+	if not (cells is Dictionary):
+		return false
+	if not cells.has(room.grid_position):
+		return false
+
+	var cell = cells[room.grid_position]
+	if not (cell is Dictionary):
+		return false
+	return int(cell.get("type", -1)) == RoomData.RoomType.TREASURE
+
+
+# ============================================================================
+# Spawnen
+# ============================================================================
+func _spawn_pedestal(room: RoomInstance) -> void:
+	_maybe_reset_for_new_run()
+
+	var item: ItemData = _pick_item(room)
+	if item == null:
+		push_warning("[Treasure] Raum %s: kein Item verfuegbar — Sockel uebersprungen." % room.grid_position)
+		return
+
+	var pedestal := TreasurePedestal.create(item)
+	room.add_child(pedestal)
+	pedestal.global_position = _find_spawn_position(room)
+	pedestal.item_taken.connect(_on_item_taken)
+
+	_reserved_ids[item.id] = true
+	pedestal_spawned.emit(item, room)
+
+	_debug("  -> Sockel gesetzt: '%s' bei %s." % [item.display_name, pedestal.global_position])
+
+
+## Raum-Ursprung ist bei allen Prefabs die Raum-MITTE (Waende liegen
+## symmetrisch bei +-24). Deshalb wird von dort aus nach unten gemessen.
+##
+## WARUM NICHT room.get_room_center():
+## Die Funktion liefert den ERSTEN LootSpawnPoint-Marker zurueck, und die
+## liegen im Schatzraum-Prefab bei (-4, 2.1, -4) — also in einer Ecke der
+## Plattform, nicht in der Mitte. Der Sockel stuende sichtbar schief.
+##
+## ---------------------------------------------------------------------------
+## WARUM DER STRAHL NICHT VON GANZ OBEN KOMMT (behobener Fehler)
+## ---------------------------------------------------------------------------
+## room_instance.gd baut sich in _build_ceiling() selbst eine DECKE als
+## StaticBody3D mit Kollision:
+##     position.y = room_height + ceiling_thickness * 0.5   (= 14.5)
+##     box.size.y = ceiling_thickness                        (= 1.0)
+## Deren Oberkante liegt damit bei exakt 15.0.
+##
+## Ein Strahl, der 40 m ueber dem Raum startet, trifft folglich zuerst das
+## DACH und nicht den Boden — der Sockel landete bei y = 15.02, also
+## ausserhalb des begehbaren Raums und fuer den Spieler unsichtbar. Und
+## zwar ohne jede Fehlermeldung, weil der Raycast ja erfolgreich war.
+##
+## Zwei Absicherungen dagegen:
+##   1. Der Strahl startet auf halber Raumhoehe, also UNTERHALB der Decke.
+##   2. Die Decke wird zusaetzlich explizit ausgeschlossen — falls jemand
+##      room_height spaeter kleiner setzt als die Deckenhoehe.
+func _find_spawn_position(room: RoomInstance) -> Vector3:
+	var center: Vector3 = room.global_position
+	var world: World3D = room.get_world_3d()
+	if world == null:
+		return center + Vector3(0.0, FALLBACK_HEIGHT, 0.0)
+
+	# Halbe Raumhoehe: sicher unter der Decke und sicher ueber jeder
+	# Plattform (im Schatzraum liegt die hoechste bei 1.6).
+	var start_height: float = clampf(room.room_height * 0.5, 2.0, maxf(room.room_height - 1.5, 2.0))
+
+	var space: PhysicsDirectSpaceState3D = world.direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(
+		center + Vector3(0.0, start_height, 0.0),
+		center + Vector3(0.0, -PROBE_DEPTH, 0.0)
+	)
+	# Nur echte Geometrie: Areas sind hier Trigger-Volumen (Raum-Eintritt,
+	# Praesenz) und wuerden den Sockel in die Luft haengen.
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.exclude = _collect_ceiling_rids(room)
+
+	var hit: Dictionary = space.intersect_ray(query)
+	if hit.is_empty():
+		_debug("  Boden-Raycast ins Leere (Start %.1f) — Ersatzhoehe %.1f benutzt." % [
+			start_height, FALLBACK_HEIGHT
+		])
+		return center + Vector3(0.0, FALLBACK_HEIGHT, 0.0)
+
+	var point: Vector3 = hit["position"]
+	return Vector3(center.x, point.y + GROUND_OFFSET, center.z)
+
+
+## Decke und Tuersturz-Koerper, die room_instance.gd zur Laufzeit anlegt.
+## Beide haengen direkt unter dem Raum-Root und heissen fest "Ceiling" bzw.
+## beginnen mit "DoorLintel".
+func _collect_ceiling_rids(room: RoomInstance) -> Array[RID]:
+	var rids: Array[RID] = []
+	for child: Node in room.get_children():
+		if not (child is CollisionObject3D):
+			continue
+		if child.name == "Ceiling" or String(child.name).begins_with("DoorLintel"):
+			rids.append((child as CollisionObject3D).get_rid())
+	return rids
+
+
+# ============================================================================
+# Item-Auswahl
+# ============================================================================
+## Deterministisch aus Run-Seed und Rasterposition. Bereits vergebene Items
+## fliegen aus dem Pool, damit man in einem Lauf nicht zweimal denselben
+## Kochloeffel findet.
+func _pick_item(room: RoomInstance) -> ItemData:
+	var items: Node = get_node_or_null("/root/Items")
+	if items == null:
+		push_warning("[Treasure] Autoload 'Items' nicht gefunden — kein Sockel moeglich. Autoload-Reihenfolge pruefen: 'Items' muss VOR 'Treasure' stehen.")
+		return null
+
+	var catalog: Array = items.catalog
+	if catalog.is_empty():
+		push_warning("[Treasure] Item-Katalog ist leer.")
+		return null
+
+	var pool: Array[ItemData] = []
+	for entry in catalog:
+		if not (entry is ItemData):
+			continue
+		var data: ItemData = entry as ItemData
+		if avoid_duplicates and _reserved_ids.has(data.id):
+			continue
+		# Ein Item, dessen Stapelgrenze bereits erreicht ist, waere auf dem
+		# Sockel nicht aufnehmbar — der Spieler stuende vor einem [F], das
+		# nichts tut.
+		if data.max_stacks > 0 and items.count_item(data.id) >= data.max_stacks:
+			continue
+		pool.append(data)
+
+	# Alles vergeben: lieber ein Duplikat als ein leerer Schatzraum.
+	if pool.is_empty():
+		_debug("Item-Pool erschoepft — Duplikate werden wieder zugelassen.")
+		_reserved_ids.clear()
+		for entry in catalog:
+			if entry is ItemData:
+				pool.append(entry as ItemData)
+
+	if pool.is_empty():
+		return null
+
+	var rng: RandomNumberGenerator = _make_rng(room)
+	return pool[rng.randi_range(0, pool.size() - 1)]
+
+
+func _make_rng(room: RoomInstance) -> RandomNumberGenerator:
+	var salt: String = "treasure:%d:%d:%d" % [
+		room.grid_position.x,
+		room.grid_position.y,
+		_get_current_stage()
+	]
+	return DetRng.make(DetRng.derive(_get_run_seed(), salt))
+
+
+func _get_run_seed() -> int:
+	var generator: Node = _find_generator()
+	if generator and generator.has_method("get_run_seed"):
+		return generator.get_run_seed()
+	return 0
+
+
+func _get_current_stage() -> int:
+	var generator: Node = _find_generator()
+	if generator and generator.has_method("get_current_stage"):
+		return generator.get_current_stage()
+	return 1
+
+
+func _find_generator() -> Node:
+	var found: Array = get_tree().get_nodes_in_group("level_generator")
+	if not found.is_empty():
+		return found[0]
+	return null
+
+
+# ============================================================================
+# Run-Verwaltung
+# ============================================================================
+func _on_item_taken(item: ItemData, _pedestal: TreasurePedestal) -> void:
+	treasure_item_taken.emit(item)
+	_debug("'%s' vom Sockel genommen." % item.display_name)
+
+
+## Erkennt einen neuen Lauf am geaenderten Run-Seed. Ohne das haelt der
+## Manager nach reload_current_scene() alle Raeume fuer bereits abgehandelt
+## und der Schatzraum bliebe leer — ein Fehler ohne Fehlermeldung.
+func _maybe_reset_for_new_run() -> void:
+	var current_seed: int = _get_run_seed()
+	if current_seed == _last_seen_seed:
+		return
+	if _last_seen_seed != -1:
+		_debug("Neuer Run erkannt (Seed %d -> %d). Item-Pool zurueckgesetzt." % [
+			_last_seen_seed, current_seed
+		])
+		_reserved_ids.clear()
+	_last_seen_seed = current_seed
+
+
+## Beim Start eines neuen Runs aufrufen — parallel zu Loot.reset_run() und
+## Items.reset_run().
+func reset_run() -> void:
+	_reserved_ids.clear()
+	_handled_rooms.clear()
+	_last_seen_seed = -1
+	_rooms_seen = 0
+
+
+## Welche Items in diesem Lauf bereits auf einem Sockel lagen.
+func get_reserved_ids() -> Array:
+	return _reserved_ids.keys()
+
+
+# ============================================================================
+# Test-Hilfen
+# ============================================================================
+## Setzt sofort einen Sockel vor den Spieler. Gedacht fuer einen temporaeren
+## Tastendruck, um Sockel-Optik und Aufnehmen zu testen, ohne erst einen
+## Schatzraum freihacken zu muessen.
+func debug_spawn_at_player(item_id: String = "") -> void:
+	var player: Node3D = null
+	for node: Node in get_tree().get_nodes_in_group("player"):
+		if node is Node3D and is_instance_valid(node):
+			player = node as Node3D
+			break
+	if player == null:
+		push_warning("[Treasure] Kein Spieler gefunden.")
+		return
+
+	var items: Node = get_node_or_null("/root/Items")
+	if items == null:
+		push_warning("[Treasure] Autoload 'Items' fehlt.")
+		return
+
+	var data: ItemData = null
+	if item_id != "":
+		data = items.get_item_by_id(item_id)
+	elif not items.catalog.is_empty():
+		data = items.catalog[0]
+	if data == null:
+		push_warning("[Treasure] Item '%s' nicht im Katalog." % item_id)
+		return
+
+	var pedestal := TreasurePedestal.create(data)
+	get_tree().current_scene.add_child(pedestal)
+	pedestal.global_position = player.global_position + Vector3(0.0, 0.0, 3.0)
+	pedestal.item_taken.connect(_on_item_taken)
+	_debug("Test-Sockel '%s' vor dem Spieler gesetzt." % data.display_name)
+
+
+## Kurzbericht fuer die Konsole.
+func debug_report() -> void:
+	print("[Treasure] Raeume gesehen: %d | reservierte Items: %s | Seed: %d" % [
+		_rooms_seen, str(_reserved_ids.keys()), _last_seen_seed
+	])
+
+
+===== FILE: scripts\treasure_pedestal.gd =====
+
+extends Node3D
+class_name TreasurePedestal
+
+# ============================================================================
+# TreasurePedestal — der Isaac-Sockel in der Mitte des Schatzraums.
+# ============================================================================
+# EIN Item pro Schatzraum, frei schwebend ueber einer Saeule, mit Lichtsaeule
+# und Bodenring. Wer nah genug steht, sieht die Item-Karte unten links und
+# kann mit [F] zugreifen.
+#
+# WARUM EIN EIGENES SCRIPT UND NICHT Pickup.Kind.ITEM:
+# Pickup ist bewusst ein Wegwerf-Objekt: es liegt am Boden, wird magnetisch
+# angezogen und verschwindet beim Beruehren. Der Schatzsockel ist das
+# Gegenteil — er steht fest, saugt nichts an, muss aktiv bedient werden und
+# soll den halben Raum beleuchten. Beides in eine Klasse zu quetschen haette
+# in Pickup vier weitere "if kind == ITEM: anders"-Zweige bedeutet, und genau
+# solche Zweige sind spaeter die Stellen, an denen ein Bugfix fuer Muenzen den
+# Schatzraum kaputtmacht.
+#
+# BAUT SICH KOMPLETT SELBST AUF — konsequent wie pickup.gd und bomb.gd. Es
+# gibt also KEINE treasure_pedestal.tscn, die man vergessen kann zu laden.
+#
+# ALLE MATERIALIEN WERDEN PRO INSTANZ NEU ERZEUGT (siehe _make_material).
+# Wuerde hier eine geteilte Ressource liegen, faerbte der zweite Sockel einer
+# Etage rueckwirkend den ersten um.
+
+signal item_taken(item: ItemData, pedestal: TreasurePedestal)
+
+## Wie nah der Spieler stehen muss, damit [F] greift.
+@export var interact_distance: float = 3.0
+
+## Ab dieser Entfernung wird die Item-Karte mittig auf dem Bildschirm
+## eingeblendet — und beim Verlassen sofort wieder ausgeblendet.
+##
+## Bewusst knapp gehalten: die Karte soll aussagen "du stehst am Sockel",
+## nicht "irgendwo in diesem Raum liegt ein Item". Bei einem 48 m breiten
+## Schatzraum heisst das ein Radius um die Mittelplattform herum.
+@export var preview_distance: float = 7.0
+
+## Schwebe-Animation des Items ueber der Saeule.
+@export var bob_height: float = 0.14
+@export var bob_speed: float = 1.8
+@export var spin_speed: float = 1.1
+
+## Hoehe des schwebenden Items ueber der Saeulen-Oberkante.
+@export var float_height: float = 1.15
+
+## Hoehe der Lichtsaeule. Sie ist das, was den Raum auf Distanz lesbar macht.
+@export var beam_height: float = 7.0
+
+## Reichweite der Punktlichtquelle im Sockel.
+@export var light_range: float = 9.0
+@export var light_energy: float = 2.2
+
+## Muss mit SettingsManager.DEFAULT_KEYBINDS uebereinstimmen ("interact" = F).
+const INTERACT_ACTION: String = "interact"
+
+## Gruppe, in der sich ItemDescriptionHud anmeldet.
+const ITEM_HUD_GROUP: String = "item_hud"
+
+## Das Item, das auf diesem Sockel liegt. Wird vom TreasureManager gesetzt,
+## BEVOR der Sockel in den Baum gehaengt wird.
+var item_data: ItemData = null
+
+var _taken: bool = false
+var _time: float = 0.0
+var _float_root: Node3D = null
+var _gem: MeshInstance3D = null
+var _halo: MeshInstance3D = null
+var _beam: MeshInstance3D = null
+var _ring: MeshInstance3D = null
+var _light: OmniLight3D = null
+var _name_label: Label3D = null
+var _prompt_label: Label3D = null
+var _preview_shown: bool = false
+var _accent: Color = Color(0.95, 0.85, 0.35)
+
+
+## Bequemer Konstruktor fuer den TreasureManager.
+static func create(data: ItemData) -> TreasurePedestal:
+	var pedestal := TreasurePedestal.new()
+	pedestal.item_data = data
+	pedestal.name = "TreasurePedestal_%s" % (data.id if data else "empty")
+	return pedestal
+
+
+func _ready() -> void:
+	add_to_group("treasure_pedestals")
+
+	if item_data != null:
+		_accent = item_data.pedestal_color
+
+	_build_column()
+	_build_ring()
+	_build_beam()
+	_build_float_group()
+	_build_light()
+	_build_labels()
+
+
+# ============================================================================
+# Aufbau
+# ============================================================================
+## Unshaded + Emission: PSX-Optik lebt von flachen, gesaettigten Flaechen.
+## Ein Schatzsockel muss ausserdem quer durch einen dunklen Raum lesbar sein,
+## ohne dass eine Lichtquelle ihn zufaellig richtig trifft.
+func _make_material(color: Color, emission: float = 0.8, unshaded: bool = true) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	if unshaded:
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = color
+	material.emission_enabled = true
+	material.emission = color
+	material.emission_energy_multiplier = emission
+	return material
+
+
+## Additiv + ohne Tiefen-Test-Verlust: fuer Lichtsaeule und Halo. Cull
+## deaktiviert, damit man auch von innen etwas sieht.
+func _make_glow_material(color: Color, alpha: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.albedo_color = Color(color.r, color.g, color.b, alpha)
+	material.disable_receive_shadows = true
+	return material
+
+
+## Die Saeule ist bewusst zweiteilig: dunkler Schaft, heller Deckstein in der
+## Item-Farbe. So sieht man die Farbe des Items auch dann noch, wenn das
+## schwebende Objekt gerade von einer Wand verdeckt wird.
+func _build_column() -> void:
+	var shaft_mesh := CylinderMesh.new()
+	shaft_mesh.top_radius = 0.42
+	shaft_mesh.bottom_radius = 0.58
+	shaft_mesh.height = 0.95
+	shaft_mesh.radial_segments = 8  # bewusst grob: PSX-Look
+
+	var shaft := MeshInstance3D.new()
+	shaft.name = "Shaft"
+	shaft.mesh = shaft_mesh
+	# material_override statt surface_material_override — Vorrangregel.
+	shaft.material_override = _make_material(Color(0.14, 0.15, 0.18), 0.0, false)
+	shaft.position = Vector3(0.0, 0.475, 0.0)
+	add_child(shaft)
+
+	var base_mesh := CylinderMesh.new()
+	base_mesh.top_radius = 0.72
+	base_mesh.bottom_radius = 0.82
+	base_mesh.height = 0.18
+	base_mesh.radial_segments = 8
+
+	var base := MeshInstance3D.new()
+	base.name = "Base"
+	base.mesh = base_mesh
+	base.material_override = _make_material(Color(0.10, 0.11, 0.13), 0.0, false)
+	base.position = Vector3(0.0, 0.09, 0.0)
+	add_child(base)
+
+	var cap_mesh := CylinderMesh.new()
+	cap_mesh.top_radius = 0.52
+	cap_mesh.bottom_radius = 0.46
+	cap_mesh.height = 0.12
+	cap_mesh.radial_segments = 8
+
+	var cap := MeshInstance3D.new()
+	cap.name = "Cap"
+	cap.mesh = cap_mesh
+	cap.material_override = _make_material(_accent, 0.9)
+	cap.position = Vector3(0.0, 1.0, 0.0)
+	add_child(cap)
+
+
+## Leuchtring auf dem Boden. Markiert die Interaktions-Reichweite, ohne dass
+## dafuer eine UI noetig waere.
+func _build_ring() -> void:
+	var torus := TorusMesh.new()
+	torus.inner_radius = 1.05
+	torus.outer_radius = 1.22
+	torus.rings = 20
+	torus.ring_segments = 5
+
+	_ring = MeshInstance3D.new()
+	_ring.name = "GroundRing"
+	_ring.mesh = torus
+	_ring.material_override = _make_glow_material(_accent, 0.55)
+	_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_ring.position = Vector3(0.0, 0.04, 0.0)
+	add_child(_ring)
+
+
+## Lichtsaeule nach oben. Der eigentliche "hier liegt was"-Wegweiser: sie ist
+## auch dann sichtbar, wenn der Sockel selbst hinter einer Stufe verschwindet.
+func _build_beam() -> void:
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = 0.95
+	cylinder.bottom_radius = 0.30
+	cylinder.height = beam_height
+	cylinder.radial_segments = 10
+	cylinder.rings = 1
+
+	_beam = MeshInstance3D.new()
+	_beam.name = "LightBeam"
+	_beam.mesh = cylinder
+	_beam.material_override = _make_glow_material(_accent, 0.13)
+	_beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_beam.position = Vector3(0.0, 1.1 + beam_height * 0.5, 0.0)
+	add_child(_beam)
+
+
+## Alles Schwebende haengt an EINEM Knoten, damit Bob und Rotation nicht auf
+## drei Meshes einzeln nachgezogen werden muessen.
+func _build_float_group() -> void:
+	_float_root = Node3D.new()
+	_float_root.name = "FloatRoot"
+	_float_root.position = Vector3(0.0, 1.06 + float_height, 0.0)
+	add_child(_float_root)
+
+	# --- Halo hinter dem Item ----------------------------------------
+	var quad := QuadMesh.new()
+	quad.size = Vector2(1.5, 1.5)
+
+	_halo = MeshInstance3D.new()
+	_halo.name = "Halo"
+	_halo.mesh = quad
+	var halo_material := _make_glow_material(_accent, 0.35)
+	halo_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	_halo.material_override = halo_material
+	_halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_float_root.add_child(_halo)
+
+	# --- Das Item selbst: facettierter Edelstein ----------------------
+	# radial_segments 6 / rings 3 ergibt eine kantige Form, die zum
+	# Vertex-Snapping passt. Eine glatte Kugel saehe hier wie ein Fremd-
+	# koerper aus.
+	var gem_mesh := SphereMesh.new()
+	gem_mesh.radius = 0.30
+	gem_mesh.height = 0.84
+	gem_mesh.radial_segments = 6
+	gem_mesh.rings = 3
+
+	_gem = MeshInstance3D.new()
+	_gem.name = "Gem"
+	_gem.mesh = gem_mesh
+	_gem.material_override = _make_material(_accent, 1.4)
+	_gem.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_float_root.add_child(_gem)
+
+	# Fertiges Icon-Modell schlaegt den Platzhalter, falls eines existiert.
+	if item_data != null and item_data.icon != null:
+		_apply_icon_billboard(item_data.icon)
+
+
+## Sobald es Item-Icons gibt, wird der Edelstein zum Traeger einer Textur.
+## Bis dahin passiert hier nichts — das ist kein Fehlerfall.
+func _apply_icon_billboard(icon: Texture2D) -> void:
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.85, 0.85)
+
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	material.albedo_texture = icon
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+
+	var icon_instance := MeshInstance3D.new()
+	icon_instance.name = "Icon"
+	icon_instance.mesh = quad
+	icon_instance.material_override = material
+	icon_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_float_root.add_child(icon_instance)
+
+	# Der Stein bleibt als farbiger Hintergrund stehen, wird aber kleiner,
+	# damit das Icon lesbar bleibt.
+	if _gem:
+		_gem.scale = Vector3.ONE * 0.55
+
+
+func _build_light() -> void:
+	_light = OmniLight3D.new()
+	_light.name = "ShrineLight"
+	_light.light_color = _accent
+	_light.light_energy = light_energy
+	_light.omni_range = light_range
+	# Schatten aus: eine einzelne bewegte Punktlichtquelle mit Schatten
+	# kostet in einem Raum voller Wandsegmente deutlich mehr, als sie
+	# optisch bringt.
+	_light.shadow_enabled = false
+	_light.position = Vector3(0.0, 1.6, 0.0)
+	add_child(_light)
+
+
+func _build_labels() -> void:
+	_name_label = Label3D.new()
+	_name_label.name = "NameLabel"
+	_name_label.text = item_data.display_name if item_data else "???"
+	_name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_name_label.no_depth_test = true
+	_name_label.pixel_size = 0.0055
+	_name_label.outline_size = 8
+	_name_label.modulate = Color(1.0, 0.98, 0.92, 0.95)
+	_name_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.85)
+	_name_label.position = Vector3(0.0, 2.85, 0.0)
+	_name_label.visible = false
+	add_child(_name_label)
+
+	_prompt_label = Label3D.new()
+	_prompt_label.name = "PromptLabel"
+	_prompt_label.text = "[F] Nehmen"
+	_prompt_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_prompt_label.no_depth_test = true
+	_prompt_label.pixel_size = 0.0045
+	_prompt_label.outline_size = 6
+	_prompt_label.modulate = _accent
+	_prompt_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.85)
+	_prompt_label.position = Vector3(0.0, 2.5, 0.0)
+	_prompt_label.visible = false
+	add_child(_prompt_label)
+
+
+# ============================================================================
+# Laufzeit
+# ============================================================================
+func _physics_process(delta: float) -> void:
+	_time += delta
+	_animate(delta)
+
+	if _taken:
+		return
+
+	var player: Node3D = _find_player()
+	if player == null:
+		return
+
+	var distance: float = global_position.distance_to(player.global_position)
+	_update_labels(distance)
+	_update_preview(distance)
+
+	if distance > interact_distance:
+		return
+	if not Input.is_action_just_pressed(INTERACT_ACTION):
+		return
+	take()
+
+
+func _animate(delta: float) -> void:
+	if _float_root and not _taken:
+		_float_root.position.y = 1.06 + float_height + sin(_time * bob_speed) * bob_height
+		_float_root.rotate_y(spin_speed * delta)
+
+	if _ring:
+		# Langsames Pulsieren: zieht den Blick, ohne zu flackern.
+		var pulse: float = 0.45 + 0.25 * (sin(_time * 2.0) * 0.5 + 0.5)
+		var material: StandardMaterial3D = _ring.material_override
+		if material:
+			material.albedo_color.a = pulse if not _taken else 0.08
+
+	if _light and not _taken:
+		_light.light_energy = light_energy * (0.85 + 0.15 * sin(_time * 3.1))
+
+
+func _update_labels(distance: float) -> void:
+	var near: bool = distance <= preview_distance
+	if _name_label:
+		_name_label.visible = near
+	if _prompt_label:
+		_prompt_label.visible = distance <= interact_distance
+
+
+## Blendet die Item-Karte ein, sobald der Spieler in Reichweite kommt, und
+## sofort wieder aus, wenn er sie verlaesst.
+##
+## Nur bei der FLANKE, nicht jeden Frame: ein Dauerfeuer von show_item()
+## wuerde die Einblend-Animation jeden Frame neu starten, die Karte stuende
+## also dauerhaft auf 97 % Groesse und zuckte.
+##
+## Das Ausblenden beim Weggehen ist der eigentliche Grund fuer diese
+## Funktion. Vorher lief die Karte nach einem festen Timer aus — man trug
+## die Beschreibung also noch durch zwei Raeume mit sich herum.
+func _update_preview(distance: float) -> void:
+	var near: bool = distance <= preview_distance
+	if near == _preview_shown:
+		return
+	_preview_shown = near
+
+	var hud: ItemDescriptionHud = _find_item_hud()
+	if hud == null:
+		return
+
+	if near and item_data != null:
+		# persistent = true: die Karte bleibt, solange man hier steht.
+		hud.show_item(item_data, true)
+	else:
+		hud.hide_item()
+
+
+## Das Item-HUD ist jetzt ein Node IN hud.tscn, kein Autoload-Kind mehr.
+## Deshalb wird es ueber die Gruppe gesucht statt ueber einen festen Pfad —
+## ein Pfad wie "/root/HudExtra/..." haette sich bei jeder Umbenennung im
+## Szenenbaum stillschweigend in null verwandelt.
+func _find_item_hud() -> ItemDescriptionHud:
+	for node: Node in get_tree().get_nodes_in_group(ITEM_HUD_GROUP):
+		if node is ItemDescriptionHud and is_instance_valid(node):
+			return node as ItemDescriptionHud
+	return null
+
+
+func _find_player() -> Node3D:
+	for node: Node in get_tree().get_nodes_in_group("player"):
+		if node is Node3D and is_instance_valid(node):
+			return node as Node3D
+	return null
+
+
+# ============================================================================
+# Aufnehmen
+# ============================================================================
+## Gibt true zurueck, wenn das Item wirklich ins Inventar gewandert ist.
+## Bei erreichter Stapelgrenze bleibt der Sockel bestueckt stehen — das ist
+## dieselbe Regel wie in pickup.gd und verhindert, dass ein Item wortlos
+## verschwindet.
+func take() -> bool:
+	if _taken or item_data == null:
+		return false
+
+	var items: Node = get_node_or_null("/root/Items")
+	if items == null:
+		return false
+	if not items.add_item(item_data):
+		return false
+
+	_taken = true
+	# Die Anzeige stand auf "dauerhaft" (Sockel in Reichweite). Ohne diesen
+	# Wechsel bliebe die Karte fuer immer stehen, weil hide_item() erst beim
+	# Verlassen der Reichweite kaeme — und Items.item_added() setzt sie
+	# gleich darauf ohnehin neu, dann mit Auto-Ausblendung.
+	var hud: ItemDescriptionHud = _find_item_hud()
+	if hud:
+		hud.hide_item()
+
+	item_taken.emit(item_data, self)
+	_play_take_feedback()
+	return true
+
+
+## Der Sockel bleibt als leere Saeule stehen. Ein komplett verschwindender
+## Sockel wuerde beim Zurueckkommen so aussehen, als waere der Schatzraum nie
+## bestueckt gewesen.
+func _play_take_feedback() -> void:
+	if _prompt_label:
+		_prompt_label.visible = false
+	if _name_label:
+		_name_label.visible = false
+
+	Juice.hit_stop(Juice.DURATION_LIGHT)
+	Juice.shake(0.35)
+
+	var tween := create_tween()
+	tween.set_parallel(true)
+
+	if _float_root:
+		tween.tween_property(_float_root, "position:y", _float_root.position.y + 1.4, 0.45) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(_float_root, "scale", Vector3.ONE * 0.01, 0.45) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+	if _beam and _beam.material_override is StandardMaterial3D:
+		tween.tween_property(_beam.material_override, "albedo_color:a", 0.0, 0.5)
+
+	if _light:
+		tween.tween_property(_light, "light_energy", 0.25, 0.5)
+
+	tween.chain().tween_callback(_finish_take)
+
+
+func _finish_take() -> void:
+	if _float_root and is_instance_valid(_float_root):
+		_float_root.queue_free()
+		_float_root = null
+	if _beam and is_instance_valid(_beam):
+		_beam.queue_free()
+		_beam = null
+
+
+func is_taken() -> bool:
+	return _taken
 
 
 ===== FILE: scripts\vfx_manager.gd =====

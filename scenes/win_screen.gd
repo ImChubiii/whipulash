@@ -10,6 +10,10 @@ class_name WinScreen
 var _time_label: Label = null
 
 var _blur_overlay: ColorRect = null
+
+## Ueberschrift ueber der Item-Liste.
+const ITEM_LIST_TITLE: String = "DIESER RUN"
+var _item_list: ItemSummaryList = null
 var _pause_menu: PauseMenu = null
 
 ## Leaderboard-Block wird - wie das Zeit-Label - zur Laufzeit gebaut,
@@ -42,6 +46,7 @@ func _ready() -> void:
 
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+	_build_item_list()
 
 
 ## Setzt das Zeit-Label direkt unter die Ueberschrift (Index 1), damit es
@@ -243,3 +248,34 @@ func _on_restart_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+# ============================================================================
+# Item-Uebersicht
+# ============================================================================
+# Wird zur Laufzeit gebaut, damit keine der Szenen angefasst werden muss, in
+# denen dieser Screen instanziiert ist — dieselbe Begruendung wie beim
+# Zeit-Label und beim Leaderboard-Block.
+func _build_item_list() -> void:
+	if _item_list != null and is_instance_valid(_item_list):
+		return
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Item-Liste faellt aus." % name)
+		return
+
+	_item_list = ItemSummaryList.create(ITEM_LIST_TITLE)
+	column.add_child(_item_list)
+	# Vor den ersten Button schieben: die Liste ist Information, die Buttons
+	# sind die Handlung. Umgekehrt muesste man an den Buttons vorbeilesen.
+	column.move_child(_item_list, _first_button_index(column))
+
+
+## Index des ersten Buttons in der Spalte. Ueber den Typ gesucht statt ueber
+## einen festen Index, weil die drei Screens unterschiedlich viele Labels
+## ueber den Buttons haben.
+func _first_button_index(column: VBoxContainer) -> int:
+	for i: int in range(column.get_child_count()):
+		if column.get_child(i) is Button:
+			return i
+	return column.get_child_count()

@@ -89,6 +89,11 @@ enum HazardMode { POOL, SURFACE }
 ## jeden Frame aufgefrischt, damit er beim Verlassen sofort ausleuft.
 @export_range(0.0, 0.9) var surface_slow_amount: float = 0.45
 
+## Ab welchem Hazard-Multiplikator die Verlangsamung ganz entfaellt.
+## Die Saeurefesten Stiefel setzen den Multiplikator auf 0.25 — der
+## Standardwert liegt bewusst knapp darueber.
+@export_range(0.0, 1.0) var wade_slow_immunity_threshold: float = 0.3
+
 ## Wie weit ueber der berechneten Oberflaeche noch als "drin" zaehlt.
 ## Im SURFACE-Modus bewusst grosszuegiger, weil die Fuesse dort auf dem
 ## Boden UNTER der Lache stehen und nie richtig eintauchen koennen.
@@ -325,8 +330,16 @@ func _register(body: Node3D) -> void:
 func _damage_body(body: Node3D) -> void:
 	var health: Node = body.find_child("Health", true, false)
 	if health and health is Health:
-		health.take_damage(damage_per_tick, self)
-		_debug("Tick-Schaden %.1f an '%s'" % [damage_per_tick, body.name])
+		# HAZARD_RESIST wird hier eingerechnet — vorher gar nicht.
+		#
+		# Das war der Grund, warum die "Saeurefesten Stiefel" wirkungslos
+		# waren: das Item traegt korrekt einen Multiplikator von 0.25 in
+		# PlayerStats ein, aber niemand hat ihn je gelesen. Der Stat war
+		# definiert, angezeigt und komplett folgenlos — ein Fehler, der sich
+		# nur dadurch bemerkbar macht, dass ein Item "nichts tut".
+		var amount: float = damage_per_tick * _get_hazard_multiplier(body)
+		health.take_damage(amount, self)
+		_debug("Tick-Schaden %.1f an '%s'" % [amount, body.name])
 
 	# --- VFX ---
 	# Engine.is_editor_hint() ist Pflicht: dieses Script ist @tool, das
@@ -342,8 +355,28 @@ func _damage_body(body: Node3D) -> void:
 
 ## Im SURFACE-Modus haelt sich der Slow nur solange, wie man drin steht:
 ## kurze Dauer, jeden Frame aufgefrischt.
+## Schadensmultiplikator aus PlayerStats.STAT_HAZARD_RESIST. Gegner haben
+## keine PlayerStats-Komponente und bekommen deshalb immer 1.0 — das ist
+## Absicht, sonst wuerden die Stiefel auch die Gegner in der Limonade
+## schuetzen.
+func _get_hazard_multiplier(body: Node3D) -> float:
+	if Engine.is_editor_hint():
+		return 1.0
+	var stats := body.get_node_or_null("PlayerStats")
+	if stats == null or not (stats is PlayerStats):
+		return 1.0
+	return maxf((stats as PlayerStats).get_hazard_resist(), 0.0)
+
+
 func _apply_wade_slow(body: Node3D) -> void:
 	if hazard_mode != HazardMode.SURFACE:
+		return
+	# Dieselbe Resistenz entscheidet auch ueber die Verlangsamung: bei einem
+	# Multiplikator unter dieser Schwelle watet man ohne Tempoverlust durch.
+	# Die Design-Vorgabe zu den Stiefeln nennt beides in einem Satz
+	# ("75 % weniger Schaden UND keine Verlangsamung") — es waere kaum
+	# nachvollziehbar, wenn nur die eine Haelfte griffe.
+	if _get_hazard_multiplier(body) <= wade_slow_immunity_threshold:
 		return
 	if surface_slow_amount <= 0.0:
 		return

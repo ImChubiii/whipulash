@@ -47,6 +47,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
+damage = 30.0
 damage_number_scene = ExtResource("4_o7r84")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=54088038]
@@ -61,7 +62,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-damage = 9.0
+damage = 14.0
 damage_number_scene = ExtResource("4_o7r84")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1478091659]
@@ -82,3 +83,5 @@ script = ExtResource("3_qhqgy")
 
 [node name="Combat" type="Node" parent="." unique_id=1120459944]
 script = ExtResource("5_gisellecombat")
+
+

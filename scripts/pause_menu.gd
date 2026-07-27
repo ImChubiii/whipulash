@@ -28,6 +28,10 @@ var settings_menu: SettingsMenu
 
 var _blur_overlay: ColorRect = null
 
+## Ueberschrift ueber der Item-Liste.
+const ITEM_LIST_TITLE: String = "GESAMMELTE ITEMS"
+var _item_list: ItemSummaryList = null
+
 # Wird von death_screen.gd / win_screen.gd SOFORT beim Tod/Sieg gesetzt
 # (nicht erst wenn der jeweilige Screen sichtbar wird — bei DeathScreen
 # liegt dazwischen noch eine Verzögerung, siehe death_screen_delay). Damit
@@ -40,6 +44,12 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	z_index = Z_INDEX_MENU
+
+	# Gruppe statt fester Pfad: ResetOverlay haengt in einem ganz anderen
+	# Teil des Baums (eigener Autoload-CanvasLayer, siehe hud_extra.gd) und
+	# braucht einen Weg, DIESES PauseMenu zu finden, ohne einen Node-Pfad
+	# zu raten. Gleiches Muster wie "level_generator" oder "minimap".
+	add_to_group("pause_menu")
 
 	_blur_overlay = _get_or_create_shared_blur()
 	_fix_panel_background()
@@ -56,6 +66,7 @@ func _ready() -> void:
 	settings_button.pressed.connect(_on_settings_pressed)
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+	_build_item_list()
 
 
 func _fix_panel_background() -> void:
@@ -116,6 +127,13 @@ func lock_out() -> void:
 			_blur_overlay.visible = false
 
 
+## Oeffentliche Sammel-Abfrage fuer reset_overlay.gd: darf ein Reset gerade
+## VORGENOMMEN werden? Buendelt beide Sperren an EINER Stelle, damit sie
+## nicht an zwei Orten im Code auseinanderlaufen koennen.
+func is_reset_blocked() -> bool:
+	return _locked_out or _is_endscreen_active()
+
+
 func _is_endscreen_active() -> bool:
 	var parent := get_parent()
 
@@ -144,18 +162,38 @@ func _close_open_big_map() -> bool:
 	return false
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	# --- Level-Reset -----------------------------------------------------
-	# Bewusst VOR dem ESC-Check: der Reset soll auch aus dem offenen
-	# Pausemenue heraus funktionieren. Nach Tod/Sieg ist er gesperrt —
-	# dort gibt es eigene Restart-Buttons, und ein Reset waehrend des
-	# laufenden Death-Delays wuerde die Screens durcheinanderbringen.
-	if InputMap.has_action(RESET_ACTION) and event.is_action_pressed(RESET_ACTION):
-		if not (_locked_out or _is_endscreen_active()):
-			_restart_level()
-		get_viewport().set_input_as_handled()
-		return
+# ============================================================================
+# WARUM ES HIER KEINEN "R"-HANDLER MEHR GIBT (behobener Bug)
+# ============================================================================
+# Bis vor Kurzem stand hier ein ZWEITER, unabhaengiger Reset-Pfad: ein
+# einzelner Tastendruck auf R fuehrte SOFORT zu reload_current_scene() —
+# parallel zu reset_overlay.gd, das dieselbe Taste per Input.is_action_pressed()
+# ABFRAGT (Polling, nicht Event-basiert) und daraus die 1,5-Sekunden-
+# Halten-Animation baut.
+#
+# get_viewport().set_input_as_handled() hier hat auf das Polling in
+# reset_overlay.gd KEINERLEI Wirkung — "handled" gilt nur fuer die
+# Input-Event-Pipeline (_unhandled_input), nicht fuer Input.is_action_pressed().
+# Das Ergebnis bei jedem R-Druck:
+#   1. DIESES Script startete den Neustart SOFORT, ohne jede Bestaetigung —
+#      die ganze "gedrueckt halten" Absicherung war dadurch wirkungslos.
+#   2. Falls R laenger als 1,5 s gehalten wurde, loeste ZUSAETZLICH
+#      reset_overlay.gd einen ZWEITEN reload_current_scene() aus — auf
+#      einer Szene, die durch den ersten Reload gerade schon abgebaut
+#      wurde. Zwei Szenenwechsel im selben kurzen Zeitfenster sind genau
+#      die Art von Zustand, die zu Abstuerzen (das Spiel schliesst sich
+#      kommentarlos) und zu "Cannot call method ... on a null value"
+#      fuehrt, wenn ein Node nach dem ersten Reload auf sich selbst
+#      zugreift.
+#
+# reset_overlay.gd ist jetzt der EINZIGE Besitzer der "reset"-Action. Die
+# Sperre waehrend Tod/Sieg (_locked_out / _is_endscreen_active()), die
+# fruehen hier stand, ist NICHT verlorengegangen — sie wurde nach
+# is_reset_blocked() verschoben, das reset_overlay.gd jetzt selbst abfragt
+# (siehe dort). Der Restart-BUTTON unten (_on_restart_pressed) bleibt
+# unveraendert; ein Klick ist kein Polling-Konflikt.
 
+func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		return
 
@@ -238,3 +276,34 @@ func _restart_level() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+# ============================================================================
+# Item-Uebersicht
+# ============================================================================
+# Wird zur Laufzeit gebaut, damit keine der Szenen angefasst werden muss, in
+# denen dieser Screen instanziiert ist — dieselbe Begruendung wie beim
+# Zeit-Label und beim Leaderboard-Block.
+func _build_item_list() -> void:
+	if _item_list != null and is_instance_valid(_item_list):
+		return
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Item-Liste faellt aus." % name)
+		return
+
+	_item_list = ItemSummaryList.create(ITEM_LIST_TITLE)
+	column.add_child(_item_list)
+	# Vor den ersten Button schieben: die Liste ist Information, die Buttons
+	# sind die Handlung. Umgekehrt muesste man an den Buttons vorbeilesen.
+	column.move_child(_item_list, _first_button_index(column))
+
+
+## Index des ersten Buttons in der Spalte. Ueber den Typ gesucht statt ueber
+## einen festen Index, weil die drei Screens unterschiedlich viele Labels
+## ueber den Buttons haben.
+func _first_button_index(column: VBoxContainer) -> int:
+	for i: int in range(column.get_child_count()):
+		if column.get_child(i) is Button:
+			return i
+	return column.get_child_count()

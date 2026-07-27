@@ -31,9 +31,20 @@ class_name ResetOverlay
 
 const RESET_ACTION: String = "reset"
 
+## Gruppe, unter der sich PauseMenu selbst eintraegt. Siehe die ausfuehrliche
+## Begruendung in pause_menu.gd, wo frueher ein zweiter, konkurrierender
+## Reset-Pfad lag: dieser Guard ist der Ersatz dafuer, jetzt an der einzigen
+## Stelle, die die Taste tatsaechlich verarbeitet.
+const PAUSE_MENU_GROUP: String = "pause_menu"
+
 var _hold_time: float = 0.0
 var _preview_seed_code: String = ""
 var _is_restarting: bool = false
+
+## Lazy gebunden und bei Ungueltigkeit neu gesucht — PauseMenu wird bei
+## jedem reload_current_scene() neu instanziiert, eine einmal gecachte
+## Referenz waere nach dem ersten Neustart bereits eine Leiche.
+var _pause_menu: PauseMenu = null
 
 var _fade: ColorRect = null
 var _preview_box: PanelContainer = null
@@ -109,6 +120,16 @@ func _process(delta: float) -> void:
 	if not InputMap.has_action(RESET_ACTION):
 		return
 
+	# Waehrend Tod/Sieg gesperrt: dort gibt es eigene Restart-Buttons, und
+	# ein Reset waehrend des laufenden Death-Delays wuerde die Screens
+	# durcheinanderbringen. Diese Sperre stand FRUEHER in pause_menu.gd, das
+	# parallel dazu die Taste selbst auswertete — mit den in _restart_level()
+	# beschriebenen Folgen. Jetzt fragt der einzige verbliebene Reset-Pfad
+	# sie direkt bei PauseMenu ab.
+	if _is_reset_blocked():
+		_cancel()
+		return
+
 	if not Input.is_action_pressed(RESET_ACTION):
 		_cancel()
 		return
@@ -126,6 +147,19 @@ func _process(delta: float) -> void:
 
 	if progress >= 1.0:
 		_restart()
+
+
+## true, wenn PauseMenu gerade sagt, dass kein Reset stattfinden soll (Tod/
+## Sieg-Uebergang oder ein Endscreen ist sichtbar). Liefert false, solange
+## kein PauseMenu gefunden wird — Testszenen ohne Pausemenue sollen weiter
+## normal neustarten koennen.
+func _is_reset_blocked() -> bool:
+	if _pause_menu == null or not is_instance_valid(_pause_menu):
+		var found: Array[Node] = get_tree().get_nodes_in_group(PAUSE_MENU_GROUP)
+		_pause_menu = found[0] as PauseMenu if not found.is_empty() else null
+	if _pause_menu == null or not is_instance_valid(_pause_menu):
+		return false
+	return _pause_menu.is_reset_blocked()
 
 
 func _begin_hold() -> void:
@@ -189,3 +223,5 @@ func _peek_next_seed_code() -> String:
 			return DetRng.seed_to_code(absi(next_seed) % DetRng.MAX_SEED)
 
 	return DetRng.seed_to_code(DetRng.random_seed_value())
+
+
