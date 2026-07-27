@@ -30,8 +30,8 @@
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="28_pd8jf"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="29_o54k0"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="30_u4jxp"]
-[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/hud.tscn" id="31_w24rf"]
-[ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/image-removebg-preview (11).png" id="32_u4jxp"]
+[ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/ui/hud.tscn" id="31_w24rf"]
+[ext_resource type="Texture2D" uid="uid://bbpcm4spqtj0x" path="res://assets/textures/ui/image-removebg-preview (11).png" id="32_u4jxp"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="33_w24rf"]
 [ext_resource type="Script" uid="uid://5ccb87ohsjij" path="res://scripts/dungeon_atmosphere.gd" id="34_bqido"]
 

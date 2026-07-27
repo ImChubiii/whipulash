@@ -8,7 +8,7 @@ path="res://.godot/imported/blossom_the_powerpuff_girls.glb-74ec160f140bc5d06b31
 
 [deps]
 
-source_file="res://assets/blossom_the_powerpuff_girls.glb"
+source_file="res://assets/characters/blossom_the_powerpuff_girls.glb"
 dest_files=["res://.godot/imported/blossom_the_powerpuff_girls.glb-74ec160f140bc5d06b31b88d2df63406.scn"]
 
 [params]

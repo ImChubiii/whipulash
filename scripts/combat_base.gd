@@ -120,7 +120,7 @@ class_name CombatBase
 @export var dash_debug_draw_duration: float = 0.8
 @export var dash_debug_color: Color = Color(1.0, 0.85, 0.1, 0.22)
 
-const DAMAGE_NUMBER_FALLBACK_PATH: String = "res://scenes/damage_number.tscn"
+const DAMAGE_NUMBER_FALLBACK_PATH: String = "res://scenes/ui/damage_number.tscn"
 
 ## Gegner-InstanceID -> { "node": Node3D, "pending": bool, "done": bool }
 var _dash_pierce_state: Dictionary = {}

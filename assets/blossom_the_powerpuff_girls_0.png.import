@@ -14,7 +14,7 @@ generator_parameters={
 
 [deps]
 
-source_file="res://assets/blossom_the_powerpuff_girls_0.png"
+source_file="res://assets/textures/characters/blossom_the_powerpuff_girls_0.png"
 dest_files=["res://.godot/imported/blossom_the_powerpuff_girls_0.png-56e1ad850bd7ac799752ffbe978ed113.s3tc.ctex"]
 
 [params]

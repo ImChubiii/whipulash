@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dlj5htolv7pph"]
 
-[ext_resource type="Script" uid="uid://wwipd63kj1ff" path="res://lemonade.gd" id="1_2rkj2"]
+[ext_resource type="Script" uid="uid://wwipd63kj1ff" path="res://scripts/hazards/lemonade.gd" id="1_2rkj2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2rkj2"]
 transparency = 1

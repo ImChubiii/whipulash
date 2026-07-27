@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://bkyplq6fj3yft"]
 
 [ext_resource type="Script" uid="uid://3vc06c3kmrbw" path="res://scripts/characters/char_winter.gd" id="1_winter"]
-[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/characters/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
-[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/damage_number.tscn" id="4_i32li"]
+[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_i32li"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
 [ext_resource type="Script" uid="uid://qlxom5ue0a30" path="res://scripts/characters/combat_winter.gd" id="5_wintercombat"]
 
