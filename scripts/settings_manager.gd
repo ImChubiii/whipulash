@@ -71,6 +71,13 @@ const HUD_ELEMENT_ABILITIES: String = "abilities"
 const HUD_ELEMENT_KEYBINDS: String = "keybinds"
 const HUD_ELEMENT_TIMER: String = "timer"
 const HUD_ELEMENT_COMBO: String = "combo"
+## Diese beiden Schluessel muessen mit StatsPanel.HUD_ELEMENT bzw.
+## ItemDescriptionHud.HUD_ELEMENT uebereinstimmen. Die Panels fragen
+## is_hud_element_visible() mit genau diesen Strings ab; ein Tippfehler
+## faellt nicht als Fehler auf, sondern nur dadurch, dass der Schalter
+## im Menue nichts bewirkt.
+const HUD_ELEMENT_STATS: String = "stats"
+const HUD_ELEMENT_ITEMS: String = "items"
 
 const HUD_ELEMENTS: Dictionary = {
 	HUD_ELEMENT_MINIMAP: "Minimap",
@@ -79,6 +86,8 @@ const HUD_ELEMENTS: Dictionary = {
 	HUD_ELEMENT_KEYBINDS: "Keybinds / Cooldowns",
 	HUD_ELEMENT_TIMER: "Speedrun-Timer",
 	HUD_ELEMENT_COMBO: "Combo-Zaehler",
+	HUD_ELEMENT_STATS: "Stats-Panel",
+	HUD_ELEMENT_ITEMS: "Item-Anzeige",
 }
 
 # Colorblind Mode Enum

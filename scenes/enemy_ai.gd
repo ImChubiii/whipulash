@@ -38,6 +38,26 @@ enum State { IDLE, CHASE, ATTACK }
 # erzeugen.
 @export var attack_abort_cooldown: float = 0.3
 
+## Wie stark die Separation von anderen Gegnern waehrend eines laufenden
+## Angriffs noch wirkt. 0 = gar nicht.
+##
+## WARUM ES DIESEN WERT BRAUCHT (behobener Fehler "Angriff trifft nie"):
+## Die State-Machine setzt im ATTACK-Zustand velocity.x/z auf 0 — der Gegner
+## soll beim Zuschlagen stehenbleiben. Direkt danach wurde aber
+## BEDINGUNGSLOS _get_separation_velocity() draufaddiert.
+##
+## Genau im Angriffsmoment stehen alle Gegner dicht am Spieler, also auch
+## dicht beieinander. Die Separation zeigt damit vom Pulk weg — und der Pulk
+## ist der Spieler. Ueber pre_attack_delay + attack_windup_time (Standard
+## 0.8 + 1.0 = 1.8 s) driftete ein Fighter so weit zurueck, dass die
+## AttackHitbox beim Zuschlagen ins Leere zeigte. Fuer den Spieler sah es
+## aus, als wuerde der Gegner ausholen und dann grundlos zurueckweichen.
+##
+## Ein kleiner Restwert (Standard 0.12) bleibt bewusst stehen: bei zwei
+## Gegnern, die exakt uebereinander stehen, waere 0.0 eine Einladung, sich
+## dauerhaft zu verkeilen.
+@export_range(0.0, 1.0) var attack_separation_factor: float = 0.12
+
 # Minimaler Blickrichtungs-Abgleich, damit ein Angriff ueberhaupt startet.
 # Verhindert Schlaege, die seitlich am Spieler vorbeigehen, weil der Gegner
 # sich noch dreht.
@@ -563,7 +583,15 @@ func _physics_process(delta: float) -> void:
 
 	# Sanfte Separation von anderen Gegnern draufaddieren — verhindert,
 	# dass sie sich stapeln/ueberlappen, ohne harte Physik-Pops.
-	velocity += _get_separation_velocity()
+	#
+	# WAEHREND EINES ANGRIFFS wird sie stark gedaempft. Siehe die
+	# ausfuehrliche Begruendung bei attack_separation_factor: ohne die
+	# Daempfung schiebt sich ein ausholender Gegner selbst aus seiner
+	# eigenen Reichweite und der Schlag geht ins Leere.
+	var separation: Vector3 = _get_separation_velocity()
+	if _is_attacking or _state == State.ATTACK:
+		separation *= clampf(attack_separation_factor, 0.0, 1.0)
+	velocity += separation
 
 	# Knockback-Puffer additiv drauf, NACH der State-Machine-Logik, damit er
 	# nicht von velocity.x/z = 0 (IDLE/ATTACK) oder move_toward (CHASE)
@@ -589,6 +617,12 @@ func _handle_standing_on_player() -> void:
 
 	# Cooldown aktiv: Impuls wurde bereits gesetzt, abwarten.
 	if _slide_cooldown > 0.0:
+		return
+
+	# Waehrend eines laufenden Angriffs KEIN Wegschubser. Der Impuls zeigt
+	# per Definition vom Spieler weg und wuerde denselben Effekt erzeugen
+	# wie die ungedaempfte Separation: Ausholen, wegrutschen, verfehlen.
+	if _is_attacking:
 		return
 
 	var to_player_xz: Vector3 = global_position - _player.global_position

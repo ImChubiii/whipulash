@@ -74,7 +74,14 @@ const OPPOSITE_DIR := {
 @export var color_current: Color = Color(1.0, 1.0, 1.0, 1.0)
 ## Fuellfarbe des offenen Durchgangs zwischen zwei bereits betretenen
 ## Raeumen (voll deckend - liest sich als begehbarer Gang).
-@export var color_door: Color = Color(0.85, 0.87, 0.80, 0.9)
+## Farbe eines OFFENEN Durchgangs.
+##
+## Deutlich gedaempfter als frueher (war 0.85/0.87/0.80 bei Alpha 0.9). Der
+## alte Wert war heller als JEDE Raumfarbe — ein offener Gang leuchtete
+## dadurch staerker als der Raum, zu dem er gehoert, und zog den Blick auf
+## die unwichtigste Information der ganzen Karte. Ein offener Durchgang soll
+## als LUECKE gelesen werden, nicht als Signal.
+@export var color_door: Color = Color(0.42, 0.45, 0.40, 0.85)
 ## Durchgang zu einem noch NICHT betretenen Nachbarn: nur angedeutet
 ## (kuerzer + durchsichtiger), damit die Neugier/Fog-of-War erhalten
 ## bleibt, man aber trotzdem sieht "hier geht es weiter".
@@ -148,6 +155,21 @@ func _draw() -> void:
 	var pitch: float = cell_px + gap_px
 	var center := size * 0.5
 
+	# Jeder Durchgang liegt zwischen ZWEI Zellen und wurde deshalb bisher
+	# zweimal gezeichnet: einmal aus Sicht jeder Seite, an dieselbe Stelle,
+	# mit derselben halbtransparenten Farbe.
+	#
+	# Zwei Fuellungen mit Alpha 0.9 uebereinander ergeben zusammen rund 0.99 —
+	# offene Durchgaenge zwischen zwei besuchten Raeumen wurden dadurch fast
+	# deckend und damit heller als alles andere auf der Karte. Genau das ist
+	# das "Leuchten". Zusaetzlich flackerte es beim Betreten eines Raums,
+	# weil in dem Moment aus einem einfach gezeichneten Durchgang (Nachbar
+	# noch unbesucht, Alpha 0.45) ein doppelt gezeichneter wurde.
+	#
+	# Der Schluessel ist die SORTIERTE Zellenpaarung — so landen beide
+	# Blickrichtungen auf demselben Eintrag.
+	var drawn_passages: Dictionary = {}
+
 	# --- Durchgaenge zuerst, damit die Raumquadrate spaeter sauber
 	# darueber gezeichnet werden und den ueberschuessigen Teil der
 	# Fuellung in der Raummitte automatisch abschneiden -----------------
@@ -188,6 +210,13 @@ func _draw() -> void:
 			var neighbor_data: Dictionary = cells[neighbor_grid]
 			var neighbor_visited: bool = bool(neighbor_data.get("visited", false))
 			var neighbor_center := _cell_center(neighbor_grid, current, center, pitch)
+
+			# Sortiertes Schluesselpaar: (A,B) und (B,A) ergeben denselben
+			# Eintrag, der Durchgang wird also genau einmal gefuellt.
+			var key: String = _passage_key(grid, neighbor_grid)
+			if drawn_passages.has(key):
+				continue
+			drawn_passages[key] = true
 
 			# Der restriktivere der beiden Zustaende gewinnt - eine Seite
 			# offen und die andere verriegelt heisst: man kommt nicht durch.
@@ -240,6 +269,18 @@ func _draw() -> void:
 			HORIZONTAL_ALIGNMENT_CENTER, size.x, 11, color_cleared_tint)
 
 
+## Eindeutiger Schluessel fuer ein Zellenpaar, unabhaengig von der
+## Reihenfolge. Ohne die Sortierung waeren "(0,0)->(0,1)" und "(0,1)->(0,0)"
+## zwei verschiedene Eintraege und die Deduplizierung liefe ins Leere.
+func _passage_key(a: Vector2i, b: Vector2i) -> String:
+	var first: Vector2i = a
+	var second: Vector2i = b
+	if b.x < a.x or (b.x == a.x and b.y < a.y):
+		first = b
+		second = a
+	return "%d,%d|%d,%d" % [first.x, first.y, second.x, second.y]
+
+
 ## Fuellt den Durchgang zwischen zwei Zellen als FLAECHE statt als
 ## duenne Linie - das ist der eigentliche Unterschied zwischen "sieht
 ## nach Gitter/Riegel aus" und "sieht nach offenem Gang aus".
@@ -260,15 +301,30 @@ func _draw_passage(here: Vector2, neighbor: Vector2, cell_size: float, neighbor_
 	var mid: Vector2 = (here + neighbor) * 0.5
 	var far_point: Vector2 = neighbor if neighbor_visited else mid
 
-	var fill: Color = _color_for_door_state(state)
+	# SPOILER-SPERRE: Zu einem noch NICHT betretenen Nachbarn wird immer die
+	# neutrale Tuerfarbe gezeichnet, nie die von Zustand oder Raumtyp.
+	#
+	# Vorher verriet die Karte den halben Grundriss, bevor man ihn gesehen
+	# hatte: eine Tuer zum Schatzraum kam als goldener, pulsierender Riegel
+	# heraus, eine Bossturm als brauner. Man musste also gar nicht erkunden —
+	# ein Blick auf die Minimap sagte, in welcher Richtung das Item liegt und
+	# wo der Boss wartet. Fog-of-War, der die Raeume verdeckt, aber ihre
+	# Tueren durchscheinen laesst, ist kein Fog-of-War.
+	#
+	# Sobald der Nachbarraum betreten wurde, greift wieder die volle
+	# Zustandsfarbe — dann ist die Information ja verdient.
+	var fill: Color = _color_for_door_state(state) if neighbor_visited else color_door
 	if not neighbor_visited:
 		fill.a = fill.a * color_door_unexplored_alpha
 
 	# Nur ein OFFENER Durchgang wird in voller Zellbreite gefuellt. Alles
 	# Verriegelte wird bewusst SCHMALER gezeichnet, damit es sich optisch
 	# klar als Riegel und nicht als Gang liest.
+	#
+	# Auch die BREITE bleibt bei unbesuchten Nachbarn neutral: ein schmal
+	# gezeichneter Riegel haette denselben Hinweis gegeben wie die Farbe.
 	var width: float = cell_size
-	if state != RoomInstance.DoorState.OPEN:
+	if neighbor_visited and state != RoomInstance.DoorState.OPEN:
 		width = cell_size * locked_door_width_factor
 
 	if horizontal:

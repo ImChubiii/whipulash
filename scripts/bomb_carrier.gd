@@ -23,6 +23,23 @@ class_name BombCarrier
 # stillgelegt (set_process(false)). Das ist derselbe Ansatz, den Godot
 # selbst fuer sich gegenseitig ausschliessende Zustaende empfiehlt, und er
 # kommt ohne einen Eingriff in combat_base.gd aus.
+#
+# ---------------------------------------------------------------------------
+# AENDERUNG: DEUTLICH WEITERE WUERFE
+# ---------------------------------------------------------------------------
+# throw_force liegt jetzt bei 26 statt 14, throw_arc bei 9 statt 5. Der
+# entscheidende Teil steckt aber NICHT in diesen Zahlen, sondern in
+# Bomb.launch(): die Bombe lief bisher schon in der Luft mit
+# linear_damp = 3.0 und verlor ihren Schwung, bevor sie ueberhaupt
+# irgendwo ankam. Ein hoeherer Impuls allein haette daran wenig geaendert —
+# er waere einfach schneller weggedaempft worden. launch() senkt die
+# Daempfung fuer die Flugphase und stellt sie bei Bodenkontakt wieder her.
+#
+# BLICKRICHTUNG: das Projekt nutzt +Z als Vorne. _get_forward() gibt
+# deshalb bewusst -basis.z des CameraPivot zurueck (Godots eigene
+# Vorwaertsachse), weil hier die KAMERA-Blickrichtung gemeint ist und nicht
+# die Charakter-Ausrichtung. Wer das auf die Figur umstellt, muss auf +Z
+# wechseln — sonst wirft der Spieler nach hinten.
 
 signal bomb_equipped(fuse_remaining: float)
 signal bomb_released
@@ -35,12 +52,19 @@ const BOMB_ACTION: String = "bomb"
 ## Wie weit vor dem Spieler eine abgelegte Bombe landet.
 @export var place_distance: float = 1.2
 ## Wurfkraft nach vorne.
-@export var throw_force: float = 14.0
+@export var throw_force: float = 26.0
 ## Zusaetzlicher Bogen nach oben, damit der Wurf nicht am Boden entlangschrammt.
-@export var throw_arc: float = 5.0
+@export var throw_arc: float = 9.0
 ## Zuendschnur — bewusst hier und nicht in bomb.gd, damit Items sie spaeter
 ## verlaengern koennen, ohne die Bombe selbst zu kennen.
 @export var fuse_time: float = 2.0
+
+## Vorschau-Bogen, waehrend die Bombe in der Hand liegt. Bei der neuen
+## Wurfweite kann man das Ziel sonst nicht mehr abschaetzen: die Bombe
+## fliegt weiter, als der Bildausschnitt bei enger Kamera hergibt.
+@export var show_aim_preview: bool = true
+@export var aim_preview_points: int = 14
+@export var aim_preview_step: float = 0.075
 
 var _player: CharacterBody3D = null
 var _combat: CombatBase = null
@@ -49,6 +73,8 @@ var _pivot: Node3D = null
 var _equipped: bool = false
 var _fuse_remaining: float = 0.0
 var _held_visual: Node3D = null
+var _aim_preview: Node3D = null
+var _aim_dots: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:
@@ -72,6 +98,7 @@ func _process(delta: float) -> void:
 
 	_fuse_remaining -= delta
 	fuse_ticked.emit(_fuse_remaining)
+	_update_aim_preview()
 
 	if _fuse_remaining <= 0.0:
 		# In der Hand hochgegangen. Die Bombe wird trotzdem gespawnt, damit
@@ -111,6 +138,7 @@ func _equip() -> void:
 	_fuse_remaining = fuse_time
 	_set_combat_enabled(false)
 	_build_held_visual()
+	_build_aim_preview()
 	bomb_equipped.emit(_fuse_remaining)
 
 
@@ -131,6 +159,7 @@ func _release_bomb(impulse: Vector3) -> Bomb:
 	_equipped = false
 	_set_combat_enabled(true)
 	_clear_held_visual()
+	_clear_aim_preview()
 	bomb_released.emit()
 
 	var parent: Node = get_tree().current_scene
@@ -147,10 +176,16 @@ func _release_bomb(impulse: Vector3) -> Bomb:
 	bomb.set("_fuse_remaining", maxf(_fuse_remaining, 0.05))
 
 	var forward: Vector3 = _get_forward()
-	bomb.global_position = _player.global_position + forward * place_distance + Vector3(0.0, 0.4, 0.0)
+	# Etwas hoeher als frueher (0.9 statt 0.4): der Wurf startet damit auf
+	# Brusthoehe statt an den Fuessen. Bei der groesseren Wurfweite ist das
+	# der Unterschied zwischen einer Parabel und einem Aufprall auf der
+	# naechsten Stufe.
+	bomb.global_position = _player.global_position + forward * place_distance + Vector3(0.0, 0.9, 0.0)
 
+	# launch() statt apply_central_impulse(): nur so faellt die Daempfung
+	# fuer die Flugphase weg. Siehe Kopf der Datei.
 	if impulse.length() > 0.01:
-		bomb.apply_central_impulse(impulse)
+		bomb.launch(impulse)
 
 	return bomb
 
@@ -207,6 +242,82 @@ func _clear_held_visual() -> void:
 	if _held_visual and is_instance_valid(_held_visual):
 		_held_visual.queue_free()
 	_held_visual = null
+
+
+# ============================================================================
+# Ziel-Vorschau
+# ============================================================================
+# Punktreihe entlang der Wurfparabel. Sie wird NICHT physikalisch simuliert,
+# sondern analytisch berechnet (p = p0 + v*t + 0.5*g*t^2). Eine echte
+# Simulation muesste die Bombe probeweise durch die Welt schicken, und das
+# jeden Frame — fuer eine reine Zielhilfe waere das voellig unverhaeltnis-
+# maessig. Die Punkte ignorieren deshalb Hindernisse; sie zeigen die
+# Flugbahn, nicht den Einschlag.
+func _build_aim_preview() -> void:
+	_clear_aim_preview()
+	if not show_aim_preview:
+		return
+
+	_aim_preview = Node3D.new()
+	_aim_preview.name = "BombAimPreview"
+	# Direkt an die Szene, nicht an den Spieler: sonst wandern die Punkte
+	# mit, sobald sich der Spieler beim Zielen dreht.
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		return
+	parent.add_child(_aim_preview)
+
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.09
+	sphere.height = 0.18
+	sphere.radial_segments = 6
+	sphere.rings = 3
+
+	for i: int in range(aim_preview_points):
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		# Nach hinten ausblenden: die Bahn soll gerichtet wirken.
+		var fade: float = 1.0 - float(i) / float(maxi(aim_preview_points, 1))
+		material.albedo_color = Color(1.0, 0.55, 0.25, 0.25 + fade * 0.55)
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+		var dot := MeshInstance3D.new()
+		dot.mesh = sphere
+		dot.material_override = material
+		dot.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		dot.scale = Vector3.ONE * (0.5 + fade * 0.8)
+		_aim_preview.add_child(dot)
+		_aim_dots.append(dot)
+
+
+func _update_aim_preview() -> void:
+	if _aim_preview == null or not is_instance_valid(_aim_preview):
+		return
+	if _player == null or not is_instance_valid(_player):
+		return
+
+	var forward: Vector3 = _get_forward()
+	var start: Vector3 = _player.global_position + forward * place_distance + Vector3(0.0, 0.9, 0.0)
+
+	# Impuls / Masse = Startgeschwindigkeit. Die Masse steht in bomb.gd auf
+	# 2.5 — wer sie dort aendert, muss sie hier mitziehen, sonst zeigt die
+	# Vorschau eine andere Bahn als der tatsaechliche Wurf.
+	var velocity: Vector3 = (forward * throw_force + Vector3.UP * throw_arc) / 2.5
+	var gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
+
+	for i: int in range(_aim_dots.size()):
+		var t: float = float(i + 1) * aim_preview_step
+		var point: Vector3 = start + velocity * t + Vector3.DOWN * (0.5 * gravity * t * t)
+		_aim_dots[i].global_position = point
+
+
+func _clear_aim_preview() -> void:
+	_aim_dots.clear()
+	if _aim_preview and is_instance_valid(_aim_preview):
+		_aim_preview.queue_free()
+	_aim_preview = null
 
 
 func is_equipped() -> bool:

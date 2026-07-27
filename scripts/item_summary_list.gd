@@ -1,0 +1,388 @@
+extends VBoxContainer
+class_name ItemSummaryList
+
+# ============================================================================
+# ItemSummaryList — Liste der gesammelten Items fuer Pause-, Tod- und
+# Siegbildschirm, mit Beschreibung beim Ueberfahren mit der Maus.
+# ============================================================================
+#
+# WARUM EIN GEMEINSAMES SCRIPT UND NICHT DREIMAL DERSELBE CODE:
+# Pause-, Tod- und Siegbildschirm brauchen exakt dieselbe Anzeige. Drei
+# Kopien haetten bedeutet, dass ein neues Feld in ItemData an drei Stellen
+# nachgetragen werden muss — und dass die dritte Stelle beim naechsten Mal
+# vergessen wird. Die drei Screens haengen sich stattdessen jeweils EINE
+# Instanz hiervon in ihren Baum.
+#
+# WARUM MAUS-HOVER UND NICHT DAUERHAFT ALLE BESCHREIBUNGEN:
+# Mit acht Items waeren acht Beschreibungsabsaetze untereinander laenger als
+# jeder dieser Bildschirme. Das In-Game-HUD loest dasselbe Problem ueber
+# Naehe zum Sockel; hier ist die Maus ohnehin sichtbar (alle drei Screens
+# pausieren das Spiel und geben den Cursor frei), also ist Hover das
+# naheliegende Mittel.
+#
+# WICHTIG ZUM MAUS-FILTER: Dieser Node und seine Zeilen muessen
+# MOUSE_FILTER_STOP bzw. PASS haben. Viele HUD-Elemente im Projekt stehen
+# auf MOUSE_FILTER_IGNORE (Wert 2), damit sie keine Klicks abfangen — wer
+# das hier uebernimmt, bekommt nie ein mouse_entered und wundert sich, warum
+# der Hover "nicht funktioniert", obwohl der Code laeuft.
+#
+# ---------------------------------------------------------------------------
+# WARUM DIE BESCHREIBUNGSKARTE NICHT MEHR TEIL DIESER LISTE IST (behobener
+# Bug: "hoveren veraendert das Format")
+# ---------------------------------------------------------------------------
+# ItemSummaryList selbst ist ein VBoxContainer. Die Detailkarte stand bisher
+# als normales Kind DARIN — ein Container legt die Groesse und Position
+# JEDES Kindes bei jedem Layout-Durchlauf selbst fest. Sobald die Karte beim
+# Hovern auf visible = true wechselte, hat der VBoxContainer sie in seinen
+# Stapel eingerechnet und ALLES darunter (Waehrungszeile, ggf. der ganze
+# Rest der Pause-/Tod-/Siegkarte) nach unten verschoben — das Popup hat
+# buchstaeblich das Format des Bildschirms veraendert, weil es keins war,
+# sondern eine ganz normale, layoutwirksame Zeile.
+#
+# Ein "Popup" darf per Definition NICHT layoutwirksam sein. Die Karte haengt
+# deshalb jetzt an der TOPMOST Control der jeweiligen Szene (Pause-/Tod-/
+# Siegbildschirm-Wurzel) — die ist ein einfaches Control, KEIN Container,
+# und positioniert ihre Kinder nicht selbst um. Von dort aus wird die Karte
+# manuell neben die gerade ueberfahrene Zeile gesetzt (_position_detail_panel).
+# Das ist derselbe Trick wie bei der Item-Karte im normalen HUD
+# (item_description_hud.gd) — dort aus demselben Grund.
+
+## Ueberschrift ueber der Liste. Leer lassen = keine Ueberschrift.
+@export var title_text: String = "GESAMMELTE ITEMS"
+
+## Text, wenn das Inventar leer ist.
+@export var empty_text: String = "Keine Items gesammelt"
+
+## Zeigt zusaetzlich Muenzen und Bomben unter der Liste.
+@export var show_currencies: bool = true
+
+const ROW_HEIGHT: float = 30.0
+const SWATCH_SIZE: float = 22.0
+const BG_COLOR: Color = Color(0.05, 0.06, 0.075, 0.55)
+const MUTED_COLOR: Color = Color(0.62, 0.66, 0.72)
+const TEXT_COLOR: Color = Color(0.90, 0.90, 0.93)
+
+var _title: Label = null
+var _rows_box: VBoxContainer = null
+var _empty_label: Label = null
+var _currency_label: Label = null
+var _detail_panel: PanelContainer = null
+var _detail_name: Label = null
+var _detail_text: Label = null
+
+var _items: Node = null
+
+
+func _exit_tree() -> void:
+	# _detail_panel haengt an der Bildschirm-Wurzel, nicht an self — bei
+	# einem Szenenwechsel (Level-Neustart) wird sie zwar META im selben
+	# Teilbaum mitgeloescht, aber ein manuelles Aufraeumen ist billiger als
+	# sich auf implizite Baum-Reihenfolge zu verlassen.
+	if _detail_panel and is_instance_valid(_detail_panel):
+		_detail_panel.queue_free()
+	_detail_panel = null
+
+
+func _ready() -> void:
+	# STOP statt IGNORE — sonst kommt kein mouse_entered an. Siehe Kopf.
+	mouse_filter = Control.MOUSE_FILTER_PASS
+	add_theme_constant_override("separation", 6)
+
+	# Deferred: die Liste selbst wird von aussen per add_child() in
+	# "Panel/VBoxContainer" gehaengt (death_screen.gd / pause_menu.gd /
+	# win_screen.gd). _find_floating_host() muss dabei bereits die volle
+	# Vorfahrenkette bis zur Bildschirmwurzel sehen — unmittelbar in _ready()
+	# ist das zwar meistens schon der Fall, aber ein Frame Sicherheitsabstand
+	# kostet nichts und macht die Reihenfolge robust gegen kuenftige
+	# Umbauten der drei Screens.
+	_build.call_deferred()
+	_items = get_node_or_null("/root/Items")
+	if _items and _items.has_signal("inventory_changed"):
+		_items.inventory_changed.connect(refresh)
+	refresh()
+
+
+## Oberster Control-Vorfahr = die Bildschirm-Wurzel (PauseMenu, DeathScreen
+## oder WinScreen, alle "extends Control" OHNE Container-Verhalten). Dort
+## haengt die Detailkarte, weil ein einfaches Control seine Kinder NICHT
+## selbst positioniert — im Gegensatz zu einem VBoxContainer.
+func _find_floating_host() -> Control:
+	var host: Control = self
+	var node: Node = get_parent()
+	while node is Control:
+		host = node as Control
+		node = node.get_parent()
+	return host
+
+
+# ============================================================================
+# Aufbau
+# ============================================================================
+func _build() -> void:
+	if title_text != "":
+		_title = Label.new()
+		_title.text = title_text
+		_title.add_theme_font_size_override("font_size", 12)
+		_title.add_theme_color_override("font_color", MUTED_COLOR)
+		_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_title)
+
+	_rows_box = VBoxContainer.new()
+	_rows_box.add_theme_constant_override("separation", 2)
+	_rows_box.mouse_filter = Control.MOUSE_FILTER_PASS
+	add_child(_rows_box)
+
+	_empty_label = Label.new()
+	_empty_label.text = empty_text
+	_empty_label.add_theme_font_size_override("font_size", 13)
+	_empty_label.add_theme_color_override("font_color", MUTED_COLOR)
+	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_empty_label)
+
+	# --- Beschreibungsfeld, gefuellt beim Ueberfahren ------------------
+	_detail_panel = PanelContainer.new()
+	_detail_panel.visible = false
+	_detail_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.05, 0.065, 0.92)
+	style.border_color = Color(0.30, 0.33, 0.38, 0.9)
+	style.set_border_width_all(1)
+	style.border_width_left = 3
+	style.set_corner_radius_all(2)
+	style.content_margin_left = 10.0
+	style.content_margin_right = 10.0
+	style.content_margin_top = 7.0
+	style.content_margin_bottom = 7.0
+	_detail_panel.add_theme_stylebox_override("panel", style)
+	# TOP_LEFT: Position wird ueber .position gesetzt (siehe
+	# _position_detail_panel), nicht ueber Anker relativ zu einem Container.
+	_detail_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	# Fixe Breite, damit die Beschreibung nicht bei jedem Item unterschiedlich
+	# breit aufklappt — das waere fuer ein Popup, das direkt neben wechselnden
+	# Zeilen erscheint, unruhiger als eine konstante Breite.
+	_detail_panel.custom_minimum_size = Vector2(280.0, 0.0)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 2)
+	_detail_panel.add_child(column)
+
+	_detail_name = Label.new()
+	_detail_name.add_theme_font_size_override("font_size", 13)
+	_detail_name.add_theme_color_override("font_color", Color(0.98, 0.95, 0.84))
+	column.add_child(_detail_name)
+
+	_detail_text = Label.new()
+	_detail_text.add_theme_font_size_override("font_size", 12)
+	_detail_text.add_theme_color_override("font_color", TEXT_COLOR)
+	_detail_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_detail_text)
+
+	# NICHT add_child(_detail_panel) auf self (VBoxContainer) — das ist
+	# genau der Fehler, den dieser Umbau behebt. Stattdessen an die Wurzel
+	# der Szene haengen, wo kein Container mehr mitredet.
+	_find_floating_host().add_child(_detail_panel)
+
+	if show_currencies:
+		_currency_label = Label.new()
+		_currency_label.add_theme_font_size_override("font_size", 12)
+		_currency_label.add_theme_color_override("font_color", MUTED_COLOR)
+		_currency_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_currency_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_currency_label)
+
+
+# ============================================================================
+# Inhalt
+# ============================================================================
+## Oeffentlich, damit die Screens sie beim Einblenden erneut aufrufen koennen.
+func refresh() -> void:
+	if _rows_box == null:
+		return
+
+	for child: Node in _rows_box.get_children():
+		child.queue_free()
+
+	_hide_detail()
+
+	if _items == null:
+		_items = get_node_or_null("/root/Items")
+	if _items == null:
+		_empty_label.visible = true
+		return
+
+	# Gleiche Items zusammenfassen. Ohne das stuenden drei Exemplare
+	# desselben Items als drei identische Zeilen untereinander.
+	var counts: Dictionary = {}
+	var order: Array[ItemData] = []
+	for item: ItemData in _items.inventory:
+		if counts.has(item.id):
+			counts[item.id] = int(counts[item.id]) + 1
+		else:
+			counts[item.id] = 1
+			order.append(item)
+
+	_empty_label.visible = order.is_empty()
+
+	for item: ItemData in order:
+		_rows_box.add_child(_make_row(item, int(counts[item.id])))
+
+	if _currency_label:
+		_currency_label.text = "%d Muenzen  \u00b7  %d Bomben" % [
+			int(_items.coins), int(_items.bombs)
+		]
+
+
+func _make_row(item: ItemData, count: int) -> Control:
+	var color: Color = item.pedestal_color
+
+	var row := PanelContainer.new()
+	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
+	# PASS: die Zeile meldet Hover, schluckt aber keine Klicks, die an die
+	# Buttons dahinter gehen sollen.
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = BG_COLOR
+	style.border_color = Color(color.r, color.g, color.b, 0.55)
+	style.set_border_width_all(0)
+	style.border_width_left = 3
+	style.set_corner_radius_all(2)
+	style.content_margin_left = 8.0
+	style.content_margin_right = 10.0
+	style.content_margin_top = 3.0
+	style.content_margin_bottom = 3.0
+	row.add_theme_stylebox_override("panel", style)
+
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 9)
+	box.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(box)
+
+	# --- Farbfeld mit Kuerzel: dieselbe Farbe wie am Sockel ------------
+	var swatch := Panel.new()
+	swatch.custom_minimum_size = Vector2(SWATCH_SIZE, SWATCH_SIZE)
+	swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	swatch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var swatch_style := StyleBoxFlat.new()
+	swatch_style.bg_color = Color(color.r, color.g, color.b, 0.18)
+	swatch_style.border_color = Color(color.r, color.g, color.b, 0.9)
+	swatch_style.set_border_width_all(1)
+	swatch_style.set_corner_radius_all(2)
+	swatch.add_theme_stylebox_override("panel", swatch_style)
+	box.add_child(swatch)
+
+	var initials := Label.new()
+	initials.text = _initials(item.display_name)
+	initials.set_anchors_preset(Control.PRESET_FULL_RECT)
+	initials.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	initials.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	initials.add_theme_font_size_override("font_size", 10)
+	initials.add_theme_color_override("font_color", color)
+	initials.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	swatch.add_child(initials)
+
+	var name_label := Label.new()
+	name_label.text = item.display_name if count <= 1 else "%s  x%d" % [item.display_name, count]
+	name_label.add_theme_font_size_override("font_size", 13)
+	name_label.add_theme_color_override("font_color", TEXT_COLOR)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(name_label)
+
+	var kind_label := Label.new()
+	kind_label.text = "AKTIV" if item.is_active_item() else item.get_category_name().to_upper()
+	kind_label.add_theme_font_size_override("font_size", 9)
+	kind_label.add_theme_color_override("font_color",
+		Color(0.45, 0.85, 0.95) if item.is_active_item() else MUTED_COLOR)
+	kind_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	kind_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(kind_label)
+
+	# bind() haengt Item UND Zeile an — die Zeile braucht es fuer die
+	# Positionierung der Karte (siehe _position_detail_panel).
+	row.mouse_entered.connect(_show_detail.bind(item, style, color, row))
+	row.mouse_exited.connect(_on_row_exited.bind(style, color))
+
+	return row
+
+
+func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Control) -> void:
+	if _detail_panel == null:
+		return
+
+	_detail_name.text = item.display_name
+	var text: String = item.description
+	if item.flavor_text != "":
+		text = "\u201c%s\u201d\n%s" % [item.flavor_text, item.description]
+	if item.is_active_item():
+		text += "\n[C] \u00b7 laedt ueber %d Raeume" % item.charge_rooms
+	_detail_text.text = text
+
+	var panel_style: StyleBox = _detail_panel.get_theme_stylebox("panel")
+	if panel_style is StyleBoxFlat:
+		(panel_style as StyleBoxFlat).border_color = Color(color.r, color.g, color.b, 0.85)
+
+	_detail_panel.visible = true
+	_position_detail_panel(row)
+
+	# Zeile hervorheben, damit klar ist, wozu die Beschreibung gehoert.
+	style.bg_color = Color(color.r, color.g, color.b, 0.16)
+
+
+## Setzt die Karte neben die ueberfahrene Zeile — rechts bevorzugt, links
+## als Ausweichroute, wenn rechts kein Platz mehr ist, und in beiden Faellen
+## innerhalb des Bildschirms geklemmt. get_combined_minimum_size() liefert
+## die Groesse SOFORT auf Basis des gerade gesetzten Texts, ohne auf einen
+## Layout-Durchlauf warten zu muessen.
+func _position_detail_panel(row: Control) -> void:
+	if _detail_panel == null or row == null or not is_instance_valid(row):
+		return
+
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var row_rect: Rect2 = row.get_global_rect()
+	var panel_size: Vector2 = _detail_panel.get_combined_minimum_size()
+
+	var pos := Vector2(row_rect.position.x + row_rect.size.x + 12.0, row_rect.position.y)
+	if pos.x + panel_size.x > viewport_size.x - 8.0:
+		pos.x = row_rect.position.x - panel_size.x - 12.0
+
+	pos.x = clampf(pos.x, 8.0, maxf(viewport_size.x - panel_size.x - 8.0, 8.0))
+	pos.y = clampf(pos.y, 8.0, maxf(viewport_size.y - panel_size.y - 8.0, 8.0))
+
+	_detail_panel.position = pos
+
+
+func _on_row_exited(style: StyleBoxFlat, _color: Color) -> void:
+	style.bg_color = BG_COLOR
+	_hide_detail()
+
+
+func _hide_detail() -> void:
+	if _detail_panel:
+		_detail_panel.visible = false
+
+
+## Kuerzel aus dem Anzeigenamen: "Mamas Kochloeffel" -> "MK".
+func _initials(display_name: String) -> String:
+	var words: PackedStringArray = display_name.replace("-", " ").split(" ", false)
+	var result: String = ""
+	for word: String in words:
+		if word.is_empty():
+			continue
+		result += word.substr(0, 1).to_upper()
+		if result.length() >= 2:
+			break
+	return result if result != "" else "?"
+
+
+## Bequemer Konstruktor fuer die Screens.
+static func create(p_title: String = "GESAMMELTE ITEMS", p_currencies: bool = true) -> ItemSummaryList:
+	var list := ItemSummaryList.new()
+	list.name = "ItemSummaryList"
+	list.title_text = p_title
+	list.show_currencies = p_currencies
+	return list
