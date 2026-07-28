@@ -80,7 +80,7 @@ func _player() -> CharacterBody3D:
 	if _items == null:
 		return null
 	var p = _items.player
-	if p is CharacterBody3D and is_instance_valid(p):
+	if p is CharacterBody3D and is_instance_valid(p): 
 		return p
 	return null
 
