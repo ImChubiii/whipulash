@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://plesiwjme2q2"]
 
 [ext_resource type="Script" uid="uid://nmqrc35k3824" path="res://scripts/characters/char_karina.gd" id="1_karina"]
-[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/characters/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="PackedScene" uid="uid://bvkmibmn4wwby" path="res://assets/characters/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_71isp"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
@@ -30,6 +30,7 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="CharKarina" type="CharacterBody3D" unique_id=1211426866]
 script = ExtResource("1_karina")
+speed = 17.0
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
@@ -80,8 +81,7 @@ spring_length = 8.0
 
 [node name="Health" type="Node" parent="." unique_id=1014464105]
 script = ExtResource("3_qhqgy")
+regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=2032550543]
 script = ExtResource("5_karinacombat")
-
-

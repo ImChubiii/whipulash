@@ -1,3 +1,4 @@
+
 # scripts/pause_menu.gd
 extends Control
 class_name PauseMenu
@@ -31,6 +32,9 @@ var _blur_overlay: ColorRect = null
 ## Ueberschrift ueber der Item-Liste.
 const ITEM_LIST_TITLE: String = "GESAMMELTE ITEMS"
 var _item_list: ItemSummaryList = null
+
+## PHASE 5: Tausch-Widget fuer die beiden aktiven Item-Slots (Q/E).
+var _active_swap_panel: ActiveItemSwapPanel = null
 
 # Wird von death_screen.gd / win_screen.gd SOFORT beim Tod/Sieg gesetzt
 # (nicht erst wenn der jeweilige Screen sichtbar wird — bei DeathScreen
@@ -66,6 +70,7 @@ func _ready() -> void:
 	settings_button.pressed.connect(_on_settings_pressed)
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+	_build_active_swap_panel()
 	_build_item_list()
 
 
@@ -297,6 +302,23 @@ func _build_item_list() -> void:
 	# Vor den ersten Button schieben: die Liste ist Information, die Buttons
 	# sind die Handlung. Umgekehrt muesste man an den Buttons vorbeilesen.
 	column.move_child(_item_list, _first_button_index(column))
+
+
+## PHASE 5: baut das Q/E-Tausch-Widget und haengt es VOR die Item-Liste
+## (also noch ueber ihr) - welche zwei Items gerade auf welcher Taste
+## liegen, ist waehrend eines Kampf-Runs wichtiger als die komplette
+## Sammel-Uebersicht darunter.
+func _build_active_swap_panel() -> void:
+	if _active_swap_panel != null and is_instance_valid(_active_swap_panel):
+		return
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Aktive-Item-Tausch faellt aus." % name)
+		return
+
+	_active_swap_panel = ActiveItemSwapPanel.create()
+	column.add_child(_active_swap_panel)
+	column.move_child(_active_swap_panel, _first_button_index(column))
 
 
 ## Index des ersten Buttons in der Spalte. Ueber den Typ gesucht statt ueber

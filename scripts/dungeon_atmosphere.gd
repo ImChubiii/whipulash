@@ -21,9 +21,9 @@ class_name DungeonAtmosphere
 ## Farbe des Nebels. Sehr dunkel, leicht gruenstichig passend zur Limonade.
 @export var fog_color: Color = Color(0.02, 0.03, 0.02)
 ## Ab hier beginnt das Abdunkeln (Meter vor der Kamera).
-@export var fog_begin: float = 14.0
+@export var fog_begin: float = 20.0
 ## Ab hier ist praktisch alles schwarz.
-@export var fog_end: float = 40.0
+@export var fog_end: float = 80.0
 ## Wie schnell der Nebel zwischen begin und end zumacht (>1 = spaeter,
 ## dafuer haerter; das fuehlt sich weniger nach Milchglas an).
 @export var fog_curve: float = 2.2

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://52uf15kj5rx0"]
 
 [ext_resource type="Script" uid="uid://cyh3pac86pvjn" path="res://scripts/characters/char_giselle.gd" id="1_giselle"]
-[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/characters/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="PackedScene" uid="uid://dlh7k0jhcait3" path="res://assets/characters/brick_the_rowdyruff_boys.glb" id="2_1o0vc"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_o7r84"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
@@ -30,15 +30,16 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="CharGiselle" type="CharacterBody3D" unique_id=95100292]
 script = ExtResource("1_giselle")
+speed = 17.0
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
 
+[node name="CharacterModel" parent="." unique_id=1751834998 instance=ExtResource("2_1o0vc")]
+transform = Transform3D(18.78, 0, 0, 0, 18.78, 0, 0, 0, 18.78, 0, -0.8, 0)
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=755367694]
 shape = SubResource("CapsuleShape3D_6igkw")
-
-[node name="CharacterModel" parent="." unique_id=611720617 instance=ExtResource("2_tuyoq")]
-transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=489963335]
 
@@ -80,8 +81,7 @@ spring_length = 8.0
 
 [node name="Health" type="Node" parent="." unique_id=721868555]
 script = ExtResource("3_qhqgy")
+regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=1120459944]
 script = ExtResource("5_gisellecombat")
-
-

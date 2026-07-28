@@ -469,6 +469,20 @@ func reset_combo_tilt() -> void:
 	_tilt_tween.tween_property(self, "_combo_tilt_degrees", 0.0, 0.6)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
+# Bewusst als Node (nicht Node3D) typisiert: fehlt/fehlschlägt der Import,
+# ersetzt Godot die Instanz durch einen MissingNode. Ein Cast auf Node3D
+# würde das still verschlucken und mesh wäre null.
+
+func _resolve_character_model() -> Node3D:
+	var node: Node = get_node_or_null("CharacterModel")
+	if node == null:
+		push_error("PlayerBase: Kein Node namens 'CharacterModel' gefunden. Wurde er beim Model-Tausch umbenannt?")
+		return null
+	if node is Node3D:
+		return node as Node3D
+	push_error("PlayerBase: 'CharacterModel' ist ein %s statt Node3D. Model-Import fehlgeschlagen (fehlende .glb, OneDrive-Platzhalter oder noch nicht importiert)." % node.get_class())
+	return null
+	
 ## Macht den Federarm gegen schnelle Bewegung unempfindlich. Siehe den
 ## Kommentar bei dash_camera_ignore_collision.
 func _setup_camera_probe() -> void:

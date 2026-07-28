@@ -1,3 +1,4 @@
+
 [gd_scene format=3 uid="uid://dt3tk05ggmgk0"]
 
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="1_k5f3b"]
@@ -66,7 +67,7 @@ collision_layer = 4
 floor_snap_length = 0.4
 script = ExtResource("1_w4gkx")
 move_speed = 8.0
-detection_range = 45.0
+detection_range = 90.0
 attack_cooldown = 1.8
 attack_windup_time = 0.8
 pre_attack_delay = 0.5
@@ -142,3 +143,5 @@ target_desired_distance = 3.0
 path_height_offset = 0.3
 height = 6.0
 radius = 1.5
+
+
