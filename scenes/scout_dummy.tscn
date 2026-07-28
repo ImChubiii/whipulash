@@ -1,3 +1,4 @@
+
 [gd_scene format=3 uid="uid://cwmv27hs3y0ng"]
 
 [ext_resource type="Script" uid="uid://bqsncuqrnam0r" path="res://scripts/enemies/enemy_ai.gd" id="1_p4blw"]
@@ -65,7 +66,7 @@ floor_snap_length = 0.29
 script = ExtResource("1_p4blw")
 move_speed = 15.0
 speed_variance = 0.16
-detection_range = 50.0
+detection_range = 100.0
 attack_range = 2.1
 attack_cooldown = 1.4
 attack_windup_time = 0.35
@@ -84,7 +85,7 @@ zigzag_pause_time = 0.1
 zigzag_brake_acceleration = 110.0
 zigzag_fade_distance = 11.0
 focus_loss_enabled = true
-focus_loss_chance_per_second = 0.4
+focus_loss_chance_per_second = 0.18
 focus_loss_wander_speed_factor = 0.55
 hit_flash_duration = 0.3
 hit_color_flash_strength = 0.8
@@ -135,3 +136,5 @@ mesh = SubResource("CylinderMesh_fva3d")
 target_desired_distance = 1.5
 path_height_offset = 0.2
 height = 2.0
+
+

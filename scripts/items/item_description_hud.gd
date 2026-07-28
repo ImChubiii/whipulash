@@ -39,9 +39,40 @@ class_name ItemDescriptionHud
 #   * Sockel in Reichweite  -> Karte an, DAUERHAFT, bis man weggeht.
 #   * Sockel verlassen      -> Karte sofort weg (hide_item()).
 #   * Item aufgesammelt     -> Karte an, blendet nach card_display_time aus.
+#   * Chip in der Leiste gehovert -> Karte an, DAUERHAFT, bis die Maus weg ist.
 # Vorher blieb die Karte nach jedem Trigger feste sechs Sekunden stehen — man
 # lief also mit der Beschreibung eines Items durch die Gegend, das drei Raeume
 # hinter einem lag.
+#
+# ---------------------------------------------------------------------------
+# PHASE 2 (HUD-Ueberarbeitung):
+# ---------------------------------------------------------------------------
+#  1. UNTEN MITTIG statt unten links: dieser Node haengt jetzt selbst direkt
+#     unter dem HUD-Wurzelknoten (mittig verankert, siehe hud.tscn), nicht
+#     mehr in BottomLeft neben dem Stats-Panel. Chip-Leiste und Aktiv-Slot
+#     bekommen dafuer SIZE_SHRINK_CENTER statt SIZE_SHRINK_BEGIN — sonst
+#     waeren sie zwar in einer mittig verankerten Box, aber innerhalb dieser
+#     Box weiterhin linksbuendig, also optisch NICHT mittig.
+#
+#  2. ECHTES HOVER-POPUP AUF DEN CHIPS: die Chips hatten mouse_filter =
+#     IGNORE und reagierten damit ueberhaupt nicht auf die Maus — "Popup bei
+#     Hover" existierte schlicht nicht. Jetzt bekommt jeder Chip
+#     MOUSE_FILTER_STOP und zeigt beim Hovern dieselbe Karte an, die auch am
+#     Sockel erscheint (persistent, bis die Maus wieder verlaesst).
+#
+#  3. FIX GEGEN DIE "MANCHMAL KAPUTTE" KARTE: _refresh_list() reisst bei
+#     jeder Inventar-Aenderung ALLE Chips ab und baut sie neu. Passierte das
+#     waehrend man genau einen Chip hoverte (z.B. neues Item waehrend man auf
+#     der Leiste steht), wurde der gehoverte Chip mitsamt seinem Node
+#     geloescht, OHNE dass zuverlaessig ein mouse_exited-Signal ankam — die
+#     Karte blieb dann mit veraltetem Inhalt stehen, oder ein exited-Signal
+#     kam verzoegert rein, WAEHREND schon ein neues Item eine zweite Karte
+#     ausloeste. Zwei Trigger kurz hintereinander auf demselben Control ohne
+#     garantierte Reihenfolge = genau das Bild, das als "komisches Format"
+#     beschrieben wurde. Fix: _refresh_list() merkt sich die ID des aktuell
+#     gehoverten Items VOR dem Rebuild, schliesst die Karte sauber, und
+#     oeffnet sie danach neu, falls der gleiche Chip (an derselben Stelle)
+#     weiterhin existiert.
 
 const HUD_ELEMENT: String = "items"
 
@@ -50,9 +81,12 @@ const HUD_ELEMENT: String = "items"
 @export var card_display_time: float = 5.0
 @export var card_fade_time: float = 0.45
 
-## Breite der Chip-Leiste, bevor sie umbricht. Deckt sich mit der Breite des
-## Stats-Panels darunter, damit die Spalte buendig steht.
-@export var chip_row_width: float = 210.0
+## Breite der Chip-Leiste, bevor sie umbricht. War vorher an die Breite des
+## Stats-Panels gekoppelt (210) — seit die Leiste unten MITTIG statt in der
+## linken Spalte haengt, ist das nicht mehr sinnvoll. Als eigener Wert
+## bestimmt er jetzt, wie breit die zentrierte Leiste maximal wird, bevor
+## Chips in eine zweite Zeile umbrechen.
+@export var chip_row_width: float = 460.0
 
 ## Groesse und Lage der Karte. offset_y wird von der Bildmitte aus gemessen;
 ## positiv = nach unten.
@@ -76,15 +110,31 @@ var _card_description: Label = null
 var _card_charge: Label = null
 var _card_hint: Label = null
 
-var _active_slot: PanelContainer = null
-var _active_name: Label = null
-var _active_pips: HBoxContainer = null
+## PHASE 5: aus dem EINEN aktiven Item-Slot sind zwei geworden (Q und E,
+## siehe item_manager.gd). Statt drei Einzelvariablen zu verdoppeln (was
+## garantiert dazu fuehrt, dass irgendwann eine Stelle nur fuer Slot 0
+## aktualisiert wird), sind es jetzt Arrays der Groesse ACTIVE_SLOT_COUNT,
+## Index == Slot-Index.
+var _active_slot_panels: Array[PanelContainer] = []
+var _active_slot_names: Array[Label] = []
+var _active_slot_pips: Array[HBoxContainer] = []
 
 var _chip_row: HFlowContainer = null
 var _items: Node = null
 var _card_tween: Tween = null
 ## true = Karte haengt an einer Entfernung (Sockel) und blendet NICHT selbst aus.
 var _card_persistent: bool = false
+
+## Welches Item die Detailkarte gerade zeigt. Noetig, damit
+## _on_charge_changed() weiss, ob eine Ladungsaenderung ueberhaupt die
+## GERADE SICHTBARE Karte betrifft.
+var _shown_item: ItemData = null
+
+## ID des Items, dessen Chip GERADE gehovert wird ("" = keins). Wird von
+## _refresh_list() genutzt, um die Karte beim Chip-Rebuild sauber zu
+## schliessen/neu zu oeffnen statt sie in einem undefinierten Zustand
+## haengen zu lassen — siehe PHASE-2-Kommentar #3 im Dateikopf.
+var _hovered_item_id: String = ""
 
 
 func _ready() -> void:
@@ -95,17 +145,27 @@ func _ready() -> void:
 	# kaputtgegangen.
 	add_to_group("item_hud")
 
+	# WICHTIG: _items MUSS vor _build_active_slot() gesetzt sein - die
+	# Funktion liest _items.ACTIVE_SLOT_COUNT, um die Anzahl der Slot-Panels
+	# zu bauen. Vorher stand diese Zeile weiter unten, NACH den _build_*-
+	# Aufrufen - _items war zu dem Zeitpunkt noch der Default-Wert null,
+	# was zu "Invalid access to property or key 'ACTIVE_SLOT_COUNT' on a
+	# base object of type 'Nil'" fuehrte. Root Cause war also nicht (nur)
+	# der bare "Items"-Bezeichner aus der letzten Runde, sondern zusaetzlich
+	# diese Reihenfolge hier in _ready() selbst.
+	_items = get_node_or_null("/root/Items")
+
 	_build_active_slot()
 	_build_chip_row()
 	# Die Karte wird erst gebaut, wenn der Baum steht — sie braucht den
 	# HUD-Wurzelknoten als Elternteil.
 	_build_card.call_deferred()
 
-	_items = get_node_or_null("/root/Items")
 	if _items:
 		_items.item_added.connect(_on_item_added)
 		_items.inventory_changed.connect(_refresh_list)
 		_items.active_item_charge_changed.connect(_on_charge_changed)
+		_items.active_slots_changed.connect(_refresh_active_slot)
 		_refresh_list()
 
 	SettingsManager.hud_visible_changed.connect(_on_visibility_setting_changed)
@@ -268,6 +328,7 @@ func show_item(item: ItemData, persistent: bool = false) -> void:
 	if _card == null:
 		return
 
+	_shown_item = item
 	var color: Color = item.pedestal_color
 
 	_card_style.border_color = Color(color.r, color.g, color.b, 0.85)
@@ -284,7 +345,7 @@ func show_item(item: ItemData, persistent: bool = false) -> void:
 
 	if item.is_active_item():
 		_card_charge.visible = true
-		_card_charge.text = "Aktiv \u2014 [C] \u00b7 laedt ueber %d Raeume" % item.charge_rooms
+		_card_charge.text = _format_active_status(item)
 	else:
 		_card_charge.visible = false
 
@@ -365,28 +426,87 @@ func _play_card_intro() -> void:
 	)
 
 
-func _on_charge_changed(current: int, needed: int) -> void:
+## PHASE 5: neue Signalsignatur (slot, current, needed) - vorher gab es nur
+## EIN aktives Item, jetzt muss geprueft werden, ob der gemeldete Slot
+## ueberhaupt zu dem Item gehoert, das die Karte gerade zeigt (falls der
+## Spieler z.B. gerade das Item in E anschaut, waehrend Q einen Raum
+## abschliesst).
+func _on_charge_changed(slot: int, _current: int, _needed: int) -> void:
 	_refresh_active_slot()
 
 	if _card == null or not is_instance_valid(_card):
 		return
 	if not _card.visible or not _card_charge.visible:
 		return
-	if current <= 0:
-		_card_charge.text = "Aktiv \u2014 [C] \u00b7 BEREIT"
-	else:
-		_card_charge.text = "Aktiv \u2014 [C] \u00b7 noch %d/%d Raeume" % [current, needed]
+	if _shown_item == null or _items.active_items[slot] != _shown_item:
+		return
+	_card_charge.text = _format_active_status(_shown_item)
+
+
+## Baut die Statuszeile fuer die Detailkarte: welcher Slot (Q/E/keiner) und
+## wie weit geladen. Ein einzelner Ort dafuer, weil sowohl show_item() als
+## auch _on_charge_changed() denselben Text brauchen.
+func _format_active_status(item: ItemData) -> String:
+	var slot: int = _slot_of(item)
+	if slot < 0:
+		return "Aktiv \u2014 nicht ausgeruestet (Q/E bereits belegt)"
+
+	var key: String = ACTIVE_KEY_LABELS[slot]
+	if _items.is_active_slot_ready(slot):
+		return "Aktiv \u2014 [%s] \u00b7 BEREIT" % key
+
+	var remaining: int = int(_items.get_active_charge_remaining(slot))
+	return "Aktiv \u2014 [%s] \u00b7 noch %d/%d Raeume" % [key, remaining, item.charge_rooms]
+
+
+## -1, falls das Item aktuell in keinem Slot steckt (dritter+ aktiver Fund,
+## siehe Kopfkommentar in item_manager.gd), oder falls _items aus
+## irgendeinem Grund gar nicht existiert.
+func _slot_of(item: ItemData) -> int:
+	if _items == null:
+		return -1
+	for slot: int in range(_items.ACTIVE_SLOT_COUNT):
+		if _items.active_items[slot] == item:
+			return slot
+	return -1
 
 
 # ============================================================================
-# Slot fuer das aktive Item
+# Slots fuer die aktiven Items (PHASE 5: Q und E statt nur ein Slot mit [C])
 # ============================================================================
+const ACTIVE_KEY_LABELS: Array[String] = ["Q", "E"]
+
+## Container, der die beiden Slot-Panels nebeneinander haelt. Eigenes Kind
+## dieses VBoxContainers, damit die Slots als EINE Einheit ueber der
+## Chip-Leiste sitzen, nicht als zwei unabhaengig zentrierte Elemente.
+var _active_slots_row: HBoxContainer = null
+
+
 func _build_active_slot() -> void:
-	_active_slot = PanelContainer.new()
-	_active_slot.visible = false
-	_active_slot.custom_minimum_size = Vector2(chip_row_width, 0.0)
-	_active_slot.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_active_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_active_slots_row = HBoxContainer.new()
+	_active_slots_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_active_slots_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_active_slots_row.add_theme_constant_override("separation", 6)
+	add_child(_active_slots_row)
+
+	_active_slot_panels.clear()
+	_active_slot_names.clear()
+	_active_slot_pips.clear()
+
+	# Falls das Items-Autoload aus irgendeinem Grund fehlt, lieber gar
+	# keine Slot-Panels bauen als abzustuerzen - _refresh_active_slot()
+	# hat ohnehin denselben Guard und wuerde dann einfach nichts tun.
+	if _items == null:
+		return
+
+	for slot: int in range(_items.ACTIVE_SLOT_COUNT):
+		_active_slots_row.add_child(_build_one_active_panel(slot))
+
+
+func _build_one_active_panel(slot: int) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.visible = false
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = BG_COLOR
@@ -398,51 +518,61 @@ func _build_active_slot() -> void:
 	style.content_margin_right = 8.0
 	style.content_margin_top = 4.0
 	style.content_margin_bottom = 4.0
-	_active_slot.add_theme_stylebox_override("panel", style)
+	panel.add_theme_stylebox_override("panel", style)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
-	_active_slot.add_child(row)
+	panel.add_child(row)
 
 	var key := Label.new()
-	key.text = "[C]"
+	key.text = "[%s]" % ACTIVE_KEY_LABELS[slot]
 	key.add_theme_font_size_override("font_size", 10)
 	key.add_theme_color_override("font_color", Color(0.45, 0.85, 0.95))
 	row.add_child(key)
 
-	_active_name = Label.new()
-	_active_name.add_theme_font_size_override("font_size", 11)
-	_active_name.add_theme_color_override("font_color", TEXT_COLOR)
-	_active_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(_active_name)
+	var name_label := Label.new()
+	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_color_override("font_color", TEXT_COLOR)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(name_label)
 
-	_active_pips = HBoxContainer.new()
-	_active_pips.add_theme_constant_override("separation", 2)
-	row.add_child(_active_pips)
+	var pips := HBoxContainer.new()
+	pips.add_theme_constant_override("separation", 2)
+	row.add_child(pips)
 
-	add_child(_active_slot)
+	_active_slot_panels.append(panel)
+	_active_slot_names.append(name_label)
+	_active_slot_pips.append(pips)
+	return panel
 
 
 ## Ladepunkte statt Text: "noch 2 Raeume" muss man lesen, zwei dunkle Punkte
-## nicht.
+## nicht. Aktualisiert BEIDE Slots - fuer einen einzelnen Slot gezielt
+## reicht der schmalere _refresh_one_active_slot() weiter unten.
 func _refresh_active_slot() -> void:
-	if _active_slot == null or _items == null:
+	if _items == null or _active_slot_panels.size() < _items.ACTIVE_SLOT_COUNT:
+		return
+	for slot: int in range(_items.ACTIVE_SLOT_COUNT):
+		_refresh_one_active_slot(slot)
+
+
+func _refresh_one_active_slot(slot: int) -> void:
+	var panel: PanelContainer = _active_slot_panels[slot]
+	var item: ItemData = _items.active_items[slot]
+
+	if item == null:
+		panel.visible = false
 		return
 
-	var active = _items.active_item
-	if not (active is ItemData):
-		_active_slot.visible = false
-		return
+	panel.visible = true
+	_active_slot_names[slot].text = item.display_name
 
-	var item: ItemData = active as ItemData
-	_active_slot.visible = true
-	_active_name.text = item.display_name
-
-	for child: Node in _active_pips.get_children():
+	var pips: HBoxContainer = _active_slot_pips[slot]
+	for child: Node in pips.get_children():
 		child.queue_free()
 
 	var needed: int = maxi(item.charge_rooms, 1)
-	var remaining: int = int(_items.active_item_charge)
+	var remaining: int = int(_items.get_active_charge_remaining(slot))
 	var filled: int = clampi(needed - remaining, 0, needed)
 
 	for i: int in range(needed):
@@ -454,7 +584,7 @@ func _refresh_active_slot() -> void:
 		pip_style.bg_color = Color(0.45, 0.85, 0.95, 0.95) if i < filled \
 			else Color(0.22, 0.25, 0.29, 0.95)
 		pip.add_theme_stylebox_override("panel", pip_style)
-		_active_pips.add_child(pip)
+		pips.add_child(pip)
 
 
 # ============================================================================
@@ -463,10 +593,12 @@ func _refresh_active_slot() -> void:
 func _build_chip_row() -> void:
 	_chip_row = HFlowContainer.new()
 	_chip_row.custom_minimum_size = Vector2(chip_row_width, 0.0)
-	_chip_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	# SHRINK_CENTER statt SHRINK_BEGIN, gleicher Grund wie beim Aktiv-Slot
+	# oben: dieser Node haengt jetzt unten MITTIG am HUD.
+	_chip_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_chip_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_chip_row.add_theme_constant_override("h_separation", 3)
-	_chip_row.add_theme_constant_override("v_separation", 3)
+	_chip_row.add_theme_constant_override("h_separation", 4)
+	_chip_row.add_theme_constant_override("v_separation", 4)
 	add_child(_chip_row)
 
 
@@ -476,6 +608,16 @@ func _refresh_list() -> void:
 	if _chip_row == null or _items == null:
 		return
 
+	# Race-Fix (siehe PHASE-2-Kommentar #3 im Dateikopf): merken, welches
+	# Item GERADE gehovert wird, BEVOR die Chips darunter weggerissen
+	# werden. Ohne das haengt die Karte nach einem Rebuild waehrend des
+	# Hovers in einem undefinierten Zustand — sie bekommt kein zuverlaessiges
+	# mouse_exited von einem Node, der gerade geloescht wird.
+	var was_hovering: String = _hovered_item_id
+	if was_hovering != "":
+		hide_item()
+		_hovered_item_id = ""
+
 	for child: Node in _chip_row.get_children():
 		child.queue_free()
 
@@ -484,26 +626,42 @@ func _refresh_list() -> void:
 	# der halbe Bildschirm.
 	var counts: Dictionary = {}
 	var order: Array[ItemData] = []
+	var rehover_item: ItemData = null
 	for item: ItemData in _items.inventory:
 		if counts.has(item.id):
 			counts[item.id] = int(counts[item.id]) + 1
 		else:
 			counts[item.id] = 1
 			order.append(item)
+		if item.id == was_hovering and rehover_item == null:
+			rehover_item = item
 
 	for item: ItemData in order:
 		_chip_row.add_child(_make_chip(item, int(counts[item.id])))
+
+	# Item, das man gerade hoverte, ist nach dem Rebuild immer noch im
+	# Inventar (z.B. ein ZWEITES Item kam dazu, waehrend man auf dem ersten
+	# stand) -> Karte sofort wieder zeigen, statt dass sie kurz verschwindet
+	# und der Spieler denkt, der Hover sei abgebrochen.
+	if rehover_item != null:
+		_on_chip_hover(rehover_item)
 
 
 ## Ein Chip: farbiges Quadrat mit Kuerzel, bei mehreren Exemplaren mit
 ## Zaehler. Die Farbe ist item.pedestal_color — dieselbe, in der das Item
 ## auf dem Sockel im Schatzraum leuchtete.
+##
+## NEU: MOUSE_FILTER_STOP statt IGNORE + hover-Signale. Vorher gab es auf
+## den Chips ueberhaupt keine Maus-Interaktion — "Popup bei Hover" existierte
+## im Code schlicht nicht (siehe PHASE-2-Kommentar #2 im Dateikopf).
 func _make_chip(item: ItemData, count: int) -> Control:
 	var color: Color = item.pedestal_color
 
 	var chip := Panel.new()
 	chip.custom_minimum_size = Vector2(CHIP_SIZE, CHIP_SIZE)
-	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.mouse_filter = Control.MOUSE_FILTER_STOP
+	chip.mouse_entered.connect(_on_chip_hover.bind(item))
+	chip.mouse_exited.connect(_on_chip_unhover.bind(item.id))
 	_apply_icon_style(chip, color)
 
 	var label := Label.new()
@@ -513,6 +671,7 @@ func _make_chip(item: ItemData, count: int) -> Control:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 11)
 	label.add_theme_color_override("font_color", color)
+	# Muss IGNORE bleiben, sonst blockt das Label die Hover-Signale des Chips.
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	chip.add_child(label)
 
@@ -528,10 +687,28 @@ func _make_chip(item: ItemData, count: int) -> Control:
 		badge.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		badge.add_theme_font_size_override("font_size", 9)
 		badge.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.92))
+		# Muss IGNORE bleiben, gleicher Grund wie beim Label oben.
 		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		chip.add_child(badge)
 
 	return chip
+
+
+## Zeigt die Karte persistent an, solange die Maus auf dem Chip steht.
+func _on_chip_hover(item: ItemData) -> void:
+	_hovered_item_id = item.id
+	show_item(item, true)
+
+
+## Nur ausblenden, wenn die Maus tatsaechlich DIESEN Chip verlassen hat —
+## nicht irgendeinen. Ohne den ID-Abgleich koennte ein spaet ankommendes
+## mouse_exited von einem laengst ersetzten Chip die Karte eines ANDEREN,
+## gerade gehoverten Items wegreissen.
+func _on_chip_unhover(item_id: String) -> void:
+	if _hovered_item_id != item_id:
+		return
+	_hovered_item_id = ""
+	hide_item()
 
 
 ## Gemeinsamer Stil fuer Chip und Karten-Farbfeld: getoenter Hintergrund,

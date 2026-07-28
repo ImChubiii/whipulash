@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bkyplq6fj3yft"]
 
 [ext_resource type="Script" uid="uid://3vc06c3kmrbw" path="res://scripts/characters/char_winter.gd" id="1_winter"]
-[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/characters/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="PackedScene" uid="uid://4ccajgldmxuh" path="res://assets/characters/buttercup_the_powerpuff_girls.glb" id="2_i32li"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_i32li"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
@@ -30,6 +30,7 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="CharWinter" type="CharacterBody3D" unique_id=574951109]
 script = ExtResource("1_winter")
+speed = 17.0
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
@@ -37,8 +38,8 @@ large_enemy_zoom_speed = 4.0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1355083992]
 shape = SubResource("CapsuleShape3D_6igkw")
 
-[node name="CharacterModel" parent="." unique_id=1417025321 instance=ExtResource("2_tuyoq")]
-transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
+[node name="CharacterModel" parent="." unique_id=1103500175 instance=ExtResource("2_i32li")]
+transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.8, 0)
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1953444161]
 
@@ -80,8 +81,7 @@ spring_length = 8.0
 
 [node name="Health" type="Node" parent="." unique_id=1753711452]
 script = ExtResource("3_qhqgy")
+regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=873002602]
 script = ExtResource("5_wintercombat")
-
-

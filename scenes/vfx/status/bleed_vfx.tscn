@@ -1,4 +1,3 @@
-
 [gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/status_effects/status_vfx.gd" id="1"]
@@ -21,7 +20,7 @@ color = Color(0.55, 0.02, 0.02, 1)
 
 [sub_resource type="QuadMesh" id="QuadMesh_bleed"]
 material = SubResource("StandardMaterial3D_bleed")
-size = Vector2(0.12, 0.12)
+size = Vector2(0.06, 0.06)
 
 [node name="BleedVFX" type="GPUParticles3D"]
 script = ExtResource("1")
@@ -33,5 +32,3 @@ fixed_fps = 30
 process_material = SubResource("ParticleProcessMaterial_bleed")
 draw_pass_1 = SubResource("QuadMesh_bleed")
 effect_id = "bleed"
-
-

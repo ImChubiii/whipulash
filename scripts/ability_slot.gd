@@ -1,3 +1,4 @@
+
 extends Control
 class_name AbilitySlot
 
@@ -55,7 +56,12 @@ func update_cooldown(percent: float, remaining: float) -> void:
 
 	if on_cd:
 		icon.modulate = Color(0.45, 0.45, 0.5, 1.0)
-		if remaining < 10.0:
+		# PHASE 5: Q/E zeigen hier "Raeume bis Ladung" statt Sekunden - das
+		# sind immer ganze Zahlen. "%.1f" haette daraus "2.0" statt "2"
+		# gemacht, was fuer eine Raumanzahl falsch aussieht. Zeitbasierte
+		# Cooldowns (Primary/Secondary/Utility) sind fast nie ganzzahlig
+		# und zeigen weiterhin die Nachkommastelle.
+		if remaining < 10.0 and remaining != floor(remaining):
 			cooldown_label.text = "%.1f" % remaining
 		else:
 			cooldown_label.text = "%d" % int(remaining)
@@ -78,3 +84,5 @@ func _play_ready_flash() -> void:
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.chain().tween_property(self, "scale", Vector2.ONE, 0.18)\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+

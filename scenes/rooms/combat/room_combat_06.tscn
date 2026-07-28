@@ -1,3 +1,4 @@
+
 [gd_scene load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
@@ -343,10 +344,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.7, 12.0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.0, 3.7, 0.0)
 
 [node name="Enemy4" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.0, 0.5, -14.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.0, 0.5, -18.0)
 
 [node name="Enemy5" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.0, 0.5, 14.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.0, 0.5, 18.0)
 
 [node name="Enemy6" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, 0.0)
@@ -373,4 +374,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.5, -18.0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.5, 18.0)
 
 [node name="Enemy14" type="Marker3D" parent="EnemySpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0, 0.5, -6.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.0, 0.5, -6.0)
+
+

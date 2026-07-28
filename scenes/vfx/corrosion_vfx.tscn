@@ -1,3 +1,4 @@
+
 [gd_scene load_steps=4 format=3]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_corrosion"]
@@ -20,7 +21,7 @@ color = Color(0.75, 0.95, 0.35, 0.8)
 
 [sub_resource type="QuadMesh" id="QuadMesh_corrosion"]
 material = SubResource("StandardMaterial3D_corrosion")
-size = Vector2(0.15, 0.15)
+size = Vector2(0.28, 0.28)
 
 [node name="CorrosionVFX" type="GPUParticles3D"]
 emitting = false
@@ -32,3 +33,5 @@ randomness = 0.4
 fixed_fps = 30
 process_material = SubResource("ParticleProcessMaterial_corrosion")
 draw_pass_1 = SubResource("QuadMesh_corrosion")
+
+

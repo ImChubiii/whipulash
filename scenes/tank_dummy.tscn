@@ -1,3 +1,4 @@
+
 [gd_scene format=3 uid="uid://6agdektsj4x3"]
 
 [ext_resource type="Script" uid="uid://bqsncuqrnam0r" path="res://scripts/enemies/enemy_ai.gd" id="1_p7a36"]
@@ -67,7 +68,7 @@ floor_snap_length = 0.5
 script = ExtResource("1_p7a36")
 move_speed = 5.5
 speed_variance = 0.08
-detection_range = 100.0
+detection_range = 200.0
 attack_range = 8.0
 attack_cooldown = 1.5
 gravity = 20.0
@@ -171,3 +172,5 @@ target_desired_distance = 4.0
 path_height_offset = 0.5
 radius = 3.0
 height = 12.0
+
+

@@ -2,6 +2,7 @@
 
 
 
+
 extends Node
 class_name LevelGenerator
 
@@ -37,18 +38,68 @@ const DIR_OFFSETS := {
 @export var enemy_table: Array[EnemySpawnEntry] = []
 @export var boss_table: Array[EnemySpawnEntry] = []
 
-@export var cell_size: Vector3 = Vector3(48.0, 0.0, 48.0)
+## --- PHASE 3: Raumgroesse -----------------------------------------------
+## Faktor, um den JEDE Raum-Szene beim Instanziieren skaliert wird — siehe
+## load_room(). x/z = Grundriss (Breite/Tiefe), y = Hoehe. Alle Raum-Szenen
+## sind fuer 48x48x14 gebaut; (2, 2, 2) macht daraus effektiv 96x96x28.
+##
+## War zuerst (3, 4, 3) - kam als "bisschen zu gross" zurueck. Jetzt
+## einheitlich 2x auf allen drei Achsen, statt die Hoehe separat hoch zu
+## halten: ohne erneute Erwaehnung eines eigenen Hoehenfaktors ist "gleich-
+## maessig kleiner" die naheliegendere Lesart als "nur Grundriss kleiner,
+## Decke bleibt bei 4x". Bei Bedarf einfach wieder unterschiedlich setzen,
+## z.B. Vector3(2.0, 3.0, 2.0) fuer weiterhin hohe, aber weniger breite Raeume.
+##
+## WARUM SKALIEREN STATT JEDE RAUM-SZENE VON HAND NEU ZU BAUEN:
+## Die Waende in room_combat_XX.tscn stehen als feste Transform3D/Size-Werte
+## in der Szene - das von Hand auf "3x groesser" umzurechnen haette acht
+## Szenendateien mit zusammen weit ueber hundert Einzelwerten bedeutet, jeder
+## davon eine Fehlerquelle. RoomInstance baut EntryTrigger, PresenceArea,
+## Decke und Tuerstuerze dagegen bereits PARAMETRISCH aus room_footprint/
+## room_height (siehe room_instance.gd) - die skalieren also automatisch mit,
+## wenn der ganze Raum-Node skaliert wird. Ein Node3D.scale auf dem
+## instanziierten Raum-Root skaliert ALLES darunter (Waende, Boden, Lava,
+## Spawn-Marker, NavigationObstacle3D) in einem Schritt konsistent mit.
+##
+## NEBENEFFEKT (bewusst in Kauf genommen): Wandstaerke skaliert mit derselben
+## Achse wie die Wandlaenge (beide liegen in der Grundriss-Ebene), Waende
+## werden also spuerbar dicker (1.0 -> 3.0 Einheiten). Bei der PSX-Optik
+## dieses Spiels passt das eher zum Stil, als dass es stoert - falls nicht,
+## ist das der erste Punkt, an dem man ansetzt.
+@export var room_scale: Vector3 = Vector3(2.0, 2.0, 2.0)
 
-## Weltraum-Hoehe EINER Hoehenstufe aus dem RoomGridGenerator. Der Wert
-## muss zur Rampenlaenge der Korridore passen: bei 48 Einheiten Ganglaenge
-## sind 6.0 eine gut begehbare Steigung (ca. 7 Grad), 10.0 wird steil.
-@export var elevation_step: float = 6.0
+## Referenzgroesse EINER Raum-Szene bei room_scale = (1,1,1). Nicht aendern,
+## ohne auch die Raum-Szenen selbst neu zu bauen - das hier ist die Basis,
+## von der cell_size und elevation_step abgeleitet werden.
+const BASE_CELL_SIZE: Vector3 = Vector3(48.0, 0.0, 48.0)
+const BASE_ELEVATION_STEP: float = 6.0
+
+## Wird in _ready() aus BASE_CELL_SIZE * room_scale berechnet - siehe
+## _apply_room_scale(). Kein @export mehr: zwei unabhaengig editierbare
+## Werte (Raumgroesse UND Zellenabstand), die von Hand synchron gehalten
+## werden muessten, sind genau das Muster, das im HUD schon einmal zu einem
+## "manchmal"-Bug gefuehrt hat (Minimap/Timer liefen auseinander, weil zwei
+## Pixelwerte unabhaengig voneinander geaendert wurden). Hier ist derselbe
+## Fehler strukturell ausgeschlossen.
+var cell_size: Vector3 = BASE_CELL_SIZE
+
+## Weltraum-Hoehe EINER Hoehenstufe aus dem RoomGridGenerator. Skaliert mit
+## room_scale.y, damit die Rampen in Korridoren mit Hoehenunterschied bei
+## der neuen, 4x hoeheren Raumdecke nicht unproportional flach wirken.
+var elevation_step: float = BASE_ELEVATION_STEP
 
 @export var grid_generator: RoomGridGenerator
 @export var autostart: bool = true
 
-@export var combat_threat_budget: int = 5
-@export var corridor_threat_budget: int = 2
+## PHASE 3: von 5/2/12 auf grob das 3-Fache angehoben, damit ein Kampfraum
+## bei jetzt 4x groesserer Grundflaeche (2x Breite * 2x Tiefe) nicht wie
+## leergefegt wirkt.
+## PHASE 4: nochmal verdoppelt (16 -> 32 / 6 -> 12) - explizit angefordert,
+## unabhaengig von der Raumflaeche. Fighter kostet 3 Threat, Stinger 1
+## (siehe es_fighter.tres / es_stinger.tres) - 32 heisst grob "6 Fighter +
+## 14 Stinger" oder jede Mischung dazwischen.
+@export var combat_threat_budget: int = 64
+@export var corridor_threat_budget: int = 12
 @export var boss_threat_budget: int = 12
 @export var threat_per_stage: int = 2
 
@@ -64,7 +115,7 @@ const DIR_OFFSETS := {
 @export var enemy_health_per_stage: float = 0.30
 @export var enemy_damage_per_stage: float = 0.18
 @export var enemy_scaling_cap: float = 4.0
-@export var threat_hard_cap: int = 14
+@export var threat_hard_cap: int = 64
 
 ## Eigener Deckel fuer den Bossraum. Ohne den wuerde threat_hard_cap (14)
 ## drei Colossus a 10 Threat sofort abwuergen - der dritte passt schlicht
@@ -150,6 +201,11 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
+	# PHASE 3: cell_size/elevation_step aus room_scale ableiten, BEVOR
+	# irgendetwas anderes in _ready() sie lesen koennte. Siehe Kommentar
+	# bei den var-Deklarationen oben, warum das keine @export-Werte mehr sind.
+	_apply_room_scale()
+
 	# --- Schutz gegen doppelte Generatoren --------------------------------
 	# Zwei aktive LevelGenerator erzeugen ZWEI komplette Raumsaetze an
 	# denselben Weltpositionen. Sichtbare Folgen: Tueren, die sich nicht
@@ -221,6 +277,18 @@ func get_run_seed_code() -> String:
 
 func is_stage_cleared() -> bool:
 	return _stage_cleared
+
+
+## PHASE 3: leitet cell_size und elevation_step aus room_scale ab, statt sie
+## unabhaengig voneinander im Inspector pflegen zu lassen. Wird von _ready()
+## aufgerufen, bevor irgendetwas generiert wird.
+func _apply_room_scale() -> void:
+	cell_size = Vector3(
+		BASE_CELL_SIZE.x * room_scale.x,
+		BASE_CELL_SIZE.y,
+		BASE_CELL_SIZE.z * room_scale.z
+	)
+	elevation_step = BASE_ELEVATION_STEP * room_scale.y
 
 ## Echter Tuerzustand einer Zelle in einer Richtung - wird von der
 ## Minimap (minimap_rooms.gd) abgefragt, damit dort nur tatsaechlich
@@ -811,7 +879,14 @@ func load_room(data: RoomData, spawn_transform: Transform3D) -> RoomInstance:
 	if parent == null:
 		parent = get_tree().get_root()
 	parent.add_child(instance)
-	instance.global_transform = Transform3D(Basis.IDENTITY, spawn_transform.origin)
+	# PHASE 3: room_scale mit in die Basis packen statt Basis.IDENTITY.
+	# _ready() der Raum-Szene ist zu diesem Zeitpunkt zwar schon gelaufen
+	# (add_child loest ihn synchron aus) und hat EntryTrigger/PresenceArea/
+	# Decke bereits als Kinder gebaut - das ist unproblematisch, weil scale
+	# eine Eigenschaft des Transforms ist und sich auf ALLE Kinder auswirkt,
+	# unabhaengig davon, wann sie erzeugt wurden. Exakt dasselbe Muster nutzt
+	# schon room_commit_guard.gd (siehe dessen Kommentar zu _attach_deferred).
+	instance.global_transform = Transform3D(Basis.IDENTITY.scaled(room_scale), spawn_transform.origin)
 
 	var room := instance as RoomInstance
 	if room == null:

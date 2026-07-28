@@ -1,3 +1,4 @@
+
 extends PanelContainer
 class_name StatsPanel
 
@@ -86,9 +87,9 @@ const ACCENT_COLOR: Color = Color(0.98, 0.80, 0.22)
 const BOMB_COLOR: Color = Color(0.95, 0.52, 0.38)
 const COMBO_COLOR: Color = Color(0.98, 0.45, 0.35)
 
-const BAR_HEIGHT: float = 5.0
-const NAME_WIDTH: float = 74.0
-const VALUE_WIDTH: float = 48.0
+const BAR_HEIGHT: float = 6.0
+const NAME_WIDTH: float = 80.0
+const VALUE_WIDTH: float = 52.0
 
 var _rows: Dictionary = {}        # stat -> { "value": Label, "fill": ColorRect }
 var _coin_label: Label = null
@@ -160,7 +161,7 @@ func _build_header() -> HBoxContainer:
 
 	var title := Label.new()
 	title.text = "STATUS"
-	title.add_theme_font_size_override("font_size", 10)
+	title.add_theme_font_size_override("font_size", 11)
 	title.add_theme_color_override("font_color", Color(0.50, 0.54, 0.60))
 	row.add_child(title)
 
@@ -184,7 +185,7 @@ func _build_header() -> HBoxContainer:
 
 	_combo_label = Label.new()
 	_combo_label.text = "x0"
-	_combo_label.add_theme_font_size_override("font_size", 12)
+	_combo_label.add_theme_font_size_override("font_size", 13)
 	_combo_label.add_theme_color_override("font_color", COMBO_COLOR)
 	_combo_panel.add_child(_combo_label)
 
@@ -224,7 +225,7 @@ func _add_value_row(parent: VBoxContainer, label_text: String, value_color: Colo
 
 	var name_label := Label.new()
 	name_label.text = label_text
-	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.add_theme_color_override("font_color", LABEL_COLOR)
 	name_label.custom_minimum_size = Vector2(NAME_WIDTH, 0.0)
 	row.add_child(name_label)
@@ -235,7 +236,7 @@ func _add_value_row(parent: VBoxContainer, label_text: String, value_color: Colo
 
 	var value_label := Label.new()
 	value_label.text = "0"
-	value_label.add_theme_font_size_override("font_size", 14)
+	value_label.add_theme_font_size_override("font_size", 15)
 	value_label.add_theme_color_override("font_color", value_color)
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value_label.custom_minimum_size = Vector2(VALUE_WIDTH, 0.0)
@@ -259,14 +260,14 @@ func _build_stat_row(stat: String) -> VBoxContainer:
 
 	var name_label := Label.new()
 	name_label.text = String(PlayerStats.STAT_LABELS.get(stat, stat))
-	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.add_theme_color_override("font_color", LABEL_COLOR)
 	name_label.custom_minimum_size = Vector2(NAME_WIDTH, 0.0)
 	row.add_child(name_label)
 
 	var value_label := Label.new()
 	value_label.text = "-"
-	value_label.add_theme_font_size_override("font_size", 12)
+	value_label.add_theme_font_size_override("font_size", 13)
 	value_label.add_theme_color_override("font_color", color)
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value_label.custom_minimum_size = Vector2(VALUE_WIDTH, 0.0)
@@ -431,3 +432,5 @@ func _on_element_setting_changed(_element: String, _is_visible: bool) -> void:
 
 func _apply_visibility() -> void:
 	visible = SettingsManager.hud_visible and SettingsManager.is_hud_element_visible(HUD_ELEMENT)
+
+

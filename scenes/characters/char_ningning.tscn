@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c7tl33bapkou1"]
 
 [ext_resource type="Script" uid="uid://dh4a0i4iwgybh" path="res://scripts/characters/char_ningning.gd" id="1_ning"]
-[ext_resource type="PackedScene" uid="uid://dcm3fllbiqe5j" path="res://assets/characters/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="PackedScene" uid="uid://hdmepx76xtup" path="res://assets/characters/bubbles_the_powerpuff_girls.glb" id="2_u6hti"]
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_u6hti"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
@@ -30,15 +30,59 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="CharNingning" type="CharacterBody3D" unique_id=695229074]
 script = ExtResource("1_ning")
+speed = 17.0
+jump_velocity = null
+mouse_sensitivity = null
+gravity = null
+knockback_friction = null
+zoom_min = null
 zoom_max = 15.0
+zoom_step = null
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
+large_enemy_return_duration = null
+stun_camera_shake = null
+stun_immunity_after_stun = null
+stun_diminish_factor = null
+stun_diminish_reset_time = null
+stun_min_duration = null
+stun_max_chain = null
+stun_debug_logging = null
+own_damage_shake_strength = null
+use_ragdoll = null
+death_fall_rotation_degrees = null
+death_fall_duration = null
+ragdoll_mass = null
+ragdoll_impulse_strength = null
+ragdoll_upward_impulse = null
+ragdoll_torque_strength = null
+camera_soft_lock_strength = null
+model_lock_turn_speed = null
+max_lock_range = null
+trauma_decay = null
+max_shake_offset = null
+max_shake_roll_degrees = null
+dash_fov_boost = null
+dash_fov_ramp_up_time = null
+dash_fov_ramp_down_time = null
+dash_camera_ignore_collision = null
+dash_camera_probe_radius = null
+dash_camera_margin = null
+camera_spring_pull_speed = null
+camera_spring_return_speed = null
+buoyancy_accel = null
+buoyancy_swim_boost = null
+submersion_body_ratio = null
+fallback_body_height = null
+bob_amplitude = null
+bob_frequency = null
+bob_response = null
+
+[node name="CharacterModel" parent="." unique_id=685810562 instance=ExtResource("2_u6hti")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 0, -0.8, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=390162164]
 shape = SubResource("CapsuleShape3D_6igkw")
-
-[node name="CharacterModel" parent="." unique_id=267417481 instance=ExtResource("2_tuyoq")]
-transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1633612252]
 
@@ -80,8 +124,7 @@ spring_length = 8.0
 
 [node name="Health" type="Node" parent="." unique_id=2081695957]
 script = ExtResource("3_qhqgy")
+regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=932916164]
 script = ExtResource("5_ningcombat")
-
-

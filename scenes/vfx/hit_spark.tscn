@@ -1,3 +1,4 @@
+
 [gd_scene load_steps=4 format=3]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_spark"]
@@ -21,7 +22,7 @@ albedo_color = Color(1, 0.8, 0.3, 1)
 
 [sub_resource type="QuadMesh" id="QuadMesh_spark"]
 material = SubResource("StandardMaterial3D_spark")
-size = Vector2(0.08, 0.08)
+size = Vector2(0.16, 0.16)
 
 [node name="HitSpark" type="GPUParticles3D"]
 emitting = false
@@ -33,3 +34,5 @@ randomness = 0.4
 fixed_fps = 30
 process_material = SubResource("ParticleProcessMaterial_spark")
 draw_pass_1 = SubResource("QuadMesh_spark")
+
+

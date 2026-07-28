@@ -1,3 +1,4 @@
+
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -21,7 +22,10 @@ const PSX_SHADER: Shader = preload("res://shaders/psx.gdshader")
 # 0.0 = alle Instanzen exakt gleich schnell (altes Verhalten).
 @export_range(0.0, 0.5) var speed_variance: float = 0.12
 
-@export var detection_range: float = 20.0
+## PHASE 4: verdoppelt (war 20.0) - passend zu den seit Phase 3 groesseren
+## Raeumen und den einzelnen Gegner-Ueberschreibungen in dummy.tscn /
+## scout_dummy.tscn / tank_dummy.tscn, die ebenfalls verdoppelt wurden.
+@export var detection_range: float = 40.0
 @export var attack_range: float = 5.0
 @export var attack_cooldown: float = 1.0
 

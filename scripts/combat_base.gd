@@ -3,19 +3,37 @@ class_name CombatBase
 
 # --- Basisklasse für ALLE Charakter-Combat-Skripte ---
 # Enthält das komplette gemeinsame Cooldown-, Combo-, Hit-Lock- und Dash-
-# System. Die eigentlichen FÄHIGKEITEN (was Primary/Secondary/Utility/Q/E
+# System. Die eigentlichen FÄHIGKEITEN (was Primary/Secondary/Utility
 # tatsächlich TUN) sind virtuelle "_perform_*"-Methoden — jeder Charakter
 # überschreibt sie in seinem eigenen Combat-Script (z.B. combat_ningning.gd)
 # mit eigener Logik. Cooldown-Werte werden ebenfalls pro Charakter-Script
 # überschrieben (siehe combat_ningning.gd) — es gibt KEIN globales
 # Daten-Objekt mehr, das Cooldowns zur Laufzeit "einspielt".
+#
+# ---------------------------------------------------------------------------
+# PHASE 5: Q UND E SIND JETZT AKTIVE-ITEM-SLOTS, KEINE CHARAKTER-FAEHIGKEITEN
+# ---------------------------------------------------------------------------
+# Bis hierher hatte jeder Charakter eigene (aber leere, nur Kamera-Shake +
+# Platzhalter-Print) _perform_ability_q()/_perform_ability_e()-Ueberschreibungen
+# mit einem EIGENEN, zeitbasierten Cooldown (ability_q_cooldown/_timer).
+# Das ist komplett ersetzt: Q und E loesen jetzt IMMER das aktive Item im
+# jeweiligen Slot aus (Items.use_active_item(0) fuer Q, (1) fuer E) — siehe
+# item_manager.gd fuer die Slot-Logik (2 Slots, Aufladung ueber Raum-Clears
+# statt ueber Zeit, Tausch im Pause-Screen).
+#
+# WARUM DIE ALTE ZEIT-BASIERTE COOLDOWN-ANZEIGE TROTZDEM WEITERLAEUFT:
+# hud.gd fragt pro Frame get_cooldown_percent(Slot.ABILITY_Q) /
+# get_cooldown_remaining(Slot.ABILITY_Q) ab, um den radialen Cooldown-
+# Overlay auf dem Q-Slot im HUD zu fuellen (siehe AbilitySlot.update_cooldown).
+# Diese beiden Getter liefern jetzt die LADUNG des Items (aktuelle Raeume /
+# noetige Raeume) statt eines Sekunden-Timers — das HUD selbst musste dafuer
+# NICHT angefasst werden, es zeigt einfach weiter "Fortschritt bis bereit"
+# an, nur eben raumbasiert statt zeitbasiert.
 
 # --- Cooldown-Werte, im Inspector einstellbar UND in Charakter-Subklassen überschreibbar ---
 @export var primary_cooldown: float = 0.4
 @export var secondary_cooldown: float = 3.0
 @export var utility_cooldown: float = 0.8
-@export var ability_q_cooldown: float = 6.0
-@export var ability_e_cooldown: float = 10.0
 
 @export var dash_speed: float = 35.0
 @export var dash_duration: float = 0.4
@@ -133,6 +151,9 @@ var _cached_damage_number_scene: PackedScene = null
 signal primary_used
 signal secondary_used
 signal utility_used
+## Feuert weiterhin bei Q/E-Druck, jetzt als reines Info-Signal fuer VFX/Sound-
+## Hooks (z.B. kleiner Kamera-Kick) - die eigentliche Wirkung kommt seit
+## PHASE 5 ausschliesslich aus dem benutzten Item (Items.active_item_used).
 signal ability_q_used
 signal ability_e_used
 signal combo_changed(count: int)
@@ -144,11 +165,12 @@ signal cooldown_started(slot: int, duration: float)
 enum Slot { PRIMARY, SECONDARY, UTILITY, ABILITY_Q, ABILITY_E }
 
 # --- Interne Cooldown-Timer (0 = bereit, >0 = wartet noch) ---
+# Kein _ability_q_timer/_ability_e_timer mehr: Q/E werden seit PHASE 5 nicht
+# mehr zeitbasiert gesperrt, sondern ueber Items.is_active_slot_ready()
+# (Raum-Ladung, siehe item_manager.gd).
 var _primary_timer: float = 0.0
 var _secondary_timer: float = 0.0
 var _utility_timer: float = 0.0
-var _ability_q_timer: float = 0.0
-var _ability_e_timer: float = 0.0
 
 var _is_dashing: bool = false
 var _dash_timer: float = 0.0
@@ -206,6 +228,24 @@ var _combo_timer: float = 0.0
 var player: CharacterBody3D
 @onready var primary_hitbox: Hitbox = get_node_or_null("../CameraPivot/PrimaryHitbox")
 @onready var secondary_hitbox: Hitbox = get_node_or_null("../CameraPivot/SecondaryHitbox")
+
+## PHASE 5: Referenz auf das Items-Autoload fuer Q/E. BEWUSST ueber
+## get_node_or_null("/root/Items") statt des globalen "Items"-Bezeichners -
+## das ist im GANZEN restlichen Projekt (item_description_hud.gd,
+## stats_panel.gd, loot_manager.gd, etc.) ausnahmslos das Muster, u.a. weil
+## Autoload-Initialisierungsreihenfolge nicht garantiert ist (siehe
+## item_manager.gd's eigener Kommentar zu PartyManager). Der bare
+## "Items"-Bezeichner hatte genau deshalb zu "Invalid access to property or
+## key 'ACTIVE_SLOT_COUNT' on a base object of type 'Nil'" gefuehrt.
+## Selbstheilend: falls beim ersten Zugriff noch null (zu frueher Frame),
+## wird beim naechsten Aufruf erneut gesucht statt dauerhaft null zu bleiben.
+var _items_cache: Node = null
+
+func _items() -> Node:
+	if _items_cache == null or not is_instance_valid(_items_cache):
+		_items_cache = get_node_or_null("/root/Items")
+	return _items_cache
+
 ## Dauer-Emitter fuer den Dash-Trail: GPUParticles3D-Kind am Player-Root
 ## namens "DashTrail" (emitting = false, one_shot = false,
 ## local_coords = false — sonst zieht der Trail mit statt stehenzubleiben).
@@ -268,8 +308,6 @@ func _process(delta: float) -> void:
 	_primary_timer = max(_primary_timer - delta, 0.0)
 	_secondary_timer = max(_secondary_timer - delta, 0.0)
 	_utility_timer = max(_utility_timer - delta, 0.0)
-	_ability_q_timer = max(_ability_q_timer - delta, 0.0)
-	_ability_e_timer = max(_ability_e_timer - delta, 0.0)
 	_hit_lock_timer = max(_hit_lock_timer - delta, 0.0)
 
 	# Combo-Verfall: laeuft der Timer ab, ohne dass neu getroffen wurde,
@@ -317,11 +355,11 @@ func _process(delta: float) -> void:
 		_do_utility()
 
 	if InputMap.has_action("ability_primary") \
-			and Input.is_action_just_pressed("ability_primary") and _ability_q_timer <= 0.0:
+			and Input.is_action_just_pressed("ability_primary"):
 		_do_ability_q()
 
 	if InputMap.has_action("ability_secondary") \
-			and Input.is_action_just_pressed("ability_secondary") and _ability_e_timer <= 0.0:
+			and Input.is_action_just_pressed("ability_secondary"):
 		_do_ability_e()
 
 func _do_primary() -> void:
@@ -416,29 +454,29 @@ func _perform_utility() -> void:
 	if dash_trail:
 		dash_trail.emitting = true
 
-# --- Q-Ability: von jedem Charakter individuell zu überschreiben ---
+# --- Q = aktiver Item-Slot 0 ------------------------------------------
+## Kein Cooldown-Timer mehr hier: _items().use_active_item() prueft selbst
+## per is_active_slot_ready(), ob das Item in diesem Slot ueberhaupt
+## existiert UND aufgeladen ist, und tut sonst einfach nichts. Ein
+## Tastendruck ins Leere (kein Item im Slot) darf explizit NICHT das HUD
+## in einen "Cooldown laeuft" Zustand versetzen — deshalb cooldown_started
+## nur feuern, wenn tatsaechlich etwas ausgeloest wurde.
 func _do_ability_q() -> void:
-	_ability_q_timer = ability_q_cooldown
+	var items: Node = _items()
+	if items == null or not items.is_active_slot_ready(0):
+		return
 	ability_q_used.emit()
-	cooldown_started.emit(Slot.ABILITY_Q, ability_q_cooldown)
-	_perform_ability_q()
+	cooldown_started.emit(Slot.ABILITY_Q, 0.0)
+	items.use_active_item(0)
 
-# Fallback, falls ein Charakter-Script das nicht überschreibt.
-func _perform_ability_q() -> void:
-	if player and player.has_method("shake_camera"):
-		player.shake_camera(0.35)
-
-# --- E-Ability: von jedem Charakter individuell zu überschreiben ---
+# --- E = aktiver Item-Slot 1 ------------------------------------------
 func _do_ability_e() -> void:
-	_ability_e_timer = ability_e_cooldown
+	var items: Node = _items()
+	if items == null or not items.is_active_slot_ready(1):
+		return
 	ability_e_used.emit()
-	cooldown_started.emit(Slot.ABILITY_E, ability_e_cooldown)
-	_perform_ability_e()
-
-# Fallback, falls ein Charakter-Script das nicht überschreibt.
-func _perform_ability_e() -> void:
-	if player and player.has_method("shake_camera"):
-		player.shake_camera(0.5)
+	cooldown_started.emit(Slot.ABILITY_E, 0.0)
+	items.use_active_item(1)
 
 # Wird vom Player-Script in _physics_process aufgerufen, damit der Dash
 # die normale Bewegung waehrend seiner Dauer ueberschreiben kann.
@@ -783,11 +821,17 @@ func get_secondary_cooldown_percent() -> float:
 func get_utility_cooldown_percent() -> float:
 	return _utility_timer / utility_cooldown if utility_cooldown > 0.0 else 0.0
 
+## PHASE 5: liest die Ladung des Items in Slot 0 (Q) statt eines Zeit-
+## Timers. 1.0 = gerade benutzt/noch nicht wieder aufgeladen (Overlay
+## voll), 0.0 = bereit (Overlay leer) - exakt dieselbe Konvention wie die
+## alten zeitbasierten Cooldowns, siehe AbilitySlot.update_cooldown().
 func get_ability_q_cooldown_percent() -> float:
-	return _ability_q_timer / ability_q_cooldown if ability_q_cooldown > 0.0 else 0.0
+	var items: Node = _items()
+	return items.get_active_charge_percent(0) if items else 0.0
 
 func get_ability_e_cooldown_percent() -> float:
-	return _ability_e_timer / ability_e_cooldown if ability_e_cooldown > 0.0 else 0.0
+	var items: Node = _items()
+	return items.get_active_charge_percent(1) if items else 0.0
 
 # Sammel-Getter fuers HUD: gibt fuer Slot 0..4 den Prozentwert zurueck.
 func get_cooldown_percent(slot: int) -> float:
@@ -804,7 +848,9 @@ func get_cooldown_percent(slot: int) -> float:
 			return get_ability_e_cooldown_percent()
 	return 0.0
 
-# Verbleibende Sekunden fuer den Cooldown-Text im HUD.
+## PHASE 5: "verbleibend" heisst fuer Q/E jetzt "noch so viele Raeume",
+## nicht mehr Sekunden. AbilitySlot.update_cooldown() zeigt das als reine
+## Zahl an (kein "s"-Suffix im Code), das passt hier zufaellig gut.
 func get_cooldown_remaining(slot: int) -> float:
 	match slot:
 		Slot.PRIMARY:
@@ -814,9 +860,11 @@ func get_cooldown_remaining(slot: int) -> float:
 		Slot.UTILITY:
 			return _utility_timer
 		Slot.ABILITY_Q:
-			return _ability_q_timer
+			var q_items: Node = _items()
+			return q_items.get_active_charge_remaining(0) if q_items else 0.0
 		Slot.ABILITY_E:
-			return _ability_e_timer
+			var e_items: Node = _items()
+			return e_items.get_active_charge_remaining(1) if e_items else 0.0
 	return 0.0
 
 func get_combo_count() -> int:

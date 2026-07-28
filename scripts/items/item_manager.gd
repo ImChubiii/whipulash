@@ -1,3 +1,4 @@
+
 extends Node
 
 # ============================================================================
@@ -20,12 +21,46 @@ extends Node
 # EVENT-VERTEILUNG: item_behaviours.gd haengt sich an die Signale unten.
 # Dieses Script kennt selbst KEINE Item-Regeln — genau wie
 # StatusEffectManager keine Spielregeln kennt.
+#
+# ---------------------------------------------------------------------------
+# PHASE 5: ZWEI UNABHAENGIGE AKTIVE-ITEM-SLOTS (Q UND E)
+# ---------------------------------------------------------------------------
+# Vorher gab es genau EIN aktives Item, ausgeloest ueber Taste C. Q und E
+# waren leere Charakter-Faehigkeits-Platzhalter (siehe combat_base.gd).
+# Jetzt sind Q und E selbst die beiden Slots:
+#   * Slot 0 (Q) wird vom ERSTEN aktiven Item belegt, das man aufsammelt.
+#   * Slot 1 (E) vom ZWEITEN.
+#   * Ein drittes aktives Item landet zwar im normalen inventory (zaehlt
+#     fuer die Item-Liste, Stats etc.), wird aber NICHT automatisch
+#     ausgeruestet — es gibt aktuell keinen dritten Slot. Siehe
+#     active_item_swap_panel.gd fuer die bewusste Entscheidung, den
+#     Pause-Screen NUR "Q und E tauschen" anbieten zu lassen statt eines
+#     vollen Item-Pickers.
+#
+# WARUM EIN DICTIONARY FUER DIE LADUNG STATT EINES ARRAYS PARALLEL ZU
+# active_items:
+# Ladung haengt am ITEM (verschiedene Items brauchen unterschiedlich viele
+# Raeume), nicht am SLOT. Wuerde die Ladung stattdessen pro Slot-Index
+# gespeichert, wuerde ein Tausch zwischen Q und E (swap_active_slots())
+# entweder die Ladung mittauschen MUESSEN (Extra-Code, Fehlerquelle) oder
+# still verloren gehen. Mit einem Dictionary, das per item.id schluesselt,
+# ist ein Tausch nur noch "welcher Slot-Index zeigt auf welche ID" — die
+# Ladung selbst wird nie angefasst.
 
 signal item_added(item: ItemData)
 signal inventory_changed
 signal coins_changed(amount: int)
 signal bombs_changed(amount: int)
-signal active_item_charge_changed(current: int, needed: int)
+## PHASE 5: slot ist jetzt Teil der Signatur (0 = Q, 1 = E) - vorher gab es
+## nur einen Slot, das HUD (item_description_hud.gd) muss jetzt wissen,
+## WELCHE der beiden Anzeigen aktualisiert werden soll.
+signal active_item_charge_changed(slot: int, current: int, needed: int)
+## Feuert, wenn sich belegt/leer ODER die Zuordnung Item->Slot aendert
+## (Aufsammeln eines aktiven Items, Tausch im Pause-Screen). Getrennt von
+## active_item_charge_changed, weil sich hier die IDENTITAET aendert, nicht
+## nur ein Fortschrittswert - Listener wie der Swap-Panel-Button muessen
+## z.B. komplett neu aufbauen, nicht nur einen Balken aktualisieren.
+signal active_slots_changed
 
 ## Der aktive Spieler hat einen Gegner getroffen (Primary/Secondary-Hitbox).
 signal player_hit_enemy(target: Node3D, hitbox: Hitbox)
@@ -33,11 +68,16 @@ signal player_hit_enemy(target: Node3D, hitbox: Hitbox)
 signal room_cleared(room: Node)
 ## Der Spieler ist in eine neue Instanz gewechselt (oder frisch gespawnt).
 signal player_ready(player: CharacterBody3D)
-## Aktives Item wurde benutzt.
-signal active_item_used(item: ItemData)
+## Aktives Item wurde benutzt. slot: 0 = Q, 1 = E.
+signal active_item_used(item: ItemData, slot: int)
 
-const USE_ITEM_ACTION: String = "use_item"
 const BOMB_ACTION: String = "bomb"
+
+## Wie viele aktive Item-Slots es gibt. Siehe Kopfkommentar - Slot 0 = Q,
+## Slot 1 = E. Kein drittes Element hinzufuegen, ohne auch
+## active_item_swap_panel.gd und item_description_hud.gd anzupassen, die
+## beide fest von genau zwei Slots ausgehen.
+const ACTIVE_SLOT_COUNT: int = 2
 
 ## Startwerte eines Runs.
 const START_COINS: int = 0
@@ -49,8 +89,13 @@ var bombs: int = START_BOMBS
 var inventory: Array[ItemData] = []
 var catalog: Array[ItemData] = []
 
-var active_item: ItemData = null
-var active_item_charge: int = 0
+## Index 0 = Q, Index 1 = E. null = Slot frei.
+var active_items: Array[ItemData] = [null, null]
+
+## Ladung PRO ITEM (Schluessel: item.id), nicht pro Slot - siehe
+## Kopfkommentar. Ein Item, das gerade in keinem Slot steckt, behaelt seinen
+## Eintrag hier trotzdem (falls es spaeter wieder eingewechselt wird).
+var _active_charges: Dictionary = {}
 
 var player: CharacterBody3D = null
 var stats: PlayerStats = null
@@ -76,21 +121,20 @@ func _ready() -> void:
 # Eingabe-Actions selbst registrieren
 # ============================================================================
 # Bewusst hier statt in settings_manager.gd: dieses Feature soll sich
-# installieren lassen, ohne eine bestehende Datei anzufassen. Wer die Tasten
-# spaeter im Menue umlegbar machen will, traegt die beiden Actions
-# zusaetzlich in SettingsManager.REBINDABLE_ACTIONS und DEFAULT_KEYBINDS ein.
+# installieren lassen, ohne eine bestehende Datei anzufassen.
+#
+# PHASE 5: die fruehere eigene "use_item"-Action (Taste C) ist weg. Aktive
+# Items werden jetzt ueber Q/E ausgeloest ("ability_primary"/
+# "ability_secondary"), die bereits in settings_manager.gd registriert und
+# rebindbar sind (siehe DEFAULT_KEYBINDS dort) - dieses Script fasst Input
+# ueberhaupt nicht mehr direkt an, siehe combat_base.gd._do_ability_q()/
+# _do_ability_e().
 func _ensure_actions() -> void:
 	if not InputMap.has_action(BOMB_ACTION):
 		InputMap.add_action(BOMB_ACTION)
 		var bomb_event := InputEventKey.new()
 		bomb_event.physical_keycode = KEY_X
 		InputMap.action_add_event(BOMB_ACTION, bomb_event)
-
-	if not InputMap.has_action(USE_ITEM_ACTION):
-		InputMap.add_action(USE_ITEM_ACTION)
-		var use_event := InputEventKey.new()
-		use_event.physical_keycode = KEY_C
-		InputMap.action_add_event(USE_ITEM_ACTION, use_event)
 
 
 func _build_catalog() -> void:
@@ -217,15 +261,28 @@ func add_item(item: ItemData) -> bool:
 	inventory.append(item)
 
 	if item.is_active_item():
-		active_item = item
-		active_item_charge = item.charge_rooms
-		active_item_charge_changed.emit(active_item_charge, item.charge_rooms)
+		_equip_active_item(item)
 
 	_apply_item_stats(item, inventory.size() - 1)
 
 	item_added.emit(item)
 	inventory_changed.emit()
 	return true
+
+
+## Weist ein neu aufgesammeltes aktives Item dem ersten freien Slot zu
+## (Q vor E). Ist keiner frei, bleibt das Item unausgeruestet im normalen
+## inventory liegen - siehe Kopfkommentar zum Drei-Item-Fall.
+func _equip_active_item(item: ItemData) -> void:
+	if not _active_charges.has(item.id):
+		_active_charges[item.id] = item.charge_rooms
+
+	for slot: int in range(ACTIVE_SLOT_COUNT):
+		if active_items[slot] == null:
+			active_items[slot] = item
+			active_slots_changed.emit()
+			active_item_charge_changed.emit(slot, _active_charges[item.id], item.charge_rooms)
+			return
 
 
 func add_item_by_id(item_id: String) -> bool:
@@ -262,14 +319,15 @@ func _reapply_all_item_stats() -> void:
 ## Alles zuruecksetzen — beim Start eines neuen Runs aufrufen.
 func reset_run() -> void:
 	inventory.clear()
-	active_item = null
-	active_item_charge = 0
+	active_items = [null, null]
+	_active_charges.clear()
 	coins = START_COINS
 	bombs = START_BOMBS
 	if stats:
 		stats.clear_all()
 		stats.apply()
 	inventory_changed.emit()
+	active_slots_changed.emit()
 	coins_changed.emit(coins)
 	bombs_changed.emit(bombs)
 
@@ -306,33 +364,80 @@ func consume_bomb() -> bool:
 # ============================================================================
 # Raum-Events
 # ============================================================================
-## Wird von LootManager aufgerufen, sobald ein Raum geleert ist.
+## Wird von LootManager aufgerufen, sobald ein Raum geleert ist. Laedt
+## BEIDE Slots gleichzeitig auf, unabhaengig voneinander (siehe Kopfkommentar
+## - Ladung haengt am Item, nicht am Slot).
 func notify_room_cleared(room: Node) -> void:
-	if active_item != null and active_item_charge > 0:
-		active_item_charge -= 1
-		active_item_charge_changed.emit(active_item_charge, active_item.charge_rooms)
+	for slot: int in range(ACTIVE_SLOT_COUNT):
+		var item: ItemData = active_items[slot]
+		if item == null:
+			continue
+		var remaining: int = int(_active_charges.get(item.id, 0))
+		if remaining > 0:
+			remaining -= 1
+			_active_charges[item.id] = remaining
+			active_item_charge_changed.emit(slot, remaining, item.charge_rooms)
 	room_cleared.emit(room)
 
 
-func is_active_item_ready() -> bool:
-	return active_item != null and active_item_charge <= 0
+func is_active_slot_ready(slot: int) -> bool:
+	if slot < 0 or slot >= ACTIVE_SLOT_COUNT:
+		return false
+	var item: ItemData = active_items[slot]
+	if item == null:
+		return false
+	return int(_active_charges.get(item.id, 0)) <= 0
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed(USE_ITEM_ACTION):
-		return
-	use_active_item()
+## Fuer combat_base.gd's Cooldown-Anzeige im HUD: 1.0 = nicht bereit (Overlay
+## voll), 0.0 = bereit (Overlay leer). Leerer Slot zeigt IMMER 0.0 - ein
+## leerer Slot ist nicht "auf Cooldown", er hat einfach nichts zu zeigen.
+func get_active_charge_percent(slot: int) -> float:
+	if slot < 0 or slot >= ACTIVE_SLOT_COUNT:
+		return 0.0
+	var item: ItemData = active_items[slot]
+	if item == null or item.charge_rooms <= 0:
+		return 0.0
+	var remaining: int = int(_active_charges.get(item.id, 0))
+	return clampf(float(remaining) / float(item.charge_rooms), 0.0, 1.0)
 
 
-func use_active_item() -> void:
-	if not is_active_item_ready():
+## Fuer die Zahl im HUD-Cooldown-Overlay: "noch so viele Raeume".
+func get_active_charge_remaining(slot: int) -> float:
+	if slot < 0 or slot >= ACTIVE_SLOT_COUNT:
+		return 0.0
+	var item: ItemData = active_items[slot]
+	if item == null:
+		return 0.0
+	return float(_active_charges.get(item.id, 0))
+
+
+func use_active_item(slot: int) -> void:
+	if not is_active_slot_ready(slot):
 		return
 	if player == null or not is_instance_valid(player):
 		return
 
-	active_item_charge = active_item.charge_rooms
-	active_item_charge_changed.emit(active_item_charge, active_item.charge_rooms)
-	active_item_used.emit(active_item)
+	var item: ItemData = active_items[slot]
+	_active_charges[item.id] = item.charge_rooms
+	active_item_charge_changed.emit(slot, item.charge_rooms, item.charge_rooms)
+	active_item_used.emit(item, slot)
+
+
+## Vom Pause-Screen (active_item_swap_panel.gd) aufgerufen: tauscht, was in
+## Q und was in E steckt. Absichtlich NUR das - kein Item-Picker fuer ein
+## drittes, unausgeruestetes aktives Item (siehe Kopfkommentar). Die Ladung
+## selbst wird nicht angefasst, sie haengt am Item, nicht am Slot.
+func swap_active_slots() -> void:
+	var tmp: ItemData = active_items[0]
+	active_items[0] = active_items[1]
+	active_items[1] = tmp
+	active_slots_changed.emit()
+
+	for slot: int in range(ACTIVE_SLOT_COUNT):
+		var item: ItemData = active_items[slot]
+		if item != null:
+			active_item_charge_changed.emit(slot, int(_active_charges.get(item.id, 0)), item.charge_rooms)
 
 
 ## Aktuelle Combo des Spielers. LootManager nutzt sie fuer den Glueck-Bonus;
@@ -350,3 +455,5 @@ func get_luck() -> float:
 	if stats == null:
 		return 0.0
 	return stats.get_luck()
+
+

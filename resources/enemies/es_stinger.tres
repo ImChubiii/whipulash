@@ -1,3 +1,4 @@
+
 [gd_resource type="Resource" script_class="EnemySpawnEntry" format=3 uid="uid://bf01nc6q3fscg"]
 
 [ext_resource type="Script" uid="uid://cvv6ttrhxcdyi" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
@@ -8,5 +9,7 @@ script = ExtResource("1_script")
 scene = ExtResource("2_scene")
 display_name = "Stinger"
 weight = 3.0
-max_per_room = 12
+max_per_room = 36
 min_spawn_spacing = 3.0
+
+

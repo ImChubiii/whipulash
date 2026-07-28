@@ -41,6 +41,35 @@ class_name Bomb
 #     durch den Raum zu schiessen. Einfach nur den Impuls hochzudrehen
 #     haette eine Bombe ergeben, die weit fliegt UND unkontrolliert
 #     weiterrollt.
+#
+# ---------------------------------------------------------------------------
+# BUGFIX: "Bomben prallen nicht an Gegnern ab" + "fallen unter den Boden"
+# ---------------------------------------------------------------------------
+# ROOT CAUSE #1 (kein Abprall):
+# Die Bombe hatte NIE ein physics_material_override. Godots Default dafuer
+# ist bounce = 0.0. Trifft eine fliegende Bombe auf einen CharacterBody3D
+# (physikalisch ein kinematischer Koerper mit quasi unendlicher Masse), gibt
+# es rechnerisch keinen Rueckstoss — die Bombe bremst schlicht ab und bleibt
+# kleben, statt abzuprallen. _apply_push_from_bodies() half hier nicht: die
+# Funktion uebersetzt nur die Bewegung des CHARAKTERS in einen Impuls auf die
+# Bombe (fuer's Wegschieben), nicht umgekehrt die Bewegung der Bombe beim
+# Einschlag. Fix: physics_material_override mit echtem bounce-Wert UND eine
+# explizite Deflektion in _apply_push_from_bodies(), die greift, sobald die
+# Bombe selbst schnell unterwegs ist (Wurf/Flug) und in einen Koerper
+# hineinfliegt.
+#
+# ROOT CAUSE #2 (faellt unter den Boden):
+# lemonade.gd dokumentiert an anderer Stelle bereits "bei gravity = 40
+# liegen zwischen zwei Frames schnell mehr Meter als die Toleranz breit
+# ist" — dasselbe Problem trifft die Bombe. Nach voller max_flight_time
+# (2.5 s) im freien Fall bei gravity = 40 erreicht linear_velocity.y
+# Groessenordnungen von -80 bis -100. continuous_cd hilft gegen Tunneling
+# bei KONVEXEN Formen, ist aber bei sehr hohen Geschwindigkeiten gegen
+# duenne oder aus mehreren Boxen zusammengesetzte Boden-Collider nicht
+# zuverlaessig. Fix: linear_velocity.y wird jeden Physik-Schritt auf
+# max_fall_speed geclamped — nicht nur waehrend des Flugmodus, sondern
+# permanent, da eine liegende Bombe genauso von einer Explosion in der
+# Naehe hochgeschleudert und dann zu schnell wieder fallen kann.
 
 signal exploded(position: Vector3)
 
@@ -81,6 +110,26 @@ signal exploded(position: Vector3)
 ## Wie weit unter dem Bombenmittelpunkt nach Boden gesucht wird.
 @export var ground_probe_length: float = 0.45
 
+## --- Abprall / Kollisionsverhalten (NEU) -------------------------------
+## physics_material_override.bounce. Ohne Wert hier bleibt es bei Godots
+## Default 0.0 — die Bombe bremst an Gegnern/Waenden ab, statt abzuprallen.
+@export_range(0.0, 1.0) var bounce: float = 0.35
+@export_range(0.0, 1.0) var surface_friction: float = 0.6
+
+## Ab welcher Eigengeschwindigkeit (m/s) ein Kontakt mit einem
+## CharacterBody3D als "Einschlag" statt als sanftes Anschieben gilt.
+@export var deflect_min_speed: float = 1.5
+## Wie viel der Einschlagsgeschwindigkeit nach dem Abprall erhalten bleibt.
+@export_range(0.0, 1.0) var deflect_retain: float = 0.55
+## Kleiner Aufwaerts-Anteil beim Abprall, damit es nicht wie ein reines
+## Abgleiten am Boden aussieht, sondern sichtbar "abspringt".
+@export_range(0.0, 1.0) var deflect_up_ratio: float = 0.2
+
+## Sicherheitsclamp gegen Boden-Tunneling bei gravity = 40 (siehe
+## Root-Cause-Kommentar oben). -28 m/s entspricht bei dieser Gravitation
+## grob 0,7 s freiem Fall — mehr braucht kein Bomben-Wurf in diesem Spiel.
+@export var max_fall_speed: float = 28.0
+
 @export var debug_logging: bool = false
 
 var _fuse_remaining: float = 0.0
@@ -112,9 +161,27 @@ func _ready() -> void:
 	continuous_cd = true
 	contact_monitor = false
 
+	# Explizit statt Default: Bombe kollidiert mit derselben Welt-Ebene wie
+	# Spieler/Gegner (Layer 1). Vorher lief das stillschweigend ueber den
+	# Godot-Default — funktional identisch, aber nicht mehr "zufaellig
+	# richtig", falls sich Layer-Konventionen im Projekt mal aendern.
+	collision_layer = 1
+	collision_mask = 1
+
+	_build_physics_material()
 	_build_collision()
 	_build_visual()
 	_build_push_area()
+
+
+## NEU: ohne physics_material_override liegt bounce bei 0.0 — die Bombe
+## bremst beim Kontakt mit einem Gegner (kinematischer Koerper, quasi
+## unendliche Masse) einfach ab, statt abzuprallen. Das war Root Cause #1.
+func _build_physics_material() -> void:
+	var material := PhysicsMaterial.new()
+	material.bounce = bounce
+	material.friction = surface_friction
+	physics_material_override = material
 
 
 func _build_collision() -> void:
@@ -165,6 +232,11 @@ func _build_push_area() -> void:
 func _physics_process(delta: float) -> void:
 	if _exploded:
 		return
+
+	# NEU: permanenter Sicherheitsclamp gegen Boden-Tunneling, nicht nur
+	# waehrend des Flugmodus — siehe Root-Cause-Kommentar #2 im Dateikopf.
+	if linear_velocity.y < -max_fall_speed:
+		linear_velocity.y = -max_fall_speed
 
 	_fuse_remaining -= delta
 	_update_flight(delta)
@@ -237,9 +309,13 @@ func _update_blink(delta: float) -> void:
 	material.emission_energy_multiplier = pulse * lerpf(1.0, 3.5, progress)
 
 
-## Uebersetzt die Eigenbewegung ueberlappender Charaktere in einen Impuls.
-## Nur wer sich AUF die Bombe zubewegt, schiebt sie — sonst wuerde ein
-## Gegner, der daneben herlaeuft, die Bombe seitlich wegsaugen.
+## Uebersetzt die Eigenbewegung ueberlappender Charaktere in einen Impuls
+## ODER laesst die Bombe an ihnen abprallen — je nachdem, wer sich hier
+## eigentlich bewegt:
+##   - Charakter laeuft in die stehende/liegende Bombe -> sanftes Anschieben
+##     (bestehendes Verhalten, siehe Klassenkommentar oben).
+##   - Die Bombe SELBST ist schnell unterwegs (Wurf/Flug) und trifft einen
+##     Koerper -> Abprall/Deflektion (NEU, Root Cause #1 im Dateikopf).
 func _apply_push_from_bodies() -> void:
 	if _push_area == null:
 		return
@@ -249,6 +325,19 @@ func _apply_push_from_bodies() -> void:
 			continue
 
 		var character: CharacterBody3D = body as CharacterBody3D
+
+		if linear_velocity.length() > deflect_min_speed:
+			var away: Vector3 = global_position - character.global_position
+			away.y = 0.0
+			if away.length() > 0.01:
+				away = away.normalized()
+				var incoming_speed: float = linear_velocity.length()
+				var bounced: Vector3 = away * incoming_speed * deflect_retain
+				bounced.y = maxf(linear_velocity.y, incoming_speed * deflect_up_ratio)
+				linear_velocity = bounced
+				_debug("Abprall an '%s' mit %.1f m/s." % [character.name, bounced.length()])
+				continue  # kein zusaetzlicher Push-Impuls in derselben Iteration
+
 		var to_bomb: Vector3 = global_position - character.global_position
 		to_bomb.y = 0.0
 		if to_bomb.length() < 0.01:
