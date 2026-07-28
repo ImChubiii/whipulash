@@ -118,5 +118,3 @@ static func format_time(seconds: float) -> String:
 	if minutes > 0:
 		return "%d.%02d.%02d" % [minutes, secs, cs]
 	return "%d.%02d" % [secs, cs]
-
-
