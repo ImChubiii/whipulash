@@ -14,6 +14,14 @@ extends Node
 #    (minimap_opacity) fuer Flaeche und Rahmen.
 #  - NEU: Reset pro Seite (reset_general/video/audio/controls) statt nur
 #    "alles zuruecksetzen".
+#  - FIX: Fenster sprang beim allerersten Start auf absolute Desktop-
+#    Koordinate (0,0) statt auf dem Primary Screen zu bleiben. Grund:
+#    _windowed_position wurde nie gespeichert/geladen und blieb dadurch
+#    auf ihrem Klassen-Default Vector2i.ZERO stehen — bei Multi-Monitor-
+#    Setups liegt (0,0) je nach Monitor-Anordnung oft NICHT auf dem
+#    Hauptbildschirm. _has_valid_windowed_position sorgt jetzt dafuer,
+#    dass window_set_position() nur laeuft, wenn wirklich eine echte,
+#    gespeicherte Position existiert.
 # ============================================================================
 
 signal sensitivity_changed(value: float)
@@ -228,6 +236,13 @@ var colorblind_mode: int = COLORBLIND_OFF
 # Merkt sich die letzte bekannte Fenstergröße/-position im Windowed-Modus.
 var _windowed_size: Vector2i = DEFAULT_WINDOWED_SIZE
 var _windowed_position: Vector2i = Vector2i.ZERO
+## true, sobald eine ECHTE Fensterposition bekannt ist (aus der Config
+## geladen ODER durch set_display_mode() beim Wechsel WEG von Windowed
+## gesichert). Verhindert, dass der Klassen-Default Vector2i.ZERO beim
+## allerersten Start das Fenster auf absolute Desktop-Koordinate (0,0)
+## zieht — die bei Multi-Monitor-Setups oft NICHT auf dem Hauptbildschirm
+## liegt. Siehe _apply_display_mode().
+var _has_valid_windowed_position: bool = false
 
 # Merkt sich die InputMap-Belegung vom allerersten Start.
 var _default_keybinds: Dictionary = {}  # action -> Array[InputEvent]
@@ -347,6 +362,7 @@ func set_display_mode(mode: int) -> void:
 	if display_mode == DISPLAY_MODE_WINDOWED:
 		_windowed_size = DisplayServer.window_get_size()
 		_windowed_position = DisplayServer.window_get_position()
+		_has_valid_windowed_position = true
 
 	display_mode = mode
 	_apply_display_mode(mode)
@@ -360,7 +376,17 @@ func _apply_display_mode(mode: int) -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 			DisplayServer.window_set_size(_windowed_size)
-			DisplayServer.window_set_position(_windowed_position)
+			# Nur eine ECHTE gespeicherte Position anwenden. Beim
+			# allerersten Start (kein gespeicherter Wert, _windowed_position
+			# steht noch auf dem Klassen-Default Vector2i.ZERO) bleibt das
+			# Fenster dort stehen, wo Godot es ueber die Projekteinstellung
+			# "Initial Position Type = Center Primary Screen" bereits
+			# korrekt platziert hat. Ohne diese Sperre wuerde JEDER Start
+			# das Fenster auf absolute Desktop-Koordinate (0,0) ziehen, was
+			# bei Multi-Monitor-Setups haeufig auf dem falschen Bildschirm
+			# und nur teilweise sichtbar landet.
+			if _has_valid_windowed_position:
+				DisplayServer.window_set_position(_windowed_position)
 		DISPLAY_MODE_FULLSCREEN:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
@@ -707,6 +733,16 @@ func save_settings() -> void:
 	config.set_value("display", "fps_limit", fps_limit)
 	config.set_value("display", "fov", fov)
 
+	# Fensterposition/-groesse im Windowed-Modus. has_valid_windowed_position
+	# ist der eigentliche Schutz: ohne ihn wuerde ein Erststart mit dem
+	# Klassen-Default Vector2i.ZERO gespeichert und beim naechsten Start
+	# faelschlich als "echte" Position behandelt.
+	config.set_value("display", "has_valid_windowed_position", _has_valid_windowed_position)
+	config.set_value("display", "windowed_position_x", _windowed_position.x)
+	config.set_value("display", "windowed_position_y", _windowed_position.y)
+	config.set_value("display", "windowed_size_x", _windowed_size.x)
+	config.set_value("display", "windowed_size_y", _windowed_size.y)
+
 	config.set_value("general", "hud_visible", hud_visible)
 	for key in HUD_ELEMENTS.keys():
 		config.set_value("general", "hud_%s" % key, bool(hud_elements.get(key, true)))
@@ -767,6 +803,23 @@ func load_settings() -> void:
 	# settings.cfg mit fov = 5 wuerde die Kamera sonst unbrauchbar machen,
 	# ohne dass irgendwo ein Fehler im Log steht.
 	fov = clampf(float(config.get_value("display", "fov", FOV_DEFAULT)), FOV_MIN, FOV_MAX)
+
+	# Fensterposition/-groesse: NUR uebernehmen, wenn die Config sagt, dass
+	# schon einmal eine echte Position gesichert wurde. Fehlt der Key
+	# komplett (alte settings.cfg vor diesem Fix, oder Erststart), bleibt
+	# _has_valid_windowed_position auf false und _apply_display_mode()
+	# laesst das Fenster dort stehen, wo es die Projekteinstellung schon
+	# richtig platziert hat.
+	_has_valid_windowed_position = bool(config.get_value("display", "has_valid_windowed_position", false))
+	if _has_valid_windowed_position:
+		_windowed_position = Vector2i(
+			int(config.get_value("display", "windowed_position_x", 0)),
+			int(config.get_value("display", "windowed_position_y", 0))
+		)
+		_windowed_size = Vector2i(
+			int(config.get_value("display", "windowed_size_x", DEFAULT_WINDOWED_SIZE.x)),
+			int(config.get_value("display", "windowed_size_y", DEFAULT_WINDOWED_SIZE.y))
+		)
 
 	hud_visible = config.get_value("general", "hud_visible", true)
 	for key in HUD_ELEMENTS.keys():
