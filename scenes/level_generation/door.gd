@@ -1,3 +1,4 @@
+
 extends StaticBody3D
 class_name Door
 
@@ -83,7 +84,66 @@ const INTERACT_ACTION := "interact"
 @export var force_hack: bool = false
 @export var hack_duration: float = 4.0
 @export var hack_decay_rate: float = 0.5
-@export var hack_range: float = 4.0
+
+## ##########################################################################
+## FIX: "ich muss springen, um Tueren zu oeffnen"
+## ##########################################################################
+## ROOT CAUSE:
+## Die Interaktionszone war eine KUGEL mit Radius hack_range, gesetzt auf
+## den Ursprung des Tuer-Nodes. Der liegt in den Raum-Szenen auf halber
+## Tuerhoehe (z.B. y = 5.0 bei einem 10 Units hohen Tuerblatt).
+##
+## Solange Tuer und Radius zueinander passten, ging das gerade so gut:
+## Kugelmittelpunkt bei y = 5, Radius 4 -> unterster Punkt bei y = 1, und
+## die Spielerkapsel reicht bis etwa y = 1,7. Der Kontakt kam also nur
+## deshalb zustande, weil der Spieler mit dem KOPF gerade noch in die
+## Unterseite der Kugel ragte.
+##
+## Seit die Raeume ueber room_scale (aktuell 2x) hochskaliert werden,
+## skaliert die Kugel zwar mit - der Mittelpunkt aber auch. Aus y = 5 wird
+## y = 10, aus Radius 4 wird Radius 8: unterster Punkt jetzt bei y = 2.
+## Der Spieler ist unveraendert 1,7 hoch geblieben. Die Zone endet damit
+## ueber seinem Kopf, und die einzige Moeglichkeit hineinzukommen ist ein
+## Sprung.
+##
+## Das ist der Grund, warum eine Kugel hier grundsaetzlich die falsche
+## Form ist: eine Tuer ist ein hohes, schmales Rechteck. Eine Kugel, die
+## dieses Rechteck ganz umschliesst, ragt links und rechts weit in die
+## Wand hinein; eine Kugel, die seitlich passt, erreicht den Boden nicht.
+## Beides ist nicht zu gewinnen.
+##
+## LOESUNG: Die Zone ist jetzt ein QUADER, der aus dem tatsaechlichen
+## Tuerblatt abgeleitet wird (Breite und Hoehe = das, was man sieht) und
+## nur in der Tiefe um hack_range nach vorn und hinten waechst. Sie
+## skaliert damit automatisch mit jeder Raumgroesse mit, ohne dass hier
+## irgendein Wert nachgezogen werden muss.
+##
+## hack_range bedeutet dadurch etwas anderes als vorher: NICHT mehr
+## "Abstand vom Tuermittelpunkt", sondern "Abstand von der Tuerflaeche".
+## Deshalb ist der Standardwert von 4.0 auf 2.5 gesenkt - 2,5 lokale
+## Einheiten sind bei room_scale = 2 immer noch 5 Meter vor der Tuer.
+@export var hack_range: float = 2.5
+
+## Seitlicher Zuschlag ueber die Breite des Tuerblatts hinaus. Klein
+## halten: die Tuer sitzt in einer Wandoeffnung, alles darueber hinaus
+## liegt in der Wand und ist unerreichbar.
+@export var interact_side_margin: float = 0.3
+
+## Zuschlag nach OBEN ueber die Tuerkante hinaus.
+@export var interact_top_margin: float = 0.3
+
+## Wie weit die Zone UNTER die Unterkante des Tuerblatts reicht.
+##
+## Bewusst groesser als der obere Zuschlag: das Tuerblatt sitzt in
+## Korridoren mit Hoehenunterschied nicht immer exakt auf dem Boden, auf
+## dem der Spieler steht (Rampen, abgesenkte Bodenstuecke). Ein Zuschlag
+## nach unten kostet nichts - dort ist Boden -, ein fehlender Zuschlag
+## kostet genau den Bug, der hier behoben wird.
+@export var interact_floor_extend: float = 1.5
+
+## Fallback-Groesse, falls das Tuerblatt keine BoxShape3D benutzt.
+@export var interact_fallback_size: Vector3 = Vector3(10.0, 10.0, 1.0)
+
 @export var prompt_text: String = "HACKING"
 
 ## --- Farben ---------------------------------------------------------
@@ -255,13 +315,96 @@ func _setup_hack_area() -> void:
 	add_child(_hack_area)
 
 	var shape := CollisionShape3D.new()
-	var sphere := SphereShape3D.new()
-	sphere.radius = hack_range
-	shape.shape = sphere
+	shape.name = "InteractShape"
+	shape.shape = _build_interact_box()
+	shape.position = _interact_shape_position()
 	_hack_area.add_child(shape)
 
 	_hack_area.body_entered.connect(_on_hack_body_entered)
 	_hack_area.body_exited.connect(_on_hack_body_exited)
+
+
+## Baut den Interaktions-Quader aus den Massen des echten Tuerblatts.
+##
+## Alle Werte sind LOKAL, also ohne room_scale. Das ist Absicht: die Area
+## haengt unter demselben Node wie das Tuerblatt und wird von der
+## Raum-Transform genauso mitskaliert wie das Blatt selbst. Wuerde hier
+## mit Weltmassen gerechnet, muesste bei jeder Aenderung von room_scale
+## nachgezogen werden - genau der Fehler, der zu diesem Bugfix gefuehrt hat.
+##
+## Die duenne Achse des Blattes ist die Tuertiefe. Welche das ist, haengt
+## von der Himmelsrichtung ab (Nord/Sued sind in X breit, Ost/West in Z),
+## deshalb wird sie gemessen statt angenommen.
+func _build_interact_box() -> BoxShape3D:
+	var leaf: Vector3 = _measure_door_extents()
+
+	var box := BoxShape3D.new()
+	var depth: float = maxf(hack_range, 0.1) * 2.0
+
+	if leaf.x <= leaf.z:
+		# Blatt ist in X duenn -> Tuer zeigt nach Osten/Westen.
+		box.size = Vector3(
+			depth,
+			leaf.y + interact_top_margin + interact_floor_extend,
+			leaf.z + interact_side_margin * 2.0
+		)
+	else:
+		# Blatt ist in Z duenn -> Tuer zeigt nach Norden/Sueden.
+		box.size = Vector3(
+			leaf.x + interact_side_margin * 2.0,
+			leaf.y + interact_top_margin + interact_floor_extend,
+			depth
+		)
+	return box
+
+
+## Mittelpunkt des Quaders, relativ zum Tuer-Node.
+##
+## Der Quader ist unten weiter verlaengert als oben
+## (interact_floor_extend > interact_top_margin), sein Mittelpunkt liegt
+## deshalb TIEFER als der des Tuerblatts. Ohne diese Korrektur waere die
+## zusaetzliche Hoehe symmetrisch verteilt und die Zone reichte oben zu
+## weit und unten nicht weit genug - also genau dorthin, wo der Spieler
+## eben NICHT ist.
+func _interact_shape_position() -> Vector3:
+	var center: Vector3 = Vector3.ZERO
+	if _collision != null and is_instance_valid(_collision):
+		center = _collision.position
+	center.y -= (interact_floor_extend - interact_top_margin) * 0.5
+	return center
+
+
+## Breite/Hoehe/Tiefe des Tuerblatts in LOKALEN Einheiten (ohne Skalierung
+## durch uebergeordnete Nodes - siehe Kommentar an _build_interact_box).
+func _measure_door_extents() -> Vector3:
+	if _collision == null or _collision.shape == null:
+		return interact_fallback_size
+
+	var shape: Shape3D = _collision.shape
+	if shape is BoxShape3D:
+		return (shape as BoxShape3D).size
+
+	# Kein Quader: Hoehe kennen wir ueber _measure_door_height(), Breite
+	# und Tiefe nicht - dafuer greift der Fallback.
+	var height: float = _measure_door_height()
+	return Vector3(
+		interact_fallback_size.x,
+		height if height > 0.0 else interact_fallback_size.y,
+		interact_fallback_size.z
+	)
+
+
+## Baut die Interaktionszone neu. Aufzurufen, wenn sich die Masse des
+## Tuerblatts NACH _ready() aendern - etwa wenn der LevelGenerator die
+## Tuerhoehe an einen Hoehenunterschied im Korridor anpasst.
+func rebuild_interact_area() -> void:
+	if _hack_area == null or not is_instance_valid(_hack_area):
+		return
+	var shape: CollisionShape3D = _hack_area.get_node_or_null("InteractShape")
+	if shape == null:
+		return
+	shape.shape = _build_interact_box()
+	shape.position = _interact_shape_position()
 
 
 func _on_hack_body_entered(body: Node3D) -> void:
@@ -298,6 +441,11 @@ func get_debug_state() -> String:
 	]
 
 
+## ACHTUNG: diese Funktion liefert die Hoehe in WELTeinheiten (sie
+## multipliziert mit der Skalierung aus der globalen Transform). Fuer
+## _effective_open_height ist das richtig - die Tuer faehrt in Weltmassen
+## nach oben. Fuer den Interaktions-Quader ist es FALSCH; der rechnet
+## lokal (siehe _measure_door_extents).
 func _measure_door_height() -> float:
 	if _collision == null or _collision.shape == null:
 		return 4.0
@@ -599,3 +747,5 @@ func _hide_prompt() -> void:
 	var prompt: Node = HackPrompt.find_existing(self)
 	if prompt:
 		prompt.hide_prompt()
+
+

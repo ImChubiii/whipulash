@@ -271,9 +271,32 @@ func _on_restart_pressed() -> void:
 
 ## Gemeinsamer Pfad fuer Restart-Button UND Reset-Taste — so kann es keine
 ## zwei leicht unterschiedlichen Neustart-Wege geben.
+##
+## AENDERUNG: der eigentliche Neustart liegt jetzt in RunRestart (Autoload).
+## Vorher stand hier ein direkter reload_current_scene() — und damit ein
+## Neustart, der WENIGER aufgeraeumt hat als der ueber [R]:
+##
+##   * Juice.cancel() fehlte  -> ein laufender Hit-Stop nahm
+##     Engine.time_scale ~0.05 in den neuen Run mit; der Timer, der ihn
+##     zurueckgesetzt haette, verschwand mit der alten Szene.
+##   * Items.reset_run() / Loot.reset_run() fehlten -> der neue Run
+##     startete mit dem Inventar des alten.
+##   * PartyManager.notify_scene_reset() fehlte — und DAS war der Grund,
+##     warum der Button sich anfuehlte, als tue er nichts: PartyManager
+##     hielt nach dem Reload einen Zeiger auf die tote Spieler-Instanz,
+##     hielt sich fuer "schon bespielt" und spawnte keinen neuen
+##     Charakter. Ausfuehrlich in party_manager.gd und run_restart.gd.
 func _restart_level() -> void:
 	if _blur_overlay:
 		_blur_overlay.visible = false
+
+	var restarter: Node = get_node_or_null("/root/RunRestart")
+	if restarter and restarter.has_method("restart"):
+		restarter.restart()
+		return
+
+	push_warning("PauseMenu: Autoload 'RunRestart' nicht gefunden - Notfall-Neustart ohne Aufraeumen.")
+	Engine.time_scale = 1.0
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	get_tree().reload_current_scene()

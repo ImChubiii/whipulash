@@ -1,3 +1,4 @@
+
 extends RigidBody3D
 class_name Bomb
 
@@ -76,18 +77,28 @@ signal exploded(position: Vector3)
 @export var fuse_time: float = 2.0
 @export var damage: float = 50.0
 
-## Deutlich groesser als die urspruenglichen 4,5. Bei ca. 2,25 m pro Kachel
-## entspricht 9,0 einem Areal von rund 4x4 Kacheln um die Bombe herum.
-## Notfalls hier nachziehen, nicht im Explosionscode.
-@export var explosion_radius: float = 9.0
+## Von 9,0 auf 14,0 angehoben (urspruenglich 4,5). Bei ca. 2,25 m pro
+## Kachel entspricht 14,0 einem Areal von rund 6x6 Kacheln.
+##
+## WICHTIG: NICHT im Explosionscode nachziehen. Saemtliche VFX-Groessen
+## (Feuerball, Kern, Schockwelle, Splitter, Licht, Brandfleck) leiten sich
+## aus DIESEM Wert ab - wer die Reichweite hier aendert, aendert das
+## sichtbare Bild automatisch mit. Genau das ist der Punkt: eine Explosion,
+## deren Optik nicht zu ihrer echten Reichweite passt, fuehlt sich wie ein
+## Zufallstreffer an.
+@export var explosion_radius: float = 14.0
 
 ## Anteil des Explosionsradius, in dem der SPIELER Schaden nimmt. Siehe
 ## Begruendung im Kopf der Datei.
-@export_range(0.1, 1.0) var self_damage_radius_factor: float = 0.55
+## Von 0.55 auf 0.40 gesenkt, weil der Gesamtradius gewachsen ist: 55 %
+## von 14 m waeren fast acht Meter Eigengefahr gewesen. 40 % von 14 sind
+## 5,6 m - grob dieselbe absolute Gefahrenzone wie vorher, nur eben in
+## einer deutlich groesseren Explosion.
+@export_range(0.1, 1.0) var self_damage_radius_factor: float = 0.40
 
 ## Wie stark Getroffene weggeschoben werden. Mit dem groesseren Radius
 ## angehoben, damit der Rand der Explosion noch spuerbar ist.
-@export var knockback_force: float = 26.0
+@export var knockback_force: float = 34.0
 
 ## Wie stark der Spieler die Bombe wegschieben kann.
 @export var push_strength: float = 5.0
@@ -129,6 +140,21 @@ signal exploded(position: Vector3)
 ## Root-Cause-Kommentar oben). -28 m/s entspricht bei dieser Gravitation
 ## grob 0,7 s freiem Fall — mehr braucht kein Bomben-Wurf in diesem Spiel.
 @export var max_fall_speed: float = 28.0
+
+## --- Explosions-VFX -----------------------------------------------------
+## Anzahl der Splitter, die radial nach aussen fliegen. Sie sind der
+## Grund, warum eine Explosion "aufreisst" statt nur aufzuleuchten: eine
+## Kugel, die groesser wird, liest das Auge als Ballon. Erst Teile, die
+## sich UNTERSCHIEDLICH schnell in UNTERSCHIEDLICHE Richtungen bewegen,
+## lesen sich als Detonation.
+@export var debris_count: int = 14
+@export var debris_size: float = 0.45
+
+## Dunkler Brandfleck, der nach dem Feuer kurz stehenbleibt. Ohne ihn ist
+## eine halbe Sekunde nach der Explosion nicht mehr zu sehen, dass an der
+## Stelle ueberhaupt etwas passiert ist.
+@export var scorch_enabled: bool = true
+@export var scorch_lifetime: float = 1.6
 
 @export var debug_logging: bool = false
 
@@ -369,8 +395,8 @@ func explode() -> void:
 	exploded.emit(origin)
 
 	Juice.hit_stop(Juice.DURATION_EXPLOSION)
-	# Mit dem groesseren Radius auch mehr Wucht auf der Kamera.
-	Juice.shake(1.4)
+	# Mit dem noch groesseren Radius auch mehr Wucht auf der Kamera.
+	Juice.shake(2.0)
 
 	_spawn_flash(origin)
 	queue_free()
@@ -457,9 +483,12 @@ func _spawn_flash(origin: Vector3) -> void:
 	if parent == null:
 		return
 
+	_spawn_scorch(parent, origin)
 	_spawn_fireball(parent, origin)
 	_spawn_core(parent, origin)
 	_spawn_shockwave(parent, origin)
+	_spawn_outer_ring(parent, origin)
+	_spawn_debris(parent, origin)
 	_spawn_light(parent, origin)
 
 
@@ -482,9 +511,13 @@ func _spawn_fireball(parent: Node, origin: Vector3) -> void:
 
 	var tween := flash.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(flash, "scale", Vector3.ONE * 1.05, 0.30) \
-		.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-	tween.tween_property(material, "albedo_color:a", 0.0, 0.42)
+	# TRANS_EXPO statt QUINT: das Aufreissen passiert damit noch staerker
+	# in den ersten Frames. Eine Explosion, die gleichmaessig waechst,
+	# sieht aus wie ein aufgehender Ballon.
+	tween.tween_property(flash, "scale", Vector3.ONE * 1.10, 0.26) \
+		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(flash, "rotation:y", TAU * 0.15, 0.50)
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.50)
 	tween.chain().tween_callback(flash.queue_free)
 
 
@@ -557,6 +590,130 @@ func _spawn_light(parent: Node, origin: Vector3) -> void:
 	tween.tween_property(light, "light_energy", 0.0, 0.32) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(light.queue_free)
+
+
+## Zweiter, duennerer Ring, der SCHNELLER nach aussen laeuft als die
+## Hauptschockwelle und ueber deren Rand hinausschiesst. Zwei Ringe mit
+## unterschiedlichem Tempo geben der Explosion Tiefe; einer allein wirkt
+## wie eine aufgemalte Kreisanimation.
+func _spawn_outer_ring(parent: Node, origin: Vector3) -> void:
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.85
+	ring.outer_radius = 1.0
+	ring.rings = 4
+	ring.ring_segments = 28
+
+	var material := _make_flash_material(Color(1.0, 0.95, 0.75, 0.55))
+
+	var wave := MeshInstance3D.new()
+	wave.mesh = ring
+	wave.material_override = material
+	wave.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(wave)
+	wave.global_position = origin + Vector3(0.0, 0.35, 0.0)
+	wave.scale = Vector3(0.4, 0.4, 0.4)
+
+	var tween := wave.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(wave, "scale", Vector3(explosion_radius * 1.15, 0.6, explosion_radius * 1.15), 0.26) \
+		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.30)
+	tween.chain().tween_callback(wave.queue_free)
+
+
+## Splitter: kleine Wuerfel, die radial nach aussen und leicht nach oben
+## fliegen und dabei schrumpfen.
+##
+## Bewusst KEIN GPUParticles3D: die Bombe baut sich komplett im Code auf
+## (keine bomb.tscn, siehe Klassenkommentar), und ein Partikelsystem
+## braeuchte ein ProcessMaterial als Ressource. Ein Dutzend getweente
+## Meshes kostet fuer einen Effekt, der eine halbe Sekunde dauert,
+## praktisch nichts - und bleibt im PSX-Look sogar naeher am Rest des
+## Spiels als weiche Partikel.
+func _spawn_debris(parent: Node, origin: Vector3) -> void:
+	if debris_count <= 0:
+		return
+
+	var box := BoxMesh.new()
+	box.size = Vector3.ONE * debris_size
+
+	for i: int in range(debris_count):
+		# Gleichmaessig verteilte Winkel plus ein fester Versatz pro
+		# Splitter statt reinem Zufall: das Ergebnis sieht ausgewogener
+		# aus und ist zwischen zwei Explosionen nicht wiedererkennbar
+		# gleich.
+		var angle: float = TAU * (float(i) / float(debris_count)) + randf() * 0.35
+		var direction := Vector3(cos(angle), 0.0, sin(angle))
+		var distance: float = explosion_radius * randf_range(0.45, 0.95)
+		var height: float = explosion_radius * randf_range(0.10, 0.30)
+
+		var material := _make_flash_material(Color(1.0, 0.70, 0.30, 0.9))
+
+		var shard := MeshInstance3D.new()
+		shard.mesh = box
+		shard.material_override = material
+		shard.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		parent.add_child(shard)
+		shard.global_position = origin + Vector3(0.0, 0.4, 0.0)
+
+		var peak: Vector3 = origin + direction * distance * 0.6 + Vector3(0.0, height, 0.0)
+		var landing: Vector3 = origin + direction * distance + Vector3(0.0, 0.15, 0.0)
+
+		var tween := shard.create_tween()
+		# Erst Aufstieg, dann Fall - eine gerade Linie nach aussen sieht
+		# aus wie ein Sternchen-Sprite, keine Wurfparabel.
+		tween.tween_property(shard, "global_position", peak, 0.16) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(shard, "global_position", landing, 0.26) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+		var fade := shard.create_tween()
+		fade.set_parallel(true)
+		fade.tween_property(shard, "rotation", Vector3(randf() * TAU, randf() * TAU, randf() * TAU), 0.42)
+		fade.tween_property(shard, "scale", Vector3.ONE * 0.2, 0.42) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		fade.tween_property(material, "albedo_color:a", 0.0, 0.42)
+		fade.chain().tween_callback(shard.queue_free)
+
+
+## Flacher, dunkler Kreis auf Bodenhoehe, der NACH dem Feuer noch kurz
+## stehenbleibt und dann ausblendet.
+##
+## Wird als ERSTES gespawnt, damit er unter allen anderen Ebenen liegt.
+## Er benutzt bewusst KEIN additives Blending (im Gegensatz zu allen
+## anderen Effekten hier) - additiv gemischtes Schwarz ist unsichtbar.
+func _spawn_scorch(parent: Node, origin: Vector3) -> void:
+	if not scorch_enabled:
+		return
+
+	var disc := CylinderMesh.new()
+	disc.top_radius = explosion_radius * 0.75
+	disc.bottom_radius = explosion_radius * 0.75
+	disc.height = 0.06
+	disc.radial_segments = 20
+	disc.rings = 1
+
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(0.05, 0.04, 0.03, 0.55)
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.disable_receive_shadows = true
+
+	var mark := MeshInstance3D.new()
+	mark.mesh = disc
+	mark.material_override = material
+	mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mark)
+	mark.global_position = origin + Vector3(0.0, 0.05, 0.0)
+	mark.scale = Vector3(0.3, 1.0, 0.3)
+
+	var tween := mark.create_tween()
+	tween.tween_property(mark, "scale", Vector3(1.0, 1.0, 1.0), 0.20) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(maxf(scorch_lifetime - 0.6, 0.0))
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.40)
+	tween.tween_callback(mark.queue_free)
 
 
 func _make_flash_material(color: Color) -> StandardMaterial3D:

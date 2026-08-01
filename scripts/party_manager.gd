@@ -1,3 +1,4 @@
+
 extends Node
 
 # AUTOLOAD — Name: PartyManager
@@ -13,6 +14,37 @@ extends Node
 # Switch-Cooldown: Sobald man von einem Charakter WEGwechselt, bekommt
 # GENAU DIESER Charakter (nicht der neu aktivierte) einen Cooldown von
 # SWITCH_COOLDOWN_DURATION Sekunden, bevor man wieder zu ihm wechseln kann.
+#
+# ============================================================================
+# BUGFIX: "Restart-Button und [R] gehen nicht"
+# ============================================================================
+# ROOT CAUSE (die eigentliche Ursache, nicht der Button):
+# Dieses Autoload UEBERLEBT get_tree().reload_current_scene(). Die Szene
+# darunter wird komplett abgebaut - inklusive der Spieler-Instanz, auf die
+# "player" zeigt. Ein freigegebenes Object wird in GDScript aber NICHT
+# automatisch auf null gesetzt: die Variable haelt weiter den alten Zeiger.
+#
+# Damit ist
+#     player == null          ->  FALSE  (der Zeiger ist ja belegt)
+#     is_instance_valid(player) ->  false  (das Objekt ist aber tot)
+#
+# Der komplette Spawn-Pfad haing an der ERSTEN Form:
+#   register_spawn_point():  if player == null and not party.is_empty()
+#   setup_party():           if player == null and _spawn_parent != null
+#   _spawn_active_character(): if player != null: return
+#
+# Nach JEDEM Neustart hielt PartyManager also eine Leiche, hielt sich fuer
+# "schon bespielt" und spawnte keinen neuen Charakter. Das Level wurde
+# korrekt neu generiert - es stand nur nie jemand drin. Von aussen sieht
+# genau das aus wie "der Restart-Button tut nichts": Bild baut sich neu
+# auf, aber man kann sich nicht bewegen.
+#
+# Derselbe Mechanismus traf _spawn_parent und _player_health.
+#
+# FIX: JEDE Lebend-Pruefung laeuft ab jetzt ueber has_player() bzw.
+# is_instance_valid(). Zusaetzlich raeumt notify_scene_reset() vor einem
+# Szenenwechsel bewusst auf - siehe run_restart.gd, das diese Funktion als
+# einziger Neustart-Pfad aufruft.
 
 signal party_changed
 signal active_character_changed(index: int)
@@ -47,6 +79,36 @@ var _spawn_transform: Transform3D = Transform3D.IDENTITY
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+
+## Einzige erlaubte Lebend-Pruefung fuer "player".
+##
+## "player == null" reicht NICHT: nach reload_current_scene() ist die
+## Instanz freigegeben, die Variable aber weiterhin belegt. Siehe den
+## ausfuehrlichen Root-Cause-Block im Dateikopf.
+func has_player() -> bool:
+	return player != null and is_instance_valid(player)
+
+
+## Vor einem Szenenwechsel aufzurufen (run_restart.gd). Wirft alle
+## Referenzen auf Nodes weg, die den Wechsel nicht ueberleben.
+##
+## Ohne diesen Aufruf wuerde has_player() den Fehler zwar trotzdem
+## abfangen - aber erst NACHDEM die tote Instanz einen Frame lang in
+## Signalen und Suchlaeufen mitgeschleift wurde. Sauber ist, den Zustand
+## dort zu leeren, wo der Wechsel ausgeloest wird.
+func notify_scene_reset() -> void:
+	if _player_health != null and is_instance_valid(_player_health):
+		if _player_health.health_changed.is_connected(_on_player_health_changed):
+			_player_health.health_changed.disconnect(_on_player_health_changed)
+	player = null
+	_player_health = null
+	_spawn_parent = null
+	_spawn_transform = Transform3D.IDENTITY
+	# Die Cooldowns gehoeren zum alten Run und duerfen den neuen nicht
+	# blockieren. Party/HP setzt PartySetup._ready() im neuen Level
+	# ohnehin komplett neu (setup_party).
+	for i: int in range(_switch_cooldowns.size()):
+		_switch_cooldowns[i] = 0.0
 
 func _process(delta: float) -> void:
 	for i: int in range(_switch_cooldowns.size()):
@@ -94,7 +156,7 @@ func setup_party(members: Array[CharacterData]) -> void:
 	# _spawn_active_character() haengt am Ende einen Node per add_child()
 	# in den Baum - das schlaegt fehl, wenn der Zielparent gerade selbst
 	# "busy" (blocked) ist, weil ER noch seine eigenen Kinder aufbaut.
-	if player == null and _spawn_parent != null:
+	if not has_player() and _spawn_parent != null and is_instance_valid(_spawn_parent):
 		call_deferred("_spawn_active_character", _spawn_transform)
 
 # Wird von einem PlayerSpawnPoint-Marker3D im Level aufgerufen (siehe
@@ -104,15 +166,26 @@ func setup_party(members: Array[CharacterData]) -> void:
 func register_spawn_point(parent: Node, at_transform: Transform3D) -> void:
 	_spawn_parent = parent
 	_spawn_transform = _sanitize_spawn_transform(at_transform)
-	if player == null and not party.is_empty():
+	if not has_player() and not party.is_empty():
 		call_deferred("_spawn_active_character", _spawn_transform)
 
 func _spawn_active_character(at_transform: Transform3D) -> void:
 	# Kann inzwischen (durch den einen Frame Verzoegerung via call_deferred)
 	# ueberholt worden sein - z.B. wenn zwischenzeitlich schon jemand
 	# anderes gespawnt hat. Doppel-Spawn verhindern.
-	if player != null:
+	#
+	# has_player() statt "player != null": nach einem Szenenwechsel steht
+	# hier sonst eine Leiche und blockiert den Neu-Spawn dauerhaft.
+	if has_player():
 		return
+
+	# Zeiger auf eine eventuelle Leiche aus dem alten Run bedingungslos
+	# wegwerfen, bevor eine neue Instanz gebaut wird. Bewusst OHNE
+	# vorherigen "!= null"-Vergleich: ein Vergleich mit einem bereits
+	# freigegebenen Object ist genau die Operation, die in Godot 4 je nach
+	# Build eine "Attempted to access a freed object"-Meldung erzeugt.
+	player = null
+	_player_health = null
 
 	var data: CharacterData = get_active_data()
 	if data == null or data.player_scene == null:
@@ -137,7 +210,7 @@ func _spawn_active_character(at_transform: Transform3D) -> void:
 	active_player_changed.emit(player)
 
 func _connect_player_health() -> void:
-	if player == null:
+	if not has_player():
 		return
 	var h := player.find_child("Health", true, false)
 	if h and h is Health:
@@ -153,7 +226,9 @@ func _on_player_health_changed(current: float, max_hp: float) -> void:
 	member_health_changed.emit(_active_index, current, max_hp)
 
 func _apply_active_health_to_player() -> void:
-	if _player_health == null or _active_index >= _max_health.size():
+	if _player_health == null or not is_instance_valid(_player_health):
+		return
+	if _active_index >= _max_health.size():
 		return
 	_player_health.max_health = _max_health[_active_index]
 	_player_health.current_health = _current_health[_active_index]
@@ -195,8 +270,8 @@ func switch_to(index: int) -> void:
 	if index < _switch_cooldowns.size() and _switch_cooldowns[index] > 0.0:
 		return
 
-	if player == null:
-		# Noch keine Instanz vorhanden — einfach nur den Index umstellen,
+	if not has_player():
+		# Noch keine (gueltige) Instanz vorhanden — einfach nur den Index umstellen,
 		# der naechste register_spawn_point()/setup_party()-Aufruf spawnt
 		# dann direkt den richtigen Charakter.
 		_active_index = index
@@ -214,7 +289,8 @@ func switch_to(index: int) -> void:
 	if old_spring_arm:
 		carried_camera_pitch = old_spring_arm.rotation.x
 
-	if _player_health and _player_health.health_changed.is_connected(_on_player_health_changed):
+	if _player_health != null and is_instance_valid(_player_health) \
+			and _player_health.health_changed.is_connected(_on_player_health_changed):
 		_player_health.health_changed.disconnect(_on_player_health_changed)
 
 	# Der Charakter, den wir gerade VERLASSEN, kriegt den Cooldown — nicht
@@ -236,7 +312,7 @@ func switch_to(index: int) -> void:
 	# der Stelle unten noch null.
 	_spawn_active_character(carried_transform)
 
-	if player:
+	if has_player():
 		var new_camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
 		var new_spring_arm: SpringArm3D = player.get_node_or_null("CameraPivot/SpringArm3D")
 		if new_camera_pivot:

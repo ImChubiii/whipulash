@@ -29,8 +29,10 @@ VFX="*uid://dmnltpdascg2c"
 Juice="*uid://d366sudmnp73u"
 Items="*uid://vkdd47uykpas"
 Loot="*uid://b1etjb81qmrf7"
+RunRestart="*uid://ve30kqbt3e82"
 Treasure="*uid://ducvniyothuqw"
 RoomGuard="*uid://vtgbvdd0vlh"
+EnemyDensity="*uid://bxxty8yqhh1d"
 HudExtra="*uid://bys4sieyin6ky"
 
 [display]

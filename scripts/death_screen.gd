@@ -1,3 +1,4 @@
+
 extends Control
 class_name DeathScreen
 
@@ -211,9 +212,23 @@ func _update_items_display() -> void:
 		_item_list.refresh()
 
 
+## Laeuft ueber RunRestart (Autoload) statt direkt ueber
+## reload_current_scene(). Begruendung ausfuehrlich in run_restart.gd und
+## party_manager.gd: der direkte Weg liess PartyManager mit einem Zeiger
+## auf die tote Spieler-Instanz zurueck, wodurch im neuen Level nie wieder
+## ein Charakter gespawnt wurde. Der Button hat also durchaus etwas getan -
+## nur eben ein Level ohne Spieler erzeugt.
 func _on_restart_pressed() -> void:
 	if _blur_overlay:
 		_blur_overlay.visible = false
+
+	var restarter: Node = get_node_or_null("/root/RunRestart")
+	if restarter and restarter.has_method("restart"):
+		restarter.restart()
+		return
+
+	push_warning("DeathScreen: Autoload 'RunRestart' nicht gefunden - Notfall-Neustart ohne Aufraeumen.")
+	Engine.time_scale = 1.0
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 

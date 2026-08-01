@@ -1,26 +1,46 @@
-[gd_scene format=3 uid="uid://4nmpph8quo0y"]
 
-[ext_resource type="Script" uid="uid://wwipd63kj1ff" path="res://scripts/hazards/lemonade.gd" id="1_7j7g3"]
+[gd_scene format=3 uid="uid://dlj5htolv7pph"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7j7g3"]
+[ext_resource type="Script" uid="uid://wwipd63kj1ff" path="res://scripts/hazards/lemonade.gd" id="1_2rkj2"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2rkj2"]
 transparency = 1
 depth_draw_mode = 1
-albedo_color = Color(0.667, 0.843, 0.216, 0.85)
+albedo_color = Color(0.6666667, 0.84313726, 0.21568628, 0.85)
 emission_enabled = true
-emission = Color(0.667, 0.843, 0.216, 1)
-emission_energy_multiplier = 3.4336262
+emission = Color(0.6666667, 0.84313726, 0.21568628, 1)
+emission_energy_multiplier = 2.0319273
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_6igkw"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_qbaa6"]
 size = Vector3(4, 1, 4)
 
 [node name="Lemonade" type="Node3D" unique_id=1115630498]
-script = ExtResource("1_7j7g3")
+script = ExtResource("1_2rkj2")
+size = Vector3(4, 1, 4)
+lava_color = Color(0.6666667, 0.84313726, 0.21568628, 1)
+glow_energy = 2.0
+alpha = 0.85
+pulse_enabled = true
+pulse_speed = 2.0
+pulse_amount = 0.4
+damage_per_tick = 8.0
+tick_interval = 0.5
+first_tick_interval = 0.3
+damage_on_entry = true
+buoyancy_rise_speed = 0.3
+entry_dampening = 0.3
+rescan_interval = 0.1
+display_name = "Lemonade"
+debug_logging = false
 
 [node name="LemonadeVisual" type="CSGBox3D" parent="." unique_id=313934804]
 size = Vector3(4, 1, 4)
-material = SubResource("StandardMaterial3D_7j7g3")
+material = SubResource("StandardMaterial3D_2rkj2")
 
 [node name="LemonadeTrigger" type="Area3D" parent="." unique_id=1664148033]
+collision_mask = 5
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="LemonadeTrigger" unique_id=1025396243]
-shape = SubResource("BoxShape3D_6igkw")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LemonadeTrigger" unique_id=2123325636]
+shape = SubResource("BoxShape3D_qbaa6")
+
+

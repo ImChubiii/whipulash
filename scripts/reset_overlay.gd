@@ -1,3 +1,4 @@
+
 extends Control
 class_name ResetOverlay
 
@@ -25,11 +26,20 @@ class_name ResetOverlay
 # Frame gar kein Input-Event ankommt.
 
 ## Sekunden, die R gehalten werden muss.
-@export var hold_duration: float = 1.5
+## Von 1.5 auf 0.9 gesenkt: 1,5 s fuehlen sich bei einem Run, den man in
+## der ersten Sekunde als verloren erkennt, wie eine Strafe an. 0,9 s ist
+## immer noch deutlich mehr als ein versehentlicher Tastendruck.
+@export var hold_duration: float = 0.9
 ## Ab wann die Vorschau eingeblendet wird (Anteil der Haltedauer).
 @export_range(0.0, 1.0) var preview_threshold: float = 0.25
 
 const RESET_ACTION: String = "reset"
+
+## Notnagel, falls die Action "reset" im InputMap fehlt (Projekt ohne den
+## SettingsManager-Autoload, kaputte Settings-Datei, frisch geklonter
+## Branch). Ohne diesen Fallback stieg _process() frueher kommentarlos aus
+## und [R] tat GAR NICHTS — ohne jede Meldung, warum.
+const RESET_FALLBACK_KEY: Key = KEY_R
 
 ## Gruppe, unter der sich PauseMenu selbst eintraegt. Siehe die ausfuehrliche
 ## Begruendung in pause_menu.gd, wo frueher ein zweiter, konkurrierender
@@ -45,6 +55,17 @@ var _is_restarting: bool = false
 ## jedem reload_current_scene() neu instanziiert, eine einmal gecachte
 ## Referenz waere nach dem ersten Neustart bereits eine Leiche.
 var _pause_menu: PauseMenu = null
+
+## Millisekunden-Zeitstempel des Haltebeginns.
+##
+## WARUM NICHT delta AUFADDIEREN:
+## _process(delta) bekommt SKALIERTE Zeit. Waehrend eines Hit-Stops steht
+## Engine.time_scale bei 0.05 — eine gehaltene Taste haette dort das
+## 20-Fache an Echtzeit gebraucht. Time.get_ticks_msec() laeuft in echter
+## Wanduhrzeit und ist damit unabhaengig von Zeitlupe und Pause.
+var _hold_started_ms: int = 0
+
+var _warned_missing_action: bool = false
 
 var _fade: ColorRect = null
 var _preview_box: PanelContainer = null
@@ -114,10 +135,14 @@ func _build_ui() -> void:
 	add_child(_preview_box)
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if _is_restarting:
 		return
-	if not InputMap.has_action(RESET_ACTION):
+
+	# Ein bereits laufender Neustart (z.B. ueber den Pause-Button) darf
+	# nicht noch einmal angestossen werden.
+	var restarter: Node = get_node_or_null("/root/RunRestart")
+	if restarter and restarter.has_method("is_restart_pending") and restarter.is_restart_pending():
 		return
 
 	# Waehrend Tod/Sieg gesperrt: dort gibt es eigene Restart-Buttons, und
@@ -130,14 +155,15 @@ func _process(delta: float) -> void:
 		_cancel()
 		return
 
-	if not Input.is_action_pressed(RESET_ACTION):
+	if not _is_reset_held():
 		_cancel()
 		return
 
 	if _hold_time <= 0.0:
 		_begin_hold()
 
-	_hold_time += delta
+	# Echtzeit statt skalierter delta-Summe — Begruendung an _hold_started_ms.
+	_hold_time = float(Time.get_ticks_msec() - _hold_started_ms) / 1000.0
 	var progress: float = clampf(_hold_time / maxf(hold_duration, 0.01), 0.0, 1.0)
 
 	# Quadratisch statt linear: die Abblende soll spaet richtig zupacken,
@@ -162,7 +188,21 @@ func _is_reset_blocked() -> bool:
 	return _pause_menu.is_reset_blocked()
 
 
+## Fragt die Reset-Taste ab und faellt auf die physische [R] zurueck, wenn
+## die Action gar nicht existiert. Die Warnung kommt bewusst nur EINMAL —
+## als Meldung pro Frame waere sie in der Konsole nicht zu gebrauchen.
+func _is_reset_held() -> bool:
+	if InputMap.has_action(RESET_ACTION):
+		return Input.is_action_pressed(RESET_ACTION)
+
+	if not _warned_missing_action:
+		_warned_missing_action = true
+		push_warning("ResetOverlay: Action '%s' fehlt im InputMap - Fallback auf die physische Taste [R]. Autoload 'SettingsManager' pruefen." % RESET_ACTION)
+	return Input.is_physical_key_pressed(RESET_FALLBACK_KEY)
+
+
 func _begin_hold() -> void:
+	_hold_started_ms = Time.get_ticks_msec()
 	_preview_seed_code = _peek_next_seed_code()
 	_preview_label.text = _preview_seed_code
 
@@ -171,6 +211,7 @@ func _cancel() -> void:
 	if _hold_time <= 0.0:
 		return
 	_hold_time = 0.0
+	_hold_started_ms = 0
 	_preview_box.visible = false
 
 	# Sanft aufblenden statt hart auf 0: ein abrupter Sprung sieht aus wie
@@ -183,31 +224,41 @@ func _cancel() -> void:
 func _restart() -> void:
 	_is_restarting = true
 	_fade.color.a = 1.0
+	_preview_box.visible = false
 
-	# Aufraeumen, bevor die Szene neu geladen wird: ein laufender Hit-Stop
-	# wuerde sonst mit eingefrorenem Engine.time_scale in den neuen Run
-	# uebernommen, und Loot/Items wuerden Zustaende aus dem alten Lauf
-	# behalten.
-	Juice.cancel()
+	# Der komplette Aufraeum- und Reload-Ablauf liegt jetzt in RunRestart
+	# (Autoload). Vorher stand er HIER — und nur hier: die Restart-Buttons
+	# in Pause-, Death- und Win-Screen sprangen direkt auf
+	# reload_current_scene() und haben Juice, Items und Loot NICHT
+	# zurueckgesetzt. Ein Neustart per Taste und ein Neustart per Button
+	# fuehrten damit in unterschiedliche Zustaende.
+	var restarter: Node = get_node_or_null("/root/RunRestart")
+	if restarter and restarter.has_method("restart"):
+		restarter.restart()
+	else:
+		# Fallback, falls das Autoload nicht eingetragen ist: wenigstens
+		# nicht in einem eingefrorenen Zustand haengenbleiben.
+		push_warning("ResetOverlay: Autoload 'RunRestart' nicht gefunden - Notfall-Neustart ohne Aufraeumen.")
+		Engine.time_scale = 1.0
+		get_tree().paused = false
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		get_tree().reload_current_scene()
 
-	var items: Node = get_node_or_null("/root/Items")
-	if items and items.has_method("reset_run"):
-		items.reset_run()
+	# Dieses Overlay haengt in einem Autoload-CanvasLayer und ueberlebt den
+	# Szenenwechsel — also selbst zuruecksetzen. Ein Frame Verzoegerung,
+	# damit die Abblende waehrend des Wechsels stehen bleibt und nicht
+	# mitten im Ladevorgang aufreisst.
+	await get_tree().process_frame
+	await get_tree().process_frame
 
-	var loot: Node = get_node_or_null("/root/Loot")
-	if loot and loot.has_method("reset_run"):
-		loot.reset_run()
-
-	get_tree().paused = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	get_tree().reload_current_scene()
-
-	# Nach dem Reload existiert dieses Overlay weiter (es haengt in einem
-	# Autoload-CanvasLayer), also selbst zuruecksetzen.
 	_hold_time = 0.0
+	_hold_started_ms = 0
 	_is_restarting = false
 	_preview_box.visible = false
-	_fade.color.a = 0.0
+
+	var tween := create_tween()
+	tween.tween_property(_fade, "color:a", 0.0, 0.25)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 ## Zieht den Seed-Code, den der naechste Run bekommen wuerde. Faellt auf
@@ -223,5 +274,7 @@ func _peek_next_seed_code() -> String:
 			return DetRng.seed_to_code(absi(next_seed) % DetRng.MAX_SEED)
 
 	return DetRng.seed_to_code(DetRng.random_seed_value())
+
+
 
 
