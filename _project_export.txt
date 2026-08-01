@@ -6984,6 +6984,50 @@ process/size_limit=0
 detect_3d/compress_to=1
 
 
+===== FILE: cd565bbe-05f1-450b-9fe6-1a7137320796.jpg.import =====
+
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://b0321kgtvtkab"
+path="res://.godot/imported/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg-9c9097494aad8c57d9b0db754872bd66.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://cd565bbe-05f1-450b-9fe6-1a7137320796.jpg"
+dest_files=["res://.godot/imported/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg-9c9097494aad8c57d9b0db754872bd66.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=false
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/channel_remap/red=0
+process/channel_remap/green=1
+process/channel_remap/blue=2
+process/channel_remap/alpha=3
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1
+
+
 ===== FILE: export_presets.cfg =====
 
 [runnable_presets]
@@ -8322,32 +8366,52 @@ surface_material_override/0 = ExtResource("1_ukw5w")
 
 ===== FILE: scenes\hazards\lemonade.tscn =====
 
-[gd_scene format=3 uid="uid://4nmpph8quo0y"]
 
-[ext_resource type="Script" uid="uid://wwipd63kj1ff" path="res://scripts/hazards/lemonade.gd" id="1_7j7g3"]
+[gd_scene format=3 uid="uid://dlj5htolv7pph"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7j7g3"]
+[ext_resource type="Script" uid="uid://wwipd63kj1ff" path="res://scripts/hazards/lemonade.gd" id="1_2rkj2"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2rkj2"]
 transparency = 1
 depth_draw_mode = 1
-albedo_color = Color(0.667, 0.843, 0.216, 0.85)
+albedo_color = Color(0.6666667, 0.84313726, 0.21568628, 0.85)
 emission_enabled = true
-emission = Color(0.667, 0.843, 0.216, 1)
-emission_energy_multiplier = 3.4336262
+emission = Color(0.6666667, 0.84313726, 0.21568628, 1)
+emission_energy_multiplier = 2.0319273
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_6igkw"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_qbaa6"]
 size = Vector3(4, 1, 4)
 
 [node name="Lemonade" type="Node3D" unique_id=1115630498]
-script = ExtResource("1_7j7g3")
+script = ExtResource("1_2rkj2")
+size = Vector3(4, 1, 4)
+lava_color = Color(0.6666667, 0.84313726, 0.21568628, 1)
+glow_energy = 2.0
+alpha = 0.85
+pulse_enabled = true
+pulse_speed = 2.0
+pulse_amount = 0.4
+damage_per_tick = 8.0
+tick_interval = 0.5
+first_tick_interval = 0.3
+damage_on_entry = true
+buoyancy_rise_speed = 0.3
+entry_dampening = 0.3
+rescan_interval = 0.1
+display_name = "Lemonade"
+debug_logging = false
 
 [node name="LemonadeVisual" type="CSGBox3D" parent="." unique_id=313934804]
 size = Vector3(4, 1, 4)
-material = SubResource("StandardMaterial3D_7j7g3")
+material = SubResource("StandardMaterial3D_2rkj2")
 
 [node name="LemonadeTrigger" type="Area3D" parent="." unique_id=1664148033]
+collision_mask = 5
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="LemonadeTrigger" unique_id=1025396243]
-shape = SubResource("BoxShape3D_6igkw")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LemonadeTrigger" unique_id=2123325636]
+shape = SubResource("BoxShape3D_qbaa6")
+
+
 
 
 ===== FILE: scenes\kill_gate.gd =====
@@ -10662,6 +10726,7 @@ shape = SubResource("BoxShape3D_goal")
 
 ===== FILE: scenes\level_generation\door.gd =====
 
+
 extends StaticBody3D
 class_name Door
 
@@ -10747,7 +10812,66 @@ const INTERACT_ACTION := "interact"
 @export var force_hack: bool = false
 @export var hack_duration: float = 4.0
 @export var hack_decay_rate: float = 0.5
-@export var hack_range: float = 4.0
+
+## ##########################################################################
+## FIX: "ich muss springen, um Tueren zu oeffnen"
+## ##########################################################################
+## ROOT CAUSE:
+## Die Interaktionszone war eine KUGEL mit Radius hack_range, gesetzt auf
+## den Ursprung des Tuer-Nodes. Der liegt in den Raum-Szenen auf halber
+## Tuerhoehe (z.B. y = 5.0 bei einem 10 Units hohen Tuerblatt).
+##
+## Solange Tuer und Radius zueinander passten, ging das gerade so gut:
+## Kugelmittelpunkt bei y = 5, Radius 4 -> unterster Punkt bei y = 1, und
+## die Spielerkapsel reicht bis etwa y = 1,7. Der Kontakt kam also nur
+## deshalb zustande, weil der Spieler mit dem KOPF gerade noch in die
+## Unterseite der Kugel ragte.
+##
+## Seit die Raeume ueber room_scale (aktuell 2x) hochskaliert werden,
+## skaliert die Kugel zwar mit - der Mittelpunkt aber auch. Aus y = 5 wird
+## y = 10, aus Radius 4 wird Radius 8: unterster Punkt jetzt bei y = 2.
+## Der Spieler ist unveraendert 1,7 hoch geblieben. Die Zone endet damit
+## ueber seinem Kopf, und die einzige Moeglichkeit hineinzukommen ist ein
+## Sprung.
+##
+## Das ist der Grund, warum eine Kugel hier grundsaetzlich die falsche
+## Form ist: eine Tuer ist ein hohes, schmales Rechteck. Eine Kugel, die
+## dieses Rechteck ganz umschliesst, ragt links und rechts weit in die
+## Wand hinein; eine Kugel, die seitlich passt, erreicht den Boden nicht.
+## Beides ist nicht zu gewinnen.
+##
+## LOESUNG: Die Zone ist jetzt ein QUADER, der aus dem tatsaechlichen
+## Tuerblatt abgeleitet wird (Breite und Hoehe = das, was man sieht) und
+## nur in der Tiefe um hack_range nach vorn und hinten waechst. Sie
+## skaliert damit automatisch mit jeder Raumgroesse mit, ohne dass hier
+## irgendein Wert nachgezogen werden muss.
+##
+## hack_range bedeutet dadurch etwas anderes als vorher: NICHT mehr
+## "Abstand vom Tuermittelpunkt", sondern "Abstand von der Tuerflaeche".
+## Deshalb ist der Standardwert von 4.0 auf 2.5 gesenkt - 2,5 lokale
+## Einheiten sind bei room_scale = 2 immer noch 5 Meter vor der Tuer.
+@export var hack_range: float = 2.5
+
+## Seitlicher Zuschlag ueber die Breite des Tuerblatts hinaus. Klein
+## halten: die Tuer sitzt in einer Wandoeffnung, alles darueber hinaus
+## liegt in der Wand und ist unerreichbar.
+@export var interact_side_margin: float = 0.3
+
+## Zuschlag nach OBEN ueber die Tuerkante hinaus.
+@export var interact_top_margin: float = 0.3
+
+## Wie weit die Zone UNTER die Unterkante des Tuerblatts reicht.
+##
+## Bewusst groesser als der obere Zuschlag: das Tuerblatt sitzt in
+## Korridoren mit Hoehenunterschied nicht immer exakt auf dem Boden, auf
+## dem der Spieler steht (Rampen, abgesenkte Bodenstuecke). Ein Zuschlag
+## nach unten kostet nichts - dort ist Boden -, ein fehlender Zuschlag
+## kostet genau den Bug, der hier behoben wird.
+@export var interact_floor_extend: float = 1.5
+
+## Fallback-Groesse, falls das Tuerblatt keine BoxShape3D benutzt.
+@export var interact_fallback_size: Vector3 = Vector3(10.0, 10.0, 1.0)
+
 @export var prompt_text: String = "HACKING"
 
 ## --- Farben ---------------------------------------------------------
@@ -10919,13 +11043,96 @@ func _setup_hack_area() -> void:
 	add_child(_hack_area)
 
 	var shape := CollisionShape3D.new()
-	var sphere := SphereShape3D.new()
-	sphere.radius = hack_range
-	shape.shape = sphere
+	shape.name = "InteractShape"
+	shape.shape = _build_interact_box()
+	shape.position = _interact_shape_position()
 	_hack_area.add_child(shape)
 
 	_hack_area.body_entered.connect(_on_hack_body_entered)
 	_hack_area.body_exited.connect(_on_hack_body_exited)
+
+
+## Baut den Interaktions-Quader aus den Massen des echten Tuerblatts.
+##
+## Alle Werte sind LOKAL, also ohne room_scale. Das ist Absicht: die Area
+## haengt unter demselben Node wie das Tuerblatt und wird von der
+## Raum-Transform genauso mitskaliert wie das Blatt selbst. Wuerde hier
+## mit Weltmassen gerechnet, muesste bei jeder Aenderung von room_scale
+## nachgezogen werden - genau der Fehler, der zu diesem Bugfix gefuehrt hat.
+##
+## Die duenne Achse des Blattes ist die Tuertiefe. Welche das ist, haengt
+## von der Himmelsrichtung ab (Nord/Sued sind in X breit, Ost/West in Z),
+## deshalb wird sie gemessen statt angenommen.
+func _build_interact_box() -> BoxShape3D:
+	var leaf: Vector3 = _measure_door_extents()
+
+	var box := BoxShape3D.new()
+	var depth: float = maxf(hack_range, 0.1) * 2.0
+
+	if leaf.x <= leaf.z:
+		# Blatt ist in X duenn -> Tuer zeigt nach Osten/Westen.
+		box.size = Vector3(
+			depth,
+			leaf.y + interact_top_margin + interact_floor_extend,
+			leaf.z + interact_side_margin * 2.0
+		)
+	else:
+		# Blatt ist in Z duenn -> Tuer zeigt nach Norden/Sueden.
+		box.size = Vector3(
+			leaf.x + interact_side_margin * 2.0,
+			leaf.y + interact_top_margin + interact_floor_extend,
+			depth
+		)
+	return box
+
+
+## Mittelpunkt des Quaders, relativ zum Tuer-Node.
+##
+## Der Quader ist unten weiter verlaengert als oben
+## (interact_floor_extend > interact_top_margin), sein Mittelpunkt liegt
+## deshalb TIEFER als der des Tuerblatts. Ohne diese Korrektur waere die
+## zusaetzliche Hoehe symmetrisch verteilt und die Zone reichte oben zu
+## weit und unten nicht weit genug - also genau dorthin, wo der Spieler
+## eben NICHT ist.
+func _interact_shape_position() -> Vector3:
+	var center: Vector3 = Vector3.ZERO
+	if _collision != null and is_instance_valid(_collision):
+		center = _collision.position
+	center.y -= (interact_floor_extend - interact_top_margin) * 0.5
+	return center
+
+
+## Breite/Hoehe/Tiefe des Tuerblatts in LOKALEN Einheiten (ohne Skalierung
+## durch uebergeordnete Nodes - siehe Kommentar an _build_interact_box).
+func _measure_door_extents() -> Vector3:
+	if _collision == null or _collision.shape == null:
+		return interact_fallback_size
+
+	var shape: Shape3D = _collision.shape
+	if shape is BoxShape3D:
+		return (shape as BoxShape3D).size
+
+	# Kein Quader: Hoehe kennen wir ueber _measure_door_height(), Breite
+	# und Tiefe nicht - dafuer greift der Fallback.
+	var height: float = _measure_door_height()
+	return Vector3(
+		interact_fallback_size.x,
+		height if height > 0.0 else interact_fallback_size.y,
+		interact_fallback_size.z
+	)
+
+
+## Baut die Interaktionszone neu. Aufzurufen, wenn sich die Masse des
+## Tuerblatts NACH _ready() aendern - etwa wenn der LevelGenerator die
+## Tuerhoehe an einen Hoehenunterschied im Korridor anpasst.
+func rebuild_interact_area() -> void:
+	if _hack_area == null or not is_instance_valid(_hack_area):
+		return
+	var shape: CollisionShape3D = _hack_area.get_node_or_null("InteractShape")
+	if shape == null:
+		return
+	shape.shape = _build_interact_box()
+	shape.position = _interact_shape_position()
 
 
 func _on_hack_body_entered(body: Node3D) -> void:
@@ -10962,6 +11169,11 @@ func get_debug_state() -> String:
 	]
 
 
+## ACHTUNG: diese Funktion liefert die Hoehe in WELTeinheiten (sie
+## multipliziert mit der Skalierung aus der globalen Transform). Fuer
+## _effective_open_height ist das richtig - die Tuer faehrt in Weltmassen
+## nach oben. Fuer den Interaktions-Quader ist es FALSCH; der rechnet
+## lokal (siehe _measure_door_extents).
 func _measure_door_height() -> float:
 	if _collision == null or _collision.shape == null:
 		return 4.0
@@ -11263,6 +11475,8 @@ func _hide_prompt() -> void:
 	var prompt: Node = HackPrompt.find_existing(self)
 	if prompt:
 		prompt.hide_prompt()
+
+
 
 
 ===== FILE: scenes\level_generation\enemy_spawn_entry.gd =====
@@ -14513,10 +14727,20 @@ edge_max_length = 12.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bqido"]
 shader = ExtResource("29_o54k0")
-shader_parameter/scanline_count = 320.0
-shader_parameter/scanline_intensity = 0.15
-shader_parameter/scanline_color = Color(0.3330591, 0.3641261, 0.30753857, 1)
-shader_parameter/scroll_speed = 0.0
+shader_parameter/resolution = Vector2(2560, 1440)
+shader_parameter/scan_line_amount = 0.326000015485
+shader_parameter/warp_amount = 0.0470000022325
+shader_parameter/noise_amount = 0.050000002375
+shader_parameter/interference_amount = 0.2
+shader_parameter/grille_amount = 0.1090000051775
+shader_parameter/grille_size = 1.0
+shader_parameter/vignette_amount = 1.5750000748125
+shader_parameter/vignette_intensity = 0.098000004655
+shader_parameter/aberation_amount = 1.0
+shader_parameter/roll_line_amount = 0.10000000475
+shader_parameter/roll_speed = 0.20000038949999954
+shader_parameter/scan_line_strength = -12.0
+shader_parameter/pixel_strength = -2.4549999266125
 
 [node name="LevelGenerationTest" type="Node3D" unique_id=1117207563]
 
@@ -14544,11 +14768,12 @@ room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), E
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")
-combat_threat_budget = 16
-corridor_threat_budget = 6
-boss_threat_budget = 40
-threat_per_stage = 4
-threat_hard_cap = 28
+combat_threat_budget = 60
+corridor_threat_budget = 20
+boss_threat_budget = 70
+threat_per_stage = 8
+threat_hard_cap = 120
+boss_threat_hard_cap = 90
 navigation_region = NodePath("../NavigationRegion3D")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1169866606]
@@ -18589,246 +18814,259 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, -4.0)
 
 ===== FILE: scenes\rooms\room_start_01.tscn =====
 
-[gd_scene load_steps=17 format=3]
+[gd_scene format=3 uid="uid://clkpkvxk2ioi5"]
 
-[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
-[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
-[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
-[ext_resource type="Script" path="res://scripts/player_spawn_point.gd" id="spawn_script"]
+[ext_resource type="Script" uid="uid://ckroiydokysuy" path="res://scripts/spawn_tutorial_hologram.gd" id="2_28lom"]
+[ext_resource type="Texture2D" uid="uid://blu8rq7raoeag" path="res://textures/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg" id="3_28lom"]
+[ext_resource type="Script" uid="uid://coe3fhp5dv6qb" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" uid="uid://0am35ym4bq0" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" uid="uid://bgngov2w0v4yo" path="res://scripts/player_spawn_point.gd" id="spawn_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
-size = Vector3(48.0, 1.0, 48.0)
+size = Vector3(48, 1, 48)
 
 [sub_resource type="BoxShape3D" id="bs1"]
-size = Vector3(48.0, 1.0, 48.0)
+size = Vector3(48, 1, 48)
 
 [sub_resource type="BoxMesh" id="bm2"]
-size = Vector3(19.0, 14.0, 1.0)
+size = Vector3(19, 14, 1)
 
 [sub_resource type="BoxShape3D" id="bs2"]
-size = Vector3(19.0, 14.0, 1.0)
+size = Vector3(19, 14, 1)
 
 [sub_resource type="BoxMesh" id="bm3"]
-size = Vector3(1.0, 14.0, 19.0)
+size = Vector3(1, 14, 19)
 
 [sub_resource type="BoxShape3D" id="bs3"]
-size = Vector3(1.0, 14.0, 19.0)
+size = Vector3(1, 14, 19)
 
 [sub_resource type="BoxMesh" id="bm4"]
-size = Vector3(3.0, 14.0, 3.0)
+size = Vector3(3, 14, 3)
 
 [sub_resource type="BoxShape3D" id="bs4"]
-size = Vector3(3.0, 14.0, 3.0)
+size = Vector3(3, 14, 3)
 
 [sub_resource type="BoxMesh" id="bm5"]
-size = Vector3(10.0, 10.0, 0.8)
+size = Vector3(10, 10, 0.8)
 
 [sub_resource type="BoxShape3D" id="bs5"]
-size = Vector3(10.0, 10.0, 0.8)
+size = Vector3(10, 10, 0.8)
 
 [sub_resource type="BoxMesh" id="bm6"]
-size = Vector3(0.8, 10.0, 10.0)
+size = Vector3(0.8, 10, 10)
 
 [sub_resource type="BoxShape3D" id="bs6"]
-size = Vector3(0.8, 10.0, 10.0)
+size = Vector3(0.8, 10, 10)
 
-[node name="RoomRoot" type="Node3D"]
+[node name="RoomRoot" type="Node3D" unique_id=657049949]
 script = ExtResource("room_script")
-room_footprint = Vector2(48.0, 48.0)
-room_height = 14.0
 
-[node name="Floor" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+[node name="TutorialHologram" type="Node3D" parent="." unique_id=1602559097]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -6)
+script = ExtResource("2_28lom")
+tutorial_texture = ExtResource("3_28lom")
+placement = null
+height = 4.0
+camera_wait_frames = null
+projector_gap = null
+projector_top_ratio = null
+projector_bottom_radius = null
+projector_offset = null
+bob_height = 0.3
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+[node name="Floor" type="StaticBody3D" parent="." unique_id=868710088]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1989433290]
 mesh = SubResource("bm1")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=419370503]
 shape = SubResource("bs1")
 
-[node name="WallNorth_A" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 7.0, -24.0)
+[node name="WallNorth_A" type="StaticBody3D" parent="." unique_id=1945851035]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 7, -24)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A" unique_id=1463260911]
 mesh = SubResource("bm2")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A" unique_id=1473954160]
 shape = SubResource("bs2")
 
-[node name="WallNorth_B" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 7.0, -24.0)
+[node name="WallNorth_B" type="StaticBody3D" parent="." unique_id=754036237]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 7, -24)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B" unique_id=918148448]
 mesh = SubResource("bm2")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B" unique_id=1071978488]
 shape = SubResource("bs2")
 
-[node name="WallSouth_A" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 7.0, 24.0)
+[node name="WallSouth_A" type="StaticBody3D" parent="." unique_id=1757623437]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 7, 24)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A" unique_id=619510220]
 mesh = SubResource("bm2")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A" unique_id=102815920]
 shape = SubResource("bs2")
 
-[node name="WallSouth_B" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 7.0, 24.0)
+[node name="WallSouth_B" type="StaticBody3D" parent="." unique_id=1776725665]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 7, 24)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B" unique_id=19909355]
 mesh = SubResource("bm2")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B" unique_id=158741773]
 shape = SubResource("bs2")
 
-[node name="WallEast_A" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 7.0, -14.5)
+[node name="WallEast_A" type="StaticBody3D" parent="." unique_id=965229501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 7, -14.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_A" unique_id=1035715949]
 mesh = SubResource("bm3")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_A" unique_id=2098009439]
 shape = SubResource("bs3")
 
-[node name="WallEast_B" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 7.0, 14.5)
+[node name="WallEast_B" type="StaticBody3D" parent="." unique_id=683405143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 7, 14.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast_B" unique_id=240532559]
 mesh = SubResource("bm3")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast_B" unique_id=404598991]
 shape = SubResource("bs3")
 
-[node name="WallWest_A" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 7.0, -14.5)
+[node name="WallWest_A" type="StaticBody3D" parent="." unique_id=787663070]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 7, -14.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_A" unique_id=723303187]
 mesh = SubResource("bm3")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_A" unique_id=1998099434]
 shape = SubResource("bs3")
 
-[node name="WallWest_B" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 7.0, 14.5)
+[node name="WallWest_B" type="StaticBody3D" parent="." unique_id=458358571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 7, 14.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest_B" unique_id=1401035017]
 mesh = SubResource("bm3")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B" unique_id=83422165]
 shape = SubResource("bs3")
 
-[node name="Pillar1" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.0, 7.0, -17.0)
+[node name="Pillar1" type="StaticBody3D" parent="." unique_id=622797015]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 7, -17)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillar1"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillar1" unique_id=1228603046]
 mesh = SubResource("bm4")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar1" unique_id=955727737]
 shape = SubResource("bs4")
 
-[node name="Pillar2" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 7.0, -17.0)
+[node name="Pillar2" type="StaticBody3D" parent="." unique_id=1131375094]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 7, -17)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillar2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillar2" unique_id=176710836]
 mesh = SubResource("bm4")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar2" unique_id=733652426]
 shape = SubResource("bs4")
 
-[node name="Pillar3" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.0, 7.0, 17.0)
+[node name="Pillar3" type="StaticBody3D" parent="." unique_id=452915688]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 7, 17)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillar3"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillar3" unique_id=1200013985]
 mesh = SubResource("bm4")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar3"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar3" unique_id=58363069]
 shape = SubResource("bs4")
 
-[node name="Pillar4" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 7.0, 17.0)
+[node name="Pillar4" type="StaticBody3D" parent="." unique_id=1191768455]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 7, 17)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillar4"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillar4" unique_id=695119053]
 mesh = SubResource("bm4")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar4"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar4" unique_id=708170495]
 shape = SubResource("bs4")
 
-[node name="Doors" type="Node3D" parent="."]
+[node name="Doors" type="Node3D" parent="." unique_id=984201878]
 
-[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5.0, -24.0)
+[node name="DoorNorth" type="StaticBody3D" parent="Doors" unique_id=492049426]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -24)
 script = ExtResource("door_script")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth" unique_id=1788791021]
 mesh = SubResource("bm5")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth" unique_id=1385855027]
 shape = SubResource("bs5")
 
-[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5.0, 24.0)
+[node name="DoorSouth" type="StaticBody3D" parent="Doors" unique_id=1437076026]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 24)
 script = ExtResource("door_script")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth" unique_id=405209186]
 mesh = SubResource("bm5")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth" unique_id=233594225]
 shape = SubResource("bs5")
 
-[node name="DoorEast" type="StaticBody3D" parent="Doors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 5.0, 0.0)
+[node name="DoorEast" type="StaticBody3D" parent="Doors" unique_id=1216392025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 5, 0)
 script = ExtResource("door_script")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorEast" unique_id=1728761129]
 mesh = SubResource("bm6")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorEast" unique_id=2066612781]
 shape = SubResource("bs6")
 
-[node name="DoorWest" type="StaticBody3D" parent="Doors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 5.0, 0.0)
+[node name="DoorWest" type="StaticBody3D" parent="Doors" unique_id=39613672]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 5, 0)
 script = ExtResource("door_script")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorWest" unique_id=1950676586]
 mesh = SubResource("bm6")
 surface_material_override/0 = ExtResource("mat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest" unique_id=596868025]
 shape = SubResource("bs6")
 
-[node name="ExitPoints" type="Node3D" parent="."]
+[node name="ExitPoints" type="Node3D" parent="." unique_id=1138858496]
 
-[node name="North" type="Marker3D" parent="ExitPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, -24.0)
+[node name="North" type="Marker3D" parent="ExitPoints" unique_id=2073763824]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -24)
 
-[node name="South" type="Marker3D" parent="ExitPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 24.0)
+[node name="South" type="Marker3D" parent="ExitPoints" unique_id=1739757505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 24)
 
-[node name="East" type="Marker3D" parent="ExitPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 0.0, 0.0)
+[node name="East" type="Marker3D" parent="ExitPoints" unique_id=1065295441]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 0)
 
-[node name="West" type="Marker3D" parent="ExitPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.0, 0.0, 0.0)
+[node name="West" type="Marker3D" parent="ExitPoints" unique_id=1917511493]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, 0)
 
-[node name="PlayerSpawnPoint" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.5, 0.0)
+[node name="PlayerSpawnPoint" type="Marker3D" parent="." unique_id=1331752787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 script = ExtResource("spawn_script")
 
 
@@ -22539,7 +22777,6 @@ shape = SubResource("ConcavePolygonShape3D_ky17o")
 
 ===== FILE: scenes\ui\ability_slot.tscn =====
 
-
 [gd_scene format=3 uid="uid://bablslot001"]
 
 [ext_resource type="Script" path="res://scripts/ability_slot.gd" id="1_abslot"]
@@ -22647,20 +22884,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_abkey")
 text = "Q"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-
-===== FILE: scenes\ui\damage_number.tscn =====
-
-[gd_scene format=3 uid="uid://jlssmdypv6ce"]
-
-[ext_resource type="Script" uid="uid://cbfrvo7uo702v" path="res://scripts/ui/damage_number.gd" id="1_aie4f"]
-
-[node name="Label3D" type="Label3D" unique_id=2133304845]
-modulate = Color(0.6664385, 0.00033277602, 0.666434, 1)
-outline_modulate = Color(0, 0.91764706, 0.88235295, 1)
-outline_size = 32
-script = ExtResource("1_aie4f")
-
 
 
 ===== FILE: scenes\ui\damage_number.tscn =====
@@ -23648,6 +23871,7 @@ func _play_ready_flash() -> void:
 
 ===== FILE: scripts\bomb.gd =====
 
+
 extends RigidBody3D
 class_name Bomb
 
@@ -23726,18 +23950,28 @@ signal exploded(position: Vector3)
 @export var fuse_time: float = 2.0
 @export var damage: float = 50.0
 
-## Deutlich groesser als die urspruenglichen 4,5. Bei ca. 2,25 m pro Kachel
-## entspricht 9,0 einem Areal von rund 4x4 Kacheln um die Bombe herum.
-## Notfalls hier nachziehen, nicht im Explosionscode.
-@export var explosion_radius: float = 9.0
+## Von 9,0 auf 14,0 angehoben (urspruenglich 4,5). Bei ca. 2,25 m pro
+## Kachel entspricht 14,0 einem Areal von rund 6x6 Kacheln.
+##
+## WICHTIG: NICHT im Explosionscode nachziehen. Saemtliche VFX-Groessen
+## (Feuerball, Kern, Schockwelle, Splitter, Licht, Brandfleck) leiten sich
+## aus DIESEM Wert ab - wer die Reichweite hier aendert, aendert das
+## sichtbare Bild automatisch mit. Genau das ist der Punkt: eine Explosion,
+## deren Optik nicht zu ihrer echten Reichweite passt, fuehlt sich wie ein
+## Zufallstreffer an.
+@export var explosion_radius: float = 14.0
 
 ## Anteil des Explosionsradius, in dem der SPIELER Schaden nimmt. Siehe
 ## Begruendung im Kopf der Datei.
-@export_range(0.1, 1.0) var self_damage_radius_factor: float = 0.55
+## Von 0.55 auf 0.40 gesenkt, weil der Gesamtradius gewachsen ist: 55 %
+## von 14 m waeren fast acht Meter Eigengefahr gewesen. 40 % von 14 sind
+## 5,6 m - grob dieselbe absolute Gefahrenzone wie vorher, nur eben in
+## einer deutlich groesseren Explosion.
+@export_range(0.1, 1.0) var self_damage_radius_factor: float = 0.40
 
 ## Wie stark Getroffene weggeschoben werden. Mit dem groesseren Radius
 ## angehoben, damit der Rand der Explosion noch spuerbar ist.
-@export var knockback_force: float = 26.0
+@export var knockback_force: float = 34.0
 
 ## Wie stark der Spieler die Bombe wegschieben kann.
 @export var push_strength: float = 5.0
@@ -23779,6 +24013,21 @@ signal exploded(position: Vector3)
 ## Root-Cause-Kommentar oben). -28 m/s entspricht bei dieser Gravitation
 ## grob 0,7 s freiem Fall — mehr braucht kein Bomben-Wurf in diesem Spiel.
 @export var max_fall_speed: float = 28.0
+
+## --- Explosions-VFX -----------------------------------------------------
+## Anzahl der Splitter, die radial nach aussen fliegen. Sie sind der
+## Grund, warum eine Explosion "aufreisst" statt nur aufzuleuchten: eine
+## Kugel, die groesser wird, liest das Auge als Ballon. Erst Teile, die
+## sich UNTERSCHIEDLICH schnell in UNTERSCHIEDLICHE Richtungen bewegen,
+## lesen sich als Detonation.
+@export var debris_count: int = 14
+@export var debris_size: float = 0.45
+
+## Dunkler Brandfleck, der nach dem Feuer kurz stehenbleibt. Ohne ihn ist
+## eine halbe Sekunde nach der Explosion nicht mehr zu sehen, dass an der
+## Stelle ueberhaupt etwas passiert ist.
+@export var scorch_enabled: bool = true
+@export var scorch_lifetime: float = 1.6
 
 @export var debug_logging: bool = false
 
@@ -24019,8 +24268,8 @@ func explode() -> void:
 	exploded.emit(origin)
 
 	Juice.hit_stop(Juice.DURATION_EXPLOSION)
-	# Mit dem groesseren Radius auch mehr Wucht auf der Kamera.
-	Juice.shake(1.4)
+	# Mit dem noch groesseren Radius auch mehr Wucht auf der Kamera.
+	Juice.shake(2.0)
 
 	_spawn_flash(origin)
 	queue_free()
@@ -24107,9 +24356,12 @@ func _spawn_flash(origin: Vector3) -> void:
 	if parent == null:
 		return
 
+	_spawn_scorch(parent, origin)
 	_spawn_fireball(parent, origin)
 	_spawn_core(parent, origin)
 	_spawn_shockwave(parent, origin)
+	_spawn_outer_ring(parent, origin)
+	_spawn_debris(parent, origin)
 	_spawn_light(parent, origin)
 
 
@@ -24132,9 +24384,13 @@ func _spawn_fireball(parent: Node, origin: Vector3) -> void:
 
 	var tween := flash.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(flash, "scale", Vector3.ONE * 1.05, 0.30) \
-		.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-	tween.tween_property(material, "albedo_color:a", 0.0, 0.42)
+	# TRANS_EXPO statt QUINT: das Aufreissen passiert damit noch staerker
+	# in den ersten Frames. Eine Explosion, die gleichmaessig waechst,
+	# sieht aus wie ein aufgehender Ballon.
+	tween.tween_property(flash, "scale", Vector3.ONE * 1.10, 0.26) \
+		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(flash, "rotation:y", TAU * 0.15, 0.50)
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.50)
 	tween.chain().tween_callback(flash.queue_free)
 
 
@@ -24207,6 +24463,130 @@ func _spawn_light(parent: Node, origin: Vector3) -> void:
 	tween.tween_property(light, "light_energy", 0.0, 0.32) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(light.queue_free)
+
+
+## Zweiter, duennerer Ring, der SCHNELLER nach aussen laeuft als die
+## Hauptschockwelle und ueber deren Rand hinausschiesst. Zwei Ringe mit
+## unterschiedlichem Tempo geben der Explosion Tiefe; einer allein wirkt
+## wie eine aufgemalte Kreisanimation.
+func _spawn_outer_ring(parent: Node, origin: Vector3) -> void:
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.85
+	ring.outer_radius = 1.0
+	ring.rings = 4
+	ring.ring_segments = 28
+
+	var material := _make_flash_material(Color(1.0, 0.95, 0.75, 0.55))
+
+	var wave := MeshInstance3D.new()
+	wave.mesh = ring
+	wave.material_override = material
+	wave.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(wave)
+	wave.global_position = origin + Vector3(0.0, 0.35, 0.0)
+	wave.scale = Vector3(0.4, 0.4, 0.4)
+
+	var tween := wave.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(wave, "scale", Vector3(explosion_radius * 1.15, 0.6, explosion_radius * 1.15), 0.26) \
+		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.30)
+	tween.chain().tween_callback(wave.queue_free)
+
+
+## Splitter: kleine Wuerfel, die radial nach aussen und leicht nach oben
+## fliegen und dabei schrumpfen.
+##
+## Bewusst KEIN GPUParticles3D: die Bombe baut sich komplett im Code auf
+## (keine bomb.tscn, siehe Klassenkommentar), und ein Partikelsystem
+## braeuchte ein ProcessMaterial als Ressource. Ein Dutzend getweente
+## Meshes kostet fuer einen Effekt, der eine halbe Sekunde dauert,
+## praktisch nichts - und bleibt im PSX-Look sogar naeher am Rest des
+## Spiels als weiche Partikel.
+func _spawn_debris(parent: Node, origin: Vector3) -> void:
+	if debris_count <= 0:
+		return
+
+	var box := BoxMesh.new()
+	box.size = Vector3.ONE * debris_size
+
+	for i: int in range(debris_count):
+		# Gleichmaessig verteilte Winkel plus ein fester Versatz pro
+		# Splitter statt reinem Zufall: das Ergebnis sieht ausgewogener
+		# aus und ist zwischen zwei Explosionen nicht wiedererkennbar
+		# gleich.
+		var angle: float = TAU * (float(i) / float(debris_count)) + randf() * 0.35
+		var direction := Vector3(cos(angle), 0.0, sin(angle))
+		var distance: float = explosion_radius * randf_range(0.45, 0.95)
+		var height: float = explosion_radius * randf_range(0.10, 0.30)
+
+		var material := _make_flash_material(Color(1.0, 0.70, 0.30, 0.9))
+
+		var shard := MeshInstance3D.new()
+		shard.mesh = box
+		shard.material_override = material
+		shard.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		parent.add_child(shard)
+		shard.global_position = origin + Vector3(0.0, 0.4, 0.0)
+
+		var peak: Vector3 = origin + direction * distance * 0.6 + Vector3(0.0, height, 0.0)
+		var landing: Vector3 = origin + direction * distance + Vector3(0.0, 0.15, 0.0)
+
+		var tween := shard.create_tween()
+		# Erst Aufstieg, dann Fall - eine gerade Linie nach aussen sieht
+		# aus wie ein Sternchen-Sprite, keine Wurfparabel.
+		tween.tween_property(shard, "global_position", peak, 0.16) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(shard, "global_position", landing, 0.26) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+		var fade := shard.create_tween()
+		fade.set_parallel(true)
+		fade.tween_property(shard, "rotation", Vector3(randf() * TAU, randf() * TAU, randf() * TAU), 0.42)
+		fade.tween_property(shard, "scale", Vector3.ONE * 0.2, 0.42) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		fade.tween_property(material, "albedo_color:a", 0.0, 0.42)
+		fade.chain().tween_callback(shard.queue_free)
+
+
+## Flacher, dunkler Kreis auf Bodenhoehe, der NACH dem Feuer noch kurz
+## stehenbleibt und dann ausblendet.
+##
+## Wird als ERSTES gespawnt, damit er unter allen anderen Ebenen liegt.
+## Er benutzt bewusst KEIN additives Blending (im Gegensatz zu allen
+## anderen Effekten hier) - additiv gemischtes Schwarz ist unsichtbar.
+func _spawn_scorch(parent: Node, origin: Vector3) -> void:
+	if not scorch_enabled:
+		return
+
+	var disc := CylinderMesh.new()
+	disc.top_radius = explosion_radius * 0.75
+	disc.bottom_radius = explosion_radius * 0.75
+	disc.height = 0.06
+	disc.radial_segments = 20
+	disc.rings = 1
+
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(0.05, 0.04, 0.03, 0.55)
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.disable_receive_shadows = true
+
+	var mark := MeshInstance3D.new()
+	mark.mesh = disc
+	mark.material_override = material
+	mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mark)
+	mark.global_position = origin + Vector3(0.0, 0.05, 0.0)
+	mark.scale = Vector3(0.3, 1.0, 0.3)
+
+	var tween := mark.create_tween()
+	tween.tween_property(mark, "scale", Vector3(1.0, 1.0, 1.0), 0.20) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(maxf(scorch_lifetime - 0.6, 0.0))
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.40)
+	tween.tween_callback(mark.queue_free)
 
 
 func _make_flash_material(color: Color) -> StandardMaterial3D:
@@ -25952,6 +26332,7 @@ static func find_for(node: Node) -> PlayerStats:
 
 ===== FILE: scripts\death_screen.gd =====
 
+
 extends Control
 class_name DeathScreen
 
@@ -26165,9 +26546,23 @@ func _update_items_display() -> void:
 		_item_list.refresh()
 
 
+## Laeuft ueber RunRestart (Autoload) statt direkt ueber
+## reload_current_scene(). Begruendung ausfuehrlich in run_restart.gd und
+## party_manager.gd: der direkte Weg liess PartyManager mit einem Zeiger
+## auf die tote Spieler-Instanz zurueck, wodurch im neuen Level nie wieder
+## ein Charakter gespawnt wurde. Der Button hat also durchaus etwas getan -
+## nur eben ein Level ohne Spieler erzeugt.
 func _on_restart_pressed() -> void:
 	if _blur_overlay:
 		_blur_overlay.visible = false
+
+	var restarter: Node = get_node_or_null("/root/RunRestart")
+	if restarter and restarter.has_method("restart"):
+		restarter.restart()
+		return
+
+	push_warning("DeathScreen: Autoload 'RunRestart' nicht gefunden - Notfall-Neustart ohne Aufraeumen.")
+	Engine.time_scale = 1.0
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
@@ -28212,6 +28607,277 @@ func _on_died() -> void:
 	queue_free()
 
 
+===== FILE: scripts\enemies\enemy_density.gd =====
+
+
+extends Node
+
+# ============================================================================
+# EnemyDensity — Autoload: vervielfacht die Gegner-Spawnpunkte JEDES Raums.
+# Muss unter Project Settings -> Autoload als "EnemyDensity" stehen.
+# ============================================================================
+#
+# ############################################################################
+# WARUM "MEHR GEGNER" NICHT UEBER DAS THREAT-BUDGET ALLEIN GEHT
+# ############################################################################
+# Es gab ZWEI Deckel gleichzeitig, und nur einer davon war das Budget:
+#
+#   1. BUDGET — level_generation_test.tscn ueberschreibt
+#      combat_threat_budget = 16 und threat_hard_cap = 28. Die 64 im
+#      Script von level_generator.gd sind dadurch komplett wirkungslos;
+#      wer nur den Script-Default hochdreht, aendert gar nichts.
+#
+#   2. SPAWNPUNKTE — room_instance._roll_enemy_mix() kappt hart:
+#
+#          while budget > 0 and result.size() < enemy_spawn_points.size()
+#
+#      Die Anzahl der Marker3D unter "EnemySpawnPoints" in der Raum-Szene
+#      IST damit die echte Obergrenze. Ein Raum mit 12 Markern spawnt nie
+#      mehr als 12 Gegner — egal wie gross das Budget ist. Genau das war im
+#      Log zu sehen: "Gegner entfernt - noch 11 aktiv" abwaerts, bei einem
+#      Budget, das rechnerisch ein Vielfaches hergegeben haette.
+#
+# Deckel 1 wird in der Szene angehoben. Deckel 2 loest dieses Autoload.
+#
+# ############################################################################
+# WARUM ALS AUTOLOAD STATT ALS AENDERUNG AN room_instance.gd
+# ############################################################################
+# Die Alternative waere, in 12 Raum-Szenen jeweils zwei Dutzend Marker von
+# Hand zu setzen — und danach bei jedem neuen Raum wieder. Oder
+# room_instance.gd (1800 Zeilen) umzubauen.
+#
+# Stattdessen wird hier von aussen die Liste ergaenzt, auf der die
+# vorhandene Logik ohnehin schon arbeitet: fuer jeden bestehenden Marker
+# entstehen extra_points_per_marker weitere, ringfoermig darum herum. Der
+# Spawn-Code merkt keinen Unterschied — er sieht nur eine laengere Liste.
+# Dasselbe Muster wie Loot, Treasure und RoomGuard.
+#
+# ############################################################################
+# TIMING — WARUM DAS RECHTZEITIG PASSIERT
+# ############################################################################
+# LevelGenerator ruft prepare_enemies() direkt nach dem Instanziieren auf.
+# Dort wird die Liste aber nur auf "ist sie leer?" geprueft; die eigentliche
+# Auswahl (_roll_enemy_mix) und das Spawnen laufen erst, wenn der Spieler
+# den Raum BETRITT. Unsere Marker muessen also lediglich vor dem Betreten
+# des Raums stehen — ein deferred Aufruf plus eine Physik-Frame reicht mit
+# grossem Abstand.
+#
+# ############################################################################
+# DETERMINISMUS
+# ############################################################################
+# Kein RandomNumberGenerator: die Zusatzpunkte werden rein geometrisch aus
+# Index und Winkel berechnet. Zwei Runs mit demselben Seed bekommen damit
+# exakt dieselben Marker in exakt derselben Reihenfolge — sonst waeren die
+# verifizierbaren Speedrun-Seeds (siehe det_rng.gd / run_record.gd) beim
+# ersten Gegner hinfaellig.
+
+## Wie viele ZUSAETZLICHE Punkte pro vorhandenem Marker entstehen.
+## 2 = dreifache Gesamtzahl (Original + 2). Das ist die angeforderte
+## "mindestens 3x mehr Gegner"-Vorgabe.
+@export var extra_points_per_marker: int = 2
+
+## Radius des ersten Rings um den Original-Marker. Jeder weitere Ring liegt
+## um ring_step weiter aussen.
+##
+## 4.5 ist bewusst groesser als min_spawn_spacing des Stingers (3.0) und
+## kleiner als das des Fighters (6.0): Stinger duerfen sich dicht draengen,
+## Fighter verteilen sich ueber _take_spawn_point() dann automatisch auf
+## weiter auseinanderliegende Punkte.
+@export var ring_radius: float = 4.5
+@export var ring_step: float = 3.0
+
+## Wie weit ein Zusatzpunkt maximal vom Raumrand entfernt bleiben muss.
+## Verhindert Marker in oder hinter der Wand.
+@export var wall_margin: float = 3.0
+
+## Aus dieser Hoehe UEBER dem Marker wird nach Boden gesucht.
+##
+## Nicht von der Raumdecke aus: dann trifft der Strahl zuerst die Decke.
+## Das ist derselbe Fehler, der beim Sockel-Raycast in treasure_manager.gd
+## schon einmal aufgetreten ist.
+@export var ground_probe_up: float = 3.0
+@export var ground_probe_down: float = 40.0
+
+## Zusatzpunkte, die in einer Limonaden-Lache landen wuerden, werden
+## verworfen. Ein Gegner, der beim Spawn sofort Schaden nimmt und
+## wegrutscht, sieht nach Fehler aus, nicht nach Absicht.
+@export var avoid_hazards: bool = true
+@export var hazard_margin: float = 1.5
+
+@export var debug_logging: bool = false
+
+var _processed: Dictionary = {}
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("[EnemyDensity] %s" % msg)
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_PAUSABLE
+	_debug("Autoload aktiv.")
+	get_tree().node_added.connect(_on_node_added)
+	_scan_existing.call_deferred()
+
+
+func _scan_existing() -> void:
+	var root: Node = get_tree().root
+	if root == null:
+		return
+	_scan_recursive(root)
+
+
+func _scan_recursive(node: Node) -> void:
+	_on_node_added(node)
+	for child: Node in node.get_children():
+		_scan_recursive(child)
+
+
+func _on_node_added(node: Node) -> void:
+	if not (node is RoomInstance):
+		return
+	if _processed.has(node.get_instance_id()):
+		return
+	_densify_deferred.call_deferred(node as RoomInstance)
+
+
+## Eine Physik-Frame warten: room_footprint, die Welt-Transform und die
+## bereits am Boden ausgerichteten Original-Marker stehen erst danach.
+func _densify_deferred(room: RoomInstance) -> void:
+	if not is_instance_valid(room):
+		return
+	await get_tree().physics_frame
+	if not is_instance_valid(room) or not room.is_inside_tree():
+		return
+	_densify(room)
+
+
+func _densify(room: RoomInstance) -> void:
+	var id: int = room.get_instance_id()
+	if _processed.has(id):
+		return
+	_processed[id] = true
+	room.tree_exited.connect(func() -> void: _processed.erase(id))
+
+	if extra_points_per_marker <= 0:
+		return
+
+	var originals: Array[Marker3D] = room.enemy_spawn_points.duplicate()
+	if originals.is_empty():
+		_debug("Raum %s hat keine Spawnpunkte - uebersprungen." % room.grid_position)
+		return
+
+	var parent: Node = room.get_node_or_null("EnemySpawnPoints")
+	if parent == null:
+		parent = room
+
+	var added: int = 0
+
+	for marker_index: int in range(originals.size()):
+		var source: Marker3D = originals[marker_index]
+		if not is_instance_valid(source):
+			continue
+
+		for extra_index: int in range(extra_points_per_marker):
+			var candidate: Vector3 = _ring_position(source.global_position, marker_index, extra_index)
+
+			if not _is_inside_room(room, candidate):
+				continue
+
+			var grounded: Vector3 = _snap_to_ground(room, candidate)
+			if grounded == Vector3.INF:
+				continue
+
+			if avoid_hazards and _is_in_hazard(grounded):
+				continue
+
+			var extra := Marker3D.new()
+			extra.name = "EnemySpawnExtra_%d_%d" % [marker_index, extra_index]
+			parent.add_child(extra)
+			extra.global_position = grounded
+			extra.global_rotation = Vector3(0.0, source.global_rotation.y, 0.0)
+
+			room.enemy_spawn_points.append(extra)
+			added += 1
+
+	_debug("Raum %s: %d Original-Punkte + %d Zusatzpunkte = %d." % [
+		room.grid_position, originals.size(), added, room.enemy_spawn_points.size()
+	])
+
+
+## Rein geometrisch, ohne Zufall — siehe Determinismus-Block im Dateikopf.
+## Der Versatz aus marker_index sorgt dafuer, dass benachbarte Original-
+## Marker ihre Ringe nicht deckungsgleich uebereinanderlegen.
+func _ring_position(origin: Vector3, marker_index: int, extra_index: int) -> Vector3:
+	var ring: int = extra_index / 3
+	var slot: int = extra_index % 3
+	var radius: float = ring_radius + float(ring) * ring_step
+	var angle: float = TAU * (float(slot) / 3.0) + float(marker_index) * 0.7
+	return origin + Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
+
+
+## Liegt der Punkt noch mit Sicherheitsabstand innerhalb des Grundrisses?
+## Gerechnet wird im LOKALEN Raumkoordinatensystem, weil room_footprint
+## genau so definiert ist — global waere die Rechnung bei gedrehten oder
+## skalierten Raeumen falsch.
+func _is_inside_room(room: RoomInstance, world_pos: Vector3) -> bool:
+	var local: Vector3 = room.to_local(world_pos)
+	var half_x: float = room.room_footprint.x * 0.5 - wall_margin
+	var half_z: float = room.room_footprint.y * 0.5 - wall_margin
+	if half_x <= 0.0 or half_z <= 0.0:
+		return false
+	return absf(local.x) <= half_x and absf(local.z) <= half_z
+
+
+## Setzt den Punkt auf den tatsaechlichen Boden. Ohne das haengen Marker in
+## Raeumen mit Rampe oder abgesenktem Bodenstueck in der Luft, und die
+## Gegner fallen beim Spawn durch die Geometrie — derselbe Fehler, den
+## room_instance._snap_markers_to_ground() fuer die Original-Marker loest.
+##
+## Rueckgabe Vector3.INF = kein Boden gefunden, Punkt verwerfen.
+func _snap_to_ground(room: RoomInstance, world_pos: Vector3) -> Vector3:
+	var world: World3D = room.get_world_3d()
+	if world == null:
+		return world_pos
+
+	var from: Vector3 = world_pos + Vector3(0.0, ground_probe_up, 0.0)
+	var to: Vector3 = world_pos + Vector3(0.0, -ground_probe_down, 0.0)
+
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.collision_mask = 1
+
+	var hit: Dictionary = world.direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return Vector3.INF
+
+	var point: Vector3 = hit["position"]
+	point.y += 0.1
+	return point
+
+
+## Ueber die Gruppe "lava_hazards", in die sich jede LavaHazard-Instanz in
+## ihrem _ready() eintraegt. Geprueft wird die XZ-Ausdehnung im lokalen
+## System der Lache, damit gedrehte Pfuetzen korrekt behandelt werden.
+func _is_in_hazard(world_pos: Vector3) -> bool:
+	for node: Node in get_tree().get_nodes_in_group("lava_hazards"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		var hazard: Node3D = node as Node3D
+		var size: Variant = hazard.get("size")
+		if not (size is Vector3):
+			continue
+
+		var local: Vector3 = hazard.to_local(world_pos)
+		var half_x: float = (size as Vector3).x * 0.5 + hazard_margin
+		var half_z: float = (size as Vector3).z * 0.5 + hazard_margin
+		if absf(local.x) <= half_x and absf(local.z) <= half_z:
+			return true
+	return false
+
+
 ===== FILE: scripts\enemies\enemy_spawner.gd =====
 
 extends Node3D
@@ -28564,6 +29230,7 @@ func _key_name(events: Array) -> String:
 
 ===== FILE: scripts\hazards\lemonade.gd =====
 
+
 @tool
 extends Node3D
 class_name LavaHazard
@@ -28609,6 +29276,34 @@ class_name LavaHazard
 ##  6. NEU - predict_falling_entry: bei hoher Fallgeschwindigkeit wird der
 ##     Fusspunkt des naechsten Physik-Schritts vorausberechnet, damit ein
 ##     schneller Sprung nicht ueber eine duenne Lache "hinwegspringt".
+##
+## ############################################################################
+##  7. "DIE LAVA FAENGT ZU SPAET MIT DEM SCHADEN AN" - ROOT CAUSE
+## ############################################################################
+##     Die Ursache lag NICHT in diesem Script, sondern in scenes/lemonade.tscn.
+##     Die Szene ueberschreibt die Exports und setzte dort
+##
+##         damage_on_entry = false
+##         tick_interval   = 1.0
+##
+##     Der unter Punkt 4 beschriebene Eintrittsschaden war damit
+##     abgeschaltet: der erste Treffer kam erst nach einer VOLLEN Sekunde
+##     in der Lache. Wer durchgelaufen ist, hat oft gar keinen Schaden
+##     genommen - was von aussen aussieht, als wuerde der Hazard "zu spaet"
+##     oder gar nicht reagieren.
+##
+##     Das ist die typische Falle bei @export-Werten: der Wert im Script
+##     ist nur der Default fuer NEUE Instanzen. Eine .tscn, die ihn
+##     ueberschreibt, gewinnt immer - und der Script-Default steht daneben
+##     und sieht richtig aus.
+##
+##     Zwei Aenderungen:
+##       a) Die Szene setzt damage_on_entry = true und tick_interval = 0.5.
+##       b) NEU hier: first_tick_interval. Der ZWEITE Treffer kommt jetzt
+##          schneller als alle folgenden. Ohne das war die Abfolge
+##          "Schaden - lange Pause - Schaden", und die lange Pause direkt
+##          nach dem Eintauchen liest sich fuer den Spieler wieder wie
+##          "reagiert zu spaet".
 
 enum HazardMode { POOL, SURFACE }
 
@@ -28643,7 +29338,12 @@ enum HazardMode { POOL, SURFACE }
 @export var hazard_mode: HazardMode = HazardMode.SURFACE
 
 @export var damage_per_tick: float = 15.0
-@export var tick_interval: float = 1.0
+@export var tick_interval: float = 0.5
+
+## Abstand vom Eintrittsschaden zum ZWEITEN Treffer. Kuerzer als
+## tick_interval - Begruendung unter Punkt 7 im Kopfkommentar.
+@export var first_tick_interval: float = 0.3
+
 @export var damage_on_entry: bool = true
 
 ## Nur im POOL-Modus relevant.
@@ -28683,7 +29383,10 @@ enum HazardMode { POOL, SURFACE }
 @export var debug_logging: bool = false
 
 ## Sicherheits-Poll gegen verschluckte body_entered-Signale (Sekunden).
-@export var rescan_interval: float = 0.2
+## Von 0.2 auf 0.1 halbiert: der Poll ist das Sicherheitsnetz fuer
+## verschluckte body_entered-Signale. Bei 0.2 s konnte genau dieser Fall
+## bis zu einer Fuenftelsekunde Schadensverzoegerung erzeugen.
+@export var rescan_interval: float = 0.1
 
 @onready var visual: CSGBox3D = $LemonadeVisual
 @onready var trigger: Area3D = $LemonadeTrigger
@@ -28851,7 +29554,10 @@ func _physics_process(delta: float) -> void:
 			# tick_interval Sekunden.
 			if damage_on_entry:
 				_damage_body(body)
-				entry["tick_timer"] = 0.0
+			# Auch OHNE Eintrittsschaden wird der Timer hier neu gesetzt:
+			# der Uebergang ist der ehrliche Startpunkt der Zaehlung.
+			entry["tick_timer"] = 0.0
+			entry["first_tick_done"] = false
 		elif was_submerged and not now_submerged:
 			_stop_submersion_effects(body)
 
@@ -28860,8 +29566,16 @@ func _physics_process(delta: float) -> void:
 		if now_submerged:
 			_apply_wade_slow(body)
 			entry["tick_timer"] += delta
-			if entry["tick_timer"] >= tick_interval:
+
+			# Der erste Treffer nach dem Eintauchen kommt frueher als die
+			# folgenden - siehe Punkt 7 im Kopfkommentar.
+			var wait: float = tick_interval
+			if not entry.get("first_tick_done", true):
+				wait = minf(first_tick_interval, tick_interval)
+
+			if entry["tick_timer"] >= wait:
 				entry["tick_timer"] = 0.0
+				entry["first_tick_done"] = true
 				_damage_body(body)
 
 		_occupants[body] = entry
@@ -28882,7 +29596,11 @@ func _register(body: Node3D) -> void:
 		return
 
 	var starts_submerged: bool = _is_body_submerged(body)
-	_occupants[body] = {"tick_timer": 0.0, "submerged": starts_submerged}
+	_occupants[body] = {
+		"tick_timer": 0.0,
+		"submerged": starts_submerged,
+		"first_tick_done": false,
+	}
 	_debug("registriert '%s' | Fuesse=%.2f | Oberflaeche=%.2f | drin=%s" % [
 		body.name, _get_body_feet_y(body), _get_surface_top_world_y(), starts_submerged
 	])
@@ -30758,6 +31476,7 @@ class OilPuddle extends Area3D:
 
 ===== FILE: scripts\items\item_catalog.gd =====
 
+
 extends RefCounted
 class_name ItemCatalog
 
@@ -30774,6 +31493,20 @@ class_name ItemCatalog
 # Wer spaeter lieber im Inspector arbeitet, legt .tres-Dateien mit dem
 # Script item_data.gd an und laedt sie in load_external() dazu — der Rest
 # des Systems merkt keinen Unterschied.
+#
+# RARITY (NEU): jedes Item bekommt eine Seltenheitsstufe statt einer
+# handgesetzten Sockelfarbe. Die Farbe leitet ItemData daraus ab -
+# grau / gruen / blau / lila / rot, aufsteigend. Die alten
+# pedestal_color-Zeilen sind deshalb ERSATZLOS entfallen: sie haetten die
+# Rarity-Farbe stillschweigend wieder ueberschrieben (der Setter von
+# pedestal_color markiert das Item als "Farbe von Hand gesetzt").
+#
+# Die Einstufung folgt der Wirkung, nicht dem Geschmack:
+#   COMMON     - kleiner, dauerhafter Bonus ohne Spielaenderung
+#   UNCOMMON   - spuerbarer Bonus oder ein Effekt mit Bedingung
+#   RARE       - aendert, wie man einen Kampf angeht
+#   EPIC       - aktive Faehigkeit oder starker Dauereffekt
+#   LEGENDARY  - haelt fuer den ganzen Run her
 #
 # ICONS: bleiben hier leer. Sobald es Texturen gibt, in
 # ItemManager._build_catalog() nach dem Erzeugen zuweisen oder direkt
@@ -30802,9 +31535,9 @@ static func build_all() -> Array[ItemData]:
 		"Schlag die Hitze zurueck",
 		"Ein Treffer auf einen Gegner gibt 0,75 s lang 1,5x Tempo und Unverwundbarkeit.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MELEE
+		ItemData.Category.MELEE,
+		ItemData.Rarity.UNCOMMON
 	)
-	spoon.pedestal_color = Color(0.85, 0.68, 0.42)
 	items.append(spoon)
 
 	# ------------------------------------------------------------------
@@ -30816,9 +31549,9 @@ static func build_all() -> Array[ItemData]:
 		"Schwere Hiebe",
 		"30 % Chance, Bluten zuzufuegen: 4 s lang jede Sekunde Schaden.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MELEE
+		ItemData.Category.MELEE,
+		ItemData.Rarity.COMMON
 	)
-	cleaver.pedestal_color = Color(0.72, 0.25, 0.20)
 	# Kleiner Grundschadensbonus, damit sich das Item auch ohne Prozzen lohnt.
 	cleaver.stat_modifiers = {
 		PlayerStats.STAT_DAMAGE: {"mul": 1.05},
@@ -30834,9 +31567,9 @@ static func build_all() -> Array[ItemData]:
 		"Ladung baut sich auf",
 		"Jeder 6. Treffer entlaedt eine Schockwelle: doppelter Schaden im Umkreis, Gegner werden zurueckgestossen.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MELEE
+		ItemData.Category.MELEE,
+		ItemData.Rarity.RARE
 	)
-	sock.pedestal_color = Color(0.55, 0.75, 0.98)
 	items.append(sock)
 
 	# ------------------------------------------------------------------
@@ -30848,9 +31581,9 @@ static func build_all() -> Array[ItemData]:
 		"Ramm sie!",
 		"Wer mit hohem Tempo in einen Gegner laeuft, loest eine Ramm-Attacke aus: hoher Kontaktschaden und Rueckstoss.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MOVEMENT
+		ItemData.Category.MOVEMENT,
+		ItemData.Rarity.RARE
 	)
-	horns.pedestal_color = Color(0.90, 0.35, 0.15)
 	horns.stat_modifiers = {
 		PlayerStats.STAT_MOVE_SPEED: {"add": 1.0},
 	}
@@ -30865,9 +31598,9 @@ static func build_all() -> Array[ItemData]:
 		"Hinterlasse eine Spur",
 		"Hinterlaesst beim Laufen eine Pfuetze. Gegner darin erleiden Schaden und werden 25 % verlangsamt.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MOVEMENT
+		ItemData.Category.MOVEMENT,
+		ItemData.Rarity.EPIC
 	)
-	oil.pedestal_color = Color(0.95, 0.90, 0.55)
 	items.append(oil)
 
 	# ------------------------------------------------------------------
@@ -30879,10 +31612,10 @@ static func build_all() -> Array[ItemData]:
 		"Zisch & Zap",
 		"Sofortiger Dash nach vorne. Durchquerte Gegner nehmen hohen Schaden und werden 2 s betaeubt.",
 		ItemData.Kind.ACTIVE,
-		ItemData.Category.MOVEMENT
+		ItemData.Category.MOVEMENT,
+		ItemData.Rarity.EPIC
 	)
 	cables.charge_rooms = 2
-	cables.pedestal_color = Color(0.40, 0.85, 0.95)
 	items.append(cables)
 
 	# ------------------------------------------------------------------
@@ -30894,9 +31627,9 @@ static func build_all() -> Array[ItemData]:
 		"Alles kommt zu dir",
 		"Zieht Muenzen, Herzen und abgelegte Bomben im Umkreis von 6 m automatisch an.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.DEFENSE
+		ItemData.Category.DEFENSE,
+		ItemData.Rarity.UNCOMMON
 	)
-	compass.pedestal_color = Color(0.65, 0.70, 0.80)
 	compass.stat_modifiers = {
 		# 6 m absolut: der Basiswert liegt bei 2.2, also +3.8 additiv.
 		PlayerStats.STAT_PICKUP_RANGE: {"add": 3.8},
@@ -30912,9 +31645,9 @@ static func build_all() -> Array[ItemData]:
 		"Die Limonade beisst nicht mehr",
 		"75 % weniger Schaden durch saure Limonade und keine Verlangsamung mehr beim Durchwaten.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.DEFENSE
+		ItemData.Category.DEFENSE,
+		ItemData.Rarity.LEGENDARY
 	)
-	boots.pedestal_color = Color(0.45, 0.90, 0.50)
 	boots.stat_modifiers = {
 		PlayerStats.STAT_HAZARD_RESIST: {"mul": 0.25},
 	}
@@ -30948,7 +31681,10 @@ static func load_external(directory: String = "res://resources/items") -> Array[
 	return result
 
 
+
+
 ===== FILE: scripts\items\item_data.gd =====
+
 
 extends Resource
 class_name ItemData
@@ -30964,6 +31700,28 @@ class_name ItemData
 enum Kind {
 	PASSIVE,   ## Wirkt dauerhaft, sobald es im Inventar liegt.
 	ACTIVE,    ## Muss aktiv ausgeloest werden, laedt ueber Raeume auf.
+}
+
+## Seltenheitsstufe. Bestimmt die Farbe, in der das Item UEBERALL
+## dargestellt wird: Sockel im Schatzraum, Drop am Boden, Chip in der
+## HUD-Leiste, Eintrag in der Run-Uebersicht.
+##
+## WARUM DIE FARBE NICHT EINZELN PRO OBERFLAECHE GESETZT WIRD:
+## Alle vier Anzeigen lesen bereits dieselbe Eigenschaft aus
+## (pedestal_color - siehe treasure_pedestal.gd, pickup.gd,
+## item_description_hud.gd, item_summary_list.gd). Die Rarity schreibt
+## deshalb einfach in genau diese Eigenschaft. Damit war fuer das komplette
+## Farbschema KEINE Aenderung an den Anzeige-Scripten noetig - und es kann
+## auch keine Oberflaeche geben, die eine andere Farbe zeigt als die
+## anderen.
+##
+## Reihenfolge = aufsteigende Wertigkeit: grau, gruen, blau, lila, rot.
+enum Rarity {
+	COMMON,     ## grau
+	UNCOMMON,   ## gruen
+	RARE,       ## blau
+	EPIC,       ## lila
+	LEGENDARY,  ## rot
 }
 
 enum Category {
@@ -30996,8 +31754,72 @@ enum Category {
 ## Beispiel: { "damage": { "mul": 1.15 } } fuer +15 % Schaden.
 @export var stat_modifiers: Dictionary = {}
 
-## Farbe des schwebenden Sockel-Wuerfels im Raum. Rein kosmetisch.
-@export var pedestal_color: Color = Color(0.95, 0.85, 0.35)
+## Seltenheit. Setzt beim Zuweisen automatisch pedestal_color mit - es sei
+## denn, pedestal_color wurde vorher von Hand gesetzt (dann gewinnt die
+## Handeingabe, siehe _pedestal_color_overridden).
+@export var rarity: Rarity = Rarity.COMMON:
+	set(value):
+		rarity = value
+		if not _pedestal_color_overridden:
+			pedestal_color = rarity_color(value)
+
+## Farbe des schwebenden Sockel-Wuerfels im Raum - und, seit Einfuehrung
+## der Rarity, auch die Farbe des Drops, des HUD-Chips und des Eintrags in
+## der Run-Uebersicht. Wird normalerweise NICHT mehr von Hand gesetzt,
+## sondern aus rarity abgeleitet.
+## Literal statt rarity_color(...): ein Member-Initialisierer, der eine
+## statische Funktion DERSELBEN Klasse aufruft, laeuft waehrend die Klasse
+## noch initialisiert wird. Der Wert unten ist identisch mit
+## rarity_color(Rarity.COMMON) - bei einer Palettenaenderung mit anpassen.
+@export var pedestal_color: Color = Color(0.72, 0.74, 0.78):
+	set(value):
+		pedestal_color = value
+		_pedestal_color_overridden = true
+
+## true, sobald pedestal_color explizit gesetzt wurde. Verhindert, dass
+## eine spaetere Rarity-Zuweisung eine bewusst gewaehlte Sonderfarbe
+## ueberschreibt.
+var _pedestal_color_overridden: bool = false
+
+
+## Die Farbtabelle. EINE Stelle - wer die Palette aendern will, aendert sie
+## hier und nirgends sonst.
+##
+## Die Werte sind bewusst hell und gesaettigt: die Sockel-Wuerfel stehen in
+## dunklen Raeumen und leuchten mit emission, gedaempfte Toene waeren dort
+## nicht auseinanderzuhalten.
+static func rarity_color(value: Rarity) -> Color:
+	match value:
+		Rarity.UNCOMMON:
+			return Color(0.42, 0.85, 0.40)   # gruen
+		Rarity.RARE:
+			return Color(0.35, 0.62, 0.98)   # blau
+		Rarity.EPIC:
+			return Color(0.70, 0.42, 0.95)   # lila
+		Rarity.LEGENDARY:
+			return Color(0.95, 0.28, 0.26)   # rot
+	return Color(0.72, 0.74, 0.78)           # grau (COMMON)
+
+
+static func rarity_name(value: Rarity) -> String:
+	match value:
+		Rarity.UNCOMMON:
+			return "Ungewoehnlich"
+		Rarity.RARE:
+			return "Selten"
+		Rarity.EPIC:
+			return "Episch"
+		Rarity.LEGENDARY:
+			return "Legendaer"
+	return "Gewoehnlich"
+
+
+func get_rarity_color() -> Color:
+	return rarity_color(rarity)
+
+
+func get_rarity_name() -> String:
+	return rarity_name(rarity)
 
 ## Wie oft dasselbe Item in einem Run maximal droppen darf. 0 = unbegrenzt.
 @export var max_stacks: int = 1
@@ -31011,7 +31833,8 @@ static func create(
 		p_flavor: String,
 		p_description: String,
 		p_kind: Kind = Kind.PASSIVE,
-		p_category: Category = Category.UTILITY
+		p_category: Category = Category.UTILITY,
+		p_rarity: Rarity = Rarity.COMMON
 ) -> ItemData:
 	var data := ItemData.new()
 	data.id = p_id
@@ -31020,6 +31843,10 @@ static func create(
 	data.description = p_description
 	data.kind = p_kind
 	data.category = p_category
+	# ZULETZT: der Setter von rarity schreibt pedestal_color mit. Stuende
+	# die Zeile weiter oben, koennte eine spaetere Zuweisung sie wieder
+	# ueberschreiben.
+	data.rarity = p_rarity
 	return data
 
 
@@ -31036,6 +31863,8 @@ func get_category_name() -> String:
 		Category.DEFENSE:
 			return "Defensive"
 	return "Sonstiges"
+
+
 
 
 ===== FILE: scripts\items\item_description_hud.gd =====
@@ -31133,7 +31962,39 @@ const HUD_ELEMENT: String = "items"
 
 ## Groesse und Lage der Karte. offset_y wird von der Bildmitte aus gemessen;
 ## positiv = nach unten.
+##
+## ##########################################################################
+## FIX: "die Karte ist viel zu breit und laeuft aus dem Bild"
+## ##########################################################################
+## card_width war eine FESTE Breite: offset_left/-right wurden hart auf
+## +/- 210 gesetzt und nie wieder angefasst. Das hatte zwei Folgen, die
+## gegeneinander liefen:
+##
+##   * Kurze Texte ("Schwere Hiebe") bekamen trotzdem die volle Breite -
+##     eine halb leere Box.
+##   * Ein Control, das NICHT in einem Container haengt (die Karte haengt
+##     frei am HUD-Wurzelknoten), kann seine Groesse nicht unter
+##     get_combined_minimum_size() druecken. Sobald ein Label mit
+##     autowrap in der Kette eine groessere Mindestbreite meldete - was
+##     bei Labels ohne gesetzte custom_minimum_size.x regelmaessig
+##     passiert, weil sie im ersten Layout-Durchgang die volle
+##     EINZEILIGE Textbreite verlangen - wuchs die Karte ueber die 420
+##     hinaus. Und weil sie mittig verankert ist und nach BEIDEN Seiten
+##     waechst, ragte sie dann links UND rechts aus dem Bild.
+##
+## Jetzt ist card_width nur noch die OBERGRENZE. Die tatsaechliche Breite
+## wird aus der gemessenen Textbreite bestimmt (siehe
+## _resize_card_to_content) und zusaetzlich gegen die Viewport-Breite
+## geklemmt - die Karte kann damit gar nicht mehr aus dem Bild laufen.
 @export var card_width: float = 420.0
+
+## Untergrenze, damit die Karte bei einem Zweiwort-Item nicht zu einem
+## Briefmarken-Kaestchen zusammenfaellt.
+@export var card_min_width: float = 240.0
+
+## Mindestabstand zum Bildrand. Gilt horizontal UND vertikal.
+@export var card_screen_margin: float = 24.0
+
 @export var card_offset_y: float = 70.0
 
 const CHIP_SIZE: float = 26.0
@@ -31188,13 +32049,22 @@ func _ready() -> void:
 	# kaputtgegangen.
 	add_to_group("item_hud")
 
+	# WICHTIG: _items MUSS vor _build_active_slot() gesetzt sein - die
+	# Funktion liest _items.ACTIVE_SLOT_COUNT, um die Anzahl der Slot-Panels
+	# zu bauen. Vorher stand diese Zeile weiter unten, NACH den _build_*-
+	# Aufrufen - _items war zu dem Zeitpunkt noch der Default-Wert null,
+	# was zu "Invalid access to property or key 'ACTIVE_SLOT_COUNT' on a
+	# base object of type 'Nil'" fuehrte. Root Cause war also nicht (nur)
+	# der bare "Items"-Bezeichner aus der letzten Runde, sondern zusaetzlich
+	# diese Reihenfolge hier in _ready() selbst.
+	_items = get_node_or_null("/root/Items")
+
 	_build_active_slot()
 	_build_chip_row()
 	# Die Karte wird erst gebaut, wenn der Baum steht — sie braucht den
 	# HUD-Wurzelknoten als Elternteil.
 	_build_card.call_deferred()
 
-	_items = get_node_or_null("/root/Items")
 	if _items:
 		_items.item_added.connect(_on_item_added)
 		_items.inventory_changed.connect(_refresh_list)
@@ -31249,11 +32119,11 @@ func _build_card() -> void:
 	_card.anchor_bottom = 0.5
 	_card.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_card.grow_vertical = Control.GROW_DIRECTION_END
-	_card.offset_left = -card_width * 0.5
-	_card.offset_right = card_width * 0.5
+	# Startwerte. Die endgueltige Breite setzt _resize_card_to_content(),
+	# sobald der Inhalt feststeht.
+	_apply_card_width(card_width)
 	_card.offset_top = card_offset_y
 	_card.offset_bottom = card_offset_y
-	_card.pivot_offset = Vector2(card_width * 0.5, 0.0)
 
 	_card_style = StyleBoxFlat.new()
 	_card_style.bg_color = BG_COLOR
@@ -31305,6 +32175,12 @@ func _build_card() -> void:
 	_card_name = Label.new()
 	_card_name.add_theme_font_size_override("font_size", 18)
 	_card_name.add_theme_color_override("font_color", Color(0.98, 0.95, 0.84))
+	# Auch der Name darf notfalls umbrechen. Ohne das setzt ein langer
+	# Itemname ("Papas Starthilfekabel") allein die Mindestbreite der
+	# ganzen Karte - und zwar in EINER Zeile, ueber jede Obergrenze hinweg.
+	_card_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_card_name.custom_minimum_size.x = 1.0
+	_card_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(_card_name)
 
 	var spacer := Control.new()
@@ -31323,12 +32199,22 @@ func _build_card() -> void:
 	_card_flavor.add_theme_font_size_override("font_size", 12)
 	_card_flavor.add_theme_color_override("font_color", MUTED_COLOR)
 	_card_flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# custom_minimum_size.x = 1 statt 0: ein Label mit autowrap, dessen
+	# Mindestbreite NICHT gesetzt ist, verlangt in der Layout-Runde die
+	# Breite seines laengsten ungebrochenen Abschnitts. Genau darueber ist
+	# die Karte vorher aus dem Bild gewandert. Mit einer expliziten
+	# Mindestbreite darf das Label beliebig schmal werden und bricht
+	# stattdessen um - die Breite bestimmt allein die Karte.
+	_card_flavor.custom_minimum_size.x = 1.0
+	_card_flavor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(_card_flavor)
 
 	_card_description = Label.new()
 	_card_description.add_theme_font_size_override("font_size", 14)
 	_card_description.add_theme_color_override("font_color", TEXT_COLOR)
 	_card_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_card_description.custom_minimum_size.x = 1.0
+	_card_description.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(_card_description)
 
 	_card_charge = Label.new()
@@ -31390,7 +32276,125 @@ func show_item(item: ItemData, persistent: bool = false) -> void:
 		_card_hint.text = "[F] Nehmen"
 
 	_card_persistent = persistent
+	_resize_card_to_content()
 	_play_card_intro()
+
+
+# ============================================================================
+# Kartengroesse
+# ============================================================================
+## Setzt Breite und Dreh-/Skalierpunkt in einem Rutsch. pivot_offset MUSS
+## mitgezogen werden: _play_card_intro() skaliert die Karte, und ein
+## Pivot, der noch auf der alten halben Breite steht, laesst sie beim
+## Aufklappen seitlich wegrutschen.
+func _apply_card_width(width: float) -> void:
+	if _card == null or not is_instance_valid(_card):
+		return
+	_card.offset_left = -width * 0.5
+	_card.offset_right = width * 0.5
+	_card.pivot_offset = Vector2(width * 0.5, 0.0)
+
+
+## Misst die tatsaechlich benoetigte Breite EINES Labels.
+##
+## Gemessen wird ueber den Font, nicht ueber get_combined_minimum_size():
+## bei eingeschaltetem autowrap meldet ein Label seine Mindestbreite als
+## "laengstes einzelnes Wort" - danach waere die Karte immer schmal und
+## jeder Text vierzeilig. Wir wollen aber das Gegenteil: so breit wie der
+## Text WILL, gedeckelt durch Bildschirm und card_width.
+func _measure_label_width(label: Label) -> float:
+	if label == null or not is_instance_valid(label):
+		return 0.0
+	if not label.visible or label.text.strip_edges() == "":
+		return 0.0
+
+	var font: Font = label.get_theme_font("font")
+	if font == null:
+		return 0.0
+	var font_size: int = label.get_theme_font_size("font_size")
+
+	var widest: float = 0.0
+	for line: String in label.text.split("\n"):
+		widest = maxf(widest, font.get_string_size(
+			line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size
+		).x)
+	return widest
+
+
+## Zieht die Karte auf die Breite ihres Inhalts zusammen und klemmt sie
+## gegen den Bildschirm.
+##
+## Reihenfolge der Grenzen (von innen nach aussen):
+##   Textbreite  ->  card_min_width  ->  card_width  ->  Viewport
+## Die letzte Grenze gewinnt immer. Damit kann keine Kombination aus
+## langem Itemnamen, grosser UI-Skalierung und kleinem Fenster die Karte
+## noch aus dem Bild schieben.
+func _resize_card_to_content() -> void:
+	if _card == null or not is_instance_valid(_card):
+		return
+
+	# Breitester Textblock in der rechten Spalte.
+	var content: float = 0.0
+	content = maxf(content, _measure_label_width(_card_name) + _measure_label_width(_card_tag) + 24.0)
+	content = maxf(content, _measure_label_width(_card_flavor))
+	content = maxf(content, _measure_label_width(_card_description))
+	content = maxf(content, _measure_label_width(_card_charge))
+	content = maxf(content, _measure_label_width(_card_hint))
+
+	# Alles, was links und rechts NEBEN dem Text liegt: Farbfeld (48),
+	# Trennabstand (12) und die Innenabstaende des StyleBox (14 + 16).
+	# Hart hier stehen zu lassen waere fehleranfaellig - die Werte werden
+	# deshalb aus den tatsaechlichen Objekten gelesen.
+	var chrome: float = 48.0 + 12.0
+	if _card_style != null:
+		chrome += _card_style.content_margin_left + _card_style.content_margin_right
+	# Zwei Pixel Luft, damit die letzte Glyphe nicht am Rahmen klebt.
+	chrome += 2.0
+
+	var wanted: float = content + chrome
+
+	var viewport_width: float = get_viewport_rect().size.x
+	var hard_max: float = maxf(viewport_width - card_screen_margin * 2.0, 120.0)
+	var soft_max: float = minf(card_width, hard_max)
+	var lower: float = minf(card_min_width, soft_max)
+
+	_apply_card_width(clampf(wanted, lower, soft_max))
+
+	# Die Hoehe steht erst nach dem naechsten Layout-Durchgang fest -
+	# deshalb getrennt und verzoegert.
+	_clamp_card_vertically.call_deferred()
+
+
+## Schiebt die Karte nach oben, falls sie unten aus dem Bild ragen wuerde.
+##
+## Kann NICHT im selben Frame wie _resize_card_to_content() laufen: die
+## Hoehe eines PanelContainers ergibt sich aus dem umgebrochenen Text, und
+## der wird erst nach der naechsten Layout-Runde neu gesetzt.
+func _clamp_card_vertically() -> void:
+	if _card == null or not is_instance_valid(_card) or not _card.is_inside_tree():
+		return
+
+	var height: float = _card.size.y
+	if height <= 0.0:
+		return
+
+	var viewport_height: float = get_viewport_rect().size.y
+	# offset_top wird von der Bildmitte aus gemessen (Anker 0.5).
+	var top_from_center: float = card_offset_y
+	var bottom_absolute: float = viewport_height * 0.5 + top_from_center + height
+
+	var limit: float = viewport_height - card_screen_margin
+	if bottom_absolute > limit:
+		top_from_center -= (bottom_absolute - limit)
+
+	# Nicht ueber den oberen Rand hinaus - lieber unten anschneiden als die
+	# Ueberschrift verlieren.
+	var top_absolute: float = viewport_height * 0.5 + top_from_center
+	if top_absolute < card_screen_margin:
+		top_from_center = card_screen_margin - viewport_height * 0.5
+
+	_card.offset_top = top_from_center
+	_card.offset_bottom = top_from_center
 
 
 ## Blendet die Karte aus. TreasurePedestal ruft das auf, sobald der Spieler
@@ -31494,8 +32498,11 @@ func _format_active_status(item: ItemData) -> String:
 
 
 ## -1, falls das Item aktuell in keinem Slot steckt (dritter+ aktiver Fund,
-## siehe Kopfkommentar in item_manager.gd).
+## siehe Kopfkommentar in item_manager.gd), oder falls _items aus
+## irgendeinem Grund gar nicht existiert.
 func _slot_of(item: ItemData) -> int:
+	if _items == null:
+		return -1
 	for slot: int in range(_items.ACTIVE_SLOT_COUNT):
 		if _items.active_items[slot] == item:
 			return slot
@@ -31523,6 +32530,12 @@ func _build_active_slot() -> void:
 	_active_slot_panels.clear()
 	_active_slot_names.clear()
 	_active_slot_pips.clear()
+
+	# Falls das Items-Autoload aus irgendeinem Grund fehlt, lieber gar
+	# keine Slot-Panels bauen als abzustuerzen - _refresh_active_slot()
+	# hat ohnehin denselben Guard und wuerde dann einfach nichts tun.
+	if _items == null:
+		return
 
 	for slot: int in range(_items.ACTIVE_SLOT_COUNT):
 		_active_slots_row.add_child(_build_one_active_panel(slot))
@@ -34340,6 +35353,7 @@ func _draw_room_glyph(rect: Rect2, type: int, cleared: bool) -> void:
 
 ===== FILE: scripts\party_manager.gd =====
 
+
 extends Node
 
 # AUTOLOAD — Name: PartyManager
@@ -34355,6 +35369,37 @@ extends Node
 # Switch-Cooldown: Sobald man von einem Charakter WEGwechselt, bekommt
 # GENAU DIESER Charakter (nicht der neu aktivierte) einen Cooldown von
 # SWITCH_COOLDOWN_DURATION Sekunden, bevor man wieder zu ihm wechseln kann.
+#
+# ============================================================================
+# BUGFIX: "Restart-Button und [R] gehen nicht"
+# ============================================================================
+# ROOT CAUSE (die eigentliche Ursache, nicht der Button):
+# Dieses Autoload UEBERLEBT get_tree().reload_current_scene(). Die Szene
+# darunter wird komplett abgebaut - inklusive der Spieler-Instanz, auf die
+# "player" zeigt. Ein freigegebenes Object wird in GDScript aber NICHT
+# automatisch auf null gesetzt: die Variable haelt weiter den alten Zeiger.
+#
+# Damit ist
+#     player == null          ->  FALSE  (der Zeiger ist ja belegt)
+#     is_instance_valid(player) ->  false  (das Objekt ist aber tot)
+#
+# Der komplette Spawn-Pfad haing an der ERSTEN Form:
+#   register_spawn_point():  if player == null and not party.is_empty()
+#   setup_party():           if player == null and _spawn_parent != null
+#   _spawn_active_character(): if player != null: return
+#
+# Nach JEDEM Neustart hielt PartyManager also eine Leiche, hielt sich fuer
+# "schon bespielt" und spawnte keinen neuen Charakter. Das Level wurde
+# korrekt neu generiert - es stand nur nie jemand drin. Von aussen sieht
+# genau das aus wie "der Restart-Button tut nichts": Bild baut sich neu
+# auf, aber man kann sich nicht bewegen.
+#
+# Derselbe Mechanismus traf _spawn_parent und _player_health.
+#
+# FIX: JEDE Lebend-Pruefung laeuft ab jetzt ueber has_player() bzw.
+# is_instance_valid(). Zusaetzlich raeumt notify_scene_reset() vor einem
+# Szenenwechsel bewusst auf - siehe run_restart.gd, das diese Funktion als
+# einziger Neustart-Pfad aufruft.
 
 signal party_changed
 signal active_character_changed(index: int)
@@ -34389,6 +35434,36 @@ var _spawn_transform: Transform3D = Transform3D.IDENTITY
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+
+## Einzige erlaubte Lebend-Pruefung fuer "player".
+##
+## "player == null" reicht NICHT: nach reload_current_scene() ist die
+## Instanz freigegeben, die Variable aber weiterhin belegt. Siehe den
+## ausfuehrlichen Root-Cause-Block im Dateikopf.
+func has_player() -> bool:
+	return player != null and is_instance_valid(player)
+
+
+## Vor einem Szenenwechsel aufzurufen (run_restart.gd). Wirft alle
+## Referenzen auf Nodes weg, die den Wechsel nicht ueberleben.
+##
+## Ohne diesen Aufruf wuerde has_player() den Fehler zwar trotzdem
+## abfangen - aber erst NACHDEM die tote Instanz einen Frame lang in
+## Signalen und Suchlaeufen mitgeschleift wurde. Sauber ist, den Zustand
+## dort zu leeren, wo der Wechsel ausgeloest wird.
+func notify_scene_reset() -> void:
+	if _player_health != null and is_instance_valid(_player_health):
+		if _player_health.health_changed.is_connected(_on_player_health_changed):
+			_player_health.health_changed.disconnect(_on_player_health_changed)
+	player = null
+	_player_health = null
+	_spawn_parent = null
+	_spawn_transform = Transform3D.IDENTITY
+	# Die Cooldowns gehoeren zum alten Run und duerfen den neuen nicht
+	# blockieren. Party/HP setzt PartySetup._ready() im neuen Level
+	# ohnehin komplett neu (setup_party).
+	for i: int in range(_switch_cooldowns.size()):
+		_switch_cooldowns[i] = 0.0
 
 func _process(delta: float) -> void:
 	for i: int in range(_switch_cooldowns.size()):
@@ -34436,7 +35511,7 @@ func setup_party(members: Array[CharacterData]) -> void:
 	# _spawn_active_character() haengt am Ende einen Node per add_child()
 	# in den Baum - das schlaegt fehl, wenn der Zielparent gerade selbst
 	# "busy" (blocked) ist, weil ER noch seine eigenen Kinder aufbaut.
-	if player == null and _spawn_parent != null:
+	if not has_player() and _spawn_parent != null and is_instance_valid(_spawn_parent):
 		call_deferred("_spawn_active_character", _spawn_transform)
 
 # Wird von einem PlayerSpawnPoint-Marker3D im Level aufgerufen (siehe
@@ -34446,15 +35521,26 @@ func setup_party(members: Array[CharacterData]) -> void:
 func register_spawn_point(parent: Node, at_transform: Transform3D) -> void:
 	_spawn_parent = parent
 	_spawn_transform = _sanitize_spawn_transform(at_transform)
-	if player == null and not party.is_empty():
+	if not has_player() and not party.is_empty():
 		call_deferred("_spawn_active_character", _spawn_transform)
 
 func _spawn_active_character(at_transform: Transform3D) -> void:
 	# Kann inzwischen (durch den einen Frame Verzoegerung via call_deferred)
 	# ueberholt worden sein - z.B. wenn zwischenzeitlich schon jemand
 	# anderes gespawnt hat. Doppel-Spawn verhindern.
-	if player != null:
+	#
+	# has_player() statt "player != null": nach einem Szenenwechsel steht
+	# hier sonst eine Leiche und blockiert den Neu-Spawn dauerhaft.
+	if has_player():
 		return
+
+	# Zeiger auf eine eventuelle Leiche aus dem alten Run bedingungslos
+	# wegwerfen, bevor eine neue Instanz gebaut wird. Bewusst OHNE
+	# vorherigen "!= null"-Vergleich: ein Vergleich mit einem bereits
+	# freigegebenen Object ist genau die Operation, die in Godot 4 je nach
+	# Build eine "Attempted to access a freed object"-Meldung erzeugt.
+	player = null
+	_player_health = null
 
 	var data: CharacterData = get_active_data()
 	if data == null or data.player_scene == null:
@@ -34479,7 +35565,7 @@ func _spawn_active_character(at_transform: Transform3D) -> void:
 	active_player_changed.emit(player)
 
 func _connect_player_health() -> void:
-	if player == null:
+	if not has_player():
 		return
 	var h := player.find_child("Health", true, false)
 	if h and h is Health:
@@ -34495,7 +35581,9 @@ func _on_player_health_changed(current: float, max_hp: float) -> void:
 	member_health_changed.emit(_active_index, current, max_hp)
 
 func _apply_active_health_to_player() -> void:
-	if _player_health == null or _active_index >= _max_health.size():
+	if _player_health == null or not is_instance_valid(_player_health):
+		return
+	if _active_index >= _max_health.size():
 		return
 	_player_health.max_health = _max_health[_active_index]
 	_player_health.current_health = _current_health[_active_index]
@@ -34537,8 +35625,8 @@ func switch_to(index: int) -> void:
 	if index < _switch_cooldowns.size() and _switch_cooldowns[index] > 0.0:
 		return
 
-	if player == null:
-		# Noch keine Instanz vorhanden — einfach nur den Index umstellen,
+	if not has_player():
+		# Noch keine (gueltige) Instanz vorhanden — einfach nur den Index umstellen,
 		# der naechste register_spawn_point()/setup_party()-Aufruf spawnt
 		# dann direkt den richtigen Charakter.
 		_active_index = index
@@ -34556,7 +35644,8 @@ func switch_to(index: int) -> void:
 	if old_spring_arm:
 		carried_camera_pitch = old_spring_arm.rotation.x
 
-	if _player_health and _player_health.health_changed.is_connected(_on_player_health_changed):
+	if _player_health != null and is_instance_valid(_player_health) \
+			and _player_health.health_changed.is_connected(_on_player_health_changed):
 		_player_health.health_changed.disconnect(_on_player_health_changed)
 
 	# Der Charakter, den wir gerade VERLASSEN, kriegt den Cooldown — nicht
@@ -34578,7 +35667,7 @@ func switch_to(index: int) -> void:
 	# der Stelle unten noch null.
 	_spawn_active_character(carried_transform)
 
-	if player:
+	if has_player():
 		var new_camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
 		var new_spring_arm: SpringArm3D = player.get_node_or_null("CameraPivot/SpringArm3D")
 		if new_camera_pivot:
@@ -35063,9 +36152,32 @@ func _on_restart_pressed() -> void:
 
 ## Gemeinsamer Pfad fuer Restart-Button UND Reset-Taste — so kann es keine
 ## zwei leicht unterschiedlichen Neustart-Wege geben.
+##
+## AENDERUNG: der eigentliche Neustart liegt jetzt in RunRestart (Autoload).
+## Vorher stand hier ein direkter reload_current_scene() — und damit ein
+## Neustart, der WENIGER aufgeraeumt hat als der ueber [R]:
+##
+##   * Juice.cancel() fehlte  -> ein laufender Hit-Stop nahm
+##     Engine.time_scale ~0.05 in den neuen Run mit; der Timer, der ihn
+##     zurueckgesetzt haette, verschwand mit der alten Szene.
+##   * Items.reset_run() / Loot.reset_run() fehlten -> der neue Run
+##     startete mit dem Inventar des alten.
+##   * PartyManager.notify_scene_reset() fehlte — und DAS war der Grund,
+##     warum der Button sich anfuehlte, als tue er nichts: PartyManager
+##     hielt nach dem Reload einen Zeiger auf die tote Spieler-Instanz,
+##     hielt sich fuer "schon bespielt" und spawnte keinen neuen
+##     Charakter. Ausfuehrlich in party_manager.gd und run_restart.gd.
 func _restart_level() -> void:
 	if _blur_overlay:
 		_blur_overlay.visible = false
+
+	var restarter: Node = get_node_or_null("/root/RunRestart")
+	if restarter and restarter.has_method("restart"):
+		restarter.restart()
+		return
+
+	push_warning("PauseMenu: Autoload 'RunRestart' nicht gefunden - Notfall-Neustart ohne Aufraeumen.")
+	Engine.time_scale = 1.0
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	get_tree().reload_current_scene()
@@ -36812,6 +37924,7 @@ func _spawn_damage_number(body: Node3D) -> void:
 
 ===== FILE: scripts\reset_overlay.gd =====
 
+
 extends Control
 class_name ResetOverlay
 
@@ -36839,11 +37952,20 @@ class_name ResetOverlay
 # Frame gar kein Input-Event ankommt.
 
 ## Sekunden, die R gehalten werden muss.
-@export var hold_duration: float = 1.5
+## Von 1.5 auf 0.9 gesenkt: 1,5 s fuehlen sich bei einem Run, den man in
+## der ersten Sekunde als verloren erkennt, wie eine Strafe an. 0,9 s ist
+## immer noch deutlich mehr als ein versehentlicher Tastendruck.
+@export var hold_duration: float = 0.9
 ## Ab wann die Vorschau eingeblendet wird (Anteil der Haltedauer).
 @export_range(0.0, 1.0) var preview_threshold: float = 0.25
 
 const RESET_ACTION: String = "reset"
+
+## Notnagel, falls die Action "reset" im InputMap fehlt (Projekt ohne den
+## SettingsManager-Autoload, kaputte Settings-Datei, frisch geklonter
+## Branch). Ohne diesen Fallback stieg _process() frueher kommentarlos aus
+## und [R] tat GAR NICHTS — ohne jede Meldung, warum.
+const RESET_FALLBACK_KEY: Key = KEY_R
 
 ## Gruppe, unter der sich PauseMenu selbst eintraegt. Siehe die ausfuehrliche
 ## Begruendung in pause_menu.gd, wo frueher ein zweiter, konkurrierender
@@ -36859,6 +37981,17 @@ var _is_restarting: bool = false
 ## jedem reload_current_scene() neu instanziiert, eine einmal gecachte
 ## Referenz waere nach dem ersten Neustart bereits eine Leiche.
 var _pause_menu: PauseMenu = null
+
+## Millisekunden-Zeitstempel des Haltebeginns.
+##
+## WARUM NICHT delta AUFADDIEREN:
+## _process(delta) bekommt SKALIERTE Zeit. Waehrend eines Hit-Stops steht
+## Engine.time_scale bei 0.05 — eine gehaltene Taste haette dort das
+## 20-Fache an Echtzeit gebraucht. Time.get_ticks_msec() laeuft in echter
+## Wanduhrzeit und ist damit unabhaengig von Zeitlupe und Pause.
+var _hold_started_ms: int = 0
+
+var _warned_missing_action: bool = false
 
 var _fade: ColorRect = null
 var _preview_box: PanelContainer = null
@@ -36928,10 +38061,14 @@ func _build_ui() -> void:
 	add_child(_preview_box)
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if _is_restarting:
 		return
-	if not InputMap.has_action(RESET_ACTION):
+
+	# Ein bereits laufender Neustart (z.B. ueber den Pause-Button) darf
+	# nicht noch einmal angestossen werden.
+	var restarter: Node = get_node_or_null("/root/RunRestart")
+	if restarter and restarter.has_method("is_restart_pending") and restarter.is_restart_pending():
 		return
 
 	# Waehrend Tod/Sieg gesperrt: dort gibt es eigene Restart-Buttons, und
@@ -36944,14 +38081,15 @@ func _process(delta: float) -> void:
 		_cancel()
 		return
 
-	if not Input.is_action_pressed(RESET_ACTION):
+	if not _is_reset_held():
 		_cancel()
 		return
 
 	if _hold_time <= 0.0:
 		_begin_hold()
 
-	_hold_time += delta
+	# Echtzeit statt skalierter delta-Summe — Begruendung an _hold_started_ms.
+	_hold_time = float(Time.get_ticks_msec() - _hold_started_ms) / 1000.0
 	var progress: float = clampf(_hold_time / maxf(hold_duration, 0.01), 0.0, 1.0)
 
 	# Quadratisch statt linear: die Abblende soll spaet richtig zupacken,
@@ -36976,7 +38114,21 @@ func _is_reset_blocked() -> bool:
 	return _pause_menu.is_reset_blocked()
 
 
+## Fragt die Reset-Taste ab und faellt auf die physische [R] zurueck, wenn
+## die Action gar nicht existiert. Die Warnung kommt bewusst nur EINMAL —
+## als Meldung pro Frame waere sie in der Konsole nicht zu gebrauchen.
+func _is_reset_held() -> bool:
+	if InputMap.has_action(RESET_ACTION):
+		return Input.is_action_pressed(RESET_ACTION)
+
+	if not _warned_missing_action:
+		_warned_missing_action = true
+		push_warning("ResetOverlay: Action '%s' fehlt im InputMap - Fallback auf die physische Taste [R]. Autoload 'SettingsManager' pruefen." % RESET_ACTION)
+	return Input.is_physical_key_pressed(RESET_FALLBACK_KEY)
+
+
 func _begin_hold() -> void:
+	_hold_started_ms = Time.get_ticks_msec()
 	_preview_seed_code = _peek_next_seed_code()
 	_preview_label.text = _preview_seed_code
 
@@ -36985,6 +38137,7 @@ func _cancel() -> void:
 	if _hold_time <= 0.0:
 		return
 	_hold_time = 0.0
+	_hold_started_ms = 0
 	_preview_box.visible = false
 
 	# Sanft aufblenden statt hart auf 0: ein abrupter Sprung sieht aus wie
@@ -36997,31 +38150,41 @@ func _cancel() -> void:
 func _restart() -> void:
 	_is_restarting = true
 	_fade.color.a = 1.0
+	_preview_box.visible = false
 
-	# Aufraeumen, bevor die Szene neu geladen wird: ein laufender Hit-Stop
-	# wuerde sonst mit eingefrorenem Engine.time_scale in den neuen Run
-	# uebernommen, und Loot/Items wuerden Zustaende aus dem alten Lauf
-	# behalten.
-	Juice.cancel()
+	# Der komplette Aufraeum- und Reload-Ablauf liegt jetzt in RunRestart
+	# (Autoload). Vorher stand er HIER — und nur hier: die Restart-Buttons
+	# in Pause-, Death- und Win-Screen sprangen direkt auf
+	# reload_current_scene() und haben Juice, Items und Loot NICHT
+	# zurueckgesetzt. Ein Neustart per Taste und ein Neustart per Button
+	# fuehrten damit in unterschiedliche Zustaende.
+	var restarter: Node = get_node_or_null("/root/RunRestart")
+	if restarter and restarter.has_method("restart"):
+		restarter.restart()
+	else:
+		# Fallback, falls das Autoload nicht eingetragen ist: wenigstens
+		# nicht in einem eingefrorenen Zustand haengenbleiben.
+		push_warning("ResetOverlay: Autoload 'RunRestart' nicht gefunden - Notfall-Neustart ohne Aufraeumen.")
+		Engine.time_scale = 1.0
+		get_tree().paused = false
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		get_tree().reload_current_scene()
 
-	var items: Node = get_node_or_null("/root/Items")
-	if items and items.has_method("reset_run"):
-		items.reset_run()
+	# Dieses Overlay haengt in einem Autoload-CanvasLayer und ueberlebt den
+	# Szenenwechsel — also selbst zuruecksetzen. Ein Frame Verzoegerung,
+	# damit die Abblende waehrend des Wechsels stehen bleibt und nicht
+	# mitten im Ladevorgang aufreisst.
+	await get_tree().process_frame
+	await get_tree().process_frame
 
-	var loot: Node = get_node_or_null("/root/Loot")
-	if loot and loot.has_method("reset_run"):
-		loot.reset_run()
-
-	get_tree().paused = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	get_tree().reload_current_scene()
-
-	# Nach dem Reload existiert dieses Overlay weiter (es haengt in einem
-	# Autoload-CanvasLayer), also selbst zuruecksetzen.
 	_hold_time = 0.0
+	_hold_started_ms = 0
 	_is_restarting = false
 	_preview_box.visible = false
-	_fade.color.a = 0.0
+
+	var tween := create_tween()
+	tween.tween_property(_fade, "color:a", 0.0, 0.25)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 ## Zieht den Seed-Code, den der naechste Run bekommen wuerde. Faellt auf
@@ -37041,7 +38204,10 @@ func _peek_next_seed_code() -> String:
 
 
 
+
+
 ===== FILE: scripts\room_commit_guard.gd =====
+
 
 extends Node
 
@@ -37051,43 +38217,73 @@ extends Node
 # Muss unter Project Settings -> Autoload als "RoomGuard" stehen.
 # ============================================================================
 #
-# DAS PROBLEM
-# -----------
+# ############################################################################
+# ZUERST: WARUM DAS FEATURE BISHER GAR NICHTS GETAN HAT
+# ############################################################################
+# Die vorherige Fassung dieser Datei war UNVOLLSTAENDIG. Sie endete mitten
+# in _attach() direkt nach
+#
+#     area.collision_mask = 0b101
+#
+# Danach kam nichts mehr: kein CollisionShape3D, kein add_child(), kein
+# Eintrag in _watched, kein _process(). GDScript parst das ohne Fehler —
+# eine Funktion darf an jeder Stelle enden. Das Autoload lief also, hat pro
+# Raum brav eine Area3D erzeugt, sie sofort wieder verworfen und
+# ANSCHLIESSEND NIE WIEDER ETWAS GEMACHT.
+#
+# Das ist die unangenehmste Fehlerklasse ueberhaupt: keine Fehlermeldung,
+# kein Warnhinweis, kein Absturz. Das Feature war schlicht nicht da. Der
+# Wand-Hug-Trick ("an den Seiten am Raum vorbeilaufen") ist deshalb nie
+# geschlossen worden — nicht weil die Idee falsch war, sondern weil sie nie
+# fertig geschrieben wurde.
+#
+# ############################################################################
+# DAS URSPRUENGLICHE PROBLEM
+# ############################################################################
 # room_instance.gd loest den Kampf ueber den EntryTrigger aus. Dessen Box
 # wird von JEDER Seite um entry_trigger_depth eingerueckt:
 #
 #     size_x = room_footprint.x - entry_trigger_depth * 2.0
-#            = 48 - 18 = 30
 #
 # In einem 48x48-Raum bleibt damit ringsum ein 9 m breiter Streifen, in dem
 # nichts passiert. Die Tueren sitzen mittig in den Waenden — man kann also
 # durch die Nordtuer hereinkommen, an der Wand entlang zur Osttuer laufen
-# und den Raum verlassen, ohne den 30x30-Kern je zu beruehren. Die Gegner
-# spawnen nie, die Tueren verriegeln nie.
+# und den Raum verlassen, ohne den Kern je zu beruehren. Die Gegner spawnen
+# nie, die Tueren verriegeln nie.
 #
-# WARUM DER EINRUECKUNG TROTZDEM RECHT HAT
+# WARUM DIE EINRUECKUNG TROTZDEM RECHT HAT
 # ----------------------------------------
-# Sie ist Absicht und heisst im Original-Kommentar "Anti-Baiting": man soll
-# in einen Raum hineinschauen duerfen, ohne sofort einen Kampf zu starten.
-# Diese Eigenschaft will man behalten. Den EntryTrigger einfach auf
-# Raumgroesse aufzublasen wuerde sie zerstoeren — dann startet der Kampf
+# Sie ist Absicht ("Anti-Baiting"): man soll in einen Raum hineinschauen
+# duerfen, ohne sofort einen Kampf zu starten. Den EntryTrigger einfach auf
+# Raumgroesse aufzublasen wuerde das zerstoeren — dann startet der Kampf
 # schon, wenn man im Tuerrahmen steht und ueberlegt.
 #
-# DIE LOESUNG: ZWEITE, LANGSAMERE STUFE
-# -------------------------------------
+# ############################################################################
+# DIE LOESUNG: ZWEITE STUFE MIT ZWEI UNABHAENGIGEN AUSLOESERN
+# ############################################################################
 # Dieses Script haengt jedem Raum eine ZUSAETZLICHE Area ueber den vollen
-# Grundriss und startet den Kampf erst, wenn der Spieler dort
-# commit_dwell_time Sekunden am Stueck drin ist.
+# Grundriss und startet den Kampf, sobald EINE der beiden Bedingungen
+# erfuellt ist:
 #
-# Damit gilt:
-#   * Kurz reinschauen und zurueck  -> nichts passiert (wie bisher).
-#   * In die Raummitte laufen       -> sofort Kampf (EntryTrigger, wie bisher).
-#   * An der Wand entlangschleichen -> nach gut einer Sekunde Kampf (NEU).
+#   1. VERWEILDAUER (commit_dwell_time)
+#      Der Spieler ist so lange am Stueck drin. Faengt den Fall
+#      "stehenbleiben / kaempfen / umschauen" ab.
 #
-# Der Trick ist damit nicht "verboten", sondern nur nicht mehr schneller als
-# der ehrliche Weg — und genau das ist bei einer Abkuerzung die richtige
-# Antwort. Wer wirklich in unter einer Sekunde quer durch einen 48 m breiten
-# Raum kommt, hat sich das Durchhuschen verdient.
+#   2. ZURUECKGELEGTE STRECKE (commit_travel_distance)
+#      Der Spieler hat innerhalb des Grundrisses so viele Meter
+#      zurueckgelegt. Genau DAS ist der Wand-Hug-Fall: von einer Tuer zur
+#      naechsten sind es quer durch den Raum immer deutlich mehr Meter als
+#      der Schwellwert — egal wie schnell man dabei ist.
+#
+# Warum zwei Bedingungen und nicht nur die Zeit:
+# Eine reine Verweildauer ist ueber die Bewegungsgeschwindigkeit angreifbar.
+# Ein Dash quer durch den Raum dauert deutlich weniger als eine Sekunde, und
+# je hoeher die Bewegungs-Stats im Run werden, desto zuverlaessiger geht der
+# Trick wieder auf. Die Strecke ist gegen Tempo immun: wer schneller ist,
+# loest frueher aus statt spaeter.
+#
+# Umgekehrt bleibt "kurz reinschauen und zurueck" weiter erlaubt — dafuer
+# laeuft man weder lange genug noch weit genug.
 #
 # WARUM ALS AUTOLOAD UND NICHT IN room_instance.gd:
 # Dieselbe Begruendung wie bei Loot und Treasure — room_instance.gd hat
@@ -37100,13 +38296,21 @@ signal room_committed(room: Node)
 
 ## Wie lange der Spieler ununterbrochen im Raum sein muss, bis der Kampf
 ## auch ohne Beruehrung des EntryTriggers startet.
-## PHASE 3: von 1.1 auf 0.6 gesenkt. Grund: die Raeume sind durch
-## room_scale in level_generator.gd jetzt groesser (aktuell 2x
-## breiter/tiefer) - der Weg an der Wand entlang von einer Tuer zur
-## naechsten ist damit automatisch LAENGER. 0.6s reicht weiterhin fuer den
-## "kurz reinschauen"-Fall (siehe Kopfkommentar), da man dafuer gar nicht
-## erst bis zur Wand laeuft.
-@export var commit_dwell_time: float = 0.6
+##
+## Von 0.6 auf 0.35 gesenkt. Die Verweildauer ist nach Einfuehrung der
+## Strecken-Bedingung nur noch der Auffangfall fuer langsames Hineingehen;
+## sie muss deshalb nicht mehr allein gegen schnelle Durchlaeufe halten.
+@export var commit_dwell_time: float = 0.35
+
+## Meter, die der Spieler INNERHALB des Grundrisses zurueckgelegt haben
+## muss. Wird pro Frame aus der tatsaechlichen Positionsaenderung
+## aufsummiert, nicht aus Geschwindigkeit * Zeit — damit zaehlt Rutschen,
+## Knockback und Dash genauso wie normales Laufen.
+##
+## 7.0 ist bewusst kleiner als die halbe Raumbreite: der Weg von einer
+## Tuer zur naechsten fuehrt IMMER ueber deutlich mehr Strecke, ein Blick
+## durch den Tuerrahmen ueber deutlich weniger.
+@export var commit_travel_distance: float = 7.0
 
 ## Verkleinert die Commit-Area gegenueber dem Grundriss. 0 = exakt bis zur
 ## Wandinnenseite.
@@ -37121,9 +38325,22 @@ signal room_committed(room: Node)
 ## damit auch abgesenkte Bodenstuecke und Rampen erfasst werden.
 @export var floor_offset: float = -1.0
 
+## Wie weit die Area ueber die Raumhoehe hinausragt. Ohne Zuschlag rutscht
+## ein springender Spieler in Raeumen mit niedriger Decke kurzzeitig aus
+## dem Volumen und der Fortschritt wuerde zurueckgesetzt.
+@export var height_padding: float = 4.0
+
 @export var debug_logging: bool = false
 
-## room InstanceID -> { "room": RoomInstance, "area": Area3D, "timer": float }
+## room InstanceID -> {
+##     "room": RoomInstance,
+##     "area": Area3D,
+##     "dwell": float,
+##     "travel": float,
+##     "last_pos": Vector3,
+##     "had_player": bool,
+##     "done": bool
+## }
 var _watched: Dictionary = {}
 
 
@@ -37186,6 +38403,156 @@ func _attach(room: RoomInstance) -> void:
 	# nur dadurch, dass das Feature stillschweigend nichts tut.
 	area.collision_layer = 0
 	area.collision_mask = 0b101
+	area.monitoring = true
+	area.monitorable = false
+
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+
+	var size_x: float = maxf(room.room_footprint.x - edge_inset * 2.0, 1.0)
+	var size_z: float = maxf(room.room_footprint.y - edge_inset * 2.0, 1.0)
+	var size_y: float = maxf(room.room_height - floor_offset + height_padding, 1.0)
+
+	box.size = Vector3(size_x, size_y, size_z)
+	shape.shape = box
+	shape.position = Vector3(0.0, floor_offset + size_y * 0.5, 0.0)
+
+	area.add_child(shape)
+	room.add_child(area)
+
+	_watched[id] = {
+		"room": room,
+		"area": area,
+		"dwell": 0.0,
+		"travel": 0.0,
+		"last_pos": Vector3.ZERO,
+		"had_player": false,
+		"done": false,
+	}
+
+	# Ohne diese Aufraeumung waechst _watched ueber die Laufzeit eines Runs
+	# mit jedem Stage-Wechsel weiter an und haelt Zeiger auf abgeraeumte
+	# Raeume.
+	room.tree_exited.connect(_on_room_gone.bind(id))
+
+	_debug("Raum %s ueberwacht (%.0f x %.0f)." % [room.grid_position, size_x, size_z])
+
+
+func _on_room_gone(id: int) -> void:
+	_watched.erase(id)
+
+
+func _physics_process(delta: float) -> void:
+	if _watched.is_empty():
+		return
+
+	for id: int in _watched.keys():
+		var entry: Dictionary = _watched[id]
+		if entry["done"]:
+			continue
+
+		var room: Node = entry["room"]
+		if not is_instance_valid(room):
+			_watched.erase(id)
+			continue
+
+		var area: Area3D = entry["area"]
+		if not is_instance_valid(area):
+			_watched.erase(id)
+			continue
+
+		# Raum bereits ausgeloest oder gar kein Kampfraum -> nichts zu tun.
+		# Ueber has_method/get abgefragt statt ueber direkte Feldzugriffe,
+		# damit dieses Script auch mit aelteren RoomInstance-Versionen laeuft.
+		if _room_is_settled(room):
+			entry["done"] = true
+			_watched[id] = entry
+			continue
+
+		var player: Node3D = _find_player(area)
+
+		if player == null:
+			# Verlassen -> Fortschritt faellt zurueck. Sonst koennte man
+			# sich das Commit in mehreren kurzen Besuchen zusammensparen,
+			# und "kurz reinschauen" waere ab dem dritten Mal ein Kampf.
+			entry["dwell"] = 0.0
+			entry["travel"] = 0.0
+			entry["had_player"] = false
+			_watched[id] = entry
+			continue
+
+		if not entry["had_player"]:
+			entry["had_player"] = true
+			entry["last_pos"] = player.global_position
+			entry["dwell"] = 0.0
+			entry["travel"] = 0.0
+
+		# --- Bedingung 1: Verweildauer ---
+		entry["dwell"] = float(entry["dwell"]) + delta
+
+		# --- Bedingung 2: zurueckgelegte Strecke ---
+		# Nur horizontal: Springen und Fallen sollen keine Strecke
+		# aufbauen, sonst loest ein Sprung im Tuerrahmen aus.
+		var current: Vector3 = player.global_position
+		var last: Vector3 = entry["last_pos"]
+		var step: Vector3 = current - last
+		step.y = 0.0
+		entry["travel"] = float(entry["travel"]) + step.length()
+		entry["last_pos"] = current
+
+		var by_time: bool = float(entry["dwell"]) >= maxf(commit_dwell_time, 0.0)
+		var by_travel: bool = float(entry["travel"]) >= maxf(commit_travel_distance, 0.1)
+
+		if by_time or by_travel:
+			entry["done"] = true
+			_watched[id] = entry
+			_commit(room, "Verweildauer" if by_time else "Strecke")
+			continue
+
+		_watched[id] = entry
+
+
+## true, wenn der Raum aus Sicht des Guards nicht mehr interessant ist:
+## gecleared, bereits betreten, oder gar kein Kampfraum.
+func _room_is_settled(room: Node) -> bool:
+	if room.has_method("is_cleared") and room.is_cleared():
+		return true
+	# _has_entered / _enemies_spawned sind private Felder von
+	# room_instance.gd. get() liest sie ohne Fehler aus und liefert null,
+	# falls es sie in einer anderen Version nicht gibt.
+	if room.get("_enemies_spawned") == true:
+		return true
+	if room.get("_requires_clear") == false:
+		return true
+	return false
+
+
+func _find_player(area: Area3D) -> Node3D:
+	for body: Node3D in area.get_overlapping_bodies():
+		if body is Node3D and body.is_in_group(PartyManager.PLAYER_GROUP):
+			return body
+	return null
+
+
+## Loest den Kampf aus.
+##
+## _has_entered wird ueber set() mitgesetzt, NICHT nur on_player_entered()
+## aufgerufen. Grund: room_instance._physics_process() schaltet erst bei
+## _has_entered == true auf die Ausbruch-Ueberwachung (_check_escape) um.
+## Ohne das Flag wuerde ein per Guard gestarteter Kampf nie zuruecksetzen,
+## wenn der Spieler den verriegelten Raum doch noch verlaesst — der Raum
+## bliebe dauerhaft in einem halb toten Zustand haengen.
+##
+## Der fuehrende Unterstrich ist in GDScript reine Namenskonvention, kein
+## Zugriffsschutz; set() ist hier also kein Trick, sondern der normale Weg.
+func _commit(room: Node, reason: String) -> void:
+	if room.has_method("on_player_entered"):
+		room.set("_has_entered", true)
+		room.on_player_entered()
+		room_committed.emit(room)
+		_debug("Raum %s festgesetzt (Ausloeser: %s)." % [room.get("grid_position"), reason])
+	else:
+		push_warning("RoomGuard: Raum ohne on_player_entered() — Commit nicht moeglich.")
 
 
 ===== FILE: scripts\run_record.gd =====
@@ -37326,6 +38693,159 @@ func _checksum() -> int:
 	return absi(hash(raw)) % 2147483647
 
 
+===== FILE: scripts\run_restart.gd =====
+
+
+extends Node
+
+# ============================================================================
+# RunRestart — Autoload: DER EINE Neustart-Pfad.
+# Muss unter Project Settings -> Autoload als "RunRestart" stehen.
+# ============================================================================
+#
+# WARUM DAS UEBERHAUPT EIN EIGENES AUTOLOAD IST
+# ---------------------------------------------
+# Ein Neustart wurde bisher an VIER Stellen unabhaengig voneinander
+# ausgeloest:
+#
+#   reset_overlay.gd  [R] gehalten   -> Juice.cancel + Items/Loot reset + reload
+#   pause_menu.gd     Restart-Button -> nur unpause + reload
+#   death_screen.gd   Restart-Button -> nur unpause + reload
+#   win_screen.gd     Restart-Button -> nur unpause + reload
+#
+# Drei dieser vier Wege haben also WENIGER aufgeraeumt als der vierte. Das
+# ist die klassische Bauform fuer "der Restart-Button verhaelt sich anders
+# als [R]" — und genau dieser Unterschied ist bei einem Bug im
+# Neustart-Pfad das, was die Fehlersuche am laengsten aufhaelt.
+#
+# Ab jetzt rufen alle vier dieselbe Funktion auf. Wer einen Schritt
+# ergaenzt, ergaenzt ihn zwangslaeufig fuer alle.
+#
+# ============================================================================
+# WAS BEIM NEUSTART SCHIEFGING (Root Cause)
+# ============================================================================
+# reload_current_scene() baut die Szene ab und neu auf. Autoloads bleiben
+# stehen — inklusive PartyManager, der einen Zeiger auf die Spieler-Instanz
+# der ALTEN Szene haelt. Ein freigegebenes Object wird in GDScript nicht
+# automatisch auf null gesetzt, "player == null" ist danach also FALSE
+# obwohl die Instanz tot ist. PartyManager hielt sich damit fuer bereits
+# bespielt und spawnte nie wieder einen Charakter: Level neu, Spieler weg.
+#
+# Der eigentliche Fix sitzt in party_manager.gd (has_player() /
+# is_instance_valid). Hier wird zusaetzlich VOR dem Wechsel aufgeraeumt,
+# damit die tote Instanz gar nicht erst einen Frame lang mitlaeuft.
+#
+# ============================================================================
+# WARUM reload_current_scene() DEFERRED LAEUFT
+# ============================================================================
+# Ausgeloest wird der Neustart aus einem Button-Signal oder aus _process().
+# Beides laeuft mitten im Frame, waehrend Nodes der noch lebenden Szene
+# verarbeitet werden. Ein Szenenabbau in dem Moment ist genau die Situation,
+# aus der "Cannot call method on a null value"-Kaskaden entstehen. Mit
+# call_deferred() passiert der Wechsel am Frame-Ende, wenn niemand mehr in
+# der alten Szene arbeitet.
+
+signal restart_started
+
+## Wird auf true gesetzt, sobald ein Neustart angefordert wurde, und beim
+## Aufbau der neuen Szene wieder auf false. Verhindert, dass zwei Quellen
+## im selben Frame zwei Szenenwechsel ausloesen (der zweite trifft dann auf
+## eine bereits halb abgebaute Szene).
+var _restart_pending: bool = false
+
+@export var debug_logging: bool = true
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("[RunRestart] %s" % msg)
+
+
+func is_restart_pending() -> bool:
+	return _restart_pending
+
+
+## Einziger oeffentlicher Einstieg. Von Reset-Overlay, Pause-, Death- und
+## Win-Screen aufzurufen.
+func restart() -> void:
+	if _restart_pending:
+		_debug("Neustart laeuft bereits — zweiter Aufruf ignoriert.")
+		return
+	_restart_pending = true
+	restart_started.emit()
+
+	_cleanup_run_state()
+	_restore_engine_state()
+
+	_debug("Szene wird neu geladen.")
+	_do_reload.call_deferred()
+
+
+func _do_reload() -> void:
+	var tree: SceneTree = get_tree()
+	if tree == null:
+		_restart_pending = false
+		return
+
+	var result: int = tree.reload_current_scene()
+	if result != OK:
+		push_error("[RunRestart] reload_current_scene() ist fehlgeschlagen (Fehlercode %d)." % result)
+		_restart_pending = false
+		return
+
+	# Eine Frame Luft, damit die neue Szene ihre _ready()-Kaskade fertig
+	# hat, bevor ein weiterer Neustart zugelassen wird.
+	await tree.process_frame
+	await tree.process_frame
+	_restart_pending = false
+	_debug("Neue Szene steht.")
+
+
+## Alles, was aus dem alten Lauf stammt und den Wechsel ueberleben wuerde.
+## Jeder Aufruf ist einzeln abgesichert: fehlt ein Autoload (Testszene,
+## abgespeckter Build), soll der Neustart trotzdem stattfinden.
+func _cleanup_run_state() -> void:
+	# WICHTIGSTER SCHRITT: siehe Root-Cause-Block oben.
+	if PartyManager != null and PartyManager.has_method("notify_scene_reset"):
+		PartyManager.notify_scene_reset()
+
+	var items: Node = get_node_or_null("/root/Items")
+	if items and items.has_method("reset_run"):
+		items.reset_run()
+
+	var loot: Node = get_node_or_null("/root/Loot")
+	if loot and loot.has_method("reset_run"):
+		loot.reset_run()
+
+	var treasure: Node = get_node_or_null("/root/Treasure")
+	if treasure and treasure.has_method("reset_run"):
+		treasure.reset_run()
+
+	var status: Node = get_node_or_null("/root/StatusEffectManager")
+	if status and status.has_method("clear_all"):
+		status.clear_all()
+
+
+## Ein laufender Hit-Stop haelt Engine.time_scale bei ~0.05. Wird die Szene
+## in genau diesem Moment gewechselt, startet der neue Run in Zeitlupe und
+## der Timer, der time_scale zuruecksetzt, ist mit der alten Szene
+## verschwunden. Beides wird hier hart zurueckgesetzt.
+func _restore_engine_state() -> void:
+	var juice: Node = get_node_or_null("/root/Juice")
+	if juice and juice.has_method("cancel"):
+		juice.cancel()
+	Engine.time_scale = 1.0
+
+	var tree: SceneTree = get_tree()
+	if tree != null:
+		tree.paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
 ===== FILE: scripts\run_timer.gd =====
 
 extends Control
@@ -37448,8 +38968,6 @@ static func format_time(seconds: float) -> String:
 	if minutes > 0:
 		return "%d.%02d.%02d" % [minutes, secs, cs]
 	return "%d.%02d" % [secs, cs]
-
-
 
 
 ===== FILE: scripts\seed_button.gd =====
@@ -38458,6 +39976,715 @@ func load_settings() -> void:
 		if event is InputEvent:
 			InputMap.action_erase_events(action)
 			InputMap.action_add_event(action, event)
+
+
+===== FILE: scripts\spawn_tutorial_hologram.gd =====
+
+@tool
+extends Node3D
+class_name SpawnTutorialHologram
+
+# ============================================================================
+# SpawnTutorialHologram — grosses Hologramm-Schild am Spieler-Spawn, das ein
+# fertiges Tutorial-Bild zeigt und sich immer zum Spieler dreht.
+# ============================================================================
+#
+# BENUTZUNG
+# ---------
+# Als Kind in die Startraum-Szene haengen (res://scenes/rooms/room_start_01.tscn),
+# Node-Typ Node3D, dieses Script drauf, dann im Inspector nur
+# tutorial_texture zuweisen. Die Position sucht sich das Hologramm selbst:
+# es stellt sich VOR den PlayerSpawnPoint desselben Raums, in dessen
+# Blickrichtung.
+#
+# WARUM ES SICH SELBST POSITIONIERT
+# ---------------------------------
+# Ein von Hand gesetzter Abstand waere genau einmal richtig. Der Spawnpunkt
+# kann verschoben werden, die Raumgroesse aendert sich ueber room_scale im
+# LevelGenerator, und der Startraum koennte spaeter ein zweiter werden. Der
+# Abstand wird deshalb IMMER relativ zum Marker gerechnet - dann stimmt er
+# auch nach jeder dieser Aenderungen noch.
+#
+# ############################################################################
+# WO IST "VORNE"? NICHT RATEN - VON DER KAMERA HOLEN
+# ############################################################################
+# Dieser Punkt hat mehr Fallstricke, als er verdient. Im Projekt gibt es
+# ZWEI verschiedene "vorne", und sie zeigen in entgegengesetzte Richtungen:
+#
+#   1. Das MODELL faced +Z. Deshalb steht in player_base.gd und enemy_ai.gd
+#      ueberall mesh.rotation.y = atan2(dir.x, dir.z) - diese Formel dreht
+#      die lokale +Z-Achse auf die Bewegungsrichtung.
+#
+#   2. Die KAMERA/Bewegung faced -Z. In player_base.gd:
+#          var forward := camera_pivot.global_transform.basis.z
+#          direction   := forward * input_dir.y
+#      Input.get_vector() liefert fuer "ui_up" (W) input_dir.y = -1, das
+#      Produkt zeigt also entlang -Z. Passend dazu sitzen SecondaryHitbox
+#      (z = -0.64) und PrimaryHitbox (z = -2.99) beide auf der -Z-Seite:
+#      dorthin schlaegt der Charakter, dorthin schaut man.
+#
+# Ein Schild entlang +Z zu setzen (die "Modell-Vorne"-Achse) landet damit
+# GENAU HINTER dem Spieler - und weil die Kamera hinter ihm haengt, sogar
+# hinter der Kamera. Man sieht es beim Start nie.
+#
+# Statt sich fuer eine der beiden Konventionen zu entscheiden, fragt der
+# Standardmodus (Placement.CAMERA_VIEW) einfach die echte Kamera, sobald
+# der Spieler existiert. Das ist immun gegen jede kuenftige Aenderung an
+# Achsen, Spawn-Yaw oder Kamera-Rig - und beantwortet exakt die Frage, um
+# die es geht: "was sieht der Spieler im ersten Frame?"
+#
+# ############################################################################
+# EINHEITEN SIND LOKAL, NICHT WELT
+# ############################################################################
+# Der LevelGenerator instanziiert Raeume mit einer skalierten Basis
+# (room_scale, aktuell 2x). Alles, was hier als Abstand oder Groesse steht,
+# wird davon mitskaliert: distance = 5.0 sind bei room_scale = 2 also 10
+# Meter in der Welt. Das ist gewollt - so bleibt das Verhaeltnis von
+# Schildgroesse zu Raumgroesse konstant, egal wie gross die Raeume noch
+# werden.
+#
+# ############################################################################
+# WARUM Sprite3D UND KEIN QuadMesh MIT MATERIAL
+# ############################################################################
+# Sprite3D bringt Billboard, Texturfilter, Alpha-Modus und pixel_size fertig
+# mit und braucht kein eigenes Material-Setup. Fuer ein Bild, das immer zur
+# Kamera zeigt, ist das genau das richtige Werkzeug. Die Rueckplatte
+# darunter ist dagegen ein QuadMesh - die braucht kein Bild, nur eine
+# Flaeche in Hologrammfarbe.
+
+## Das fertige Tutorial-Bild. PSX-Look: im Import-Dialog "Filter" aus und
+## "Mipmaps" aus, sonst matscht die Schrift bei Entfernung weg.
+@export var tutorial_texture: Texture2D:
+	set(value):
+		tutorial_texture = value
+		_rebuild_deferred()
+
+## Breite des Schildes in LOKALEN Einheiten (siehe Einheiten-Block oben).
+## Die Hoehe ergibt sich aus dem Seitenverhaeltnis der Textur - ein
+## getrennter Hoehenwert koennte das Bild nur verzerren.
+@export var board_width: float = 9.0:
+	set(value):
+		board_width = maxf(value, 0.1)
+		_rebuild_deferred()
+
+## Wie die Richtung bestimmt wird, in die das Schild gesetzt wird.
+##
+##   CAMERA_VIEW    Blickrichtung der echten Spielerkamera im ersten Frame.
+##                  Standard - siehe Block im Dateikopf.
+##   SPAWN_VIEW_Z   Statisch entlang -Z des Spawn-Markers. Das ist bei
+##                  Yaw 0 dieselbe Richtung, nur ohne auf den Spieler zu
+##                  warten. Fuer Testszenen ohne PartyManager.
+##   SPAWN_BACK_Z   Statisch entlang +Z, also HINTER den Spieler. Nur
+##                  sinnvoll, wenn man das Schild bewusst erst beim
+##                  Umdrehen zeigen will.
+enum Placement {
+	CAMERA_VIEW,
+	SPAWN_VIEW_Z,
+	SPAWN_BACK_Z,
+}
+
+@export var placement: Placement = Placement.CAMERA_VIEW:
+	set(value):
+		placement = value
+		_reposition()
+
+## Abstand vom Spawnpunkt in der gewaehlten Richtung. Negative Werte
+## drehen die Richtung um.
+@export var distance: float = 6.0:
+	set(value):
+		distance = value
+		_reposition()
+
+## Hoehe der SCHILDMITTE, gemessen VOM SPAWNPUNKT AUS (nicht von der
+## Weltnull). Negative Werte sind erlaubt und haengen das Schild tiefer.
+##
+## 3.0 lokale Einheiten sind bei room_scale = 2 sechs Meter ueber dem
+## Spawnpunkt - das Schild steht damit gross im Bild, ohne den Blick auf
+## die Tueren zu verstellen.
+@export var height: float = 3.0:
+	set(value):
+		height = value
+		_reposition()
+
+## Wie viele Frames auf die Spieler-Instanz gewartet wird, bevor
+## CAMERA_VIEW auf SPAWN_VIEW_Z zurueckfaellt.
+##
+## Der Spieler entsteht nicht im selben Frame wie der Raum: PartySetup,
+## PlayerSpawnPoint und PartyManager._spawn_active_character() haengen
+## ueber mehrere call_deferred()-Stufen hintereinander. Ein einzelnes
+## await process_frame reicht dafuer nicht zuverlaessig.
+@export var camera_wait_frames: int = 30
+
+## Wenn true, dreht sich das Schild um die Y-Achse immer zur Kamera.
+## Ausschalten, wenn es fest in eine Richtung zeigen soll.
+@export var face_player: bool = true:
+	set(value):
+		face_player = value
+		_rebuild_deferred()
+
+## --- Optik ------------------------------------------------------------
+## Faerbung des Bildes. Weiss = Bild unveraendert. Ein leichter Cyan-Stich
+## laesst es nach Hologramm aussehen, ohne die Lesbarkeit zu kosten.
+@export var tint: Color = Color(0.72, 0.94, 1.0)
+@export_range(0.0, 1.0) var opacity: float = 0.92
+
+## Rueckplatte hinter dem Bild. Ohne sie steht helle Schrift auf hellem
+## Hintergrund praktisch unlesbar im Raum.
+@export var backdrop_enabled: bool = true
+@export var backdrop_color: Color = Color(0.03, 0.09, 0.13, 0.55)
+## Wie weit die Platte ueber das Bild hinausragt (Anteil der Bildbreite).
+@export_range(0.0, 0.5) var backdrop_padding: float = 0.06
+
+## Bodenprojektor: schmaler Lichtkegel vom Boden zum Schild. Erklaert, WOHER
+## das Hologramm kommt - ohne ihn schwebt einfach ein Bild in der Luft.
+##
+## ##########################################################################
+## FIX: "der Kegel steckt IM Bild statt darunter"
+## ##########################################################################
+## Der Kegel lief vom Spawnpunkt (lokal y = 0) bis y = height - und height
+## ist die MITTE des Schildes, nicht dessen Unterkante. Die obere Haelfte
+## des Kegels steckte damit zwangslaeufig im Bild.
+##
+## Rechenbeispiel mit den Standardwerten (board_width = 9, Bild im
+## Verhaeltnis 16:9 -> aspect 0.5625):
+##     Schildhoehe        = 9 * 0.5625      = 5.06
+##     halbe Schildhoehe                    = 2.53
+##     Schild reicht von y = 3 - 2.53 = 0.47  bis  y = 3 + 2.53 = 5.53
+##     Kegel reichte bis y = 3
+## Der Kegel endete also 2,53 Einheiten INNERHALB des Bildes - und weil er
+## additiv gemischt ist, hat er die untere Bildhaelfte zusaetzlich
+## aufgehellt.
+##
+## Jetzt endet er an der UNTERKANTE des Schildes (inklusive der Rueckplatte
+## und projector_gap Abstand). Die Rechnung dafuer steht in
+## _board_half_height() und _projector_top_y().
+@export var projector_enabled: bool = true
+@export var projector_color: Color = Color(0.35, 0.85, 1.0, 0.18)
+
+## Luft zwischen Kegelspitze und Schildunterkante. 0 = der Kegel beruehrt
+## das Schild genau.
+@export var projector_gap: float = 0.25
+
+## Radius der Kegelspitze (oben, am Schild) als Anteil der Schildbreite.
+@export_range(0.0, 1.0) var projector_top_ratio: float = 0.30
+
+## Radius am Boden, in lokalen Einheiten.
+@export var projector_bottom_radius: float = 0.25
+
+## Feinverschiebung des Kegels, falls er nicht mittig unter dem Schild
+## sitzen soll. Wird AUF die berechnete Position addiert.
+@export var projector_offset: Vector3 = Vector3.ZERO
+
+## --- Bewegung ---------------------------------------------------------
+@export var bob_enabled: bool = true
+@export var bob_height: float = 0.4
+@export var bob_speed: float = 1.2
+
+## Flackern. Bewusst dezent: ein Schild, das man lesen soll, darf nicht
+## staendig verschwinden.
+@export var flicker_enabled: bool = true
+@export_range(0.0, 0.5) var flicker_amount: float = 0.08
+@export var flicker_speed: float = 9.0
+
+## --- Sichtbarkeit -----------------------------------------------------
+## Ab dieser Entfernung (lokale Einheiten) blendet das Schild aus. 0 = nie
+## ausblenden.
+##
+## Der Sinn: das Tutorial soll beim Start da sein, aber nicht den halben
+## Raum verdecken, wenn man zurueckkommt. Ausblenden ueber die Entfernung
+## statt ueber einen Timer, weil ein Timer bei jemandem, der die Steuerung
+## zum ersten Mal liest, zwangslaeufig zu frueh ablaeuft.
+@export var fade_out_distance: float = 26.0
+@export var fade_in_distance: float = 22.0
+@export var fade_duration: float = 0.4
+
+@export var debug_logging: bool = false
+
+const PLAYER_GROUP: String = "player"
+
+var _board: Sprite3D = null
+var _backdrop: MeshInstance3D = null
+var _backdrop_material: StandardMaterial3D = null
+var _projector: MeshInstance3D = null
+var _projector_material: StandardMaterial3D = null
+
+var _pivot: Node3D = null
+var _base_y: float = 0.0
+var _time: float = 0.0
+var _visible_target: float = 1.0
+var _current_fade: float = 1.0
+var _rebuild_queued: bool = false
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("[SpawnHologram] %s" % msg)
+
+
+func _ready() -> void:
+	_build()
+
+	if Engine.is_editor_hint():
+		_reposition()
+		return
+
+	# Eine Frame warten: der LevelGenerator setzt die Weltposition des
+	# Raums erst NACH add_child(). Genau dieselbe Begruendung wie in
+	# player_spawn_point.gd und room_commit_guard.gd.
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+
+	# Erste, vorlaeufige Platzierung ueber den Marker - damit das Schild
+	# schon steht, falls der Spieler laenger braucht.
+	_reposition()
+
+	if placement == Placement.CAMERA_VIEW:
+		await _wait_for_player()
+		if not is_inside_tree():
+			return
+		_reposition()
+
+
+## Wartet, bis PartyManager eine Spieler-Instanz mit Kamera gebaut hat.
+func _wait_for_player() -> void:
+	var frames: int = 0
+	while frames < maxi(camera_wait_frames, 1):
+		if _find_camera_pivot() != null:
+			return
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+		frames += 1
+	_debug("Nach %d Frames keine Spielerkamera gefunden - Fallback auf SPAWN_VIEW_Z." % camera_wait_frames)
+
+
+# ============================================================================
+# Aufbau
+# ============================================================================
+## Sammelt mehrere Aenderungen aus dem Inspector zu EINEM Neuaufbau. Ohne
+## das wuerde jeder einzelne Tastendruck in einem Zahlenfeld die komplette
+## Geometrie neu erzeugen.
+func _rebuild_deferred() -> void:
+	if _rebuild_queued or not is_inside_tree():
+		return
+	_rebuild_queued = true
+	_do_rebuild.call_deferred()
+
+
+func _do_rebuild() -> void:
+	_rebuild_queued = false
+	_build()
+	_reposition()
+
+
+func _build() -> void:
+	_clear()
+
+	_pivot = Node3D.new()
+	_pivot.name = "HologramPivot"
+	add_child(_pivot)
+
+	_build_backdrop()
+	_build_board()
+	_build_projector()
+
+	_base_y = _pivot.position.y
+
+
+## remove_child() VOR queue_free(): queue_free() raeumt erst am Frame-Ende
+## auf. Ohne das vorherige Aushaengen laege der alte Aufbau beim Neubau
+## noch im Baum, Godot wuerde den neuen Nodes Namen wie
+## "HologramPivot2" geben, und _pivot zeigte auf etwas anderes als das,
+## was der Editor anzeigt.
+func _clear() -> void:
+	for child: Node in get_children():
+		remove_child(child)
+		child.queue_free()
+	_pivot = null
+	_board = null
+	_backdrop = null
+	_backdrop_material = null
+	_projector = null
+	_projector_material = null
+
+
+func _build_board() -> void:
+	if tutorial_texture == null:
+		_debug("Keine tutorial_texture gesetzt - es wird nur die Ruecklatte gebaut.")
+		return
+
+	_board = Sprite3D.new()
+	_board.name = "TutorialBoard"
+	_board.texture = tutorial_texture
+
+	# pixel_size aus der gewuenschten Breite ableiten statt einen festen
+	# Wert zu setzen: sonst haengt die Schildgroesse an der Aufloesung des
+	# Bildes, und ein Austausch der Textur gegen eine groessere wuerde das
+	# Schild ploetzlich ueber den halben Raum spannen.
+	var tex_width: int = maxi(tutorial_texture.get_width(), 1)
+	_board.pixel_size = board_width / float(tex_width)
+
+	_board.shaded = false
+	_board.double_sided = true
+	_board.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	_board.transparent = true
+	# ALPHA_CUT_DISABLED: bei einem Tutorial-Bild mit weichen Kanten oder
+	# halbtransparentem Hintergrund wuerde ALPHA_CUT_DISCARD harte,
+	# ausgefranste Raender erzeugen.
+	_board.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+	_board.modulate = Color(tint.r, tint.g, tint.b, opacity)
+
+	if face_player:
+		# FIXED_Y: dreht sich nur um die Hochachse. BILLBOARD_ENABLED
+		# wuerde das Schild auch kippen, sobald der Spieler naeher kommt
+		# und die Kamera nach unten schaut - dann steht das Tutorial
+		# schraeg im Bild.
+		_board.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+
+	_pivot.add_child(_board)
+
+
+func _build_backdrop() -> void:
+	if not backdrop_enabled:
+		return
+
+	var pad: float = board_width * backdrop_padding
+	var quad := QuadMesh.new()
+	quad.size = Vector2(board_width + pad * 2.0, _board_image_height() + pad * 2.0)
+
+	_backdrop_material = StandardMaterial3D.new()
+	_backdrop_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_backdrop_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_backdrop_material.albedo_color = backdrop_color
+	_backdrop_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_backdrop_material.disable_receive_shadows = true
+	if face_player:
+		_backdrop_material.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+		# Ohne keep_scale schrumpft ein Billboard-Quad auf Einheitsgroesse.
+		_backdrop_material.billboard_keep_scale = true
+
+	_backdrop = MeshInstance3D.new()
+	_backdrop.name = "Backdrop"
+	_backdrop.mesh = quad
+	_backdrop.material_override = _backdrop_material
+	_backdrop.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Minimal nach hinten, damit die Platte nicht mit dem Bild um dieselben
+	# Tiefenwerte kaempft (Z-Fighting).
+	_backdrop.position.z = -0.02
+	_pivot.add_child(_backdrop)
+
+
+## Hoehe des BILDES selbst in lokalen Einheiten, abgeleitet aus dem
+## Seitenverhaeltnis der Textur.
+##
+## Eine Stelle fuer beide Verbraucher (Rueckplatte und Projektor): stuende
+## die Rechnung zweimal im Code, koennten die beiden nach einer Aenderung
+## unterschiedlich gross sein - und genau daraus entsteht ein Kegel, der
+## nicht mehr zum Schild passt.
+func _board_image_height() -> float:
+	var aspect: float = 0.6
+	if tutorial_texture != null and tutorial_texture.get_width() > 0:
+		aspect = float(tutorial_texture.get_height()) / float(tutorial_texture.get_width())
+	return board_width * aspect
+
+
+## Halbe Hoehe des SICHTBAREN Schildes - also inklusive der Rueckplatte,
+## denn die ragt ueber das Bild hinaus und ist das, was man als Unterkante
+## wahrnimmt.
+func _board_half_height() -> float:
+	var total: float = _board_image_height()
+	if backdrop_enabled:
+		total += board_width * backdrop_padding * 2.0
+	return total * 0.5
+
+
+## Y-Koordinate, an der der Kegel endet: die dem Spawnpunkt ZUGEWANDTE
+## Kante des Schildes, minus projector_gap.
+##
+## Bei positivem height ist das die Unterkante, bei negativem height die
+## Oberkante - der Kegel zeigt dann nach unten. Deshalb wird mit dem
+## Vorzeichen gerechnet und nicht einfach subtrahiert.
+func _projector_top_y() -> float:
+	var half: float = _board_half_height()
+	var gap: float = maxf(projector_gap, 0.0)
+	if height >= 0.0:
+		return maxf(height - half - gap, 0.0)
+	return minf(height + half + gap, 0.0)
+
+
+## Schmaler Lichtkegel vom Boden bis UNTER das Schild.
+##
+## Sitzt bewusst NICHT im _pivot: der wippt (bob), und ein Lichtkegel, der
+## mitwippt, loest sich sichtbar vom Boden.
+func _build_projector() -> void:
+	if not projector_enabled:
+		return
+
+	var top_y: float = _projector_top_y()
+	var span: float = absf(top_y)
+
+	# Zu kurz zum Zeichnen: das passiert, wenn das Schild so gross ist,
+	# dass seine Unterkante schon fast auf dem Boden liegt. Ein Kegel von
+	# wenigen Zentimetern waere dann nur ein Fleck am Spawnpunkt.
+	if span < 0.15:
+		_debug("Schildunterkante liegt fast auf Spawnhoehe - Projektor entfaellt.")
+		return
+
+	var cone := CylinderMesh.new()
+	cone.height = span
+	cone.radial_segments = 12
+	cone.rings = 1
+
+	var wide: float = board_width * projector_top_ratio
+	var narrow: float = maxf(projector_bottom_radius, 0.01)
+
+	# Die breite Seite gehoert IMMER ans Schild, die schmale an den
+	# Spawnpunkt. Bei negativem height liegt das Schild unten, also
+	# tauschen.
+	if height >= 0.0:
+		cone.top_radius = wide
+		cone.bottom_radius = narrow
+	else:
+		cone.top_radius = narrow
+		cone.bottom_radius = wide
+
+	_projector_material = StandardMaterial3D.new()
+	_projector_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_projector_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_projector_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	_projector_material.albedo_color = projector_color
+	_projector_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_projector_material.disable_receive_shadows = true
+	# Ohne das schiebt sich der additive Kegel vor das Bild, sobald man
+	# schraeg davorsteht: er wuerde die Schrift ueberstrahlen. Mit
+	# no_depth_test = false und deaktiviertem Tiefenschreiben sortiert er
+	# sich korrekt hinter undurchsichtige Geometrie ein, ohne selbst
+	# andere transparente Flaechen zu verdecken.
+	_projector_material.no_depth_test = false
+
+	_projector = MeshInstance3D.new()
+	_projector.name = "Projector"
+	_projector.mesh = cone
+	_projector.material_override = _projector_material
+	_projector.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	# Der Kegel ist um seinen Mittelpunkt gebaut: er soll die Strecke von
+	# y = 0 (Spawnpunkt) bis y = top_y (Schildunterkante) fuellen, sein
+	# Mittelpunkt liegt also auf halber Strecke. Vorher stand hier
+	# height * 0.5 - und height ist die Schildmitte, nicht die Unterkante.
+	_projector.position = Vector3(0.0, top_y * 0.5, 0.0) + projector_offset
+	add_child(_projector)
+
+
+# ============================================================================
+# Platzierung
+# ============================================================================
+## Stellt das Hologramm vor den PlayerSpawnPoint des eigenen Raums.
+##
+## Der Marker wird im GESCHWISTERBEREICH gesucht, nicht global: in einem
+## generierten Level koennen mehrere Raeume gleichzeitig existieren, und
+## ein globaler Suchlauf wuerde irgendeinen davon finden.
+func _reposition() -> void:
+	if not is_inside_tree():
+		return
+
+	var marker: Node3D = _find_spawn_marker()
+	if marker == null:
+		_debug("Kein PlayerSpawnPoint im Raum gefunden - Node bleibt, wo er im Editor liegt.")
+		if _pivot != null:
+			_pivot.position.y = height
+			_base_y = height
+		return
+
+	var dir: Vector3 = _placement_direction(marker)
+
+	position = marker.position + dir * distance
+	position.y = marker.position.y
+
+	if _pivot != null:
+		_pivot.position.y = height
+		_base_y = height
+
+	if not face_player:
+		# Das Schild soll den Spawnpunkt ANSEHEN, also muss seine eigene
+		# +Z-Achse (Vorderseite von Sprite3D und QuadMesh) entgegen der
+		# Aufstellrichtung zeigen.
+		rotation.y = atan2(-dir.x, -dir.z)
+
+	_debug("Platziert bei %s (Modus %s)." % [position, Placement.keys()[placement]])
+
+
+## Liefert die Richtung, in die das Schild vom Marker aus gesetzt wird -
+## als Einheitsvektor im LOKALEN System des Elternknotens.
+##
+## WARUM LOKAL UND NICHT GLOBAL:
+## Der Raum wird mit einer skalierten Basis instanziiert (room_scale).
+## Eine Weltrichtung mit einem lokalen Abstand zu multiplizieren, mischt
+## zwei Koordinatensysteme - das Schild waere dann bei jeder Aenderung von
+## room_scale unterschiedlich weit weg. Die Kamerarichtung wird deshalb
+## ueber die inverse Elternbasis heruntergerechnet.
+func _placement_direction(marker: Node3D) -> Vector3:
+	match placement:
+		Placement.SPAWN_BACK_Z:
+			return marker.transform.basis.z.normalized()
+		Placement.SPAWN_VIEW_Z:
+			return -marker.transform.basis.z.normalized()
+		_:
+			pass
+
+	# CAMERA_VIEW
+	var pivot: Node3D = _find_camera_pivot()
+	if pivot == null:
+		# Fallback: bei Spawn-Yaw 0 zeigt die Kamera ohnehin nach -Z.
+		return -marker.transform.basis.z.normalized()
+
+	# Blickrichtung der Kamera in Weltkoordinaten. -Z, weil Camera3D wie
+	# jedes Godot-Node entlang seiner NEGATIVEN Z-Achse schaut - und weil
+	# genau dorthin auch Bewegung und Angriffe zeigen (siehe Dateikopf).
+	var world_dir: Vector3 = -pivot.global_transform.basis.z
+	world_dir.y = 0.0
+	if world_dir.length() < 0.001:
+		return -marker.transform.basis.z.normalized()
+	world_dir = world_dir.normalized()
+
+	var parent_3d: Node3D = get_parent() as Node3D
+	if parent_3d == null:
+		return world_dir
+
+	var local_dir: Vector3 = parent_3d.global_transform.basis.inverse() * world_dir
+	local_dir.y = 0.0
+	if local_dir.length() < 0.001:
+		return -marker.transform.basis.z.normalized()
+	return local_dir.normalized()
+
+
+## Der CameraPivot haengt unter der Spieler-Instanz (siehe
+## char_*.tscn: Player/CameraPivot/SpringArm3D/Camera3D). Gesucht wird
+## ueber die Gruppe, nicht ueber einen Pfad - PartyManager tauscht die
+## Instanz bei jedem Charakterwechsel komplett aus.
+func _find_camera_pivot() -> Node3D:
+	var player: Node3D = _find_player()
+	if player == null:
+		return null
+	var pivot: Node = player.get_node_or_null("CameraPivot")
+	if pivot is Node3D:
+		return pivot as Node3D
+	# Fallback: der Koerper selbst. Sein Yaw kommt beim Spawnen direkt vom
+	# Marker, taugt also als grobe Ersatzrichtung.
+	return player
+
+
+func _find_spawn_marker() -> Node3D:
+	var parent: Node = get_parent()
+	if parent == null:
+		return null
+
+	for child: Node in parent.get_children():
+		if child == self:
+			continue
+		if child is PlayerSpawnPoint:
+			return child as Node3D
+
+	# Zweiter Versuch ueber den Namen - deckt Szenen ab, in denen der Marker
+	# (noch) kein Script traegt.
+	var by_name: Node = parent.get_node_or_null("PlayerSpawnPoint")
+	if by_name is Node3D:
+		return by_name as Node3D
+
+	return null
+
+
+# ============================================================================
+# Laufzeit
+# ============================================================================
+func _process(delta: float) -> void:
+	if _pivot == null or not is_instance_valid(_pivot):
+		return
+
+	_time += delta
+
+	if bob_enabled:
+		_pivot.position.y = _base_y + sin(_time * bob_speed) * bob_height
+
+	if Engine.is_editor_hint():
+		return
+
+	_update_distance_fade(delta)
+	_apply_alpha()
+
+
+## Zwei getrennte Schwellen (fade_out_distance / fade_in_distance) statt
+## einer: mit nur einer Grenze flackert die Anzeige, sobald man genau auf
+## ihr steht und sich minimal bewegt.
+func _update_distance_fade(delta: float) -> void:
+	if fade_out_distance <= 0.0:
+		_visible_target = 1.0
+	else:
+		var player: Node3D = _find_player()
+		if player != null:
+			var d: float = global_position.distance_to(player.global_position)
+			# Die Schwellen sind in LOKALEN Einheiten angegeben, die
+			# Entfernung faellt in Weltmassen an - also umrechnen, sonst
+			# stimmen die Werte bei room_scale != 1 nicht.
+			var world_scale: float = maxf(global_transform.basis.x.length(), 0.001)
+			var out_limit: float = fade_out_distance * world_scale
+			var in_limit: float = fade_in_distance * world_scale
+
+			if d > out_limit:
+				_visible_target = 0.0
+			elif d < in_limit:
+				_visible_target = 1.0
+
+	var step: float = delta / maxf(fade_duration, 0.01)
+	_current_fade = move_toward(_current_fade, _visible_target, step)
+
+
+func _apply_alpha() -> void:
+	var flicker: float = 1.0
+	if flicker_enabled:
+		# Zwei ueberlagerte Sinuskurven mit unpassenden Frequenzen: eine
+		# einzelne Welle liest sich als gleichmaessiges Pulsieren, nicht
+		# als instabile Projektion.
+		var noise: float = sin(_time * flicker_speed) * 0.6 + sin(_time * flicker_speed * 2.7) * 0.4
+		flicker = 1.0 - flicker_amount * (noise * 0.5 + 0.5)
+
+	var alpha: float = _current_fade * flicker
+
+	if _board != null and is_instance_valid(_board):
+		_board.modulate = Color(tint.r, tint.g, tint.b, opacity * alpha)
+		_board.visible = alpha > 0.01
+
+	if _backdrop_material != null:
+		_backdrop_material.albedo_color = Color(
+			backdrop_color.r, backdrop_color.g, backdrop_color.b, backdrop_color.a * alpha
+		)
+	if _backdrop != null and is_instance_valid(_backdrop):
+		_backdrop.visible = alpha > 0.01
+
+	if _projector_material != null:
+		_projector_material.albedo_color = Color(
+			projector_color.r, projector_color.g, projector_color.b, projector_color.a * alpha
+		)
+	if _projector != null and is_instance_valid(_projector):
+		_projector.visible = alpha > 0.01
+
+
+## Ueber die Gruppe statt find_child("Player"): der PartyManager tauscht die
+## Spieler-Instanz bei jedem Charakterwechsel komplett aus, eine gemerkte
+## Referenz waere danach eine Leiche.
+func _find_player() -> Node3D:
+	var nodes: Array[Node] = get_tree().get_nodes_in_group(PLAYER_GROUP)
+	for node: Node in nodes:
+		if node is Node3D and is_instance_valid(node):
+			return node as Node3D
+	return null
+
+
+## Von aussen ein-/ausblendbar, falls das Tutorial spaeter ueber eine
+## Einstellung abschaltbar sein soll.
+func set_hologram_visible(value: bool) -> void:
+	_visible_target = 1.0 if value else 0.0
 
 
 ===== FILE: scripts\stats_panel.gd =====
@@ -40909,26 +43136,188 @@ void fragment() {
 
 ===== FILE: shaders\crt_effect.gdshader =====
 
+/*
+Shader from Godot Shaders - the free shader library.
+
+This shader is under CC0 license. Feel free to use, improve and 
+change this shader according to your needs and consider sharing 
+the modified result to godotshaders.com.
+
+Optimised and packed by @c64cosmin
+If you do use this please share it with me
+Would love to see what you're making with it <3
+
+It's a combination of these two shaders
+~godotshaders.com/shader/VHS-and-CRT-monitor-effect
+godotshaders.com/shader/crt-shader-with-realistic-blurring/
+
+CRT grille and rolling lines made by @c64cosmin
+Vignette and warping effect was made by pend00
+Scanlines are from "TimothyLottes" FROM SHADERTOY
+Then ported by AHOPNESS (@ahopness)
+https://www.shadertoy.com/view/MsjXzh
+*/
+
 shader_type canvas_item;
 
-uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_nearest;
+uniform sampler2D SCREEN_TEXTURE: hint_screen_texture;
 
-// Wie dick/eng die Streifen sind — höherer Wert = mehr, dünnere Streifen
-uniform float scanline_count : hint_range(50.0, 800.0, 1.0) = 6000.0;
-// Wie stark die Streifen abdunkeln — 0 = unsichtbar, 1 = komplett schwarz
-uniform float scanline_intensity : hint_range(0.0, 1.0, 0.01) = 0.000006;
-// Optional: Farbe statt reiner Abdunklung (Standard: neutrales Schwarz)
-uniform vec3 scanline_color : source_color = vec3(0.0, 0.0, 0.0);
-// Falls du willst, dass die Streifen sich langsam nach unten bewegen
-// (klassischer Röhrenbildschirm-Effekt) — 0 = komplett statisch
-uniform float scroll_speed : hint_range(0.0, 5.0, 0.01) = 0.03;
+uniform vec2 resolution = vec2(320.0, 180.0);
 
-void fragment() {
-	vec4 screen = texture(screen_texture, SCREEN_UV);
-	float line_pos = SCREEN_UV.y * scanline_count + TIME * scroll_speed;
-	float pattern = sin(line_pos * 3.14159) * 0.5 + 0.5;
-	vec3 color = mix(screen.rgb, scanline_color, (1.0 - pattern) * scanline_intensity);
-	COLOR = vec4(color, screen.a); // preserve original alpha instead of forcing 1.0
+uniform float scan_line_amount :hint_range(0.0, 1.0) = 1.0;
+uniform float warp_amount :hint_range(0.0, 5.0) = 0.1;
+uniform float noise_amount :hint_range(0.0, 0.3) = 0.03;
+uniform float interference_amount :hint_range(0.0, 1.0) = 0.2;
+uniform float grille_amount :hint_range(0.0, 1.0) = 0.1;
+uniform float grille_size :hint_range(1.0, 5.0) = 1.0;
+uniform float vignette_amount :hint_range(0.0, 2.0) = 0.6;
+uniform float vignette_intensity : hint_range(0.0, 1.0) = 0.4;
+uniform float aberation_amount :hint_range(0.0, 1.0) = 0.5;
+uniform float roll_line_amount :hint_range(0.0, 1.0) = 0.3;
+uniform float roll_speed :hint_range(-8.0, 8.0) = 1.0;
+uniform float scan_line_strength :hint_range(-12.0, -1.0) = -8.0;
+uniform float pixel_strength :hint_range(-4.0, 0.0) = -2.0;
+
+float random(vec2 uv){
+    return fract(cos(uv.x * 83.4827 + uv.y * 92.2842) * 43758.5453123);
+}
+
+vec3 fetch_pixel(vec2 uv, vec2 off){
+	vec2 pos = floor(uv * resolution + off) / resolution + vec2(0.5) / resolution;
+
+	float noise = 0.0;
+	if(noise_amount > 0.0){
+		noise = random(pos + fract(TIME)) * noise_amount;
+	}
+
+	if(max(abs(pos.x - 0.5), abs(pos.y - 0.5)) > 0.5){
+		return vec3(0.0, 0.0, 0.0);
+	}
+
+	vec3 clr = texture(SCREEN_TEXTURE , pos, -16.0).rgb + noise;
+	return clr;
+}
+
+// Distance in emulated pixels to nearest texel.
+vec2 Dist(vec2 pos){ 
+	pos = pos * resolution;
+	return - ((pos - floor(pos)) - vec2(0.5));
+}
+    
+// 1D Gaussian.
+float Gaus(float pos, float scale){ return exp2(scale * pos * pos); }
+
+// 3-tap Gaussian filter along horz line.
+vec3 Horz3(vec2 pos, float off){
+	vec3 b = fetch_pixel(pos, vec2(-1.0, off));
+	vec3 c = fetch_pixel(pos, vec2( 0.0, off));
+	vec3 d = fetch_pixel(pos, vec2( 1.0, off));
+	float dst = Dist(pos).x;
+	
+	// Convert distance to weight.
+	float scale = pixel_strength;
+	float wb = Gaus(dst - 1.0, scale);
+	float wc = Gaus(dst + 0.0, scale);
+	float wd = Gaus(dst + 1.0, scale);
+	
+	// Return filtered sample.
+	return (b * wb + c * wc + d * wd) / (wb + wc + wd);
+}
+
+// Return scanline weight.
+float Scan(vec2 pos, float off){
+	float dst = Dist(pos).y;
+	
+	return Gaus(dst + off, scan_line_strength);
+}
+
+// Allow nearest three lines to effect pixel.
+vec3 Tri(vec2 pos){
+	vec3 clr = fetch_pixel(pos, vec2(0.0));
+	if(scan_line_amount > 0.0){
+		vec3 a = Horz3(pos,-1.0);
+		vec3 b = Horz3(pos, 0.0);
+		vec3 c = Horz3(pos, 1.0);
+
+		float wa = Scan(pos,-1.0);
+		float wb = Scan(pos, 0.0);
+		float wc = Scan(pos, 1.0);
+
+		vec3 scanlines = a * wa + b * wb + c * wc;
+		clr = mix(clr, scanlines, scan_line_amount);
+	}
+	return clr;
+}
+
+// Takes in the UV and warps the edges, creating the spherized effect
+vec2 warp(vec2 uv){
+	vec2 delta = uv - 0.5;
+	float delta2 = dot(delta.xy, delta.xy);
+	float delta4 = delta2 * delta2;
+	float delta_offset = delta4 * warp_amount;
+	
+	vec2 warped = uv + delta * delta_offset;
+	return (warped - 0.5) / mix(1.0,1.2,warp_amount/5.0) + 0.5;
+}
+
+float vignette(vec2 uv){
+	uv *= 1.0 - uv.xy;
+	float vignette = uv.x * uv.y * 15.0;
+	return pow(vignette, vignette_intensity * vignette_amount);
+}
+
+float floating_mod(float a, float b){
+	return a - b * floor(a/b);
+}
+
+vec3 grille(vec2 uv){
+	float unit = PI / 3.0;
+	float scale = 2.0*unit/grille_size;
+	float r = smoothstep(0.5, 0.8, cos(uv.x*scale - unit));
+	float g = smoothstep(0.5, 0.8, cos(uv.x*scale + unit));
+	float b = smoothstep(0.5, 0.8, cos(uv.x*scale + 3.0*unit));
+	return mix(vec3(1.0), vec3(r,g,b), grille_amount);
+}
+
+float roll_line(vec2 uv){
+	float x = uv.y * 3.0 - TIME * roll_speed;
+	float f = cos(x) * cos(x * 2.35 + 1.1) * cos(x * 4.45 + 2.3);
+	float roll_line = smoothstep(0.5, 0.9, f);
+	return roll_line * roll_line_amount;
+}
+
+void fragment(){
+	vec2 pix = FRAGCOORD.xy;
+	vec2 pos = warp(SCREEN_UV);
+	
+	float line = 0.0;
+	if(roll_line_amount > 0.0){
+		line = roll_line(pos);
+	}
+
+	vec2 sq_pix = floor(pos * resolution) / resolution + vec2(0.5) / resolution;
+	if(interference_amount + roll_line_amount > 0.0){
+		float interference = random(sq_pix.yy + fract(TIME));
+		pos.x += (interference * (interference_amount + line * 6.0)) / resolution.x;
+	}
+
+	vec3 clr = Tri(pos);
+	if(aberation_amount > 0.0){
+		float chromatic = aberation_amount + line * 2.0;
+		vec2 chromatic_x = vec2(chromatic,0.0) / resolution.x;
+		vec2 chromatic_y = vec2(0.0, chromatic/2.0) / resolution.y;
+		float r = Tri(pos - chromatic_x).r;
+		float g = Tri(pos + chromatic_y).g;
+		float b = Tri(pos + chromatic_x).b;
+		clr = vec3(r,g,b);
+	}
+	
+	if(grille_amount > 0.0)clr *= grille(pix);
+	clr *= 1.0 + scan_line_amount * 0.6 + line * 3.0 + grille_amount * 2.0;
+	if(vignette_amount > 0.0)clr *= vignette(pos);
+	
+	COLOR.rgb = clr;
+	COLOR.a = 1.0;
 }
 
 ===== FILE: shaders\menu_blur.gdshader =====
@@ -41040,6 +43429,51 @@ void fragment() {
 	ALBEDO = mix(base_albedo, flash_color.rgb, flash_strength);
 	ALPHA = tex_color.a * albedo_color.a * alpha_multiplier;
 }
+
+
+===== FILE: textures\cd565bbe-05f1-450b-9fe6-1a7137320796.jpg.import =====
+
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://blu8rq7raoeag"
+path.s3tc="res://.godot/imported/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg-9ad78ad5339109f1ec45d2b653c6ff9e.s3tc.ctex"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+
+[deps]
+
+source_file="res://textures/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg"
+dest_files=["res://.godot/imported/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg-9ad78ad5339109f1ec45d2b653c6ff9e.s3tc.ctex"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/channel_remap/red=0
+process/channel_remap/green=1
+process/channel_remap/blue=2
+process/channel_remap/alpha=3
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=0
 
 
 ===== FILE: textures\image-removebg-preview (13).png.import =====

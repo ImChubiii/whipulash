@@ -1,3 +1,4 @@
+
 @tool
 extends Node3D
 class_name LavaHazard
@@ -43,6 +44,34 @@ class_name LavaHazard
 ##  6. NEU - predict_falling_entry: bei hoher Fallgeschwindigkeit wird der
 ##     Fusspunkt des naechsten Physik-Schritts vorausberechnet, damit ein
 ##     schneller Sprung nicht ueber eine duenne Lache "hinwegspringt".
+##
+## ############################################################################
+##  7. "DIE LAVA FAENGT ZU SPAET MIT DEM SCHADEN AN" - ROOT CAUSE
+## ############################################################################
+##     Die Ursache lag NICHT in diesem Script, sondern in scenes/lemonade.tscn.
+##     Die Szene ueberschreibt die Exports und setzte dort
+##
+##         damage_on_entry = false
+##         tick_interval   = 1.0
+##
+##     Der unter Punkt 4 beschriebene Eintrittsschaden war damit
+##     abgeschaltet: der erste Treffer kam erst nach einer VOLLEN Sekunde
+##     in der Lache. Wer durchgelaufen ist, hat oft gar keinen Schaden
+##     genommen - was von aussen aussieht, als wuerde der Hazard "zu spaet"
+##     oder gar nicht reagieren.
+##
+##     Das ist die typische Falle bei @export-Werten: der Wert im Script
+##     ist nur der Default fuer NEUE Instanzen. Eine .tscn, die ihn
+##     ueberschreibt, gewinnt immer - und der Script-Default steht daneben
+##     und sieht richtig aus.
+##
+##     Zwei Aenderungen:
+##       a) Die Szene setzt damage_on_entry = true und tick_interval = 0.5.
+##       b) NEU hier: first_tick_interval. Der ZWEITE Treffer kommt jetzt
+##          schneller als alle folgenden. Ohne das war die Abfolge
+##          "Schaden - lange Pause - Schaden", und die lange Pause direkt
+##          nach dem Eintauchen liest sich fuer den Spieler wieder wie
+##          "reagiert zu spaet".
 
 enum HazardMode { POOL, SURFACE }
 
@@ -77,7 +106,12 @@ enum HazardMode { POOL, SURFACE }
 @export var hazard_mode: HazardMode = HazardMode.SURFACE
 
 @export var damage_per_tick: float = 15.0
-@export var tick_interval: float = 1.0
+@export var tick_interval: float = 0.5
+
+## Abstand vom Eintrittsschaden zum ZWEITEN Treffer. Kuerzer als
+## tick_interval - Begruendung unter Punkt 7 im Kopfkommentar.
+@export var first_tick_interval: float = 0.3
+
 @export var damage_on_entry: bool = true
 
 ## Nur im POOL-Modus relevant.
@@ -117,7 +151,10 @@ enum HazardMode { POOL, SURFACE }
 @export var debug_logging: bool = false
 
 ## Sicherheits-Poll gegen verschluckte body_entered-Signale (Sekunden).
-@export var rescan_interval: float = 0.2
+## Von 0.2 auf 0.1 halbiert: der Poll ist das Sicherheitsnetz fuer
+## verschluckte body_entered-Signale. Bei 0.2 s konnte genau dieser Fall
+## bis zu einer Fuenftelsekunde Schadensverzoegerung erzeugen.
+@export var rescan_interval: float = 0.1
 
 @onready var visual: CSGBox3D = $LemonadeVisual
 @onready var trigger: Area3D = $LemonadeTrigger
@@ -285,7 +322,10 @@ func _physics_process(delta: float) -> void:
 			# tick_interval Sekunden.
 			if damage_on_entry:
 				_damage_body(body)
-				entry["tick_timer"] = 0.0
+			# Auch OHNE Eintrittsschaden wird der Timer hier neu gesetzt:
+			# der Uebergang ist der ehrliche Startpunkt der Zaehlung.
+			entry["tick_timer"] = 0.0
+			entry["first_tick_done"] = false
 		elif was_submerged and not now_submerged:
 			_stop_submersion_effects(body)
 
@@ -294,8 +334,16 @@ func _physics_process(delta: float) -> void:
 		if now_submerged:
 			_apply_wade_slow(body)
 			entry["tick_timer"] += delta
-			if entry["tick_timer"] >= tick_interval:
+
+			# Der erste Treffer nach dem Eintauchen kommt frueher als die
+			# folgenden - siehe Punkt 7 im Kopfkommentar.
+			var wait: float = tick_interval
+			if not entry.get("first_tick_done", true):
+				wait = minf(first_tick_interval, tick_interval)
+
+			if entry["tick_timer"] >= wait:
 				entry["tick_timer"] = 0.0
+				entry["first_tick_done"] = true
 				_damage_body(body)
 
 		_occupants[body] = entry
@@ -316,7 +364,11 @@ func _register(body: Node3D) -> void:
 		return
 
 	var starts_submerged: bool = _is_body_submerged(body)
-	_occupants[body] = {"tick_timer": 0.0, "submerged": starts_submerged}
+	_occupants[body] = {
+		"tick_timer": 0.0,
+		"submerged": starts_submerged,
+		"first_tick_done": false,
+	}
 	_debug("registriert '%s' | Fuesse=%.2f | Oberflaeche=%.2f | drin=%s" % [
 		body.name, _get_body_feet_y(body), _get_surface_top_world_y(), starts_submerged
 	])

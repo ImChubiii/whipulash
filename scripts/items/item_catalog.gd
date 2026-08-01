@@ -1,3 +1,4 @@
+
 extends RefCounted
 class_name ItemCatalog
 
@@ -14,6 +15,20 @@ class_name ItemCatalog
 # Wer spaeter lieber im Inspector arbeitet, legt .tres-Dateien mit dem
 # Script item_data.gd an und laedt sie in load_external() dazu — der Rest
 # des Systems merkt keinen Unterschied.
+#
+# RARITY (NEU): jedes Item bekommt eine Seltenheitsstufe statt einer
+# handgesetzten Sockelfarbe. Die Farbe leitet ItemData daraus ab -
+# grau / gruen / blau / lila / rot, aufsteigend. Die alten
+# pedestal_color-Zeilen sind deshalb ERSATZLOS entfallen: sie haetten die
+# Rarity-Farbe stillschweigend wieder ueberschrieben (der Setter von
+# pedestal_color markiert das Item als "Farbe von Hand gesetzt").
+#
+# Die Einstufung folgt der Wirkung, nicht dem Geschmack:
+#   COMMON     - kleiner, dauerhafter Bonus ohne Spielaenderung
+#   UNCOMMON   - spuerbarer Bonus oder ein Effekt mit Bedingung
+#   RARE       - aendert, wie man einen Kampf angeht
+#   EPIC       - aktive Faehigkeit oder starker Dauereffekt
+#   LEGENDARY  - haelt fuer den ganzen Run her
 #
 # ICONS: bleiben hier leer. Sobald es Texturen gibt, in
 # ItemManager._build_catalog() nach dem Erzeugen zuweisen oder direkt
@@ -42,9 +57,9 @@ static func build_all() -> Array[ItemData]:
 		"Schlag die Hitze zurueck",
 		"Ein Treffer auf einen Gegner gibt 0,75 s lang 1,5x Tempo und Unverwundbarkeit.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MELEE
+		ItemData.Category.MELEE,
+		ItemData.Rarity.UNCOMMON
 	)
-	spoon.pedestal_color = Color(0.85, 0.68, 0.42)
 	items.append(spoon)
 
 	# ------------------------------------------------------------------
@@ -56,9 +71,9 @@ static func build_all() -> Array[ItemData]:
 		"Schwere Hiebe",
 		"30 % Chance, Bluten zuzufuegen: 4 s lang jede Sekunde Schaden.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MELEE
+		ItemData.Category.MELEE,
+		ItemData.Rarity.COMMON
 	)
-	cleaver.pedestal_color = Color(0.72, 0.25, 0.20)
 	# Kleiner Grundschadensbonus, damit sich das Item auch ohne Prozzen lohnt.
 	cleaver.stat_modifiers = {
 		PlayerStats.STAT_DAMAGE: {"mul": 1.05},
@@ -74,9 +89,9 @@ static func build_all() -> Array[ItemData]:
 		"Ladung baut sich auf",
 		"Jeder 6. Treffer entlaedt eine Schockwelle: doppelter Schaden im Umkreis, Gegner werden zurueckgestossen.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MELEE
+		ItemData.Category.MELEE,
+		ItemData.Rarity.RARE
 	)
-	sock.pedestal_color = Color(0.55, 0.75, 0.98)
 	items.append(sock)
 
 	# ------------------------------------------------------------------
@@ -88,9 +103,9 @@ static func build_all() -> Array[ItemData]:
 		"Ramm sie!",
 		"Wer mit hohem Tempo in einen Gegner laeuft, loest eine Ramm-Attacke aus: hoher Kontaktschaden und Rueckstoss.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MOVEMENT
+		ItemData.Category.MOVEMENT,
+		ItemData.Rarity.RARE
 	)
-	horns.pedestal_color = Color(0.90, 0.35, 0.15)
 	horns.stat_modifiers = {
 		PlayerStats.STAT_MOVE_SPEED: {"add": 1.0},
 	}
@@ -105,9 +120,9 @@ static func build_all() -> Array[ItemData]:
 		"Hinterlasse eine Spur",
 		"Hinterlaesst beim Laufen eine Pfuetze. Gegner darin erleiden Schaden und werden 25 % verlangsamt.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.MOVEMENT
+		ItemData.Category.MOVEMENT,
+		ItemData.Rarity.EPIC
 	)
-	oil.pedestal_color = Color(0.95, 0.90, 0.55)
 	items.append(oil)
 
 	# ------------------------------------------------------------------
@@ -119,10 +134,10 @@ static func build_all() -> Array[ItemData]:
 		"Zisch & Zap",
 		"Sofortiger Dash nach vorne. Durchquerte Gegner nehmen hohen Schaden und werden 2 s betaeubt.",
 		ItemData.Kind.ACTIVE,
-		ItemData.Category.MOVEMENT
+		ItemData.Category.MOVEMENT,
+		ItemData.Rarity.EPIC
 	)
 	cables.charge_rooms = 2
-	cables.pedestal_color = Color(0.40, 0.85, 0.95)
 	items.append(cables)
 
 	# ------------------------------------------------------------------
@@ -134,9 +149,9 @@ static func build_all() -> Array[ItemData]:
 		"Alles kommt zu dir",
 		"Zieht Muenzen, Herzen und abgelegte Bomben im Umkreis von 6 m automatisch an.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.DEFENSE
+		ItemData.Category.DEFENSE,
+		ItemData.Rarity.UNCOMMON
 	)
-	compass.pedestal_color = Color(0.65, 0.70, 0.80)
 	compass.stat_modifiers = {
 		# 6 m absolut: der Basiswert liegt bei 2.2, also +3.8 additiv.
 		PlayerStats.STAT_PICKUP_RANGE: {"add": 3.8},
@@ -152,9 +167,9 @@ static func build_all() -> Array[ItemData]:
 		"Die Limonade beisst nicht mehr",
 		"75 % weniger Schaden durch saure Limonade und keine Verlangsamung mehr beim Durchwaten.",
 		ItemData.Kind.PASSIVE,
-		ItemData.Category.DEFENSE
+		ItemData.Category.DEFENSE,
+		ItemData.Rarity.LEGENDARY
 	)
-	boots.pedestal_color = Color(0.45, 0.90, 0.50)
 	boots.stat_modifiers = {
 		PlayerStats.STAT_HAZARD_RESIST: {"mul": 0.25},
 	}
@@ -186,3 +201,5 @@ static func load_external(directory: String = "res://resources/items") -> Array[
 	dir.list_dir_end()
 
 	return result
+
+

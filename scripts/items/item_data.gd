@@ -1,3 +1,4 @@
+
 extends Resource
 class_name ItemData
 
@@ -12,6 +13,28 @@ class_name ItemData
 enum Kind {
 	PASSIVE,   ## Wirkt dauerhaft, sobald es im Inventar liegt.
 	ACTIVE,    ## Muss aktiv ausgeloest werden, laedt ueber Raeume auf.
+}
+
+## Seltenheitsstufe. Bestimmt die Farbe, in der das Item UEBERALL
+## dargestellt wird: Sockel im Schatzraum, Drop am Boden, Chip in der
+## HUD-Leiste, Eintrag in der Run-Uebersicht.
+##
+## WARUM DIE FARBE NICHT EINZELN PRO OBERFLAECHE GESETZT WIRD:
+## Alle vier Anzeigen lesen bereits dieselbe Eigenschaft aus
+## (pedestal_color - siehe treasure_pedestal.gd, pickup.gd,
+## item_description_hud.gd, item_summary_list.gd). Die Rarity schreibt
+## deshalb einfach in genau diese Eigenschaft. Damit war fuer das komplette
+## Farbschema KEINE Aenderung an den Anzeige-Scripten noetig - und es kann
+## auch keine Oberflaeche geben, die eine andere Farbe zeigt als die
+## anderen.
+##
+## Reihenfolge = aufsteigende Wertigkeit: grau, gruen, blau, lila, rot.
+enum Rarity {
+	COMMON,     ## grau
+	UNCOMMON,   ## gruen
+	RARE,       ## blau
+	EPIC,       ## lila
+	LEGENDARY,  ## rot
 }
 
 enum Category {
@@ -44,8 +67,72 @@ enum Category {
 ## Beispiel: { "damage": { "mul": 1.15 } } fuer +15 % Schaden.
 @export var stat_modifiers: Dictionary = {}
 
-## Farbe des schwebenden Sockel-Wuerfels im Raum. Rein kosmetisch.
-@export var pedestal_color: Color = Color(0.95, 0.85, 0.35)
+## Seltenheit. Setzt beim Zuweisen automatisch pedestal_color mit - es sei
+## denn, pedestal_color wurde vorher von Hand gesetzt (dann gewinnt die
+## Handeingabe, siehe _pedestal_color_overridden).
+@export var rarity: Rarity = Rarity.COMMON:
+	set(value):
+		rarity = value
+		if not _pedestal_color_overridden:
+			pedestal_color = rarity_color(value)
+
+## Farbe des schwebenden Sockel-Wuerfels im Raum - und, seit Einfuehrung
+## der Rarity, auch die Farbe des Drops, des HUD-Chips und des Eintrags in
+## der Run-Uebersicht. Wird normalerweise NICHT mehr von Hand gesetzt,
+## sondern aus rarity abgeleitet.
+## Literal statt rarity_color(...): ein Member-Initialisierer, der eine
+## statische Funktion DERSELBEN Klasse aufruft, laeuft waehrend die Klasse
+## noch initialisiert wird. Der Wert unten ist identisch mit
+## rarity_color(Rarity.COMMON) - bei einer Palettenaenderung mit anpassen.
+@export var pedestal_color: Color = Color(0.72, 0.74, 0.78):
+	set(value):
+		pedestal_color = value
+		_pedestal_color_overridden = true
+
+## true, sobald pedestal_color explizit gesetzt wurde. Verhindert, dass
+## eine spaetere Rarity-Zuweisung eine bewusst gewaehlte Sonderfarbe
+## ueberschreibt.
+var _pedestal_color_overridden: bool = false
+
+
+## Die Farbtabelle. EINE Stelle - wer die Palette aendern will, aendert sie
+## hier und nirgends sonst.
+##
+## Die Werte sind bewusst hell und gesaettigt: die Sockel-Wuerfel stehen in
+## dunklen Raeumen und leuchten mit emission, gedaempfte Toene waeren dort
+## nicht auseinanderzuhalten.
+static func rarity_color(value: Rarity) -> Color:
+	match value:
+		Rarity.UNCOMMON:
+			return Color(0.42, 0.85, 0.40)   # gruen
+		Rarity.RARE:
+			return Color(0.35, 0.62, 0.98)   # blau
+		Rarity.EPIC:
+			return Color(0.70, 0.42, 0.95)   # lila
+		Rarity.LEGENDARY:
+			return Color(0.95, 0.28, 0.26)   # rot
+	return Color(0.72, 0.74, 0.78)           # grau (COMMON)
+
+
+static func rarity_name(value: Rarity) -> String:
+	match value:
+		Rarity.UNCOMMON:
+			return "Ungewoehnlich"
+		Rarity.RARE:
+			return "Selten"
+		Rarity.EPIC:
+			return "Episch"
+		Rarity.LEGENDARY:
+			return "Legendaer"
+	return "Gewoehnlich"
+
+
+func get_rarity_color() -> Color:
+	return rarity_color(rarity)
+
+
+func get_rarity_name() -> String:
+	return rarity_name(rarity)
 
 ## Wie oft dasselbe Item in einem Run maximal droppen darf. 0 = unbegrenzt.
 @export var max_stacks: int = 1
@@ -59,7 +146,8 @@ static func create(
 		p_flavor: String,
 		p_description: String,
 		p_kind: Kind = Kind.PASSIVE,
-		p_category: Category = Category.UTILITY
+		p_category: Category = Category.UTILITY,
+		p_rarity: Rarity = Rarity.COMMON
 ) -> ItemData:
 	var data := ItemData.new()
 	data.id = p_id
@@ -68,6 +156,10 @@ static func create(
 	data.description = p_description
 	data.kind = p_kind
 	data.category = p_category
+	# ZULETZT: der Setter von rarity schreibt pedestal_color mit. Stuende
+	# die Zeile weiter oben, koennte eine spaetere Zuweisung sie wieder
+	# ueberschreiben.
+	data.rarity = p_rarity
 	return data
 
 
@@ -84,3 +176,5 @@ func get_category_name() -> String:
 		Category.DEFENSE:
 			return "Defensive"
 	return "Sonstiges"
+
+

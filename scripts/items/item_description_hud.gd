@@ -1,3 +1,4 @@
+
 extends VBoxContainer
 class_name ItemDescriptionHud
 
@@ -90,7 +91,39 @@ const HUD_ELEMENT: String = "items"
 
 ## Groesse und Lage der Karte. offset_y wird von der Bildmitte aus gemessen;
 ## positiv = nach unten.
+##
+## ##########################################################################
+## FIX: "die Karte ist viel zu breit und laeuft aus dem Bild"
+## ##########################################################################
+## card_width war eine FESTE Breite: offset_left/-right wurden hart auf
+## +/- 210 gesetzt und nie wieder angefasst. Das hatte zwei Folgen, die
+## gegeneinander liefen:
+##
+##   * Kurze Texte ("Schwere Hiebe") bekamen trotzdem die volle Breite -
+##     eine halb leere Box.
+##   * Ein Control, das NICHT in einem Container haengt (die Karte haengt
+##     frei am HUD-Wurzelknoten), kann seine Groesse nicht unter
+##     get_combined_minimum_size() druecken. Sobald ein Label mit
+##     autowrap in der Kette eine groessere Mindestbreite meldete - was
+##     bei Labels ohne gesetzte custom_minimum_size.x regelmaessig
+##     passiert, weil sie im ersten Layout-Durchgang die volle
+##     EINZEILIGE Textbreite verlangen - wuchs die Karte ueber die 420
+##     hinaus. Und weil sie mittig verankert ist und nach BEIDEN Seiten
+##     waechst, ragte sie dann links UND rechts aus dem Bild.
+##
+## Jetzt ist card_width nur noch die OBERGRENZE. Die tatsaechliche Breite
+## wird aus der gemessenen Textbreite bestimmt (siehe
+## _resize_card_to_content) und zusaetzlich gegen die Viewport-Breite
+## geklemmt - die Karte kann damit gar nicht mehr aus dem Bild laufen.
 @export var card_width: float = 420.0
+
+## Untergrenze, damit die Karte bei einem Zweiwort-Item nicht zu einem
+## Briefmarken-Kaestchen zusammenfaellt.
+@export var card_min_width: float = 240.0
+
+## Mindestabstand zum Bildrand. Gilt horizontal UND vertikal.
+@export var card_screen_margin: float = 24.0
+
 @export var card_offset_y: float = 70.0
 
 const CHIP_SIZE: float = 26.0
@@ -215,11 +248,11 @@ func _build_card() -> void:
 	_card.anchor_bottom = 0.5
 	_card.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_card.grow_vertical = Control.GROW_DIRECTION_END
-	_card.offset_left = -card_width * 0.5
-	_card.offset_right = card_width * 0.5
+	# Startwerte. Die endgueltige Breite setzt _resize_card_to_content(),
+	# sobald der Inhalt feststeht.
+	_apply_card_width(card_width)
 	_card.offset_top = card_offset_y
 	_card.offset_bottom = card_offset_y
-	_card.pivot_offset = Vector2(card_width * 0.5, 0.0)
 
 	_card_style = StyleBoxFlat.new()
 	_card_style.bg_color = BG_COLOR
@@ -271,6 +304,12 @@ func _build_card() -> void:
 	_card_name = Label.new()
 	_card_name.add_theme_font_size_override("font_size", 18)
 	_card_name.add_theme_color_override("font_color", Color(0.98, 0.95, 0.84))
+	# Auch der Name darf notfalls umbrechen. Ohne das setzt ein langer
+	# Itemname ("Papas Starthilfekabel") allein die Mindestbreite der
+	# ganzen Karte - und zwar in EINER Zeile, ueber jede Obergrenze hinweg.
+	_card_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_card_name.custom_minimum_size.x = 1.0
+	_card_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(_card_name)
 
 	var spacer := Control.new()
@@ -289,12 +328,22 @@ func _build_card() -> void:
 	_card_flavor.add_theme_font_size_override("font_size", 12)
 	_card_flavor.add_theme_color_override("font_color", MUTED_COLOR)
 	_card_flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# custom_minimum_size.x = 1 statt 0: ein Label mit autowrap, dessen
+	# Mindestbreite NICHT gesetzt ist, verlangt in der Layout-Runde die
+	# Breite seines laengsten ungebrochenen Abschnitts. Genau darueber ist
+	# die Karte vorher aus dem Bild gewandert. Mit einer expliziten
+	# Mindestbreite darf das Label beliebig schmal werden und bricht
+	# stattdessen um - die Breite bestimmt allein die Karte.
+	_card_flavor.custom_minimum_size.x = 1.0
+	_card_flavor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(_card_flavor)
 
 	_card_description = Label.new()
 	_card_description.add_theme_font_size_override("font_size", 14)
 	_card_description.add_theme_color_override("font_color", TEXT_COLOR)
 	_card_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_card_description.custom_minimum_size.x = 1.0
+	_card_description.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(_card_description)
 
 	_card_charge = Label.new()
@@ -356,7 +405,125 @@ func show_item(item: ItemData, persistent: bool = false) -> void:
 		_card_hint.text = "[F] Nehmen"
 
 	_card_persistent = persistent
+	_resize_card_to_content()
 	_play_card_intro()
+
+
+# ============================================================================
+# Kartengroesse
+# ============================================================================
+## Setzt Breite und Dreh-/Skalierpunkt in einem Rutsch. pivot_offset MUSS
+## mitgezogen werden: _play_card_intro() skaliert die Karte, und ein
+## Pivot, der noch auf der alten halben Breite steht, laesst sie beim
+## Aufklappen seitlich wegrutschen.
+func _apply_card_width(width: float) -> void:
+	if _card == null or not is_instance_valid(_card):
+		return
+	_card.offset_left = -width * 0.5
+	_card.offset_right = width * 0.5
+	_card.pivot_offset = Vector2(width * 0.5, 0.0)
+
+
+## Misst die tatsaechlich benoetigte Breite EINES Labels.
+##
+## Gemessen wird ueber den Font, nicht ueber get_combined_minimum_size():
+## bei eingeschaltetem autowrap meldet ein Label seine Mindestbreite als
+## "laengstes einzelnes Wort" - danach waere die Karte immer schmal und
+## jeder Text vierzeilig. Wir wollen aber das Gegenteil: so breit wie der
+## Text WILL, gedeckelt durch Bildschirm und card_width.
+func _measure_label_width(label: Label) -> float:
+	if label == null or not is_instance_valid(label):
+		return 0.0
+	if not label.visible or label.text.strip_edges() == "":
+		return 0.0
+
+	var font: Font = label.get_theme_font("font")
+	if font == null:
+		return 0.0
+	var font_size: int = label.get_theme_font_size("font_size")
+
+	var widest: float = 0.0
+	for line: String in label.text.split("\n"):
+		widest = maxf(widest, font.get_string_size(
+			line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size
+		).x)
+	return widest
+
+
+## Zieht die Karte auf die Breite ihres Inhalts zusammen und klemmt sie
+## gegen den Bildschirm.
+##
+## Reihenfolge der Grenzen (von innen nach aussen):
+##   Textbreite  ->  card_min_width  ->  card_width  ->  Viewport
+## Die letzte Grenze gewinnt immer. Damit kann keine Kombination aus
+## langem Itemnamen, grosser UI-Skalierung und kleinem Fenster die Karte
+## noch aus dem Bild schieben.
+func _resize_card_to_content() -> void:
+	if _card == null or not is_instance_valid(_card):
+		return
+
+	# Breitester Textblock in der rechten Spalte.
+	var content: float = 0.0
+	content = maxf(content, _measure_label_width(_card_name) + _measure_label_width(_card_tag) + 24.0)
+	content = maxf(content, _measure_label_width(_card_flavor))
+	content = maxf(content, _measure_label_width(_card_description))
+	content = maxf(content, _measure_label_width(_card_charge))
+	content = maxf(content, _measure_label_width(_card_hint))
+
+	# Alles, was links und rechts NEBEN dem Text liegt: Farbfeld (48),
+	# Trennabstand (12) und die Innenabstaende des StyleBox (14 + 16).
+	# Hart hier stehen zu lassen waere fehleranfaellig - die Werte werden
+	# deshalb aus den tatsaechlichen Objekten gelesen.
+	var chrome: float = 48.0 + 12.0
+	if _card_style != null:
+		chrome += _card_style.content_margin_left + _card_style.content_margin_right
+	# Zwei Pixel Luft, damit die letzte Glyphe nicht am Rahmen klebt.
+	chrome += 2.0
+
+	var wanted: float = content + chrome
+
+	var viewport_width: float = get_viewport_rect().size.x
+	var hard_max: float = maxf(viewport_width - card_screen_margin * 2.0, 120.0)
+	var soft_max: float = minf(card_width, hard_max)
+	var lower: float = minf(card_min_width, soft_max)
+
+	_apply_card_width(clampf(wanted, lower, soft_max))
+
+	# Die Hoehe steht erst nach dem naechsten Layout-Durchgang fest -
+	# deshalb getrennt und verzoegert.
+	_clamp_card_vertically.call_deferred()
+
+
+## Schiebt die Karte nach oben, falls sie unten aus dem Bild ragen wuerde.
+##
+## Kann NICHT im selben Frame wie _resize_card_to_content() laufen: die
+## Hoehe eines PanelContainers ergibt sich aus dem umgebrochenen Text, und
+## der wird erst nach der naechsten Layout-Runde neu gesetzt.
+func _clamp_card_vertically() -> void:
+	if _card == null or not is_instance_valid(_card) or not _card.is_inside_tree():
+		return
+
+	var height: float = _card.size.y
+	if height <= 0.0:
+		return
+
+	var viewport_height: float = get_viewport_rect().size.y
+	# offset_top wird von der Bildmitte aus gemessen (Anker 0.5).
+	var top_from_center: float = card_offset_y
+	var bottom_absolute: float = viewport_height * 0.5 + top_from_center + height
+
+	var limit: float = viewport_height - card_screen_margin
+	if bottom_absolute > limit:
+		top_from_center -= (bottom_absolute - limit)
+
+	# Nicht ueber den oberen Rand hinaus - lieber unten anschneiden als die
+	# Ueberschrift verlieren.
+	var top_absolute: float = viewport_height * 0.5 + top_from_center
+	if top_absolute < card_screen_margin:
+		top_from_center = card_screen_margin - viewport_height * 0.5
+
+	_card.offset_top = top_from_center
+	_card.offset_bottom = top_from_center
 
 
 ## Blendet die Karte aus. TreasurePedestal ruft das auf, sobald der Spieler
