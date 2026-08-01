@@ -1,4 +1,5 @@
 
+
 extends Node
 
 # ============================================================================
@@ -59,7 +60,7 @@ extends Node
 #      Der Spieler ist so lange am Stueck drin. Faengt den Fall
 #      "stehenbleiben / kaempfen / umschauen" ab.
 #
-#   2. ZURUECKGELEGTE STRECKE (commit_travel_distance)
+#   2. ZURUECKGELEGTE STRECKE (commit_travel_factor)
 #      Der Spieler hat innerhalb des Grundrisses so viele Meter
 #      zurueckgelegt. Genau DAS ist der Wand-Hug-Fall: von einer Tuer zur
 #      naechsten sind es quer durch den Raum immer deutlich mehr Meter als
@@ -90,17 +91,39 @@ signal room_committed(room: Node)
 ## Von 0.6 auf 0.35 gesenkt. Die Verweildauer ist nach Einfuehrung der
 ## Strecken-Bedingung nur noch der Auffangfall fuer langsames Hineingehen;
 ## sie muss deshalb nicht mehr allein gegen schnelle Durchlaeufe halten.
+##
+## BUGFIX "Raum verriegelt schon im Tuerrahmen": Die Verweildauer laeuft
+## jetzt NUR noch, solange der Spieler in der INNENZONE steht (siehe
+## commit_inner_zone_factor). Vorher zaehlte sie ab dem ersten Frame im
+## Grundriss — und der Grundriss beginnt exakt an der Wandinnenseite, also
+## im Tuerrahmen. 0.35 s Stehenbleiben beim Hineinschauen haben damit
+## verriegelt; wer danach rausgedasht ist, hat ueber _check_escape() den
+## kompletten Raum zurueckgesetzt ("Gegner verschwinden").
 @export var commit_dwell_time: float = 0.35
 
-## Meter, die der Spieler INNERHALB des Grundrisses zurueckgelegt haben
-## muss. Wird pro Frame aus der tatsaechlichen Positionsaenderung
-## aufsummiert, nicht aus Geschwindigkeit * Zeit — damit zaehlt Rutschen,
-## Knockback und Dash genauso wie normales Laufen.
+## Wie weit die Innenzone gegenueber dem Grundriss eingerueckt ist — als
+## Anteil der halben Kantenlaenge. 0.28 bedeutet: die aeusseren 28 % der
+## Raumhaelfte zaehlen NICHT als "drin".
 ##
-## 7.0 ist bewusst kleiner als die halbe Raumbreite: der Weg von einer
-## Tuer zur naechsten fuehrt IMMER ueber deutlich mehr Strecke, ein Blick
-## durch den Tuerrahmen ueber deutlich weniger.
-@export var commit_travel_distance: float = 7.0
+## Das ist die eigentliche Anti-Bait-Grenze. Sie ersetzt NICHT edge_inset:
+## die Area bleibt bewusst auf vollem Grundriss, weil die STRECKEN-
+## Bedingung genau den Randstreifen mitmessen muss (Wand-Hug).
+@export_range(0.0, 0.45) var commit_inner_zone_factor: float = 0.28
+
+## Anteil der kuerzeren WELT-Kante des Raumes, den der Spieler innerhalb
+## des Grundrisses zuruecklegen muss.
+##
+## BUGFIX "Commit feuert nach 7 Metern": commit_travel_distance war ein
+## fester Meterwert, verglichen mit global_position-Deltas — also
+## Weltmetern. Der LevelGenerator skaliert Raeume aber mit room_scale
+## (2,2,2): aus 48 m Grundriss werden 96 m Weltkante. 7 m sind darin
+## ~7 % der Raumbreite, faktisch die Tuerschwelle. Der Schwellwert wird
+## deshalb jetzt aus der TATSAECHLICHEN Weltgroesse des Raumes abgeleitet.
+@export_range(0.1, 1.5) var commit_travel_factor: float = 0.5
+
+## Absolute Untergrenze in Weltmetern, damit sehr kleine Raeume nicht
+## sofort ausloesen.
+@export var commit_travel_min: float = 7.0
 
 ## Verkleinert die Commit-Area gegenueber dem Grundriss. 0 = exakt bis zur
 ## Wandinnenseite.
@@ -210,6 +233,29 @@ func _attach(room: RoomInstance) -> void:
 	area.add_child(shape)
 	room.add_child(area)
 
+	# --- Weltmasse des Raumes ------------------------------------------
+	#
+	# room_footprint ist ein LOKALER Wert der Raum-Szene. load_room() im
+	# LevelGenerator setzt die Raum-Basis auf
+	# Basis.IDENTITY.scaled(room_scale) — die echte Kantenlaenge in der
+	# Welt ist also footprint * scale. Alles, was gegen global_position
+	# gerechnet wird (die Strecke), MUSS diese Groesse benutzen.
+	var room_scale: Vector3 = room.global_transform.basis.get_scale()
+	var world_x: float = room.room_footprint.x * absf(room_scale.x)
+	var world_z: float = room.room_footprint.y * absf(room_scale.z)
+	var travel_threshold: float = maxf(
+		minf(world_x, world_z) * maxf(commit_travel_factor, 0.05),
+		maxf(commit_travel_min, 0.1)
+	)
+
+	# Innenzone in LOKALEN Koordinaten — der Test laeuft ueber
+	# room.to_local(), und lokale Koordinaten sind von room_scale
+	# unabhaengig. Deshalb hier bewusst KEINE Skalierung einrechnen.
+	var inner_half := Vector2(
+		room.room_footprint.x * 0.5 * (1.0 - clampf(commit_inner_zone_factor, 0.0, 0.45)),
+		room.room_footprint.y * 0.5 * (1.0 - clampf(commit_inner_zone_factor, 0.0, 0.45))
+	)
+
 	_watched[id] = {
 		"room": room,
 		"area": area,
@@ -218,6 +264,8 @@ func _attach(room: RoomInstance) -> void:
 		"last_pos": Vector3.ZERO,
 		"had_player": false,
 		"done": false,
+		"inner_half": inner_half,
+		"travel_threshold": travel_threshold,
 	}
 
 	# Ohne diese Aufraeumung waechst _watched ueber die Laufzeit eines Runs
@@ -225,7 +273,9 @@ func _attach(room: RoomInstance) -> void:
 	# Raeume.
 	room.tree_exited.connect(_on_room_gone.bind(id))
 
-	_debug("Raum %s ueberwacht (%.0f x %.0f)." % [room.grid_position, size_x, size_z])
+	_debug("Raum %s ueberwacht (lokal %.0f x %.0f, Welt %.0f x %.0f, Strecke >= %.1f m)." % [
+		room.grid_position, size_x, size_z, world_x, world_z, travel_threshold
+	])
 
 
 func _on_room_gone(id: int) -> void:
@@ -277,13 +327,27 @@ func _physics_process(delta: float) -> void:
 			entry["dwell"] = 0.0
 			entry["travel"] = 0.0
 
-		# --- Bedingung 1: Verweildauer ---
-		entry["dwell"] = float(entry["dwell"]) + delta
+		# --- Bedingung 1: Verweildauer IN DER INNENZONE ---
+		#
+		# Der Randstreifen zaehlt bewusst nicht mit. Wer im Tuerrahmen
+		# steht und in den Raum schaut, baut keine Verweildauer auf —
+		# genau das war der "zu frueh verriegelt"-Fall. Verlaesst der
+		# Spieler die Innenzone wieder, faellt NUR die Verweildauer
+		# zurueck; die Strecke bleibt stehen, sonst waere der Wand-Hug
+		# ueber den Randstreifen wieder offen.
+		var current: Vector3 = player.global_position
+		var local: Vector3 = room.to_local(current)
+		var inner_half: Vector2 = entry["inner_half"]
+		var in_inner: bool = absf(local.x) <= inner_half.x and absf(local.z) <= inner_half.y
+
+		if in_inner:
+			entry["dwell"] = float(entry["dwell"]) + delta
+		else:
+			entry["dwell"] = 0.0
 
 		# --- Bedingung 2: zurueckgelegte Strecke ---
 		# Nur horizontal: Springen und Fallen sollen keine Strecke
 		# aufbauen, sonst loest ein Sprung im Tuerrahmen aus.
-		var current: Vector3 = player.global_position
 		var last: Vector3 = entry["last_pos"]
 		var step: Vector3 = current - last
 		step.y = 0.0
@@ -291,7 +355,7 @@ func _physics_process(delta: float) -> void:
 		entry["last_pos"] = current
 
 		var by_time: bool = float(entry["dwell"]) >= maxf(commit_dwell_time, 0.0)
-		var by_travel: bool = float(entry["travel"]) >= maxf(commit_travel_distance, 0.1)
+		var by_travel: bool = float(entry["travel"]) >= float(entry["travel_threshold"])
 
 		if by_time or by_travel:
 			entry["done"] = true

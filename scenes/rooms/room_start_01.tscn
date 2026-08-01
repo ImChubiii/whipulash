@@ -50,13 +50,7 @@ script = ExtResource("room_script")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -6)
 script = ExtResource("2_28lom")
 tutorial_texture = ExtResource("3_28lom")
-placement = null
 height = 4.0
-camera_wait_frames = null
-projector_gap = null
-projector_top_ratio = null
-projector_bottom_radius = null
-projector_offset = null
 bob_height = 0.3
 
 [node name="Floor" type="StaticBody3D" parent="." unique_id=868710088]

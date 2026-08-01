@@ -1,4 +1,5 @@
 
+
 extends Control
 class_name ResetOverlay
 
@@ -78,7 +79,10 @@ func _ready() -> void:
 	# die Abblende darf beim Wechsel nicht einfrieren.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# set_anchors_and_offsets_preset statt set_anchors_preset: letzteres
+	# laesst die Offsets stehen. Bei einem Control, das per Code unter
+	# einen CanvasLayer gehaengt wird, sind die nicht garantiert 0.
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_ui()
 
 
@@ -86,15 +90,38 @@ func _build_ui() -> void:
 	_fade = ColorRect.new()
 	_fade.color = Color(0.0, 0.0, 0.0, 0.0)
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_fade)
+
+	# BUGFIX "Vorschau-Fenster sitzt an einer voellig falschen Stelle":
+	#
+	# Frueher stand hier PRESET_CENTER direkt auf der PanelContainer.
+	# set_anchors_preset() laesst die OFFSETS unveraendert und laesst nur
+	# die Anker wandern — der Kasten hatte zum Bauzeitpunkt aber noch
+	# keine Groesse (die Labels bekommen ihren Text erst beim Halten von
+	# [R]). Die Zentrierung haengt damit vollstaendig daran, dass Godot
+	# beim nachtraeglichen Wachsen ueber die Minimalgroesse die
+	# grow_direction sauber anwendet — und das ist bei einem Control, das
+	# unter einem CanvasLayer statt unter einem Container haengt, keine
+	# verlaessliche Annahme.
+	#
+	# Ein CenterContainer ueber die volle Flaeche macht daraus eine
+	# Layout-Frage statt einer Offset-Rechnung: er zentriert sein Kind bei
+	# JEDER Groessenaenderung neu, also auch dann, wenn der Seed-Code den
+	# Kasten breiter macht.
+	var center := CenterContainer.new()
+	center.name = "PreviewCenter"
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
 
 	_preview_box = PanelContainer.new()
 	_preview_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_preview_box.visible = false
-	_preview_box.set_anchors_preset(Control.PRESET_CENTER)
-	_preview_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_preview_box.grow_vertical = Control.GROW_DIRECTION_BOTH
+	# Der CenterContainer bestimmt die Position. Eigene Anker oder
+	# grow_directions wuerden hier nur mit ihm konkurrieren.
+	_preview_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_preview_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.05, 0.06, 0.80)
@@ -132,7 +159,7 @@ func _build_ui() -> void:
 	_hint_label.add_theme_color_override("font_color", Color(0.55, 0.58, 0.62))
 	column.add_child(_hint_label)
 
-	add_child(_preview_box)
+	center.add_child(_preview_box)
 
 
 func _process(_delta: float) -> void:
@@ -274,6 +301,7 @@ func _peek_next_seed_code() -> String:
 			return DetRng.seed_to_code(absi(next_seed) % DetRng.MAX_SEED)
 
 	return DetRng.seed_to_code(DetRng.random_seed_value())
+
 
 
 

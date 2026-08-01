@@ -1,3 +1,4 @@
+
 extends VBoxContainer
 class_name ItemSummaryList
 
@@ -55,6 +56,31 @@ class_name ItemSummaryList
 
 ## Zeigt zusaetzlich Muenzen und Bomben unter der Liste.
 @export var show_currencies: bool = true
+
+## --- Beschreibungs-Popup (Phase 2.4) ----------------------------------
+##
+## PROBLEM: Das Popup hatte eine FESTE Breite von 280 px und wurde direkt
+## neben die ueberfahrene Zeile gesetzt. Im Pausemenue haengt die
+## Item-Liste aber IN derselben zentrierten Spalte wie Resume/Settings/
+## Restart/Quit ("Panel/VBoxContainer"). Ein 280 px breiter Kasten neben
+## einer Zeile dieser Spalte landet zwangslaeufig ueber den Buttons - und
+## weil er mouse_filter = IGNORE hat, sind die Buttons darunter zwar
+## klickbar, aber unlesbar.
+##
+## LOESUNG, zwei Teile:
+##   1. Die Breite richtet sich nach dem laengsten Textabschnitt und wird
+##      nur noch nach oben gedeckelt. Kurze Beschreibungen bekommen keinen
+##      halbleeren Kasten mehr.
+##   2. Das Popup weicht dem Menue-Panel AUS statt nur dem Bildschirmrand.
+##      Der auszuweichende Bereich wird automatisch ermittelt (siehe
+##      _resolve_avoid_rect) - das Pausemenue muss dafuer nichts liefern.
+@export var detail_max_width: float = 260.0
+@export var detail_min_width: float = 150.0
+## Abstand zwischen Popup und Zeile bzw. Menue-Panel.
+@export var detail_gap: float = 10.0
+## Name des Knotens, dem ausgewichen wird, gesucht ab dem Bildschirm-Wurzel-
+## Control. Leer lassen, um das Ausweichen abzuschalten.
+@export var avoid_node_name: String = "Panel"
 
 const ROW_HEIGHT: float = 30.0
 const SWATCH_SIZE: float = 22.0
@@ -152,18 +178,20 @@ func _build() -> void:
 	style.set_border_width_all(1)
 	style.border_width_left = 3
 	style.set_corner_radius_all(2)
-	style.content_margin_left = 10.0
-	style.content_margin_right = 10.0
-	style.content_margin_top = 7.0
-	style.content_margin_bottom = 7.0
+	# Enger als vorher (10/10/7/7): jeder Millimeter Innenrand ist Breite,
+	# die das Popup zusaetzlich in die Button-Spalte schiebt.
+	style.content_margin_left = 8.0
+	style.content_margin_right = 8.0
+	style.content_margin_top = 5.0
+	style.content_margin_bottom = 5.0
 	_detail_panel.add_theme_stylebox_override("panel", style)
 	# TOP_LEFT: Position wird ueber .position gesetzt (siehe
 	# _position_detail_panel), nicht ueber Anker relativ zu einem Container.
 	_detail_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	# Fixe Breite, damit die Beschreibung nicht bei jedem Item unterschiedlich
-	# breit aufklappt — das waere fuer ein Popup, das direkt neben wechselnden
-	# Zeilen erscheint, unruhiger als eine konstante Breite.
-	_detail_panel.custom_minimum_size = Vector2(280.0, 0.0)
+	# Die Breite setzt jetzt _apply_detail_width() pro Item. Hier nur die
+	# Untergrenze, damit ein einzeiliger Name nicht zu einem Streifen
+	# zusammenfaellt.
+	_detail_panel.custom_minimum_size = Vector2(detail_min_width, 0.0)
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 2)
@@ -326,6 +354,8 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Contro
 	if panel_style is StyleBoxFlat:
 		(panel_style as StyleBoxFlat).border_color = Color(color.r, color.g, color.b, 0.85)
 
+	_apply_detail_width(text, item.display_name)
+
 	_detail_panel.visible = true
 	_position_detail_panel(row)
 
@@ -338,6 +368,64 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Contro
 ## innerhalb des Bildschirms geklemmt. get_combined_minimum_size() liefert
 ## die Groesse SOFORT auf Basis des gerade gesetzten Texts, ohne auf einen
 ## Layout-Durchlauf warten zu muessen.
+## Breite aus dem Inhalt statt fest.
+##
+## Gemessen wird die LAENGSTE Zeile des Textes, nicht der ganze String:
+## der Text enthaelt Zeilenumbrueche (Flavor, Ladehinweis), und die Summe
+## aller Zeichen waere ein Vielfaches der tatsaechlich noetigen Breite.
+##
+## get_string_size() liefert das Ergebnis SOFORT, ohne auf einen
+## Layout-Durchlauf zu warten - genauso wie get_combined_minimum_size()
+## weiter unten.
+func _apply_detail_width(body: String, title: String) -> void:
+	if _detail_panel == null or _detail_text == null:
+		return
+
+	var font: Font = _detail_text.get_theme_font("font")
+	var font_size: int = _detail_text.get_theme_font_size("font_size")
+	var widest: float = 0.0
+
+	if font != null:
+		for line: String in body.split("\n"):
+			widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x)
+
+		var title_font: Font = _detail_name.get_theme_font("font")
+		var title_size: int = _detail_name.get_theme_font_size("font_size")
+		if title_font != null:
+			widest = maxf(widest, title_font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1.0, title_size).x)
+
+	# Innenraender der StyleBox draufrechnen - die Messung oben kennt nur
+	# den Text, nicht den Kasten drumherum.
+	var padding: float = 0.0
+	var panel_style: StyleBox = _detail_panel.get_theme_stylebox("panel")
+	if panel_style != null:
+		padding = panel_style.get_margin(SIDE_LEFT) + panel_style.get_margin(SIDE_RIGHT)
+
+	var width: float = clampf(widest + padding, detail_min_width, detail_max_width)
+	_detail_panel.custom_minimum_size = Vector2(width, 0.0)
+	# size zuruecksetzen: der PanelContainer behaelt sonst die Breite des
+	# zuletzt angezeigten, laengeren Items bei.
+	_detail_panel.size = Vector2(width, 0.0)
+
+
+## Bereich, den das Popup NICHT ueberdecken darf.
+##
+## Gesucht wird ab dem Bildschirm-Wurzel-Control ein direktes Kind mit dem
+## Namen avoid_node_name ("Panel"). Im Pausemenue, Death- und Win-Screen
+## ist das jeweils der Kasten mit den Buttons. Findet sich keiner - etwa
+## weil die Liste irgendwo anders eingehaengt wird - liefert die Funktion
+## ein leeres Rechteck und die Positionierung faellt auf das alte
+## Verhalten zurueck.
+func _resolve_avoid_rect() -> Rect2:
+	if avoid_node_name == "":
+		return Rect2()
+	var host: Control = _find_floating_host()
+	var panel := host.get_node_or_null(avoid_node_name) as Control
+	if panel == null or not panel.is_visible_in_tree():
+		return Rect2()
+	return panel.get_global_rect()
+
+
 func _position_detail_panel(row: Control) -> void:
 	if _detail_panel == null or row == null or not is_instance_valid(row):
 		return
@@ -345,10 +433,33 @@ func _position_detail_panel(row: Control) -> void:
 	var viewport_size: Vector2 = get_viewport_rect().size
 	var row_rect: Rect2 = row.get_global_rect()
 	var panel_size: Vector2 = _detail_panel.get_combined_minimum_size()
+	var avoid: Rect2 = _resolve_avoid_rect()
 
-	var pos := Vector2(row_rect.position.x + row_rect.size.x + 12.0, row_rect.position.y)
-	if pos.x + panel_size.x > viewport_size.x - 8.0:
-		pos.x = row_rect.position.x - panel_size.x - 12.0
+	var pos := Vector2(row_rect.position.x + row_rect.size.x + detail_gap, row_rect.position.y)
+
+	if avoid.size.x > 0.0:
+		# NEBEN das Menue-Panel setzen, nicht neben die Zeile. Die Zeile
+		# liegt mitten in der Button-Spalte; alles, was direkt an ihr
+		# klebt, deckt zwangslaeufig Buttons zu.
+		#
+		# Rechts bevorzugt, links als Ausweichroute. Passt keine der
+		# beiden Seiten in den Bildschirm, gewinnt die mit mehr Platz -
+		# ein Popup am Rand ist immer noch besser als eines auf den
+		# Buttons.
+		var right_x: float = avoid.position.x + avoid.size.x + detail_gap
+		var left_x: float = avoid.position.x - panel_size.x - detail_gap
+		var right_fits: bool = right_x + panel_size.x <= viewport_size.x - 8.0
+		var left_fits: bool = left_x >= 8.0
+
+		if right_fits:
+			pos.x = right_x
+		elif left_fits:
+			pos.x = left_x
+		else:
+			var space_right: float = viewport_size.x - (avoid.position.x + avoid.size.x)
+			pos.x = right_x if space_right >= avoid.position.x else left_x
+	elif pos.x + panel_size.x > viewport_size.x - 8.0:
+		pos.x = row_rect.position.x - panel_size.x - detail_gap
 
 	pos.x = clampf(pos.x, 8.0, maxf(viewport_size.x - panel_size.x - 8.0, 8.0))
 	pos.y = clampf(pos.y, 8.0, maxf(viewport_size.y - panel_size.y - 8.0, 8.0))
@@ -386,3 +497,4 @@ static func create(p_title: String = "GESAMMELTE ITEMS", p_currencies: bool = tr
 	list.title_text = p_title
 	list.show_currencies = p_currencies
 	return list
+

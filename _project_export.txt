@@ -7033,7 +7033,6 @@ detect_3d/compress_to=1
 [runnable_presets]
 
 "Windows Desktop"="Windows Desktop"
-Web="Web"
 
 [preset.0]
 
@@ -11544,11 +11543,6 @@ func is_allowed(stage: int, room_height: float) -> bool:
 
 ===== FILE: scenes\level_generation\level_generator.gd =====
 
-
-
-
-
-
 extends Node
 class_name LevelGenerator
 
@@ -11905,8 +11899,29 @@ func _instantiate_layout(layout: Dictionary) -> void:
 
 		# Korridor mit Hoehenunterschied -> Rampe im Inneren bauen und die
 		# Tuer auf der hohen Seite entsprechend anheben.
+		#
+		# BUGFIX "Stufe vor der Tuer / Rampe endet auf falscher Hoehe":
+		#
+		# load_room() setzt die Raum-Basis auf Basis.IDENTITY.scaled(room_scale).
+		# ALLES, was configure_slope() im Raum baut (Rampe, Tuerhoehe,
+		# ExitPoint, Waende), ist damit LOKAL und wird von Godot nochmal mit
+		# room_scale.y multipliziert.
+		#
+		# elevation_step ist dagegen eine WELT-Groesse: world_pos.y oben nutzt
+		# sie fuer den Raum-Ursprung, der NICHT mitskaliert wird.
+		#
+		# Wurde elevation_step ungefiltert weitergereicht, stieg die Rampe
+		# elevation_step * room_scale.y Meter, der Nachbarraum lag aber nur
+		# elevation_step hoeher. Bei room_scale.y = 2.0 und
+		# BASE_ELEVATION_STEP = 6.0 sind das 24 statt 12 Weltmeter -> 12 Meter
+		# Absatz exakt in der Tuer. Bei einem Gefaelle steht die Stufe direkt
+		# am Tuerrahmen und ist gar nicht mehr begehbar.
+		#
+		# Deshalb wird der Hub hier in den LOKALEN Raum des Raumes
+		# umgerechnet: local_rise * room_scale.y == elevation_step.
 		if cell.slope_delta != 0 and room.has_method("configure_slope"):
-			room.configure_slope(cell.slope_low_dir, cell.slope_delta * elevation_step)
+			var local_rise: float = cell.slope_delta * elevation_step / maxf(room_scale.y, 0.001)
+			room.configure_slope(cell.slope_low_dir, local_rise)
 
 		# Jeder Raum bekommt seinen EIGENEN, aus Position und Stage
 		# abgeleiteten Spawn-Seed. Wichtig: der Gegner-Roll passiert erst
@@ -12437,7 +12452,7 @@ func load_room(data: RoomData, spawn_transform: Transform3D) -> RoomInstance:
 	var room := instance as RoomInstance
 	if room == null:
 		push_error("[LevelGenerator] Szene '%s' hat Root-Typ %s statt RoomInstance-Script!" % [data.scene.resource_path, instance.get_class()])
-	return room
+	return room 
 
 
 ===== FILE: scenes\level_generation\room_data.gd =====
@@ -14728,19 +14743,19 @@ edge_max_length = 12.0
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bqido"]
 shader = ExtResource("29_o54k0")
 shader_parameter/resolution = Vector2(2560, 1440)
-shader_parameter/scan_line_amount = 0.326000015485
-shader_parameter/warp_amount = 0.0470000022325
-shader_parameter/noise_amount = 0.050000002375
-shader_parameter/interference_amount = 0.2
-shader_parameter/grille_amount = 0.1090000051775
+shader_parameter/scan_line_amount = 0.10000000475
+shader_parameter/warp_amount = 0.10000000475
+shader_parameter/noise_amount = 0.010000000475
+shader_parameter/interference_amount = 1.0
+shader_parameter/grille_amount = 0.3190000151525
 shader_parameter/grille_size = 1.0
-shader_parameter/vignette_amount = 1.5750000748125
-shader_parameter/vignette_intensity = 0.098000004655
+shader_parameter/vignette_amount = 2.0
+shader_parameter/vignette_intensity = 0.146000006935
 shader_parameter/aberation_amount = 1.0
 shader_parameter/roll_line_amount = 0.10000000475
 shader_parameter/roll_speed = 0.20000038949999954
 shader_parameter/scan_line_strength = -12.0
-shader_parameter/pixel_strength = -2.4549999266125
+shader_parameter/pixel_strength = -2.6649999365875
 
 [node name="LevelGenerationTest" type="Node3D" unique_id=1117207563]
 
@@ -18817,7 +18832,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, -4.0)
 [gd_scene format=3 uid="uid://clkpkvxk2ioi5"]
 
 [ext_resource type="Script" uid="uid://ckroiydokysuy" path="res://scripts/spawn_tutorial_hologram.gd" id="2_28lom"]
-[ext_resource type="Texture2D" uid="uid://blu8rq7raoeag" path="res://textures/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg" id="3_28lom"]
+[ext_resource type="Texture2D" uid="uid://dwjky0ikl4fnq" path="res://textures/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg" id="3_28lom"]
 [ext_resource type="Script" uid="uid://coe3fhp5dv6qb" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="Script" uid="uid://0am35ym4bq0" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
@@ -18866,13 +18881,7 @@ script = ExtResource("room_script")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -6)
 script = ExtResource("2_28lom")
 tutorial_texture = ExtResource("3_28lom")
-placement = null
 height = 4.0
-camera_wait_frames = null
-projector_gap = null
-projector_top_ratio = null
-projector_bottom_radius = null
-projector_offset = null
 bob_height = 0.3
 
 [node name="Floor" type="StaticBody3D" parent="." unique_id=868710088]
@@ -22901,17 +22910,27 @@ script = ExtResource("1_aie4f")
 
 ===== FILE: scenes\ui\hud.tscn =====
 
-
 [gd_scene format=3 uid="uid://bhudmain001"]
 
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="1_hud"]
 [ext_resource type="Script" uid="uid://d4gd2xp04d7we" path="res://scripts/minimap.gd" id="2_minimap"]
+[ext_resource type="Shader" uid="uid://2uqb04v0fg33" path="res://shaders/motion_blur.gdshader" id="2_mj13f"]
+[ext_resource type="Script" uid="uid://dl507hvakkwmv" path="res://scripts/ui/motion_blur.gd" id="3_0h1do"]
 [ext_resource type="PackedScene" uid="uid://bpartyslot01" path="res://scenes/party_slot.tscn" id="3_pslot"]
 [ext_resource type="Texture2D" uid="uid://bd0s34jsplqb6" path="res://textures/image-removebg-preview (13).png" id="3_uo2fv"]
 [ext_resource type="PackedScene" uid="uid://bablslot001" path="res://scenes/ui/ability_slot.tscn" id="4_abslot"]
-[ext_resource type="Script" path="res://scripts/run_timer.gd" id="5_timer"]
-[ext_resource type="Script" path="res://scripts/items/item_description_hud.gd" id="6_itemhud"]
-[ext_resource type="Script" path="res://scripts/stats_panel.gd" id="7_stats"]
+[ext_resource type="Script" uid="uid://cr7ee7rme3mat" path="res://scripts/run_timer.gd" id="5_timer"]
+[ext_resource type="Script" uid="uid://eabq6wxgfv3a" path="res://scripts/items/item_description_hud.gd" id="6_itemhud"]
+[ext_resource type="Script" uid="uid://c40hh6d6mnfdi" path="res://scripts/stats_panel.gd" id="7_stats"]
+[ext_resource type="Script" uid="uid://bouy7cn5am2oe" path="res://scripts/ui/boss_health_bar.gd" id="11_4d46k"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bhunq"]
+shader = ExtResource("2_mj13f")
+shader_parameter/blur_amount = 0.0
+shader_parameter/blur_strength = 0.055
+shader_parameter/samples = 8
+shader_parameter/center_clear = 0.18
+shader_parameter/blur_center = Vector2(0.5, 0.5)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
 bg_color = Color(0.06, 0.06, 0.09, 0.82)
@@ -22938,6 +22957,19 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_hud")
+
+[node name="MotionBlurLayer" type="CanvasLayer" parent="." unique_id=2135873397]
+layer = -1
+
+[node name="MotionBlur" type="ColorRect" parent="MotionBlurLayer" unique_id=1610035791]
+material = SubResource("ShaderMaterial_bhunq")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_0h1do")
 
 [node name="Minimap" type="Control" parent="." unique_id=1927081868]
 layout_mode = 1
@@ -23055,7 +23087,6 @@ offset_right = -8.0
 offset_bottom = -4.0
 grow_horizontal = 0
 grow_vertical = 0
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.62, 0.62, 0.55, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
@@ -23093,7 +23124,6 @@ offset_top = 2.0
 offset_right = -6.0
 offset_bottom = 17.0
 grow_horizontal = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.62, 0.62, 0.55, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
@@ -23113,7 +23143,6 @@ offset_right = -6.0
 offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -23245,9 +23274,9 @@ offset_top = -200.0
 offset_right = 254.0
 offset_bottom = -14.0
 grow_vertical = 0
-alignment = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
+alignment = 2
 
 [node name="StatsPanel" type="PanelContainer" parent="BottomLeft" unique_id=1613643602]
 custom_minimum_size = Vector2(232, 0)
@@ -23274,6 +23303,11 @@ mouse_filter = 2
 alignment = 2
 script = ExtResource("6_itemhud")
 
+[node name="BossHealthBar" type="Control" parent="." unique_id=1845554931]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("11_4d46k")
 
 
 ===== FILE: scenes\vfx\bleed_vfx.tscn =====
@@ -33263,6 +33297,7 @@ func get_luck() -> float:
 
 ===== FILE: scripts\items\item_summary_list.gd =====
 
+
 extends VBoxContainer
 class_name ItemSummaryList
 
@@ -33320,6 +33355,31 @@ class_name ItemSummaryList
 
 ## Zeigt zusaetzlich Muenzen und Bomben unter der Liste.
 @export var show_currencies: bool = true
+
+## --- Beschreibungs-Popup (Phase 2.4) ----------------------------------
+##
+## PROBLEM: Das Popup hatte eine FESTE Breite von 280 px und wurde direkt
+## neben die ueberfahrene Zeile gesetzt. Im Pausemenue haengt die
+## Item-Liste aber IN derselben zentrierten Spalte wie Resume/Settings/
+## Restart/Quit ("Panel/VBoxContainer"). Ein 280 px breiter Kasten neben
+## einer Zeile dieser Spalte landet zwangslaeufig ueber den Buttons - und
+## weil er mouse_filter = IGNORE hat, sind die Buttons darunter zwar
+## klickbar, aber unlesbar.
+##
+## LOESUNG, zwei Teile:
+##   1. Die Breite richtet sich nach dem laengsten Textabschnitt und wird
+##      nur noch nach oben gedeckelt. Kurze Beschreibungen bekommen keinen
+##      halbleeren Kasten mehr.
+##   2. Das Popup weicht dem Menue-Panel AUS statt nur dem Bildschirmrand.
+##      Der auszuweichende Bereich wird automatisch ermittelt (siehe
+##      _resolve_avoid_rect) - das Pausemenue muss dafuer nichts liefern.
+@export var detail_max_width: float = 260.0
+@export var detail_min_width: float = 150.0
+## Abstand zwischen Popup und Zeile bzw. Menue-Panel.
+@export var detail_gap: float = 10.0
+## Name des Knotens, dem ausgewichen wird, gesucht ab dem Bildschirm-Wurzel-
+## Control. Leer lassen, um das Ausweichen abzuschalten.
+@export var avoid_node_name: String = "Panel"
 
 const ROW_HEIGHT: float = 30.0
 const SWATCH_SIZE: float = 22.0
@@ -33417,18 +33477,20 @@ func _build() -> void:
 	style.set_border_width_all(1)
 	style.border_width_left = 3
 	style.set_corner_radius_all(2)
-	style.content_margin_left = 10.0
-	style.content_margin_right = 10.0
-	style.content_margin_top = 7.0
-	style.content_margin_bottom = 7.0
+	# Enger als vorher (10/10/7/7): jeder Millimeter Innenrand ist Breite,
+	# die das Popup zusaetzlich in die Button-Spalte schiebt.
+	style.content_margin_left = 8.0
+	style.content_margin_right = 8.0
+	style.content_margin_top = 5.0
+	style.content_margin_bottom = 5.0
 	_detail_panel.add_theme_stylebox_override("panel", style)
 	# TOP_LEFT: Position wird ueber .position gesetzt (siehe
 	# _position_detail_panel), nicht ueber Anker relativ zu einem Container.
 	_detail_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	# Fixe Breite, damit die Beschreibung nicht bei jedem Item unterschiedlich
-	# breit aufklappt — das waere fuer ein Popup, das direkt neben wechselnden
-	# Zeilen erscheint, unruhiger als eine konstante Breite.
-	_detail_panel.custom_minimum_size = Vector2(280.0, 0.0)
+	# Die Breite setzt jetzt _apply_detail_width() pro Item. Hier nur die
+	# Untergrenze, damit ein einzeiliger Name nicht zu einem Streifen
+	# zusammenfaellt.
+	_detail_panel.custom_minimum_size = Vector2(detail_min_width, 0.0)
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 2)
@@ -33591,6 +33653,8 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Contro
 	if panel_style is StyleBoxFlat:
 		(panel_style as StyleBoxFlat).border_color = Color(color.r, color.g, color.b, 0.85)
 
+	_apply_detail_width(text, item.display_name)
+
 	_detail_panel.visible = true
 	_position_detail_panel(row)
 
@@ -33603,6 +33667,64 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Contro
 ## innerhalb des Bildschirms geklemmt. get_combined_minimum_size() liefert
 ## die Groesse SOFORT auf Basis des gerade gesetzten Texts, ohne auf einen
 ## Layout-Durchlauf warten zu muessen.
+## Breite aus dem Inhalt statt fest.
+##
+## Gemessen wird die LAENGSTE Zeile des Textes, nicht der ganze String:
+## der Text enthaelt Zeilenumbrueche (Flavor, Ladehinweis), und die Summe
+## aller Zeichen waere ein Vielfaches der tatsaechlich noetigen Breite.
+##
+## get_string_size() liefert das Ergebnis SOFORT, ohne auf einen
+## Layout-Durchlauf zu warten - genauso wie get_combined_minimum_size()
+## weiter unten.
+func _apply_detail_width(body: String, title: String) -> void:
+	if _detail_panel == null or _detail_text == null:
+		return
+
+	var font: Font = _detail_text.get_theme_font("font")
+	var font_size: int = _detail_text.get_theme_font_size("font_size")
+	var widest: float = 0.0
+
+	if font != null:
+		for line: String in body.split("\n"):
+			widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x)
+
+		var title_font: Font = _detail_name.get_theme_font("font")
+		var title_size: int = _detail_name.get_theme_font_size("font_size")
+		if title_font != null:
+			widest = maxf(widest, title_font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1.0, title_size).x)
+
+	# Innenraender der StyleBox draufrechnen - die Messung oben kennt nur
+	# den Text, nicht den Kasten drumherum.
+	var padding: float = 0.0
+	var panel_style: StyleBox = _detail_panel.get_theme_stylebox("panel")
+	if panel_style != null:
+		padding = panel_style.get_margin(SIDE_LEFT) + panel_style.get_margin(SIDE_RIGHT)
+
+	var width: float = clampf(widest + padding, detail_min_width, detail_max_width)
+	_detail_panel.custom_minimum_size = Vector2(width, 0.0)
+	# size zuruecksetzen: der PanelContainer behaelt sonst die Breite des
+	# zuletzt angezeigten, laengeren Items bei.
+	_detail_panel.size = Vector2(width, 0.0)
+
+
+## Bereich, den das Popup NICHT ueberdecken darf.
+##
+## Gesucht wird ab dem Bildschirm-Wurzel-Control ein direktes Kind mit dem
+## Namen avoid_node_name ("Panel"). Im Pausemenue, Death- und Win-Screen
+## ist das jeweils der Kasten mit den Buttons. Findet sich keiner - etwa
+## weil die Liste irgendwo anders eingehaengt wird - liefert die Funktion
+## ein leeres Rechteck und die Positionierung faellt auf das alte
+## Verhalten zurueck.
+func _resolve_avoid_rect() -> Rect2:
+	if avoid_node_name == "":
+		return Rect2()
+	var host: Control = _find_floating_host()
+	var panel := host.get_node_or_null(avoid_node_name) as Control
+	if panel == null or not panel.is_visible_in_tree():
+		return Rect2()
+	return panel.get_global_rect()
+
+
 func _position_detail_panel(row: Control) -> void:
 	if _detail_panel == null or row == null or not is_instance_valid(row):
 		return
@@ -33610,10 +33732,33 @@ func _position_detail_panel(row: Control) -> void:
 	var viewport_size: Vector2 = get_viewport_rect().size
 	var row_rect: Rect2 = row.get_global_rect()
 	var panel_size: Vector2 = _detail_panel.get_combined_minimum_size()
+	var avoid: Rect2 = _resolve_avoid_rect()
 
-	var pos := Vector2(row_rect.position.x + row_rect.size.x + 12.0, row_rect.position.y)
-	if pos.x + panel_size.x > viewport_size.x - 8.0:
-		pos.x = row_rect.position.x - panel_size.x - 12.0
+	var pos := Vector2(row_rect.position.x + row_rect.size.x + detail_gap, row_rect.position.y)
+
+	if avoid.size.x > 0.0:
+		# NEBEN das Menue-Panel setzen, nicht neben die Zeile. Die Zeile
+		# liegt mitten in der Button-Spalte; alles, was direkt an ihr
+		# klebt, deckt zwangslaeufig Buttons zu.
+		#
+		# Rechts bevorzugt, links als Ausweichroute. Passt keine der
+		# beiden Seiten in den Bildschirm, gewinnt die mit mehr Platz -
+		# ein Popup am Rand ist immer noch besser als eines auf den
+		# Buttons.
+		var right_x: float = avoid.position.x + avoid.size.x + detail_gap
+		var left_x: float = avoid.position.x - panel_size.x - detail_gap
+		var right_fits: bool = right_x + panel_size.x <= viewport_size.x - 8.0
+		var left_fits: bool = left_x >= 8.0
+
+		if right_fits:
+			pos.x = right_x
+		elif left_fits:
+			pos.x = left_x
+		else:
+			var space_right: float = viewport_size.x - (avoid.position.x + avoid.size.x)
+			pos.x = right_x if space_right >= avoid.position.x else left_x
+	elif pos.x + panel_size.x > viewport_size.x - 8.0:
+		pos.x = row_rect.position.x - panel_size.x - detail_gap
 
 	pos.x = clampf(pos.x, 8.0, maxf(viewport_size.x - panel_size.x - 8.0, 8.0))
 	pos.y = clampf(pos.y, 8.0, maxf(viewport_size.y - panel_size.y - 8.0, 8.0))
@@ -33651,6 +33796,7 @@ static func create(p_title: String = "GESAMMELTE ITEMS", p_currencies: bool = tr
 	list.title_text = p_title
 	list.show_currencies = p_currencies
 	return list
+
 
 
 ===== FILE: scripts\leaderboard_manager.gd =====
@@ -34193,6 +34339,8 @@ func reset_run() -> void:
 
 ===== FILE: scripts\minimap.gd =====
 
+
+
 extends Control
 class_name Minimap
 
@@ -34229,6 +34377,7 @@ const ROOM_OVERLAY_SCRIPT := preload("res://scripts/minimap_rooms.gd")
 const GENERATOR_GROUP := "level_generator"
 const TOGGLE_ACTION := "toggle_map"
 const MINIMAP_GROUP := "minimap"
+const ENEMY_GROUP := "enemies"
 
 enum OverlayPlacement { BELOW_MAP, INSIDE_MAP, HIDDEN }
 
@@ -34271,6 +34420,52 @@ static var big_map_open: bool = false
 @export var room_overlay_size: float = 118.0
 @export var room_overlay_margin: float = 8.0
 @export var coord_label_reserve: float = 30.0
+
+## --- Dynamischer Auto-Zoom -------------------------------------------
+## Die Kamera zoomt automatisch heraus, sobald die aufgedeckte Flaeche
+## nicht mehr in den Ausschnitt passt. Grundlage ist die Spannweite der
+## belegten Grid-Zellen (get_map_cells()), NICHT die Raumzahl: ein Layout
+## mit 12 Raeumen in einer Reihe braucht mehr Ausschnitt als 12 Raeume im
+## Block.
+##
+## SettingsManager.minimap_zoom bleibt uneingeschraenkt wirksam — es wird
+## weiterhin als Teiler auf den (jetzt dynamischen) Basisausschnitt
+## angewandt. Der Regler ist damit relativ statt absolut.
+@export var auto_zoom_enabled: bool = true
+## Zuschlag um die belegte Flaeche herum, in Weltmetern.
+@export var auto_zoom_padding: float = 40.0
+## Obergrenze fuer die KLEINE Karte. Ohne Deckel waere sie im spaeten Run
+## so weit draussen, dass man den eigenen Raum nicht mehr erkennt.
+@export var auto_zoom_small_max: float = 300.0
+## Obergrenze fuer die Grosskarte. Deutlich hoeher — dort ist der
+## Gesamtueberblick genau der Zweck.
+@export var auto_zoom_big_max: float = 900.0
+
+## --- Gegner-Icons (Phase 2.3) -----------------------------------------
+##
+## Gezeichnet wird als 2D-Overlay UEBER dem SubViewport, nicht als
+## 3D-Objekt in der Welt.
+##
+## WARUM NICHT 3D: Ein Marker-Mesh ueber jedem Gegner muesste auf einem
+## eigenen Visibility-Layer liegen, den NUR die Minimap-Kamera sieht. Das
+## hiesse: cull_mask der Spielerkamera in allen vier Charakter-Szenen
+## anpassen, plus ein Mesh pro Gegner. Das Overlay braucht dagegen null
+## Szenenaenderungen und kostet einen _draw()-Aufruf pro Frame.
+##
+## Die Umrechnung Welt -> Pixel macht map_camera.unproject_position() -
+## dieselbe Funktion, die schon den Spielerpfeil setzt. Zoom, Pan und
+## (falls aktiv) die Kameradrehung sind darin bereits enthalten.
+@export var show_enemy_icons: bool = true
+@export var enemy_icon_radius: float = 3.0
+@export var enemy_icon_color: Color = Color(0.92, 0.26, 0.24, 0.95)
+@export var enemy_icon_outline: Color = Color(0.05, 0.03, 0.04, 0.85)
+## Gegner ausserhalb dieser Weltdistanz zum Spieler werden gar nicht erst
+## umgerechnet. Culling-Schritt 1: spart die unproject-Rechnung fuer alles,
+## was ohnehin nicht in den Ausschnitt faellt.
+@export var enemy_icon_cull_distance: float = 260.0
+## Obergrenze pro Frame. Notbremse gegen Layouts, in denen sehr viele
+## Gegner gleichzeitig leben.
+@export var enemy_icon_max: int = 64
 
 ## --- Grosse Karte (Nebeneinander-Layout) ------------------------------
 @export var big_map_world_size: float = 220.0
@@ -34319,6 +34514,13 @@ var _prev_mouse_mode: int = Input.MOUSE_MODE_CAPTURED
 var _frame_base_bg_color: Color = Color(0.06, 0.06, 0.09, 0.82)
 var _frame_base_border_color: Color = Color(0.5, 0.48, 0.18, 1.0)
 var _frame_style: StyleBoxFlat = null
+
+## Weltbreite, die die aufgedeckten Zellen aktuell einnehmen. Wird bei
+## jedem map_updated neu bestimmt. 0 = noch keine Daten -> Auto-Zoom
+## verhaelt sich neutral und map_size gilt unveraendert.
+var _revealed_world_span: float = 0.0
+
+var _enemy_overlay: Control = null
 
 var _small_frame_size: Vector2
 var _small_frame_position: Vector2
@@ -34380,7 +34582,182 @@ func _ready() -> void:
 	if not SettingsManager.minimap_setting_changed.is_connected(_apply_minimap_settings):
 		SettingsManager.minimap_setting_changed.connect(_apply_minimap_settings)
 
+	_bind_generator()
+	_build_enemy_overlay()
 	_apply_minimap_settings()
+
+
+## Zeichenflaeche fuer die Gegner-Punkte.
+##
+## Haengt IM map_container und damit unter derselben -90-Grad-Drehung wie
+## die Karte. Das ist Absicht: unproject_position() liefert Pixel im
+## ungedrehten SubViewport, und der Container dreht sie anschliessend
+## genauso mit wie das gerenderte Bild. Haenge man das Overlay eine Ebene
+## hoeher, muesste die Drehung von Hand nachgerechnet werden - exakt die
+## Fehlerquelle, die im Kommentar zu _world_point_under_mouse() steht.
+func _build_enemy_overlay() -> void:
+	if _enemy_overlay != null and is_instance_valid(_enemy_overlay):
+		return
+	_enemy_overlay = Control.new()
+	_enemy_overlay.name = "EnemyOverlay"
+	_enemy_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_enemy_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_enemy_overlay.draw.connect(_draw_enemy_icons)
+	map_container.add_child(_enemy_overlay)
+	# Unter den Spielerpfeil sortieren: der eigene Standort muss auch dann
+	# lesbar bleiben, wenn ein Gegner direkt darauf steht.
+	if player_arrow != null and is_instance_valid(player_arrow):
+		map_container.move_child(_enemy_overlay, player_arrow.get_index())
+
+
+## Wandelt Weltpositionen in Pixel IM map_container um.
+##
+## Gleiche Rechnung wie _update_player_arrow_position(): erst
+## unproject_position() (Pixel im SubViewport), dann auf die gestreckte
+## Containergroesse skalieren. Liefert false, wenn der Punkt hinter der
+## Kamera oder ausserhalb des Rahmens liegt.
+func _world_to_map_pixel(world: Vector3, out: Array) -> bool:
+	var viewport_size: Vector2 = Vector2(sub_viewport.size)
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return false
+
+	var box_size: Vector2 = sub_viewport_container.size
+	var in_viewport: Vector2 = map_camera.unproject_position(world)
+	var in_box: Vector2 = sub_viewport_container.position + in_viewport * (box_size / viewport_size)
+
+	# Culling-Schritt 2: alles ausserhalb des sichtbaren Rahmens faellt
+	# raus. Ohne diese Pruefung malt Godot die Punkte zwar weg, rechnet
+	# sie aber trotzdem - und bei offener Grosskarte waeren das die
+	# Gegner der halben Etage.
+	var rect := Rect2(sub_viewport_container.position, box_size)
+	if not rect.has_point(in_box):
+		return false
+
+	out.append(in_box)
+	return true
+
+
+func _draw_enemy_icons() -> void:
+	if not show_enemy_icons or _enemy_overlay == null:
+		return
+	if player == null or not is_instance_valid(player):
+		return
+
+	var origin: Vector3 = player.global_position
+	var cull_sq: float = enemy_icon_cull_distance * enemy_icon_cull_distance
+	var drawn: int = 0
+
+	for node: Node in get_tree().get_nodes_in_group(ENEMY_GROUP):
+		if drawn >= enemy_icon_max:
+			break
+		var enemy := node as Node3D
+		if enemy == null or not is_instance_valid(enemy):
+			continue
+		# Sterbende Gegner haengen noch einen Frame im Baum. Ohne diese
+		# Pruefung blinkt nach jedem Kill kurz ein Geisterpunkt auf.
+		if not enemy.is_inside_tree() or not enemy.visible:
+			continue
+
+		var health: Node = enemy.get_node_or_null("Health")
+		if health != null and health.has_method("is_alive") and not health.is_alive():
+			continue
+
+		# Culling-Schritt 1: grobe Weltdistanz, bevor irgendetwas
+		# projiziert wird.
+		if origin.distance_squared_to(enemy.global_position) > cull_sq:
+			continue
+
+		var result: Array = []
+		if not _world_to_map_pixel(enemy.global_position, result):
+			continue
+
+		var point: Vector2 = result[0]
+		# Dunkler Ring unter dem Punkt: ohne ihn verschwindet ein roter
+		# Punkt auf einer roten Bossraum-Flaeche.
+		_enemy_overlay.draw_circle(point, enemy_icon_radius + 1.0, enemy_icon_outline)
+		_enemy_overlay.draw_circle(point, enemy_icon_radius, enemy_icon_color)
+		drawn += 1
+
+
+# --- Dynamischer Auto-Zoom ---------------------------------------------
+
+## Haengt sich an das map_updated-Signal des LevelGenerators. Genau dieses
+## Signal feuert beim Instanziieren eines Stages, beim Betreten eines Raums
+## und beim Aufdecken — also exakt bei jeder Aenderung der bekannten
+## Flaeche. Ein Polling pro Frame waere dafuer Verschwendung.
+func _bind_generator() -> void:
+	if _generator != null and is_instance_valid(_generator):
+		return
+	var found: Array = get_tree().get_nodes_in_group(GENERATOR_GROUP)
+	if found.is_empty():
+		return
+	_generator = found[0]
+	if _generator.has_signal("map_updated") and not _generator.is_connected("map_updated", _on_map_updated):
+		_generator.connect("map_updated", _on_map_updated)
+	_on_map_updated()
+
+
+func _on_map_updated() -> void:
+	_recalculate_revealed_span()
+	# Beide Modi sofort nachziehen, damit der neue Ausschnitt nicht erst
+	# beim naechsten Oeffnen/Schliessen der Grosskarte greift.
+	map_camera.size = _effective_big_map_size() if _is_big_map else _effective_map_size()
+	_small_map_camera_size = _effective_map_size()
+
+
+## Spannweite der SICHTBAREN Zellen in Weltmetern.
+##
+## Sichtbar = besucht. Unbesuchte Nachbarn zaehlen bewusst mit einer
+## halben Zelle, weil minimap_rooms.gd sie als Umriss zeichnet — sonst
+## rutschte der angrenzende Raum am Rand aus dem Bild.
+##
+## Die Zellgroesse wird vom Generator geholt, nicht hier gepflegt: sie
+## haengt an dessen room_scale und waere als zweite Konstante sofort
+## veraltet.
+func _recalculate_revealed_span() -> void:
+	_revealed_world_span = 0.0
+	if _generator == null or not is_instance_valid(_generator):
+		return
+	if not _generator.has_method("get_map_cells"):
+		return
+
+	var cells: Dictionary = _generator.get_map_cells()
+	if cells.is_empty():
+		return
+
+	# get() liefert null, falls das Feld in einer aelteren Generator-
+	# Version nicht existiert. Erst pruefen, DANN typisiert zuweisen —
+	# eine direkte Zuweisung von null an ein Vector3 waere ein
+	# Laufzeitfehler.
+	var raw_cell_size: Variant = _generator.get("cell_size")
+	if not (raw_cell_size is Vector3):
+		return
+	var cell_size: Vector3 = raw_cell_size
+	if is_zero_approx(cell_size.x) or is_zero_approx(cell_size.z):
+		return
+
+	var min_cell := Vector2i(2147483647, 2147483647)
+	var max_cell := Vector2i(-2147483648, -2147483648)
+	var any: bool = false
+
+	for pos in cells.keys():
+		var grid: Vector2i = pos
+		if not bool(cells[grid].get("visited", false)):
+			continue
+		any = true
+		min_cell.x = mini(min_cell.x, grid.x)
+		min_cell.y = mini(min_cell.y, grid.y)
+		max_cell.x = maxi(max_cell.x, grid.x)
+		max_cell.y = maxi(max_cell.y, grid.y)
+
+	if not any:
+		return
+
+	# +1, weil eine einzelne Zelle bereits eine volle Raumbreite belegt;
+	# +1 zusaetzlich fuer die angrenzenden, nur umrissenen Nachbarn.
+	var span_x: float = (float(max_cell.x - min_cell.x) + 2.0) * cell_size.x
+	var span_z: float = (float(max_cell.y - min_cell.y) + 2.0) * cell_size.z
+	_revealed_world_span = maxf(span_x, span_z) + auto_zoom_padding
 
 
 ## static var ueberlebt Szenenwechsel - beim Verlassen zwingend loeschen,
@@ -34487,11 +34864,23 @@ func _apply_minimap_settings() -> void:
 ## Zooms. maxf() verhindert eine Division, die bei einem manipulierten
 ## Zoom von 0 eine size von inf erzeugen wuerde.
 func _effective_map_size() -> float:
-	return map_size / maxf(SettingsManager.minimap_zoom, 0.01)
+	return _auto_base_size(map_size, auto_zoom_small_max) / maxf(SettingsManager.minimap_zoom, 0.01)
 
 
 func _effective_big_map_size() -> float:
-	return big_map_world_size / maxf(_big_map_zoom, 0.01)
+	return _auto_base_size(big_map_world_size, auto_zoom_big_max) / maxf(_big_map_zoom, 0.01)
+
+
+## Basisausschnitt VOR dem Anwenden des Zoom-Reglers.
+##
+## Der Auto-Zoom vergroessert nur — er zieht nie enger als der
+## eingestellte Grundwert. Sonst wuerde die Karte am Anfang eines Runs
+## (eine einzige aufgedeckte Zelle) auf einen winzigen Ausschnitt
+## zusammenfallen.
+func _auto_base_size(base: float, limit: float) -> float:
+	if not auto_zoom_enabled or _revealed_world_span <= 0.0:
+		return base
+	return clampf(_revealed_world_span, base, maxf(limit, base))
 
 
 func _create_room_overlay() -> void:
@@ -34533,6 +34922,30 @@ func _create_room_overlay() -> void:
 ## _apply_minimap_settings() ueber das Sammelsignal.
 func _on_rotate_setting_changed(enabled: bool) -> void:
 	rotate_with_player = enabled
+
+
+## Bildschirm-Rechteck, das die KLEINE Minimap tatsaechlich belegt —
+## inklusive der UI-Skalierung (SettingsManager.minimap_ui_scale).
+##
+## WARUM NICHT get_global_rect(): Control.get_global_rect() liefert
+## Position und size, aber OHNE scale. Die Minimap wird ueber
+## Control.scale vergroessert (siehe _apply_minimap_settings), das
+## Rechteck waere damit bei jedem Wert != 1.0 zu klein — genau der
+## Grund, warum der Speedrun-Timer bei groesserer Karte darunter
+## verschwunden ist.
+##
+## Wird von run_timer.gd genutzt, um sich rechts anzudocken.
+func get_docking_rect() -> Rect2:
+	if frame == null:
+		return Rect2(global_position, size * scale)
+
+	# Bei offener Grosskarte waechst der Frame auf Bildschirmbreite. Der
+	# Timer soll trotzdem an der KLEINANSICHT kleben, sonst springt er
+	# beim Oeffnen der Karte quer ueber den Bildschirm und wieder zurueck.
+	var f_pos: Vector2 = _small_frame_position if _is_big_map else frame.position
+	var f_size: Vector2 = _small_frame_size if _is_big_map else frame.size
+
+	return Rect2(global_position + f_pos * scale, f_size * scale)
 
 
 func set_player(p: Node3D) -> void:
@@ -34823,6 +35236,13 @@ func _process(delta: float) -> void:
 
 	_update_player_arrow_position()
 
+	# Gegner bewegen sich jeden Frame - das Overlay muss deshalb jeden
+	# Frame neu gezeichnet werden. queue_redraw() ist billig, solange
+	# _draw_enemy_icons() frueh aussteigt; die eigentliche Arbeit
+	# verhindern die beiden Culling-Stufen.
+	if show_enemy_icons and _enemy_overlay != null and is_instance_valid(_enemy_overlay):
+		_enemy_overlay.queue_redraw()
+
 	if coord_label.visible:
 		var pos: Vector3 = player.global_position
 		coord_label.text = "X: %d   Y: %d" % [int(pos.x), int(pos.z)]
@@ -34863,11 +35283,15 @@ func _update_zone() -> void:
 
 
 func _zone_from_generator() -> String:
+	# Ueber _bind_generator() statt einer eigenen Suche: die frueher hier
+	# stehende Lazy-Bindung hat _generator zwar gesetzt, aber NICHT
+	# map_updated verbunden. Steht der LevelGenerator beim _ready() der
+	# Minimap noch nicht in seiner Gruppe (Reihenfolge im Szenenbaum),
+	# waere der Auto-Zoom danach dauerhaft tot gewesen — ohne Fehler,
+	# einfach nur ohne Wirkung.
+	_bind_generator()
 	if _generator == null or not is_instance_valid(_generator):
-		var found: Array[Node] = get_tree().get_nodes_in_group(GENERATOR_GROUP)
-		if found.is_empty():
-			return ""
-		_generator = found[0]
+		return ""
 
 	if not _generator.has_method("get_map_cells"):
 		return ""
@@ -36284,6 +36708,37 @@ enum Kind {
 ## der Spieler ueberhaupt sieht, dass etwas gedroppt ist.
 @export var arm_delay: float = 0.35
 
+## --- Bodenglanz (Lesbarkeit) ------------------------------------------
+##
+## Muenzen, Herzen und Bomben gehen im PSX-Dungeon unter: die Meshes sind
+## klein, der Nebel schluckt Kontrast, und die Eigenfarbe (gelb/gruen/
+## dunkelgrau) haelt gegen einen dunklen Boden kaum durch. Die Bombe ist
+## als fast schwarze Kugel praktisch unsichtbar.
+##
+## Deshalb bekommt jedes einsammelbare Pickup zwei Zutaten:
+##   1. einen WEISSEN, additiv gemischten Halo hinter dem Modell
+##      (Billboard-Quad mit radialer GradientTexture2D — bewusst per Code
+##      erzeugt statt als .png, damit kein Asset-Import noetig ist),
+##   2. ein kleines weisses OmniLight3D, das den Boden ringsum aufhellt.
+##
+## Der Halo ist WEISS und nicht in der Item-Farbe: die Farbe unterscheidet
+## die Sorten, die Helligkeit meldet "hier liegt was". Waere der Halo
+## eingefaerbt, waere die Bombe wieder die dunkelste Fundsache im Raum.
+##
+## Kind.ITEM bleibt aussen vor — der Sockel hat bereits Label3D-Prompt und
+## eigene Farbe.
+@export var glow_enabled: bool = true
+@export var glow_color: Color = Color(1.0, 1.0, 1.0)
+## Kantenlaenge des Halo-Quads in Metern.
+@export var glow_size: float = 1.5
+## Deckkraft des Halos. Additiv gemischt — Werte ueber ~0.5 fressen die
+## Silhouette des Modells auf.
+@export_range(0.0, 1.0) var glow_opacity: float = 0.35
+@export var glow_light_range: float = 3.2
+@export var glow_light_energy: float = 1.4
+## Wie stark Halo und Licht mit der Schwebebewegung pulsieren (0 = aus).
+@export_range(0.0, 1.0) var glow_pulse: float = 0.25
+
 ## Nur fuer Kind.ITEM.
 var item_data: ItemData = null
 
@@ -36294,6 +36749,9 @@ var _age: float = 0.0
 var _collected: bool = false
 var _visual: Node3D = null
 var _prompt: Label3D = null
+var _glow_quad: MeshInstance3D = null
+var _glow_light: OmniLight3D = null
+var _glow_material: StandardMaterial3D = null
 
 
 func _ready() -> void:
@@ -36353,6 +36811,70 @@ func _build_visual() -> void:
 			_build_bomb()
 		Kind.ITEM:
 			_build_pedestal()
+
+	if glow_enabled and kind != Kind.ITEM:
+		_build_glow()
+
+
+## Weisser Halo + Punktlicht.
+##
+## Der Halo haengt am _visual und macht dessen Schwebe- und Drehbewegung
+## mit — er ist aber ein Billboard, die Drehung ist also unsichtbar. Das
+## Licht haengt bewusst am Pickup SELBST und nicht am _visual: ein
+## mitschwebendes Licht laesst den Boden atmen statt zu leuchten.
+func _build_glow() -> void:
+	# Radialer Verlauf weiss -> transparent. GradientTexture2D mit
+	# FILL_RADIAL erspart eine .png im Repo und bleibt aufloesungsarm
+	# genug fuer den PSX-Look.
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(1.0, 1.0, 1.0, 1.0))
+	gradient.set_color(1, Color(1.0, 1.0, 1.0, 0.0))
+
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5)
+	texture.fill_to = Vector2(1.0, 0.5)
+	texture.width = 64
+	texture.height = 64
+
+	_glow_material = StandardMaterial3D.new()
+	_glow_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_glow_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_glow_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	_glow_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	_glow_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# Kein depth_draw, aber depth_TEST bleibt an: der Halo soll von Waenden
+	# verdeckt werden, sonst leuchtet ein Pickup durch den halben Dungeon.
+	_glow_material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	_glow_material.no_depth_test = false
+	_glow_material.albedo_texture = texture
+	_glow_material.albedo_color = Color(glow_color.r, glow_color.g, glow_color.b, glow_opacity)
+	_glow_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+
+	var quad := QuadMesh.new()
+	quad.size = Vector2(glow_size, glow_size)
+
+	_glow_quad = MeshInstance3D.new()
+	_glow_quad.name = "Glow"
+	_glow_quad.mesh = quad
+	_glow_quad.material_override = _glow_material
+	# Hinter dem Modell sortieren, damit die Silhouette oben bleibt.
+	_glow_quad.sorting_offset = -0.05
+	_glow_quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_visual.add_child(_glow_quad)
+
+	_glow_light = OmniLight3D.new()
+	_glow_light.name = "GlowLight"
+	_glow_light.light_color = glow_color
+	_glow_light.light_energy = glow_light_energy
+	_glow_light.omni_range = glow_light_range
+	# Schatten aus: ein Dutzend schattenwerfender Punktlichter nach einem
+	# geraeumten Raum kostet auf Forward Mobile spuerbar Leistung, und ein
+	# Pickup-Halo braucht keinen Schattenwurf.
+	_glow_light.shadow_enabled = false
+	_glow_light.position = Vector3(0.0, 0.35, 0.0)
+	add_child(_glow_light)
 
 
 func _color_for_kind() -> Color:
@@ -36469,6 +36991,20 @@ func _physics_process(delta: float) -> void:
 	if _visual:
 		_visual.position.y = sin(_time * bob_speed) * bob_height
 		_visual.rotate_y(spin_speed * delta)
+
+	# Halo und Licht pulsieren im Takt der Schwebebewegung. Der Puls laeuft
+	# ueber den KOSINUS, ist gegenueber der Hoehe also um eine
+	# Viertelperiode versetzt: hell im Aufsteigen, matt im Absinken. Waeren
+	# beide in Phase, saehe es aus, als wuerde das Modell blinken.
+	if glow_pulse > 0.0:
+		var pulse: float = 1.0 + cos(_time * bob_speed) * glow_pulse
+		if _glow_material:
+			_glow_material.albedo_color = Color(
+				glow_color.r, glow_color.g, glow_color.b,
+				clampf(glow_opacity * pulse, 0.0, 1.0)
+			)
+		if _glow_light:
+			_glow_light.light_energy = glow_light_energy * pulse
 
 	var player: Node3D = _find_player()
 	if player == null:
@@ -37181,9 +37717,31 @@ var _trauma: float = 0.0
 
 # --- Combo-Tilt ---
 var _combo_tilt_degrees: float = 0.0
+var _dash_roll_degrees: float = 0.0
+var _dash_roll_tween: Tween
 var _tilt_tween: Tween
 
 # --- Dash FOV-Boost ---
+## --- Drill-Effekt beim Dash (Phase 2.5) -------------------------------
+##
+## Der Kamera-Roll rollt beim seitlichen Dash in Bewegungsrichtung mit und
+## faehrt danach zurueck — die "Bohrer"-Geste.
+##
+## NUR BEI A/D: bei einem Vorwaerts- oder Rueckwaerts-Dash gibt es keine
+## Seitenrichtung, in die gerollt werden koennte. Ein Roll ohne seitliche
+## Bewegung liest sich nicht als Schwung, sondern als Kamerafehler.
+##
+## WARUM DER ROLL NICHT PER TWEEN AUF camera.rotation.z LAEUFT:
+## _process() schreibt camera.rotation.z jeden Frame komplett neu (Combo-
+## Tilt + Screenshake). Ein Tween auf dieselbe Eigenschaft wuerde jeden
+## Frame ueberschrieben — derselbe Konflikt, der bei dash_fov_boost schon
+## dokumentiert ist. Der Roll laeuft deshalb als eigener Summand
+## (_dash_roll_degrees) in genau diese Zeile hinein.
+@export var dash_drill_enabled: bool = true
+@export var dash_drill_degrees: float = 9.0
+@export var dash_drill_ramp_up_time: float = 0.07
+@export var dash_drill_ramp_down_time: float = 0.30
+
 @export var dash_fov_boost: float = 25.0
 @export var dash_fov_ramp_up_time: float = 0.08
 @export var dash_fov_ramp_down_time: float = 0.35
@@ -37393,7 +37951,7 @@ func _process(delta: float) -> void:
 			camera.h_offset = 0.0
 			camera.v_offset = 0.0
 
-	camera.rotation.z = deg_to_rad(_combo_tilt_degrees + shake_roll_degrees)
+	camera.rotation.z = deg_to_rad(_combo_tilt_degrees + shake_roll_degrees + _dash_roll_degrees)
 
 	# NACH dem Shake: der Federarm setzt seine Kinder im internen
 	# Physics-Notification, also VOR diesem _process. Was hier geschrieben
@@ -37493,6 +38051,54 @@ func play_dash_fov_effect() -> void:
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_dash_fov_tween.tween_property(camera, "fov", _base_fov, dash_fov_ramp_down_time)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+	play_dash_drill_effect()
+
+
+## Seitlicher Kamera-Roll waehrend des Dashs.
+##
+## Die Seitenrichtung wird DIREKT aus dem Input gelesen, nicht aus
+## _dash_direction in combat_base.gd. Grund: _dash_direction ist ein
+## Weltvektor. Ob er "seitlich" ist, haengt an der Blickrichtung, und die
+## Umrechnung waere eine zweite Stelle, die den +Z-Vorne-Sonderfall dieses
+## Projekts kennen muesste. Der Input weiss es ohne Umrechnung.
+##
+## Vorzeichen: Dash nach RECHTS rollt die Kamera nach links (negatives z),
+## wie beim Einlenken in eine Kurve. Umgekehrt fuehlt es sich an, als
+## wuerde die Kamera weggeschoben.
+func play_dash_drill_effect() -> void:
+	if not dash_drill_enabled:
+		return
+
+	var strafe: float = Input.get_axis("ui_left", "ui_right")
+	if is_zero_approx(strafe):
+		# Reiner Vorwaerts-/Rueckwaerts-Dash: kein Roll. Ein evtl. noch
+		# laufender Roll aus einem vorherigen Dash wird sauber
+		# zurueckgefahren statt haengen gelassen.
+		_reset_dash_roll()
+		return
+
+	if _dash_roll_tween and _dash_roll_tween.is_valid():
+		_dash_roll_tween.kill()
+
+	var target: float = -signf(strafe) * dash_drill_degrees
+
+	_dash_roll_tween = create_tween()
+	_dash_roll_tween.tween_property(self, "_dash_roll_degrees", target, dash_drill_ramp_up_time)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_dash_roll_tween.tween_property(self, "_dash_roll_degrees", 0.0, dash_drill_ramp_down_time)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+
+
+func _reset_dash_roll() -> void:
+	if is_zero_approx(_dash_roll_degrees):
+		return
+	if _dash_roll_tween and _dash_roll_tween.is_valid():
+		_dash_roll_tween.kill()
+	_dash_roll_tween = create_tween()
+	_dash_roll_tween.tween_property(self, "_dash_roll_degrees", 0.0, dash_drill_ramp_down_time)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _is_dead:
@@ -37925,6 +38531,7 @@ func _spawn_damage_number(body: Node3D) -> void:
 ===== FILE: scripts\reset_overlay.gd =====
 
 
+
 extends Control
 class_name ResetOverlay
 
@@ -38004,7 +38611,10 @@ func _ready() -> void:
 	# die Abblende darf beim Wechsel nicht einfrieren.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# set_anchors_and_offsets_preset statt set_anchors_preset: letzteres
+	# laesst die Offsets stehen. Bei einem Control, das per Code unter
+	# einen CanvasLayer gehaengt wird, sind die nicht garantiert 0.
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_ui()
 
 
@@ -38012,15 +38622,38 @@ func _build_ui() -> void:
 	_fade = ColorRect.new()
 	_fade.color = Color(0.0, 0.0, 0.0, 0.0)
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_fade)
+
+	# BUGFIX "Vorschau-Fenster sitzt an einer voellig falschen Stelle":
+	#
+	# Frueher stand hier PRESET_CENTER direkt auf der PanelContainer.
+	# set_anchors_preset() laesst die OFFSETS unveraendert und laesst nur
+	# die Anker wandern — der Kasten hatte zum Bauzeitpunkt aber noch
+	# keine Groesse (die Labels bekommen ihren Text erst beim Halten von
+	# [R]). Die Zentrierung haengt damit vollstaendig daran, dass Godot
+	# beim nachtraeglichen Wachsen ueber die Minimalgroesse die
+	# grow_direction sauber anwendet — und das ist bei einem Control, das
+	# unter einem CanvasLayer statt unter einem Container haengt, keine
+	# verlaessliche Annahme.
+	#
+	# Ein CenterContainer ueber die volle Flaeche macht daraus eine
+	# Layout-Frage statt einer Offset-Rechnung: er zentriert sein Kind bei
+	# JEDER Groessenaenderung neu, also auch dann, wenn der Seed-Code den
+	# Kasten breiter macht.
+	var center := CenterContainer.new()
+	center.name = "PreviewCenter"
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
 
 	_preview_box = PanelContainer.new()
 	_preview_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_preview_box.visible = false
-	_preview_box.set_anchors_preset(Control.PRESET_CENTER)
-	_preview_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_preview_box.grow_vertical = Control.GROW_DIRECTION_BOTH
+	# Der CenterContainer bestimmt die Position. Eigene Anker oder
+	# grow_directions wuerden hier nur mit ihm konkurrieren.
+	_preview_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_preview_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.05, 0.06, 0.80)
@@ -38058,7 +38691,7 @@ func _build_ui() -> void:
 	_hint_label.add_theme_color_override("font_color", Color(0.55, 0.58, 0.62))
 	column.add_child(_hint_label)
 
-	add_child(_preview_box)
+	center.add_child(_preview_box)
 
 
 func _process(_delta: float) -> void:
@@ -38206,7 +38839,9 @@ func _peek_next_seed_code() -> String:
 
 
 
+
 ===== FILE: scripts\room_commit_guard.gd =====
+
 
 
 extends Node
@@ -38269,7 +38904,7 @@ extends Node
 #      Der Spieler ist so lange am Stueck drin. Faengt den Fall
 #      "stehenbleiben / kaempfen / umschauen" ab.
 #
-#   2. ZURUECKGELEGTE STRECKE (commit_travel_distance)
+#   2. ZURUECKGELEGTE STRECKE (commit_travel_factor)
 #      Der Spieler hat innerhalb des Grundrisses so viele Meter
 #      zurueckgelegt. Genau DAS ist der Wand-Hug-Fall: von einer Tuer zur
 #      naechsten sind es quer durch den Raum immer deutlich mehr Meter als
@@ -38300,17 +38935,39 @@ signal room_committed(room: Node)
 ## Von 0.6 auf 0.35 gesenkt. Die Verweildauer ist nach Einfuehrung der
 ## Strecken-Bedingung nur noch der Auffangfall fuer langsames Hineingehen;
 ## sie muss deshalb nicht mehr allein gegen schnelle Durchlaeufe halten.
+##
+## BUGFIX "Raum verriegelt schon im Tuerrahmen": Die Verweildauer laeuft
+## jetzt NUR noch, solange der Spieler in der INNENZONE steht (siehe
+## commit_inner_zone_factor). Vorher zaehlte sie ab dem ersten Frame im
+## Grundriss — und der Grundriss beginnt exakt an der Wandinnenseite, also
+## im Tuerrahmen. 0.35 s Stehenbleiben beim Hineinschauen haben damit
+## verriegelt; wer danach rausgedasht ist, hat ueber _check_escape() den
+## kompletten Raum zurueckgesetzt ("Gegner verschwinden").
 @export var commit_dwell_time: float = 0.35
 
-## Meter, die der Spieler INNERHALB des Grundrisses zurueckgelegt haben
-## muss. Wird pro Frame aus der tatsaechlichen Positionsaenderung
-## aufsummiert, nicht aus Geschwindigkeit * Zeit — damit zaehlt Rutschen,
-## Knockback und Dash genauso wie normales Laufen.
+## Wie weit die Innenzone gegenueber dem Grundriss eingerueckt ist — als
+## Anteil der halben Kantenlaenge. 0.28 bedeutet: die aeusseren 28 % der
+## Raumhaelfte zaehlen NICHT als "drin".
 ##
-## 7.0 ist bewusst kleiner als die halbe Raumbreite: der Weg von einer
-## Tuer zur naechsten fuehrt IMMER ueber deutlich mehr Strecke, ein Blick
-## durch den Tuerrahmen ueber deutlich weniger.
-@export var commit_travel_distance: float = 7.0
+## Das ist die eigentliche Anti-Bait-Grenze. Sie ersetzt NICHT edge_inset:
+## die Area bleibt bewusst auf vollem Grundriss, weil die STRECKEN-
+## Bedingung genau den Randstreifen mitmessen muss (Wand-Hug).
+@export_range(0.0, 0.45) var commit_inner_zone_factor: float = 0.28
+
+## Anteil der kuerzeren WELT-Kante des Raumes, den der Spieler innerhalb
+## des Grundrisses zuruecklegen muss.
+##
+## BUGFIX "Commit feuert nach 7 Metern": commit_travel_distance war ein
+## fester Meterwert, verglichen mit global_position-Deltas — also
+## Weltmetern. Der LevelGenerator skaliert Raeume aber mit room_scale
+## (2,2,2): aus 48 m Grundriss werden 96 m Weltkante. 7 m sind darin
+## ~7 % der Raumbreite, faktisch die Tuerschwelle. Der Schwellwert wird
+## deshalb jetzt aus der TATSAECHLICHEN Weltgroesse des Raumes abgeleitet.
+@export_range(0.1, 1.5) var commit_travel_factor: float = 0.5
+
+## Absolute Untergrenze in Weltmetern, damit sehr kleine Raeume nicht
+## sofort ausloesen.
+@export var commit_travel_min: float = 7.0
 
 ## Verkleinert die Commit-Area gegenueber dem Grundriss. 0 = exakt bis zur
 ## Wandinnenseite.
@@ -38420,6 +39077,29 @@ func _attach(room: RoomInstance) -> void:
 	area.add_child(shape)
 	room.add_child(area)
 
+	# --- Weltmasse des Raumes ------------------------------------------
+	#
+	# room_footprint ist ein LOKALER Wert der Raum-Szene. load_room() im
+	# LevelGenerator setzt die Raum-Basis auf
+	# Basis.IDENTITY.scaled(room_scale) — die echte Kantenlaenge in der
+	# Welt ist also footprint * scale. Alles, was gegen global_position
+	# gerechnet wird (die Strecke), MUSS diese Groesse benutzen.
+	var room_scale: Vector3 = room.global_transform.basis.get_scale()
+	var world_x: float = room.room_footprint.x * absf(room_scale.x)
+	var world_z: float = room.room_footprint.y * absf(room_scale.z)
+	var travel_threshold: float = maxf(
+		minf(world_x, world_z) * maxf(commit_travel_factor, 0.05),
+		maxf(commit_travel_min, 0.1)
+	)
+
+	# Innenzone in LOKALEN Koordinaten — der Test laeuft ueber
+	# room.to_local(), und lokale Koordinaten sind von room_scale
+	# unabhaengig. Deshalb hier bewusst KEINE Skalierung einrechnen.
+	var inner_half := Vector2(
+		room.room_footprint.x * 0.5 * (1.0 - clampf(commit_inner_zone_factor, 0.0, 0.45)),
+		room.room_footprint.y * 0.5 * (1.0 - clampf(commit_inner_zone_factor, 0.0, 0.45))
+	)
+
 	_watched[id] = {
 		"room": room,
 		"area": area,
@@ -38428,6 +39108,8 @@ func _attach(room: RoomInstance) -> void:
 		"last_pos": Vector3.ZERO,
 		"had_player": false,
 		"done": false,
+		"inner_half": inner_half,
+		"travel_threshold": travel_threshold,
 	}
 
 	# Ohne diese Aufraeumung waechst _watched ueber die Laufzeit eines Runs
@@ -38435,7 +39117,9 @@ func _attach(room: RoomInstance) -> void:
 	# Raeume.
 	room.tree_exited.connect(_on_room_gone.bind(id))
 
-	_debug("Raum %s ueberwacht (%.0f x %.0f)." % [room.grid_position, size_x, size_z])
+	_debug("Raum %s ueberwacht (lokal %.0f x %.0f, Welt %.0f x %.0f, Strecke >= %.1f m)." % [
+		room.grid_position, size_x, size_z, world_x, world_z, travel_threshold
+	])
 
 
 func _on_room_gone(id: int) -> void:
@@ -38487,13 +39171,27 @@ func _physics_process(delta: float) -> void:
 			entry["dwell"] = 0.0
 			entry["travel"] = 0.0
 
-		# --- Bedingung 1: Verweildauer ---
-		entry["dwell"] = float(entry["dwell"]) + delta
+		# --- Bedingung 1: Verweildauer IN DER INNENZONE ---
+		#
+		# Der Randstreifen zaehlt bewusst nicht mit. Wer im Tuerrahmen
+		# steht und in den Raum schaut, baut keine Verweildauer auf —
+		# genau das war der "zu frueh verriegelt"-Fall. Verlaesst der
+		# Spieler die Innenzone wieder, faellt NUR die Verweildauer
+		# zurueck; die Strecke bleibt stehen, sonst waere der Wand-Hug
+		# ueber den Randstreifen wieder offen.
+		var current: Vector3 = player.global_position
+		var local: Vector3 = room.to_local(current)
+		var inner_half: Vector2 = entry["inner_half"]
+		var in_inner: bool = absf(local.x) <= inner_half.x and absf(local.z) <= inner_half.y
+
+		if in_inner:
+			entry["dwell"] = float(entry["dwell"]) + delta
+		else:
+			entry["dwell"] = 0.0
 
 		# --- Bedingung 2: zurueckgelegte Strecke ---
 		# Nur horizontal: Springen und Fallen sollen keine Strecke
 		# aufbauen, sonst loest ein Sprung im Tuerrahmen aus.
-		var current: Vector3 = player.global_position
 		var last: Vector3 = entry["last_pos"]
 		var step: Vector3 = current - last
 		step.y = 0.0
@@ -38501,7 +39199,7 @@ func _physics_process(delta: float) -> void:
 		entry["last_pos"] = current
 
 		var by_time: bool = float(entry["dwell"]) >= maxf(commit_dwell_time, 0.0)
-		var by_travel: bool = float(entry["travel"]) >= maxf(commit_travel_distance, 0.1)
+		var by_travel: bool = float(entry["travel"]) >= float(entry["travel_threshold"])
 
 		if by_time or by_travel:
 			entry["done"] = true
@@ -38848,6 +39546,7 @@ func _restore_engine_state() -> void:
 
 ===== FILE: scripts\run_timer.gd =====
 
+
 extends Control
 class_name RunTimer
 
@@ -38869,8 +39568,30 @@ class_name RunTimer
 ## Endzeit bleibt dann stehen und ist ueber get_time_string() auslesbar.
 
 const RUN_TIMER_GROUP: String = "run_timer"
+const MINIMAP_GROUP: String = "minimap"
 
 @onready var time_label: Label = $TimeLabel
+
+## --- Andocken an die Minimap -------------------------------------------
+##
+## PROBLEM: Die Position des Timers stand fest in hud.tscn (offset_left =
+## 280). Die Minimap wird dagegen ueber Control.scale mit
+## SettingsManager.minimap_ui_scale vergroessert. Ab etwa 1.2 schiebt sich
+## ihr Rahmen unter den Timer — bei dem neuen Standardwert 1.35 also
+## sofort.
+##
+## LOESUNG: Der Timer liest das TATSAECHLICH belegte Rechteck der Minimap
+## (Minimap.get_docking_rect(), scale-korrigiert) und setzt seine eigene
+## Position rechts daneben. Bewusst hier und nicht in hud.tscn: eine feste
+## Zahl in der Szene kann nicht auf einen Laufzeit-Regler reagieren.
+@export var dock_to_minimap: bool = true
+## Abstand zwischen Minimap-Rahmen und Timer in Pixeln.
+@export var dock_gap: float = 16.0
+
+## Position aus hud.tscn. Faellt zurueck, wenn keine Minimap existiert
+## (Testlevel) oder das Andocken abgeschaltet ist.
+var _fallback_position: Vector2 = Vector2.ZERO
+var _minimap: Control = null
 
 ## Wenn false, muss start() explizit aufgerufen werden.
 @export var auto_start_on_player_spawn: bool = true
@@ -38892,12 +39613,65 @@ func _ready() -> void:
 	if time_label:
 		time_label.text = idle_text
 
+	_fallback_position = position
+
+	# Auf das Sammelsignal hoeren: minimap_ui_scale aendert sich zur
+	# Laufzeit im Einstellungsmenue, und der Timer muss dann sofort
+	# mitwandern statt erst beim naechsten Szenenwechsel.
+	if SettingsManager != null and SettingsManager.has_signal("minimap_setting_changed"):
+		if not SettingsManager.minimap_setting_changed.is_connected(_update_dock):
+			SettingsManager.minimap_setting_changed.connect(_update_dock)
+
+	get_viewport().size_changed.connect(_update_dock)
+
+	# Ein Frame warten: die Minimap baut ihr Raum-Overlay in _ready() und
+	# veraendert dabei die Rahmenhoehe. Wer vorher misst, dockt an die
+	# noch unfertige Groesse an.
+	_update_dock.call_deferred()
+
+
+## Setzt die X-Position rechts neben die Minimap. Idempotent — ein
+## doppelter Aufruf macht nichts kaputt.
+func _update_dock() -> void:
+	if not dock_to_minimap:
+		position = _fallback_position
+		return
+
+	if _minimap == null or not is_instance_valid(_minimap):
+		var found: Array[Node] = get_tree().get_nodes_in_group(MINIMAP_GROUP)
+		if found.is_empty():
+			position = _fallback_position
+			return
+		_minimap = found[0] as Control
+
+	if _minimap == null or not _minimap.has_method("get_docking_rect"):
+		position = _fallback_position
+		return
+
+	# Ausgeblendete Minimap (HUD-Element abgeschaltet) darf den Timer
+	# nicht an eine Geisterposition heften.
+	if not _minimap.visible:
+		position = _fallback_position
+		return
+
+	var rect: Rect2 = _minimap.get_docking_rect()
+	position = Vector2(rect.position.x + rect.size.x + dock_gap, rect.position.y)
+
 	# Die Sichtbarkeit steuert zentral hud.gd (Master-Schalter UND
 	# Element-Schalter) — hier bewusst NICHT nochmal gesetzt, sonst gaebe
 	# es zwei konkurrierende Quellen fuer denselben Zustand.
 
 
 func _process(delta: float) -> void:
+	# Guenstiger Abgleich: nur nachziehen, wenn sich wirklich etwas
+	# verschoben hat. get_docking_rect() ist eine reine Rechnung ohne
+	# Baumsuche, solange _minimap gebunden ist.
+	if dock_to_minimap and _minimap != null and is_instance_valid(_minimap):
+		var rect: Rect2 = _minimap.get_docking_rect()
+		var wanted := Vector2(rect.position.x + rect.size.x + dock_gap, rect.position.y)
+		if _minimap.visible and not position.is_equal_approx(wanted):
+			position = wanted
+
 	if not _started and auto_start_on_player_spawn:
 		if PartyManager.player and is_instance_valid(PartyManager.player):
 			start()
@@ -39221,11 +39995,20 @@ const COLORBLIND_TRITANOPIA: int = 3
 
 const MINIMAP_ZOOM_MIN: float = 0.4
 const MINIMAP_ZOOM_MAX: float = 3.0
-const MINIMAP_ZOOM_DEFAULT: float = 1.0
+## Von 1.0 auf 1.80 angehoben. NICHT zu verwechseln mit
+## MINIMAP_UI_SCALE_DEFAULT: ui_scale vergroessert das HUD-Element,
+## zoom veraendert den WELT-Ausschnitt der Kamera darin. Der Auto-Zoom
+## (minimap.gd) wirkt als Basisgroesse, dieser Regler bleibt der Teiler
+## darauf.
+const MINIMAP_ZOOM_DEFAULT: float = 1.80
 
 const MINIMAP_UI_SCALE_MIN: float = 0.6
 const MINIMAP_UI_SCALE_MAX: float = 1.8
-const MINIMAP_UI_SCALE_DEFAULT: float = 1.0
+## Von 1.0 auf 1.35 angehoben — die Karte war in der Standardgroesse zu
+## klein, um Raumformen zu lesen. Bestehende settings.cfg-Dateien behalten
+## ihren gespeicherten Wert; wer den neuen Standard will, nutzt im
+## Einstellungsmenue "Zuruecksetzen".
+const MINIMAP_UI_SCALE_DEFAULT: float = 1.35
 
 ## Deckkraft der Minimap-Flaeche UND ihres Rahmens. Es gibt bewusst nur
 ## noch diesen EINEN Wert: frueher hatten Frame, 3D-Ansicht und Raum-Grid
@@ -42513,6 +43296,285 @@ func _apply_own_minimap_layer(node: Node, revealed: bool) -> void:
 		_apply_own_minimap_layer(child, revealed)
 
 
+===== FILE: scripts\ui\boss_health_bar.gd =====
+
+extends Control
+class_name BossHealthBar
+
+# ============================================================================
+# BossHealthBar — Isaac-artige Boss-Leiste am unteren Bildschirmrand.
+# ============================================================================
+#
+# WO SIE HAENGT:
+# Als Kind des HUD-Wurzelknotens in hud.tscn. Sie verankert sich in
+# _ready() SELBST unten mittig — die Position muss also nicht in der Szene
+# gepflegt werden und rutscht nicht, wenn sich das restliche HUD aendert.
+#
+# WARUM KEIN AUTOLOAD-OVERLAY:
+# Sie ist ein HUD-Element und muss mit dem HUD zusammen aus- und
+# eingeblendet werden (Screenshots, Cutscenes, HUD-Master-Schalter). Ein
+# eigener CanvasLayer wuerde beim Ausblenden des HUD stehen bleiben.
+#
+# WIE DER BOSS GEFUNDEN WIRD — und warum es zwei Wege gibt:
+#   1. Gruppe "boss": wenn ein Gegner explizit so markiert ist, gewinnt er.
+#      Das ist der saubere Weg fuer spaeter.
+#   2. Fallback: im Bossraum der Gegner mit der HOECHSTEN max_health.
+#      Aktuell markiert nichts im Projekt einen Boss als solchen — die
+#      boss_table des LevelGenerators spawnt normale EnemyAI-Instanzen mit
+#      groesseren Werten. Ohne diesen Fallback bliebe die Leiste heute
+#      dauerhaft leer.
+#
+# Ob wir ueberhaupt im Bossraum sind, kommt aus dem LevelGenerator
+# (get_map_cells()/get_current_room()). Bewusst nicht ueber eine Abfrage an
+# den Raum selbst: der LevelGenerator veroeffentlicht keine Referenz auf
+# die RoomInstance, und dafuer eine neue oeffentliche Methode einzufuehren
+# waere eine Aenderung an einer Datei, die dieses Feature sonst nicht
+# anfasst.
+
+const GENERATOR_GROUP: String = "level_generator"
+const ENEMY_GROUP: String = "enemies"
+const BOSS_GROUP: String = "boss"
+
+## Abstand zum unteren Bildschirmrand. Muss unter den Item-Buttons liegen —
+## bei 24 sitzt sie knapp darunter; nach oben verschieben heisst: Wert
+## erhoehen.
+@export var margin_bottom: float = 24.0
+@export var bar_width: float = 520.0
+@export var bar_height: float = 18.0
+@export var bar_color: Color = Color(0.86, 0.18, 0.20, 0.95)
+@export var bar_background: Color = Color(0.05, 0.04, 0.05, 0.85)
+@export var bar_border: Color = Color(0.98, 0.80, 0.22, 0.75)
+
+## Wie schnell die Leiste dem echten Wert folgt (Anteil pro Sekunde). Ein
+## sofortiger Sprung liest sich bei grossen Treffern wie ein Ruckeln.
+@export var fill_lerp_speed: float = 8.0
+
+## Wie lange die Leiste nach dem Boss-Tod noch stehen bleibt, bevor sie
+## ausblendet. Ohne diese Pause verschwindet sie im selben Frame wie der
+## letzte Treffer und der Kill fuehlt sich unbestaetigt an.
+@export var death_hold_time: float = 0.9
+@export var fade_time: float = 0.35
+
+var _name_label: Label = null
+var _bar_bg: Panel = null
+var _bar_fill: ColorRect = null
+var _bar_style: StyleBoxFlat = null
+
+var _generator: Node = null
+var _boss: Node3D = null
+var _boss_health: Node = null
+var _displayed_percent: float = 1.0
+var _death_timer: float = 0.0
+var _fade_tween: Tween = null
+
+
+func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Unten mittig verankern, Breite und Hoehe selbst setzen.
+	anchor_left = 0.5
+	anchor_right = 0.5
+	anchor_top = 1.0
+	anchor_bottom = 1.0
+	grow_horizontal = Control.GROW_DIRECTION_BOTH
+	grow_vertical = Control.GROW_DIRECTION_BEGIN
+
+	var total_height: float = bar_height + 20.0
+	offset_left = -bar_width * 0.5
+	offset_right = bar_width * 0.5
+	offset_top = -(margin_bottom + total_height)
+	offset_bottom = -margin_bottom
+
+	_build()
+	modulate.a = 0.0
+	visible = false
+
+
+func _build() -> void:
+	_name_label = Label.new()
+	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	_name_label.offset_bottom = 16.0
+	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_label.add_theme_font_size_override("font_size", 12)
+	_name_label.add_theme_color_override("font_color", Color(0.98, 0.88, 0.62))
+	_name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	_name_label.add_theme_constant_override("outline_size", 4)
+	add_child(_name_label)
+
+	_bar_bg = Panel.new()
+	_bar_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar_bg.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_bar_bg.offset_top = -bar_height
+	_bar_bg.offset_bottom = 0.0
+
+	_bar_style = StyleBoxFlat.new()
+	_bar_style.bg_color = bar_background
+	_bar_style.border_color = bar_border
+	_bar_style.set_border_width_all(2)
+	_bar_style.set_corner_radius_all(1)
+	_bar_bg.add_theme_stylebox_override("panel", _bar_style)
+	add_child(_bar_bg)
+
+	# ColorRect statt ProgressBar: die Fuellung soll exakt so aussehen wie
+	# der Rest des HUD, und eine ProgressBar brauchte dafuer drei
+	# Theme-Overrides plus eine eigene StyleBox fuer den Fuellbalken.
+	_bar_fill = ColorRect.new()
+	_bar_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar_fill.color = bar_color
+	_bar_fill.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	_bar_fill.offset_left = 2.0
+	_bar_fill.offset_top = 2.0
+	_bar_fill.offset_bottom = -2.0
+	_bar_bg.add_child(_bar_fill)
+
+
+func _process(delta: float) -> void:
+	_bind_generator()
+
+	if not _is_boss_room():
+		_release_boss()
+		return
+
+	if _boss == null or not is_instance_valid(_boss):
+		_acquire_boss()
+
+	if _boss == null or _boss_health == null:
+		# Boss war da und ist jetzt weg -> Nachlauf, dann ausblenden.
+		if visible and _death_timer > 0.0:
+			_death_timer -= delta
+			if _death_timer <= 0.0:
+				_hide_bar()
+		return
+
+	var maximum: float = float(_boss_health.get("max_health"))
+	var current: float = float(_boss_health.get("current_health"))
+	if maximum <= 0.0:
+		return
+
+	var target: float = clampf(current / maximum, 0.0, 1.0)
+	_displayed_percent = lerpf(_displayed_percent, target, clampf(fill_lerp_speed * delta, 0.0, 1.0))
+	_apply_fill(_displayed_percent)
+
+	if target <= 0.0:
+		_death_timer = death_hold_time
+		_release_boss_reference_only()
+
+
+func _apply_fill(percent: float) -> void:
+	if _bar_fill == null or _bar_bg == null:
+		return
+	# Innenbreite = Balkenbreite minus die 2 px Rand auf beiden Seiten.
+	var inner: float = maxf(_bar_bg.size.x - 4.0, 0.0)
+	_bar_fill.offset_right = -(inner * (1.0 - percent)) - 2.0
+
+
+func _bind_generator() -> void:
+	if _generator != null and is_instance_valid(_generator):
+		return
+	var found: Array[Node] = get_tree().get_nodes_in_group(GENERATOR_GROUP)
+	if not found.is_empty():
+		_generator = found[0]
+
+
+func _is_boss_room() -> bool:
+	if _generator == null or not is_instance_valid(_generator):
+		return false
+	if not _generator.has_method("get_map_cells") or not _generator.has_method("get_current_room"):
+		return false
+
+	var cells: Dictionary = _generator.get_map_cells()
+	var current: Vector2i = _generator.get_current_room()
+	if not cells.has(current):
+		return false
+	return int(cells[current].get("type", -1)) == RoomData.RoomType.BOSS
+
+
+## Sucht den Boss. Reihenfolge: explizite Gruppe, sonst der Gegner mit der
+## hoechsten max_health.
+func _acquire_boss() -> void:
+	var best: Node3D = null
+	var best_max: float = -1.0
+
+	for node: Node in get_tree().get_nodes_in_group(BOSS_GROUP):
+		var tagged := node as Node3D
+		if tagged != null and is_instance_valid(tagged) and _health_of(tagged) != null:
+			best = tagged
+			break
+
+	if best == null:
+		for node: Node in get_tree().get_nodes_in_group(ENEMY_GROUP):
+			var enemy := node as Node3D
+			if enemy == null or not is_instance_valid(enemy):
+				continue
+			var health: Node = _health_of(enemy)
+			if health == null:
+				continue
+			var maximum: float = float(health.get("max_health"))
+			if maximum > best_max:
+				best_max = maximum
+				best = enemy
+
+	if best == null:
+		return
+
+	_boss = best
+	_boss_health = _health_of(best)
+	_displayed_percent = 1.0
+	_apply_fill(1.0)
+
+	var label: String = "BOSS"
+	if _boss.has_method("get_display_name"):
+		label = String(_boss.call("get_display_name"))
+	elif _boss.name != "":
+		label = String(_boss.name).to_upper()
+	_name_label.text = label
+
+	_show_bar()
+
+
+## Liefert die Health-Komponente eines Gegners oder null. Ueber
+## get_node_or_null statt einer typisierten Referenz, damit dieses Script
+## nichts ueber den inneren Aufbau von EnemyAI wissen muss.
+func _health_of(enemy: Node) -> Node:
+	var health: Node = enemy.get_node_or_null("Health")
+	if health == null:
+		return null
+	if health.has_method("is_alive") and not health.is_alive():
+		return null
+	return health
+
+
+## Boss tot: Referenz loesen, Leiste aber stehen lassen (Nachlauf).
+func _release_boss_reference_only() -> void:
+	_boss = null
+	_boss_health = null
+
+
+## Raum verlassen: sofort weg.
+func _release_boss() -> void:
+	_boss = null
+	_boss_health = null
+	_death_timer = 0.0
+	if visible:
+		_hide_bar()
+
+
+func _show_bar() -> void:
+	if _fade_tween and _fade_tween.is_valid():
+		_fade_tween.kill()
+	visible = true
+	_fade_tween = create_tween()
+	_fade_tween.tween_property(self, "modulate:a", 1.0, fade_time)
+
+
+func _hide_bar() -> void:
+	if _fade_tween and _fade_tween.is_valid():
+		_fade_tween.kill()
+	_fade_tween = create_tween()
+	_fade_tween.tween_property(self, "modulate:a", 0.0, fade_time)
+	_fade_tween.tween_callback(func() -> void: visible = false)
+
+
 ===== FILE: scripts\ui\damage_number.gd =====
 
 extends Label3D
@@ -42650,6 +43712,238 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 	fill.scale.x = percent
 	# Fill von links her verankern statt mittig zu schrumpfen
 	fill.position.x = -(1.0 - percent) * _fill_width * 0.5
+
+
+===== FILE: scripts\ui\motion_blur.gd =====
+
+extends ColorRect
+class_name MotionBlurOverlay
+
+# ============================================================================
+# MotionBlurOverlay — radialer Speed-Blur.
+# ============================================================================
+#
+# WAS SICH GEGENUEBER DER VORVERSION GEAENDERT HAT — und warum
+# ----------------------------------------------------------------------------
+# Die alte Fassung setzte voraus, dass im Inspector von Hand ein
+# ShaderMaterial angelegt UND der .gdshader hineingezogen wird. Das sind
+# zwei Handgriffe, von denen keiner eine Fehlermeldung erzeugt, wenn er
+# fehlt: ein ShaderMaterial ohne Shader rendert einfach mit dem
+# Standardmaterial weiter. Genau deshalb war erst alles weiss und danach
+# gar nichts zu sehen.
+#
+# Jetzt baut das Script sein Material SELBST aus dem Shaderpfad. Damit gibt
+# es im Inspector nichts mehr richtig oder falsch zu machen — Node anlegen,
+# Script dran, fertig. Ein von Hand zugewiesenes ShaderMaterial hat
+# weiterhin Vorrang, falls du eigene Parameter setzen willst.
+#
+# ZUM SELBST NACHPRUEFEN:
+# debug_force_blur auf true stellen. Dann laeuft der Effekt DAUERHAFT auf
+# voller Staerke, unabhaengig von Dash und Tempo. Sieht man dann immer noch
+# nichts, liegt es am Shader oder am Node — nicht an der Ansteuerung. Das
+# trennt die beiden Fehlerquellen sauber voneinander.
+#
+# WO ER HAENGT:
+# Als ERSTES Kind des HUD-Wurzelknotens in hud.tscn. hint_screen_texture
+# liefert nur, was VOR diesem Node gezeichnet wurde — steht er weiter
+# hinten, verschmiert er Minimap, Timer und Item-Leiste mit.
+#
+# WANN ER LAEUFT — zwei Quellen, per maxf() kombiniert (nicht addiert, ein
+# Dash waehrend eines Tempo-Buffs soll nicht doppelt verschmieren):
+#   1. DASH: sofortiger Vollausschlag.
+#   2. TEMPO: aus der TATSAECHLICHEN horizontalen Geschwindigkeit, nicht
+#      aus einem Item-Flag. Dadurch wirkt jedes kuenftige Speed-Item
+#      automatisch mit.
+
+const PLAYER_GROUP: String = "player"
+const SHADER_PATH: String = "res://shaders/motion_blur.gdshader"
+
+@export var blur_enabled: bool = true
+
+## Dauerhafter Vollausschlag zum Pruefen. Im Spiel wieder ausschalten.
+@export var debug_force_blur: bool = false
+## Schreibt einmal pro Sekunde die aktuelle Staerke und die gemessene
+## Geschwindigkeit in die Konsole.
+@export var debug_logging: bool = false
+
+## --- Shader-Parameter (einzige Quelle, ueberschreiben die Defaults im
+## .gdshader bei jedem Start) -------------------------------------------
+## Maximale Streckung am Bildrand in UV-Einheiten. Der eigentliche
+## Sichtbarkeits-Regler. Unter 0.03 sieht man auf 1080p praktisch nichts.
+@export_range(0.0, 0.25, 0.005) var blur_strength: float = 0.09
+@export_range(2, 16) var blur_samples: int = 8
+## Radius um die Bildmitte, der scharf bleibt.
+@export_range(0.0, 0.8, 0.01) var center_clear: float = 0.15
+
+## Ab dieser horizontalen Geschwindigkeit (m/s) beginnt der Tempo-Blur.
+## Muss ueber der normalen Laufgeschwindigkeit liegen, sonst verschmiert
+## das Bild schon beim Herumlaufen.
+@export var speed_threshold: float = 9.0
+@export var speed_full: float = 18.0
+@export_range(0.0, 1.0) var speed_max_intensity: float = 0.55
+
+@export_range(0.0, 1.0) var dash_intensity: float = 1.0
+
+## Getrennt fuer auf/ab: einsetzen soll er hart, ausklingen weich.
+@export var rise_speed: float = 22.0
+@export var fall_speed: float = 6.0
+
+var _player: Node3D = null
+var _material: ShaderMaterial = null
+var _current: float = 0.0
+var _log_timer: float = 0.0
+
+
+func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# KEIN top_level.
+	#
+	# Die Vorversion setzte hier top_level = true, um Container-Layouts
+	# abzufangen. Das war falsch: ein top_level-CanvasItem haengt sich aus
+	# der Zeichenreihenfolge seines Elternknotens aus und wird als eigener
+	# Wurzelknoten der Canvas behandelt — es zeichnet damit NACH seinen
+	# Geschwistern statt davor.
+	#
+	# hint_screen_texture liefert immer nur das, was VOR diesem Node
+	# gezeichnet wurde. Mit top_level enthielt es also Minimap, Timer und
+	# Item-Leiste, und der Blur lag auf dem HUD statt auf dem Spiel.
+	#
+	# Die Reihenfolge wird stattdessen ueber einen eigenen CanvasLayer mit
+	# layer = -1 sichergestellt (siehe Aufbauanleitung). Das ist eine
+	# harte Garantie der Engine und keine Konvention, die beim naechsten
+	# Umsortieren im Szenenbaum wieder kippt.
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_warn_if_in_container()
+
+	# Transparent statt weiss: faellt der Shader aus, sieht man GAR NICHTS
+	# statt eines bildschirmfuellenden weissen Rechtecks.
+	color = Color(0, 0, 0, 0)
+
+	_resolve_material()
+
+	if _material == null:
+		visible = false
+		return
+
+	_push_shader_parameters()
+	print("[MotionBlur] aktiv. Shader: %s" % SHADER_PATH)
+
+
+## Vorhandenes ShaderMaterial uebernehmen, sonst selbst eines bauen.
+func _resolve_material() -> void:
+	# Ein in der Szene zugewiesenes ShaderMaterial wird uebernommen — die
+	# darin gespeicherten shader_parameter/* ueberschreibt
+	# _push_shader_parameters() aber trotzdem. Sonst gaebe es zwei Quellen
+	# fuer dieselbe Staerke: die Exports hier und die eingefrorenen Werte
+	# in der .tscn (bei dir aktuell blur_strength = 0.055).
+	if material is ShaderMaterial and (material as ShaderMaterial).shader != null:
+		_material = material as ShaderMaterial
+		return
+
+	var shader: Resource = load(SHADER_PATH)
+	if shader == null:
+		push_error("[MotionBlur] '%s' nicht gefunden. Liegt die .gdshader wirklich dort, und wurde in Godot einmal das Dateisystem neu eingelesen (Project > Reload Current Project)?" % SHADER_PATH)
+		return
+	if not (shader is Shader):
+		push_error("[MotionBlur] '%s' ist ein %s statt einem Shader." % [SHADER_PATH, shader.get_class()])
+		return
+
+	var built := ShaderMaterial.new()
+	built.shader = shader as Shader
+	material = built
+	_material = built
+
+
+## Setzt die Shader-Uniforms aus den Exports. Damit gibt es genau EINE
+## Stelle, an der die Staerke eingestellt wird — die Defaults im
+## .gdshader sind nur noch Rueckfallwerte.
+func _push_shader_parameters() -> void:
+	if _material == null:
+		return
+	_material.set_shader_parameter("blur_strength", blur_strength)
+	_material.set_shader_parameter("samples", blur_samples)
+	_material.set_shader_parameter("center_clear", center_clear)
+	_material.set_shader_parameter("blur_center", Vector2(0.5, 0.5))
+	_material.set_shader_parameter("blur_amount", 0.0)
+
+
+## Container ueberschreiben Position UND Groesse ihrer Kinder bei jedem
+## Layout-Durchlauf. Ein 40 Pixel breiter Blur-Streifen faellt als "kein
+## Effekt" auf, ohne dass irgendwo ein Fehler steht — deshalb hier eine
+## explizite Meldung statt eines stillen Fehlverhaltens.
+func _warn_if_in_container() -> void:
+	if get_parent() is Container:
+		push_error("[MotionBlur] Der Node haengt in einem %s. Container setzen Position und Groesse ihrer Kinder selbst — der Overlay deckt dann nicht die volle Bildflaeche. Er gehoert unter einen CanvasLayer (layer = -1)." % get_parent().get_class())
+
+
+func _process(delta: float) -> void:
+	if _material == null or not blur_enabled:
+		return
+
+	if debug_force_blur:
+		_current = 1.0
+		_material.set_shader_parameter("blur_amount", 1.0)
+		return
+
+	_resolve_player()
+
+	var target: float = 0.0
+	if _player != null and is_instance_valid(_player):
+		target = maxf(_dash_target(), _speed_target())
+
+	var speed: float = rise_speed if target > _current else fall_speed
+	_current = move_toward(_current, target, speed * delta)
+	_material.set_shader_parameter("blur_amount", _current)
+
+	if debug_logging:
+		_log_timer += delta
+		if _log_timer >= 1.0:
+			_log_timer = 0.0
+			print("[MotionBlur] Staerke %.2f (Ziel %.2f), Spieler=%s, Tempo=%.1f" % [
+				_current, target,
+				"ja" if _player != null else "NEIN",
+				_horizontal_speed()
+			])
+
+
+func _dash_target() -> float:
+	var combat: Node = _player.get_node_or_null("Combat")
+	if combat == null or not combat.has_method("is_dashing"):
+		return 0.0
+	return dash_intensity if combat.is_dashing() else 0.0
+
+
+## Y wird verworfen: ein Sturz aus dem Rampen-Korridor ist kein Sprint,
+## wuerde ohne diese Zeile aber das Bild verschmieren.
+func _horizontal_speed() -> float:
+	if _player == null or not is_instance_valid(_player):
+		return 0.0
+	var velocity: Variant = _player.get("velocity")
+	if not (velocity is Vector3):
+		return 0.0
+	var horizontal: Vector3 = velocity
+	horizontal.y = 0.0
+	return horizontal.length()
+
+
+func _speed_target() -> float:
+	var speed: float = _horizontal_speed()
+	if speed <= speed_threshold:
+		return 0.0
+	var range_size: float = maxf(speed_full - speed_threshold, 0.01)
+	return clampf((speed - speed_threshold) / range_size, 0.0, 1.0) * speed_max_intensity
+
+
+## Ueber die Gruppe statt ueber einen festen Pfad: der PartyManager tauscht
+## Charakter-Instanzen zur Laufzeit, eine gecachte Referenz waere nach dem
+## ersten Wechsel eine Leiche.
+func _resolve_player() -> void:
+	if _player != null and is_instance_valid(_player):
+		return
+	var found: Array[Node] = get_tree().get_nodes_in_group(PLAYER_GROUP)
+	if not found.is_empty():
+		_player = found[0] as Node3D
 
 
 ===== FILE: scripts\vfx_manager.gd =====
@@ -43372,6 +44666,79 @@ void fragment() {
 }
 
 
+===== FILE: shaders\motion_blur.gdshader =====
+
+shader_type canvas_item;
+
+// ============================================================================
+// Radialer Motion Blur (Speed Blur)
+// ============================================================================
+//
+// WARUM RADIAL UND NICHT ECHTER MOTION BLUR:
+// Echter Motion Blur braucht einen Velocity-Buffer (Bewegungsvektor pro
+// Pixel). Den gibt es im Forward-Mobile-Renderer nicht, und ihn per
+// Reprojektion nachzubauen kostet eine zweite Matrix pro Frame plus
+// Ghosting-Artefakte an Kanten.
+//
+// Ein radialer Blur vom Bildmittelpunkt nach aussen liest sich als
+// Vorwaertsbeschleunigung und ist genau das, was hier gebraucht wird: der
+// Effekt laeuft NUR beim Dash und bei Tempo-Buffs, also immer dann, wenn
+// sich die Kamera nach vorne bewegt. Er kostet `samples` Texturzugriffe
+// und keinerlei zusaetzliche Buffer.
+//
+// Die Mitte bleibt scharf (`center_clear`), sonst wird der Spieler selbst
+// unscharf und man verliert im Kampf die Orientierung.
+
+uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_linear;
+
+// 0 = aus. Wird von motion_blur.gd getweent.
+uniform float blur_amount : hint_range(0.0, 1.0) = 0.0;
+// Maximale Streckung am Bildrand, in UV-Einheiten.
+uniform float blur_strength : hint_range(0.0, 0.2) = 0.055;
+// Anzahl der Abtastungen. Mehr = weicher, aber teurer. 8 reicht fuer den
+// PSX-Look voellig; darueber sieht man den Unterschied kaum noch.
+uniform int samples : hint_range(2, 16) = 8;
+// Radius um die Bildmitte, der scharf bleibt (0..1, relativ zur halben
+// Bilddiagonale).
+uniform float center_clear : hint_range(0.0, 0.8) = 0.18;
+// Fokuspunkt des Blurs. 0.5/0.5 = Bildmitte.
+uniform vec2 blur_center = vec2(0.5, 0.5);
+
+void fragment() {
+	vec2 uv = SCREEN_UV;
+
+	if (blur_amount <= 0.001) {
+		COLOR = texture(screen_texture, uv);
+	} else {
+		vec2 to_center = uv - blur_center;
+		float dist = length(to_center);
+
+		// Ausserhalb des scharfen Kerns linear hochfahren. smoothstep statt
+		// hartem Schnitt: eine sichtbare Kreiskante mitten im Bild waere
+		// auffaelliger als der Blur selbst.
+		float falloff = smoothstep(center_clear, 1.0, dist);
+		float reach = blur_strength * blur_amount * falloff;
+
+		vec4 sum = vec4(0.0);
+		float total = 0.0;
+
+		for (int i = 0; i < samples; i++) {
+			float t = float(i) / float(samples - 1);
+			// Nach INNEN abtasten: die Spur soll vom Bildrand zur Mitte
+			// ziehen, wie bei einem Vorwaertsflug.
+			vec2 offset = to_center * (-reach * t);
+			// Spaetere Abtastungen schwaecher gewichten, sonst wirkt der
+			// Effekt wie eine Doppelbelichtung statt wie eine Spur.
+			float weight = 1.0 - t * 0.65;
+			sum += texture(screen_texture, uv + offset) * weight;
+			total += weight;
+		}
+
+		COLOR = sum / total;
+	}
+}
+
+
 ===== FILE: shaders\psx.gdshader =====
 
 shader_type spatial;
@@ -43431,14 +44798,14 @@ void fragment() {
 }
 
 
-===== FILE: textures\cd565bbe-05f1-450b-9fe6-1a7137320796.jpg.import =====
+===== FILE: textures\180efe57-cfaf-4517-8033-2c0fda4877c6.jpg.import =====
 
 [remap]
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://blu8rq7raoeag"
-path.s3tc="res://.godot/imported/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg-9ad78ad5339109f1ec45d2b653c6ff9e.s3tc.ctex"
+uid="uid://ctppwe73yg1xg"
+path.s3tc="res://.godot/imported/180efe57-cfaf-4517-8033-2c0fda4877c6.jpg-ec98f9eb8f093d431b80162c1cd64694.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -43446,8 +44813,53 @@ metadata={
 
 [deps]
 
-source_file="res://textures/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg"
-dest_files=["res://.godot/imported/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg-9ad78ad5339109f1ec45d2b653c6ff9e.s3tc.ctex"]
+source_file="res://textures/180efe57-cfaf-4517-8033-2c0fda4877c6.jpg"
+dest_files=["res://.godot/imported/180efe57-cfaf-4517-8033-2c0fda4877c6.jpg-ec98f9eb8f093d431b80162c1cd64694.s3tc.ctex"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/channel_remap/red=0
+process/channel_remap/green=1
+process/channel_remap/blue=2
+process/channel_remap/alpha=3
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=0
+
+
+===== FILE: textures\cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg.import =====
+
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://dwjky0ikl4fnq"
+path.s3tc="res://.godot/imported/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg-21e627ebd64fb2b6a544d019129ac620.s3tc.ctex"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+
+[deps]
+
+source_file="res://textures/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg"
+dest_files=["res://.godot/imported/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg-21e627ebd64fb2b6a544d019129ac620.s3tc.ctex"]
 
 [params]
 
