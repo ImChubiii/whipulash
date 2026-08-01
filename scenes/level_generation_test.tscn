@@ -60,19 +60,19 @@ edge_max_length = 12.0
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bqido"]
 shader = ExtResource("29_o54k0")
 shader_parameter/resolution = Vector2(2560, 1440)
-shader_parameter/scan_line_amount = 0.326000015485
-shader_parameter/warp_amount = 0.0470000022325
-shader_parameter/noise_amount = 0.050000002375
-shader_parameter/interference_amount = 0.2
-shader_parameter/grille_amount = 0.1090000051775
+shader_parameter/scan_line_amount = 0.10000000475
+shader_parameter/warp_amount = 0.10000000475
+shader_parameter/noise_amount = 0.010000000475
+shader_parameter/interference_amount = 1.0
+shader_parameter/grille_amount = 0.3190000151525
 shader_parameter/grille_size = 1.0
-shader_parameter/vignette_amount = 1.5750000748125
-shader_parameter/vignette_intensity = 0.098000004655
+shader_parameter/vignette_amount = 2.0
+shader_parameter/vignette_intensity = 0.146000006935
 shader_parameter/aberation_amount = 1.0
 shader_parameter/roll_line_amount = 0.10000000475
 shader_parameter/roll_speed = 0.20000038949999954
 shader_parameter/scan_line_strength = -12.0
-shader_parameter/pixel_strength = -2.4549999266125
+shader_parameter/pixel_strength = -2.6649999365875
 
 [node name="LevelGenerationTest" type="Node3D" unique_id=1117207563]
 
