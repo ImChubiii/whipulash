@@ -45,6 +45,37 @@ enum Kind {
 ## der Spieler ueberhaupt sieht, dass etwas gedroppt ist.
 @export var arm_delay: float = 0.35
 
+## --- Bodenglanz (Lesbarkeit) ------------------------------------------
+##
+## Muenzen, Herzen und Bomben gehen im PSX-Dungeon unter: die Meshes sind
+## klein, der Nebel schluckt Kontrast, und die Eigenfarbe (gelb/gruen/
+## dunkelgrau) haelt gegen einen dunklen Boden kaum durch. Die Bombe ist
+## als fast schwarze Kugel praktisch unsichtbar.
+##
+## Deshalb bekommt jedes einsammelbare Pickup zwei Zutaten:
+##   1. einen WEISSEN, additiv gemischten Halo hinter dem Modell
+##      (Billboard-Quad mit radialer GradientTexture2D — bewusst per Code
+##      erzeugt statt als .png, damit kein Asset-Import noetig ist),
+##   2. ein kleines weisses OmniLight3D, das den Boden ringsum aufhellt.
+##
+## Der Halo ist WEISS und nicht in der Item-Farbe: die Farbe unterscheidet
+## die Sorten, die Helligkeit meldet "hier liegt was". Waere der Halo
+## eingefaerbt, waere die Bombe wieder die dunkelste Fundsache im Raum.
+##
+## Kind.ITEM bleibt aussen vor — der Sockel hat bereits Label3D-Prompt und
+## eigene Farbe.
+@export var glow_enabled: bool = true
+@export var glow_color: Color = Color(1.0, 1.0, 1.0)
+## Kantenlaenge des Halo-Quads in Metern.
+@export var glow_size: float = 1.5
+## Deckkraft des Halos. Additiv gemischt — Werte ueber ~0.5 fressen die
+## Silhouette des Modells auf.
+@export_range(0.0, 1.0) var glow_opacity: float = 0.35
+@export var glow_light_range: float = 3.2
+@export var glow_light_energy: float = 1.4
+## Wie stark Halo und Licht mit der Schwebebewegung pulsieren (0 = aus).
+@export_range(0.0, 1.0) var glow_pulse: float = 0.25
+
 ## Nur fuer Kind.ITEM.
 var item_data: ItemData = null
 
@@ -55,6 +86,9 @@ var _age: float = 0.0
 var _collected: bool = false
 var _visual: Node3D = null
 var _prompt: Label3D = null
+var _glow_quad: MeshInstance3D = null
+var _glow_light: OmniLight3D = null
+var _glow_material: StandardMaterial3D = null
 
 
 func _ready() -> void:
@@ -114,6 +148,70 @@ func _build_visual() -> void:
 			_build_bomb()
 		Kind.ITEM:
 			_build_pedestal()
+
+	if glow_enabled and kind != Kind.ITEM:
+		_build_glow()
+
+
+## Weisser Halo + Punktlicht.
+##
+## Der Halo haengt am _visual und macht dessen Schwebe- und Drehbewegung
+## mit — er ist aber ein Billboard, die Drehung ist also unsichtbar. Das
+## Licht haengt bewusst am Pickup SELBST und nicht am _visual: ein
+## mitschwebendes Licht laesst den Boden atmen statt zu leuchten.
+func _build_glow() -> void:
+	# Radialer Verlauf weiss -> transparent. GradientTexture2D mit
+	# FILL_RADIAL erspart eine .png im Repo und bleibt aufloesungsarm
+	# genug fuer den PSX-Look.
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(1.0, 1.0, 1.0, 1.0))
+	gradient.set_color(1, Color(1.0, 1.0, 1.0, 0.0))
+
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5)
+	texture.fill_to = Vector2(1.0, 0.5)
+	texture.width = 64
+	texture.height = 64
+
+	_glow_material = StandardMaterial3D.new()
+	_glow_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_glow_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_glow_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	_glow_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	_glow_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# Kein depth_draw, aber depth_TEST bleibt an: der Halo soll von Waenden
+	# verdeckt werden, sonst leuchtet ein Pickup durch den halben Dungeon.
+	_glow_material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	_glow_material.no_depth_test = false
+	_glow_material.albedo_texture = texture
+	_glow_material.albedo_color = Color(glow_color.r, glow_color.g, glow_color.b, glow_opacity)
+	_glow_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+
+	var quad := QuadMesh.new()
+	quad.size = Vector2(glow_size, glow_size)
+
+	_glow_quad = MeshInstance3D.new()
+	_glow_quad.name = "Glow"
+	_glow_quad.mesh = quad
+	_glow_quad.material_override = _glow_material
+	# Hinter dem Modell sortieren, damit die Silhouette oben bleibt.
+	_glow_quad.sorting_offset = -0.05
+	_glow_quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_visual.add_child(_glow_quad)
+
+	_glow_light = OmniLight3D.new()
+	_glow_light.name = "GlowLight"
+	_glow_light.light_color = glow_color
+	_glow_light.light_energy = glow_light_energy
+	_glow_light.omni_range = glow_light_range
+	# Schatten aus: ein Dutzend schattenwerfender Punktlichter nach einem
+	# geraeumten Raum kostet auf Forward Mobile spuerbar Leistung, und ein
+	# Pickup-Halo braucht keinen Schattenwurf.
+	_glow_light.shadow_enabled = false
+	_glow_light.position = Vector3(0.0, 0.35, 0.0)
+	add_child(_glow_light)
 
 
 func _color_for_kind() -> Color:
@@ -230,6 +328,20 @@ func _physics_process(delta: float) -> void:
 	if _visual:
 		_visual.position.y = sin(_time * bob_speed) * bob_height
 		_visual.rotate_y(spin_speed * delta)
+
+	# Halo und Licht pulsieren im Takt der Schwebebewegung. Der Puls laeuft
+	# ueber den KOSINUS, ist gegenueber der Hoehe also um eine
+	# Viertelperiode versetzt: hell im Aufsteigen, matt im Absinken. Waeren
+	# beide in Phase, saehe es aus, als wuerde das Modell blinken.
+	if glow_pulse > 0.0:
+		var pulse: float = 1.0 + cos(_time * bob_speed) * glow_pulse
+		if _glow_material:
+			_glow_material.albedo_color = Color(
+				glow_color.r, glow_color.g, glow_color.b,
+				clampf(glow_opacity * pulse, 0.0, 1.0)
+			)
+		if _glow_light:
+			_glow_light.light_energy = glow_light_energy * pulse
 
 	var player: Node3D = _find_player()
 	if player == null:

@@ -231,9 +231,31 @@ var _trauma: float = 0.0
 
 # --- Combo-Tilt ---
 var _combo_tilt_degrees: float = 0.0
+var _dash_roll_degrees: float = 0.0
+var _dash_roll_tween: Tween
 var _tilt_tween: Tween
 
 # --- Dash FOV-Boost ---
+## --- Drill-Effekt beim Dash (Phase 2.5) -------------------------------
+##
+## Der Kamera-Roll rollt beim seitlichen Dash in Bewegungsrichtung mit und
+## faehrt danach zurueck — die "Bohrer"-Geste.
+##
+## NUR BEI A/D: bei einem Vorwaerts- oder Rueckwaerts-Dash gibt es keine
+## Seitenrichtung, in die gerollt werden koennte. Ein Roll ohne seitliche
+## Bewegung liest sich nicht als Schwung, sondern als Kamerafehler.
+##
+## WARUM DER ROLL NICHT PER TWEEN AUF camera.rotation.z LAEUFT:
+## _process() schreibt camera.rotation.z jeden Frame komplett neu (Combo-
+## Tilt + Screenshake). Ein Tween auf dieselbe Eigenschaft wuerde jeden
+## Frame ueberschrieben — derselbe Konflikt, der bei dash_fov_boost schon
+## dokumentiert ist. Der Roll laeuft deshalb als eigener Summand
+## (_dash_roll_degrees) in genau diese Zeile hinein.
+@export var dash_drill_enabled: bool = true
+@export var dash_drill_degrees: float = 9.0
+@export var dash_drill_ramp_up_time: float = 0.07
+@export var dash_drill_ramp_down_time: float = 0.30
+
 @export var dash_fov_boost: float = 25.0
 @export var dash_fov_ramp_up_time: float = 0.08
 @export var dash_fov_ramp_down_time: float = 0.35
@@ -443,7 +465,7 @@ func _process(delta: float) -> void:
 			camera.h_offset = 0.0
 			camera.v_offset = 0.0
 
-	camera.rotation.z = deg_to_rad(_combo_tilt_degrees + shake_roll_degrees)
+	camera.rotation.z = deg_to_rad(_combo_tilt_degrees + shake_roll_degrees + _dash_roll_degrees)
 
 	# NACH dem Shake: der Federarm setzt seine Kinder im internen
 	# Physics-Notification, also VOR diesem _process. Was hier geschrieben
@@ -543,6 +565,54 @@ func play_dash_fov_effect() -> void:
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_dash_fov_tween.tween_property(camera, "fov", _base_fov, dash_fov_ramp_down_time)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+	play_dash_drill_effect()
+
+
+## Seitlicher Kamera-Roll waehrend des Dashs.
+##
+## Die Seitenrichtung wird DIREKT aus dem Input gelesen, nicht aus
+## _dash_direction in combat_base.gd. Grund: _dash_direction ist ein
+## Weltvektor. Ob er "seitlich" ist, haengt an der Blickrichtung, und die
+## Umrechnung waere eine zweite Stelle, die den +Z-Vorne-Sonderfall dieses
+## Projekts kennen muesste. Der Input weiss es ohne Umrechnung.
+##
+## Vorzeichen: Dash nach RECHTS rollt die Kamera nach links (negatives z),
+## wie beim Einlenken in eine Kurve. Umgekehrt fuehlt es sich an, als
+## wuerde die Kamera weggeschoben.
+func play_dash_drill_effect() -> void:
+	if not dash_drill_enabled:
+		return
+
+	var strafe: float = Input.get_axis("ui_left", "ui_right")
+	if is_zero_approx(strafe):
+		# Reiner Vorwaerts-/Rueckwaerts-Dash: kein Roll. Ein evtl. noch
+		# laufender Roll aus einem vorherigen Dash wird sauber
+		# zurueckgefahren statt haengen gelassen.
+		_reset_dash_roll()
+		return
+
+	if _dash_roll_tween and _dash_roll_tween.is_valid():
+		_dash_roll_tween.kill()
+
+	var target: float = -signf(strafe) * dash_drill_degrees
+
+	_dash_roll_tween = create_tween()
+	_dash_roll_tween.tween_property(self, "_dash_roll_degrees", target, dash_drill_ramp_up_time)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_dash_roll_tween.tween_property(self, "_dash_roll_degrees", 0.0, dash_drill_ramp_down_time)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+
+
+func _reset_dash_roll() -> void:
+	if is_zero_approx(_dash_roll_degrees):
+		return
+	if _dash_roll_tween and _dash_roll_tween.is_valid():
+		_dash_roll_tween.kill()
+	_dash_roll_tween = create_tween()
+	_dash_roll_tween.tween_property(self, "_dash_roll_degrees", 0.0, dash_drill_ramp_down_time)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _is_dead:

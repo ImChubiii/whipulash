@@ -1,3 +1,5 @@
+
+
 extends Control
 class_name Minimap
 
@@ -34,6 +36,7 @@ const ROOM_OVERLAY_SCRIPT := preload("res://scripts/minimap_rooms.gd")
 const GENERATOR_GROUP := "level_generator"
 const TOGGLE_ACTION := "toggle_map"
 const MINIMAP_GROUP := "minimap"
+const ENEMY_GROUP := "enemies"
 
 enum OverlayPlacement { BELOW_MAP, INSIDE_MAP, HIDDEN }
 
@@ -76,6 +79,52 @@ static var big_map_open: bool = false
 @export var room_overlay_size: float = 118.0
 @export var room_overlay_margin: float = 8.0
 @export var coord_label_reserve: float = 30.0
+
+## --- Dynamischer Auto-Zoom -------------------------------------------
+## Die Kamera zoomt automatisch heraus, sobald die aufgedeckte Flaeche
+## nicht mehr in den Ausschnitt passt. Grundlage ist die Spannweite der
+## belegten Grid-Zellen (get_map_cells()), NICHT die Raumzahl: ein Layout
+## mit 12 Raeumen in einer Reihe braucht mehr Ausschnitt als 12 Raeume im
+## Block.
+##
+## SettingsManager.minimap_zoom bleibt uneingeschraenkt wirksam — es wird
+## weiterhin als Teiler auf den (jetzt dynamischen) Basisausschnitt
+## angewandt. Der Regler ist damit relativ statt absolut.
+@export var auto_zoom_enabled: bool = true
+## Zuschlag um die belegte Flaeche herum, in Weltmetern.
+@export var auto_zoom_padding: float = 40.0
+## Obergrenze fuer die KLEINE Karte. Ohne Deckel waere sie im spaeten Run
+## so weit draussen, dass man den eigenen Raum nicht mehr erkennt.
+@export var auto_zoom_small_max: float = 300.0
+## Obergrenze fuer die Grosskarte. Deutlich hoeher — dort ist der
+## Gesamtueberblick genau der Zweck.
+@export var auto_zoom_big_max: float = 900.0
+
+## --- Gegner-Icons (Phase 2.3) -----------------------------------------
+##
+## Gezeichnet wird als 2D-Overlay UEBER dem SubViewport, nicht als
+## 3D-Objekt in der Welt.
+##
+## WARUM NICHT 3D: Ein Marker-Mesh ueber jedem Gegner muesste auf einem
+## eigenen Visibility-Layer liegen, den NUR die Minimap-Kamera sieht. Das
+## hiesse: cull_mask der Spielerkamera in allen vier Charakter-Szenen
+## anpassen, plus ein Mesh pro Gegner. Das Overlay braucht dagegen null
+## Szenenaenderungen und kostet einen _draw()-Aufruf pro Frame.
+##
+## Die Umrechnung Welt -> Pixel macht map_camera.unproject_position() -
+## dieselbe Funktion, die schon den Spielerpfeil setzt. Zoom, Pan und
+## (falls aktiv) die Kameradrehung sind darin bereits enthalten.
+@export var show_enemy_icons: bool = true
+@export var enemy_icon_radius: float = 3.0
+@export var enemy_icon_color: Color = Color(0.92, 0.26, 0.24, 0.95)
+@export var enemy_icon_outline: Color = Color(0.05, 0.03, 0.04, 0.85)
+## Gegner ausserhalb dieser Weltdistanz zum Spieler werden gar nicht erst
+## umgerechnet. Culling-Schritt 1: spart die unproject-Rechnung fuer alles,
+## was ohnehin nicht in den Ausschnitt faellt.
+@export var enemy_icon_cull_distance: float = 260.0
+## Obergrenze pro Frame. Notbremse gegen Layouts, in denen sehr viele
+## Gegner gleichzeitig leben.
+@export var enemy_icon_max: int = 64
 
 ## --- Grosse Karte (Nebeneinander-Layout) ------------------------------
 @export var big_map_world_size: float = 220.0
@@ -124,6 +173,13 @@ var _prev_mouse_mode: int = Input.MOUSE_MODE_CAPTURED
 var _frame_base_bg_color: Color = Color(0.06, 0.06, 0.09, 0.82)
 var _frame_base_border_color: Color = Color(0.5, 0.48, 0.18, 1.0)
 var _frame_style: StyleBoxFlat = null
+
+## Weltbreite, die die aufgedeckten Zellen aktuell einnehmen. Wird bei
+## jedem map_updated neu bestimmt. 0 = noch keine Daten -> Auto-Zoom
+## verhaelt sich neutral und map_size gilt unveraendert.
+var _revealed_world_span: float = 0.0
+
+var _enemy_overlay: Control = null
 
 var _small_frame_size: Vector2
 var _small_frame_position: Vector2
@@ -185,7 +241,182 @@ func _ready() -> void:
 	if not SettingsManager.minimap_setting_changed.is_connected(_apply_minimap_settings):
 		SettingsManager.minimap_setting_changed.connect(_apply_minimap_settings)
 
+	_bind_generator()
+	_build_enemy_overlay()
 	_apply_minimap_settings()
+
+
+## Zeichenflaeche fuer die Gegner-Punkte.
+##
+## Haengt IM map_container und damit unter derselben -90-Grad-Drehung wie
+## die Karte. Das ist Absicht: unproject_position() liefert Pixel im
+## ungedrehten SubViewport, und der Container dreht sie anschliessend
+## genauso mit wie das gerenderte Bild. Haenge man das Overlay eine Ebene
+## hoeher, muesste die Drehung von Hand nachgerechnet werden - exakt die
+## Fehlerquelle, die im Kommentar zu _world_point_under_mouse() steht.
+func _build_enemy_overlay() -> void:
+	if _enemy_overlay != null and is_instance_valid(_enemy_overlay):
+		return
+	_enemy_overlay = Control.new()
+	_enemy_overlay.name = "EnemyOverlay"
+	_enemy_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_enemy_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_enemy_overlay.draw.connect(_draw_enemy_icons)
+	map_container.add_child(_enemy_overlay)
+	# Unter den Spielerpfeil sortieren: der eigene Standort muss auch dann
+	# lesbar bleiben, wenn ein Gegner direkt darauf steht.
+	if player_arrow != null and is_instance_valid(player_arrow):
+		map_container.move_child(_enemy_overlay, player_arrow.get_index())
+
+
+## Wandelt Weltpositionen in Pixel IM map_container um.
+##
+## Gleiche Rechnung wie _update_player_arrow_position(): erst
+## unproject_position() (Pixel im SubViewport), dann auf die gestreckte
+## Containergroesse skalieren. Liefert false, wenn der Punkt hinter der
+## Kamera oder ausserhalb des Rahmens liegt.
+func _world_to_map_pixel(world: Vector3, out: Array) -> bool:
+	var viewport_size: Vector2 = Vector2(sub_viewport.size)
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return false
+
+	var box_size: Vector2 = sub_viewport_container.size
+	var in_viewport: Vector2 = map_camera.unproject_position(world)
+	var in_box: Vector2 = sub_viewport_container.position + in_viewport * (box_size / viewport_size)
+
+	# Culling-Schritt 2: alles ausserhalb des sichtbaren Rahmens faellt
+	# raus. Ohne diese Pruefung malt Godot die Punkte zwar weg, rechnet
+	# sie aber trotzdem - und bei offener Grosskarte waeren das die
+	# Gegner der halben Etage.
+	var rect := Rect2(sub_viewport_container.position, box_size)
+	if not rect.has_point(in_box):
+		return false
+
+	out.append(in_box)
+	return true
+
+
+func _draw_enemy_icons() -> void:
+	if not show_enemy_icons or _enemy_overlay == null:
+		return
+	if player == null or not is_instance_valid(player):
+		return
+
+	var origin: Vector3 = player.global_position
+	var cull_sq: float = enemy_icon_cull_distance * enemy_icon_cull_distance
+	var drawn: int = 0
+
+	for node: Node in get_tree().get_nodes_in_group(ENEMY_GROUP):
+		if drawn >= enemy_icon_max:
+			break
+		var enemy := node as Node3D
+		if enemy == null or not is_instance_valid(enemy):
+			continue
+		# Sterbende Gegner haengen noch einen Frame im Baum. Ohne diese
+		# Pruefung blinkt nach jedem Kill kurz ein Geisterpunkt auf.
+		if not enemy.is_inside_tree() or not enemy.visible:
+			continue
+
+		var health: Node = enemy.get_node_or_null("Health")
+		if health != null and health.has_method("is_alive") and not health.is_alive():
+			continue
+
+		# Culling-Schritt 1: grobe Weltdistanz, bevor irgendetwas
+		# projiziert wird.
+		if origin.distance_squared_to(enemy.global_position) > cull_sq:
+			continue
+
+		var result: Array = []
+		if not _world_to_map_pixel(enemy.global_position, result):
+			continue
+
+		var point: Vector2 = result[0]
+		# Dunkler Ring unter dem Punkt: ohne ihn verschwindet ein roter
+		# Punkt auf einer roten Bossraum-Flaeche.
+		_enemy_overlay.draw_circle(point, enemy_icon_radius + 1.0, enemy_icon_outline)
+		_enemy_overlay.draw_circle(point, enemy_icon_radius, enemy_icon_color)
+		drawn += 1
+
+
+# --- Dynamischer Auto-Zoom ---------------------------------------------
+
+## Haengt sich an das map_updated-Signal des LevelGenerators. Genau dieses
+## Signal feuert beim Instanziieren eines Stages, beim Betreten eines Raums
+## und beim Aufdecken — also exakt bei jeder Aenderung der bekannten
+## Flaeche. Ein Polling pro Frame waere dafuer Verschwendung.
+func _bind_generator() -> void:
+	if _generator != null and is_instance_valid(_generator):
+		return
+	var found: Array = get_tree().get_nodes_in_group(GENERATOR_GROUP)
+	if found.is_empty():
+		return
+	_generator = found[0]
+	if _generator.has_signal("map_updated") and not _generator.is_connected("map_updated", _on_map_updated):
+		_generator.connect("map_updated", _on_map_updated)
+	_on_map_updated()
+
+
+func _on_map_updated() -> void:
+	_recalculate_revealed_span()
+	# Beide Modi sofort nachziehen, damit der neue Ausschnitt nicht erst
+	# beim naechsten Oeffnen/Schliessen der Grosskarte greift.
+	map_camera.size = _effective_big_map_size() if _is_big_map else _effective_map_size()
+	_small_map_camera_size = _effective_map_size()
+
+
+## Spannweite der SICHTBAREN Zellen in Weltmetern.
+##
+## Sichtbar = besucht. Unbesuchte Nachbarn zaehlen bewusst mit einer
+## halben Zelle, weil minimap_rooms.gd sie als Umriss zeichnet — sonst
+## rutschte der angrenzende Raum am Rand aus dem Bild.
+##
+## Die Zellgroesse wird vom Generator geholt, nicht hier gepflegt: sie
+## haengt an dessen room_scale und waere als zweite Konstante sofort
+## veraltet.
+func _recalculate_revealed_span() -> void:
+	_revealed_world_span = 0.0
+	if _generator == null or not is_instance_valid(_generator):
+		return
+	if not _generator.has_method("get_map_cells"):
+		return
+
+	var cells: Dictionary = _generator.get_map_cells()
+	if cells.is_empty():
+		return
+
+	# get() liefert null, falls das Feld in einer aelteren Generator-
+	# Version nicht existiert. Erst pruefen, DANN typisiert zuweisen —
+	# eine direkte Zuweisung von null an ein Vector3 waere ein
+	# Laufzeitfehler.
+	var raw_cell_size: Variant = _generator.get("cell_size")
+	if not (raw_cell_size is Vector3):
+		return
+	var cell_size: Vector3 = raw_cell_size
+	if is_zero_approx(cell_size.x) or is_zero_approx(cell_size.z):
+		return
+
+	var min_cell := Vector2i(2147483647, 2147483647)
+	var max_cell := Vector2i(-2147483648, -2147483648)
+	var any: bool = false
+
+	for pos in cells.keys():
+		var grid: Vector2i = pos
+		if not bool(cells[grid].get("visited", false)):
+			continue
+		any = true
+		min_cell.x = mini(min_cell.x, grid.x)
+		min_cell.y = mini(min_cell.y, grid.y)
+		max_cell.x = maxi(max_cell.x, grid.x)
+		max_cell.y = maxi(max_cell.y, grid.y)
+
+	if not any:
+		return
+
+	# +1, weil eine einzelne Zelle bereits eine volle Raumbreite belegt;
+	# +1 zusaetzlich fuer die angrenzenden, nur umrissenen Nachbarn.
+	var span_x: float = (float(max_cell.x - min_cell.x) + 2.0) * cell_size.x
+	var span_z: float = (float(max_cell.y - min_cell.y) + 2.0) * cell_size.z
+	_revealed_world_span = maxf(span_x, span_z) + auto_zoom_padding
 
 
 ## static var ueberlebt Szenenwechsel - beim Verlassen zwingend loeschen,
@@ -292,11 +523,23 @@ func _apply_minimap_settings() -> void:
 ## Zooms. maxf() verhindert eine Division, die bei einem manipulierten
 ## Zoom von 0 eine size von inf erzeugen wuerde.
 func _effective_map_size() -> float:
-	return map_size / maxf(SettingsManager.minimap_zoom, 0.01)
+	return _auto_base_size(map_size, auto_zoom_small_max) / maxf(SettingsManager.minimap_zoom, 0.01)
 
 
 func _effective_big_map_size() -> float:
-	return big_map_world_size / maxf(_big_map_zoom, 0.01)
+	return _auto_base_size(big_map_world_size, auto_zoom_big_max) / maxf(_big_map_zoom, 0.01)
+
+
+## Basisausschnitt VOR dem Anwenden des Zoom-Reglers.
+##
+## Der Auto-Zoom vergroessert nur — er zieht nie enger als der
+## eingestellte Grundwert. Sonst wuerde die Karte am Anfang eines Runs
+## (eine einzige aufgedeckte Zelle) auf einen winzigen Ausschnitt
+## zusammenfallen.
+func _auto_base_size(base: float, limit: float) -> float:
+	if not auto_zoom_enabled or _revealed_world_span <= 0.0:
+		return base
+	return clampf(_revealed_world_span, base, maxf(limit, base))
 
 
 func _create_room_overlay() -> void:
@@ -338,6 +581,30 @@ func _create_room_overlay() -> void:
 ## _apply_minimap_settings() ueber das Sammelsignal.
 func _on_rotate_setting_changed(enabled: bool) -> void:
 	rotate_with_player = enabled
+
+
+## Bildschirm-Rechteck, das die KLEINE Minimap tatsaechlich belegt —
+## inklusive der UI-Skalierung (SettingsManager.minimap_ui_scale).
+##
+## WARUM NICHT get_global_rect(): Control.get_global_rect() liefert
+## Position und size, aber OHNE scale. Die Minimap wird ueber
+## Control.scale vergroessert (siehe _apply_minimap_settings), das
+## Rechteck waere damit bei jedem Wert != 1.0 zu klein — genau der
+## Grund, warum der Speedrun-Timer bei groesserer Karte darunter
+## verschwunden ist.
+##
+## Wird von run_timer.gd genutzt, um sich rechts anzudocken.
+func get_docking_rect() -> Rect2:
+	if frame == null:
+		return Rect2(global_position, size * scale)
+
+	# Bei offener Grosskarte waechst der Frame auf Bildschirmbreite. Der
+	# Timer soll trotzdem an der KLEINANSICHT kleben, sonst springt er
+	# beim Oeffnen der Karte quer ueber den Bildschirm und wieder zurueck.
+	var f_pos: Vector2 = _small_frame_position if _is_big_map else frame.position
+	var f_size: Vector2 = _small_frame_size if _is_big_map else frame.size
+
+	return Rect2(global_position + f_pos * scale, f_size * scale)
 
 
 func set_player(p: Node3D) -> void:
@@ -628,6 +895,13 @@ func _process(delta: float) -> void:
 
 	_update_player_arrow_position()
 
+	# Gegner bewegen sich jeden Frame - das Overlay muss deshalb jeden
+	# Frame neu gezeichnet werden. queue_redraw() ist billig, solange
+	# _draw_enemy_icons() frueh aussteigt; die eigentliche Arbeit
+	# verhindern die beiden Culling-Stufen.
+	if show_enemy_icons and _enemy_overlay != null and is_instance_valid(_enemy_overlay):
+		_enemy_overlay.queue_redraw()
+
 	if coord_label.visible:
 		var pos: Vector3 = player.global_position
 		coord_label.text = "X: %d   Y: %d" % [int(pos.x), int(pos.z)]
@@ -668,11 +942,15 @@ func _update_zone() -> void:
 
 
 func _zone_from_generator() -> String:
+	# Ueber _bind_generator() statt einer eigenen Suche: die frueher hier
+	# stehende Lazy-Bindung hat _generator zwar gesetzt, aber NICHT
+	# map_updated verbunden. Steht der LevelGenerator beim _ready() der
+	# Minimap noch nicht in seiner Gruppe (Reihenfolge im Szenenbaum),
+	# waere der Auto-Zoom danach dauerhaft tot gewesen — ohne Fehler,
+	# einfach nur ohne Wirkung.
+	_bind_generator()
 	if _generator == null or not is_instance_valid(_generator):
-		var found: Array[Node] = get_tree().get_nodes_in_group(GENERATOR_GROUP)
-		if found.is_empty():
-			return ""
-		_generator = found[0]
+		return ""
 
 	if not _generator.has_method("get_map_cells"):
 		return ""

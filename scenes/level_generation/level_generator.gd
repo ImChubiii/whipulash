@@ -1,8 +1,3 @@
-
-
-
-
-
 extends Node
 class_name LevelGenerator
 
@@ -359,8 +354,29 @@ func _instantiate_layout(layout: Dictionary) -> void:
 
 		# Korridor mit Hoehenunterschied -> Rampe im Inneren bauen und die
 		# Tuer auf der hohen Seite entsprechend anheben.
+		#
+		# BUGFIX "Stufe vor der Tuer / Rampe endet auf falscher Hoehe":
+		#
+		# load_room() setzt die Raum-Basis auf Basis.IDENTITY.scaled(room_scale).
+		# ALLES, was configure_slope() im Raum baut (Rampe, Tuerhoehe,
+		# ExitPoint, Waende), ist damit LOKAL und wird von Godot nochmal mit
+		# room_scale.y multipliziert.
+		#
+		# elevation_step ist dagegen eine WELT-Groesse: world_pos.y oben nutzt
+		# sie fuer den Raum-Ursprung, der NICHT mitskaliert wird.
+		#
+		# Wurde elevation_step ungefiltert weitergereicht, stieg die Rampe
+		# elevation_step * room_scale.y Meter, der Nachbarraum lag aber nur
+		# elevation_step hoeher. Bei room_scale.y = 2.0 und
+		# BASE_ELEVATION_STEP = 6.0 sind das 24 statt 12 Weltmeter -> 12 Meter
+		# Absatz exakt in der Tuer. Bei einem Gefaelle steht die Stufe direkt
+		# am Tuerrahmen und ist gar nicht mehr begehbar.
+		#
+		# Deshalb wird der Hub hier in den LOKALEN Raum des Raumes
+		# umgerechnet: local_rise * room_scale.y == elevation_step.
 		if cell.slope_delta != 0 and room.has_method("configure_slope"):
-			room.configure_slope(cell.slope_low_dir, cell.slope_delta * elevation_step)
+			var local_rise: float = cell.slope_delta * elevation_step / maxf(room_scale.y, 0.001)
+			room.configure_slope(cell.slope_low_dir, local_rise)
 
 		# Jeder Raum bekommt seinen EIGENEN, aus Position und Stage
 		# abgeleiteten Spawn-Seed. Wichtig: der Gegner-Roll passiert erst
@@ -891,4 +907,4 @@ func load_room(data: RoomData, spawn_transform: Transform3D) -> RoomInstance:
 	var room := instance as RoomInstance
 	if room == null:
 		push_error("[LevelGenerator] Szene '%s' hat Root-Typ %s statt RoomInstance-Script!" % [data.scene.resource_path, instance.get_class()])
-	return room
+	return room 

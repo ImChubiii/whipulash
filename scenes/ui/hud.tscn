@@ -1,4 +1,3 @@
-
 [gd_scene format=3 uid="uid://bhudmain001"]
 
 [ext_resource type="Script" uid="uid://culscy051p2da" path="res://scripts/hud.gd" id="1_hud"]
@@ -6,9 +5,10 @@
 [ext_resource type="PackedScene" uid="uid://bpartyslot01" path="res://scenes/party_slot.tscn" id="3_pslot"]
 [ext_resource type="Texture2D" uid="uid://bd0s34jsplqb6" path="res://textures/image-removebg-preview (13).png" id="3_uo2fv"]
 [ext_resource type="PackedScene" uid="uid://bablslot001" path="res://scenes/ui/ability_slot.tscn" id="4_abslot"]
-[ext_resource type="Script" path="res://scripts/run_timer.gd" id="5_timer"]
-[ext_resource type="Script" path="res://scripts/items/item_description_hud.gd" id="6_itemhud"]
-[ext_resource type="Script" path="res://scripts/stats_panel.gd" id="7_stats"]
+[ext_resource type="Script" uid="uid://cr7ee7rme3mat" path="res://scripts/run_timer.gd" id="5_timer"]
+[ext_resource type="Script" uid="uid://eabq6wxgfv3a" path="res://scripts/items/item_description_hud.gd" id="6_itemhud"]
+[ext_resource type="Script" uid="uid://c40hh6d6mnfdi" path="res://scripts/stats_panel.gd" id="7_stats"]
+[ext_resource type="Script" uid="uid://bouy7cn5am2oe" path="res://scripts/ui/boss_health_bar.gd" id="11_4d46k"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
 bg_color = Color(0.06, 0.06, 0.09, 0.82)
@@ -152,7 +152,6 @@ offset_right = -8.0
 offset_bottom = -4.0
 grow_horizontal = 0
 grow_vertical = 0
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.62, 0.62, 0.55, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
@@ -190,7 +189,6 @@ offset_top = 2.0
 offset_right = -6.0
 offset_bottom = 17.0
 grow_horizontal = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.62, 0.62, 0.55, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
@@ -210,7 +208,6 @@ offset_right = -6.0
 offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.98, 0.95, 0.65, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -342,9 +339,9 @@ offset_top = -200.0
 offset_right = 254.0
 offset_bottom = -14.0
 grow_vertical = 0
-alignment = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
+alignment = 2
 
 [node name="StatsPanel" type="PanelContainer" parent="BottomLeft" unique_id=1613643602]
 custom_minimum_size = Vector2(232, 0)
@@ -371,3 +368,8 @@ mouse_filter = 2
 alignment = 2
 script = ExtResource("6_itemhud")
 
+[node name="BossHealthBar" type="Control" parent="." unique_id=1845554931]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("11_4d46k")

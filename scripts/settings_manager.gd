@@ -112,11 +112,20 @@ const COLORBLIND_TRITANOPIA: int = 3
 
 const MINIMAP_ZOOM_MIN: float = 0.4
 const MINIMAP_ZOOM_MAX: float = 3.0
-const MINIMAP_ZOOM_DEFAULT: float = 1.0
+## Von 1.0 auf 1.80 angehoben. NICHT zu verwechseln mit
+## MINIMAP_UI_SCALE_DEFAULT: ui_scale vergroessert das HUD-Element,
+## zoom veraendert den WELT-Ausschnitt der Kamera darin. Der Auto-Zoom
+## (minimap.gd) wirkt als Basisgroesse, dieser Regler bleibt der Teiler
+## darauf.
+const MINIMAP_ZOOM_DEFAULT: float = 1.80
 
 const MINIMAP_UI_SCALE_MIN: float = 0.6
 const MINIMAP_UI_SCALE_MAX: float = 1.8
-const MINIMAP_UI_SCALE_DEFAULT: float = 1.0
+## Von 1.0 auf 1.35 angehoben — die Karte war in der Standardgroesse zu
+## klein, um Raumformen zu lesen. Bestehende settings.cfg-Dateien behalten
+## ihren gespeicherten Wert; wer den neuen Standard will, nutzt im
+## Einstellungsmenue "Zuruecksetzen".
+const MINIMAP_UI_SCALE_DEFAULT: float = 1.35
 
 ## Deckkraft der Minimap-Flaeche UND ihres Rahmens. Es gibt bewusst nur
 ## noch diesen EINEN Wert: frueher hatten Frame, 3D-Ansicht und Raum-Grid
