@@ -1,4 +1,5 @@
 
+
 extends VBoxContainer
 class_name ItemSummaryList
 
@@ -80,7 +81,19 @@ class_name ItemSummaryList
 @export var detail_gap: float = 10.0
 ## Name des Knotens, dem ausgewichen wird, gesucht ab dem Bildschirm-Wurzel-
 ## Control. Leer lassen, um das Ausweichen abzuschalten.
-@export var avoid_node_name: String = "Panel"
+##
+## GEAENDERT (Rueckmeldung: "das popup soll neben dem item im pausescreen sein
+## nicht mittig an der linken seite"): Default ist jetzt LEER.
+##
+## Mit "Panel" sprang die Karte an die AUSSENKANTE des Menue-Kastens - im
+## Pausemenue also an den linken bzw. rechten Bildschirmrand, weit weg von der
+## Zeile, zu der sie gehoert. Der Bezug zwischen ueberfahrenem Item und
+## Beschreibung ging dabei verloren.
+##
+## Leer = die Karte klebt an der Zeile selbst (rechts bevorzugt, links als
+## Ausweichroute) und wird nur noch am Bildschirmrand geklemmt. Wer das alte
+## Verhalten zurueck will, traegt hier wieder "Panel" ein.
+@export var avoid_node_name: String = ""
 
 const ROW_HEIGHT: float = 30.0
 const SWATCH_SIZE: float = 22.0
@@ -435,7 +448,12 @@ func _position_detail_panel(row: Control) -> void:
 	var panel_size: Vector2 = _detail_panel.get_combined_minimum_size()
 	var avoid: Rect2 = _resolve_avoid_rect()
 
-	var pos := Vector2(row_rect.position.x + row_rect.size.x + detail_gap, row_rect.position.y)
+	# Senkrecht an der Zeile ausrichten statt buendig an deren Oberkante: bei
+	# mehrzeiligen Beschreibungen wirkt die Karte sonst nach unten "abgerutscht".
+	var pos := Vector2(
+		row_rect.position.x + row_rect.size.x + detail_gap,
+		row_rect.position.y + row_rect.size.y * 0.5 - panel_size.y * 0.5
+	)
 
 	if avoid.size.x > 0.0:
 		# NEBEN das Menue-Panel setzen, nicht neben die Zeile. Die Zeile
@@ -497,4 +515,5 @@ static func create(p_title: String = "GESAMMELTE ITEMS", p_currencies: bool = tr
 	list.title_text = p_title
 	list.show_currencies = p_currencies
 	return list
+
 

@@ -1,3 +1,4 @@
+
 extends Node3D
 class_name RoomInstance
 
@@ -265,6 +266,55 @@ signal room_entered(room: RoomInstance)
 ## Puffer verhindert, dass ein Spieler, der im Tuerrahmen steht, faelschlich
 ## als "draussen" gilt.
 @export var presence_margin: float = 2.0
+
+## --- BUGFIX "Gegner despawnen und spawnen in langen, engen Raeumen wieder" ---
+##
+## URSACHE (zwei Fehler, die sich gegenseitig verstaerkt haben):
+##
+##   1. ENTRY-TRIGGER ZU SCHMAL. _setup_entry_trigger() rueckt den Quader von
+##      JEDER Seite um entry_trigger_depth (9.0) ein. Ein Korridor ist aber nur
+##      room_footprint.x = 20 breit -> 20 - 18 = 2, gekappt auf
+##      entry_trigger_min_size = 6. Der Trigger ist damit 6 von 20 Einheiten
+##      breit. Wer an der Wand entlang kaempft (|x| > 3 lokal), steht NICHT
+##      mehr drin - _find_player_inside() liefert null, _inside_entry_trigger
+##      flackert, und room_entered feuert im Sekundentakt neu.
+##
+##   2. ANWESENHEIT NUR UEBER Area3D. _player_is_present() fragt
+##      ausschliesslich _presence_area.get_overlapping_bodies() ab. Die Zone
+##      ragt nur presence_margin = 2.0 ueber die Wand hinaus; zusammen mit dem
+##      Flackern aus (1) und einem Knockback in Richtung Tuer reicht das aus,
+##      damit der Raum den Spieler laenger als escape_grace_time (0.75 s) fuer
+##      "draussen" haelt. Ergebnis: reset_room() -> alle Gegner queue_free(),
+##      Tueren auf, und beim naechsten Frame startet der Kampf von vorn.
+##      Genau das sieht man als "Gegner despawnen und spawnen wieder".
+##
+## FIX, ebenfalls zweiteilig:
+##
+##   1. Die Einrueckung ist jetzt ANTEILIG an der jeweiligen Kante gedeckelt
+##      (entry_trigger_max_inset_factor). In einem 48er-Raum bleibt es bei den
+##      gewohnten 9 Einheiten, in einem 20er-Korridor sind es nur noch 20*0.22
+##      = 4.4 -> Trigger 11.2 statt 6 breit. Das Anti-Baiting bleibt erhalten
+##      (man kann weiter in den Raum hineinschauen), der Trigger deckt aber
+##      wieder den begehbaren Kern ab.
+##
+##   2. _player_is_present() hat einen GEOMETRISCHEN Rueckfallweg bekommen:
+##      liegt der Spieler rechnerisch im Grundriss (plus Puffer), gilt er als
+##      anwesend - unabhaengig davon, was die Area3D in diesem Frame meldet.
+##      Area3D-Ueberlappungen werden nur einmal pro Physik-Schritt ausgewertet
+##      und koennen nach Teleports, Charakterwechseln (PartyManager tauscht die
+##      Instanz komplett aus!) und Knockback fuer einige Frames leer sein.
+##
+## presence_geometry_fallback lässt sich zum Gegentesten abschalten.
+@export var presence_geometry_fallback: bool = true
+## Zusaetzlicher Puffer fuer den geometrischen Test, in LOKALEN Einheiten.
+## Grosszuegiger als presence_margin: hier geht es nicht um eine feine
+## Zonengrenze, sondern nur um die Frage "ist der Spieler ueberhaupt noch in
+## der Naehe dieses Raums".
+@export var presence_geometry_margin: float = 6.0
+## Obergrenze fuer die Einrueckung des Eintritts-Triggers, als Anteil der
+## jeweiligen Kantenlaenge. 0.22 = maximal 22 % je Seite, es bleiben also immer
+## mindestens 56 % der Kante als Trigger uebrig.
+@export_range(0.05, 0.45) var entry_trigger_max_inset_factor: float = 0.22
 
 var _is_cleared: bool = false
 var _active_enemies: int = 0
@@ -1016,8 +1066,15 @@ func _setup_entry_trigger() -> void:
 
 	# Von JEDER Seite um entry_trigger_depth einruecken -> der Trigger sitzt
 	# als kompakter Quader in der Raummitte.
-	var size_x: float = maxf(room_footprint.x - entry_trigger_depth * 2.0, entry_trigger_min_size)
-	var size_z: float = maxf(room_footprint.y - entry_trigger_depth * 2.0, entry_trigger_min_size)
+	# Einrueckung pro Achse: der feste entry_trigger_depth, aber nie mehr als
+	# entry_trigger_max_inset_factor der jeweiligen Kante. Siehe den
+	# ausfuehrlichen Bugfix-Block bei presence_geometry_fallback.
+	var factor: float = clampf(entry_trigger_max_inset_factor, 0.05, 0.45)
+	var inset_x: float = minf(entry_trigger_depth, room_footprint.x * factor)
+	var inset_z: float = minf(entry_trigger_depth, room_footprint.y * factor)
+
+	var size_x: float = maxf(room_footprint.x - inset_x * 2.0, entry_trigger_min_size)
+	var size_z: float = maxf(room_footprint.y - inset_z * 2.0, entry_trigger_min_size)
 	var size_y: float = maxf(room_height - entry_trigger_floor_offset, 1.0)
 
 	box.size = Vector3(size_x, size_y, size_z)
@@ -1059,11 +1116,43 @@ func _setup_presence_area() -> void:
 
 
 func _player_is_present() -> bool:
-	if _presence_area == null:
+	if _presence_area != null:
+		for body in _presence_area.get_overlapping_bodies():
+			if body is Node3D and body.is_in_group(PartyManager.PLAYER_GROUP):
+				return true
+
+	# Geometrischer Rueckfallweg. Bewusst NACH der Area-Abfrage: die Area ist
+	# die genauere Quelle (sie kennt die tatsaechliche Kapselform), dieser Test
+	# faengt nur die Frames ab, in denen sie nichts meldet.
+	if presence_geometry_fallback and _player_is_inside_footprint():
 		return true
-	for body in _presence_area.get_overlapping_bodies():
-		if body is Node3D and body.is_in_group(PartyManager.PLAYER_GROUP):
-			return true
+
+	# Gar keine Zone vorhanden -> lieber "anwesend" annehmen als den Raum
+	# grundlos zuruecksetzen.
+	return _presence_area == null
+
+
+## Rein rechnerischer Anwesenheitstest im LOKALEN Raumsystem. Lokale
+## Koordinaten sind von room_scale unabhaengig, room_footprint ist genau so
+## definiert - deshalb muss hier NICHTS mit dem Skalierungsfaktor verrechnet
+## werden (derselbe Grund wie bei der Innenzone in room_commit_guard.gd).
+func _player_is_inside_footprint() -> bool:
+	var margin: float = maxf(presence_geometry_margin, 0.0)
+	var half_x: float = room_footprint.x * 0.5 + margin
+	var half_z: float = room_footprint.y * 0.5 + margin
+
+	for node: Node in get_tree().get_nodes_in_group(PartyManager.PLAYER_GROUP):
+		var body := node as Node3D
+		if body == null or not is_instance_valid(body):
+			continue
+		var local: Vector3 = to_local(body.global_position)
+		if absf(local.x) > half_x or absf(local.z) > half_z:
+			continue
+		# Y grosszuegig: Rampen, Sprung und abgesenkte Bodenstuecke duerfen
+		# nicht als "Raum verlassen" gelten.
+		if local.y < -(room_height + margin) or local.y > room_height + margin:
+			continue
+		return true
 	return false
 
 

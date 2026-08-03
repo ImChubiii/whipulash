@@ -70,7 +70,7 @@ shader_parameter/vignette_amount = 2.0
 shader_parameter/vignette_intensity = 0.146000006935
 shader_parameter/aberation_amount = 1.0
 shader_parameter/roll_line_amount = 0.10000000475
-shader_parameter/roll_speed = 0.20000038949999954
+shader_parameter/roll_speed = 0.20000038949999951
 shader_parameter/scan_line_strength = -12.0
 shader_parameter/pixel_strength = -2.6649999365875
 

@@ -1,4 +1,5 @@
 
+
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -337,9 +338,36 @@ func has_status_effect(id: String) -> bool:
 func get_status_effect_magnitude(id: String) -> float:
 	return status_effects.get_effect_magnitude(id)
 
+## Damage-over-Time-Effekte. "poison" gab es schon; "bleed" und "burn" kamen
+## mit dem Item-Overhaul dazu und haben BISHER INS LEERE GETICKT:
+## StatusEffectManager hat brav effect_ticked gefeuert, aber niemand hat auf
+## die IDs reagiert. Das Rostige Beil hat also seit jeher korrekt "bleed"
+## aufgetragen - nur ist nie Schaden angekommen.
+const DOT_EFFECT_IDS: PackedStringArray = ["poison", "bleed", "burn"]
+
 func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> void:
-	if id == "poison" and health:
+	if health == null:
+		return
+	if id in DOT_EFFECT_IDS:
 		health.take_damage(magnitude, source)
+
+
+## Betaeubung. Existierte vorher GAR NICHT - Hitbox.stun_duration und die
+## Starthilfekabel haben zwar beide has_method("apply_stun") geprueft, die
+## Methode gab es aber nur am Spieler. Beide sind stillschweigend in ihren
+## Fallback-Zweig gelaufen.
+func apply_stun(duration: float) -> void:
+	if duration <= 0.0:
+		return
+	apply_status_effect("stun", duration, 1.0, null, 0.0)
+
+
+## true, solange der Gegner festgenagelt oder betaeubt ist.
+## "rooted" = Rostiger Dachnagel, "stun" = Starthilfekabel/Hitboxen.
+func is_movement_locked() -> bool:
+	if status_effects == null:
+		return false
+	return status_effects.has_effect("rooted") or status_effects.has_effect("stun")
 
 # --- Debug ---
 @export var debug_logging: bool = false
@@ -500,6 +528,15 @@ func _roll_speed_multiplier() -> void:
 
 # Effektives Tempo inkl. Slow-Status und individueller Streuung.
 func get_effective_move_speed() -> float:
+	# Festgenagelt oder betaeubt -> Tempo 0. Bewusst HIER und nicht als
+	# eigener State: _move_towards_player() und _wander_step() lesen beide
+	# diesen Wert, ein zusaetzlicher Zustand in der State-Machine haette an
+	# zwei Stellen gepflegt werden muessen. Angreifen darf ein gewurzelter
+	# Gegner weiterhin - genau das ist der Unterschied zwischen "rooted"
+	# und "stun" in den meisten Spielen; wer auch den Angriff sperren will,
+	# fragt is_movement_locked() zusaetzlich in _do_attack() ab.
+	if is_movement_locked():
+		return 0.0
 	var slow_factor: float = 1.0 - clamp(status_effects.get_effect_magnitude("slow"), 0.0, 1.0)
 	return move_speed * _speed_multiplier * slow_factor
 

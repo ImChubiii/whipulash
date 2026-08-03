@@ -1,4 +1,16 @@
 ========================================
+Commit: 336b15e
+Datum:  Sat Aug 1 22:48:19 2026 +0200
+Autor:  ImChubiii 
+
+Nachricht:
+Fix Kamera-Drill zurückgesetzt, Motion-Blur-Feature verworfen
+
+Dash-Drill-Kameraroll auf ursprüngliche Werte zurückgesetzt (9°, keine Overshoot-Sequenz)
+Motion-Blur-Feature komplett entfernt (Canvas-Shader und 3D-Quad-Ansatz scheiterten beide an fehlender Screen-Textur unter Forward Mobile; Speed-Lines-Alternative auf Wunsch verworfen)
+player_base.gd bereinigt, keine Motion-Blur-Reste mehr enthalten
+
+========================================
 Commit: e50066f
 Datum:  Sat Aug 1 15:20:54 2026 +0200
 Autor:  ImChubiii 

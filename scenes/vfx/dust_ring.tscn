@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3]
+
+; DUST_RING — flacher Staubring am Boden.
+; Verwendung: VFX.spawn(preload("res://scenes/vfx/dust_ring.tscn"), pos)
+; Wird von "Omas Enge Hosen" (Tritt), "Rote Pappfluegel" (Dash-Start) und
+; "Rostiger Dachnagel" benutzt.
+;
+; direction = (0,1,0) mit spread = 90 laesst die Partikel FLACH nach aussen
+; laufen statt nach oben zu stieben - deshalb wirkt es als Ring und nicht
+; als Fontaene. gravity ist bewusst 0: Staub soll schweben und ausblenden,
+; nicht zurueckfallen.
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dust"]
+emission_shape = 1
+emission_sphere_radius = 0.35
+direction = Vector3(0, 0.15, 0)
+spread = 90.0
+initial_velocity_min = 2.2
+initial_velocity_max = 4.5
+gravity = Vector3(0, 0, 0)
+damping_min = 4.0
+damping_max = 7.0
+scale_min = 0.8
+scale_max = 1.8
+color = Color(0.78, 0.72, 0.6, 0.75)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dust"]
+shading_mode = 0
+transparency = 1
+billboard_mode = 3
+albedo_color = Color(0.82, 0.76, 0.64, 0.6)
+
+[sub_resource type="QuadMesh" id="QuadMesh_dust"]
+material = SubResource("StandardMaterial3D_dust")
+size = Vector2(0.5, 0.5)
+
+[node name="DustRing" type="GPUParticles3D"]
+emitting = false
+amount = 18
+lifetime = 0.5
+one_shot = true
+explosiveness = 1.0
+randomness = 0.35
+fixed_fps = 30
+process_material = SubResource("ParticleProcessMaterial_dust")
+draw_pass_1 = SubResource("QuadMesh_dust")
