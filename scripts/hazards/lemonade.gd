@@ -1,4 +1,5 @@
 
+
 @tool
 extends Node3D
 class_name LavaHazard
@@ -146,6 +147,14 @@ enum HazardMode { POOL, SURFACE }
 @export var corrosion_vfx: PackedScene
 ## Hoehe ueber der Limonaden-Oberflaeche, auf der der Effekt erscheint.
 @export var corrosion_vfx_height: float = 0.4
+
+## Bodies in dieser Gruppe werden komplett ignoriert - kein Schaden, keine
+## Verlangsamung, kein Auftrieb, kein Overlay.
+##
+## GEBRAUCHT FUER: Items, die selbst Saeure-Pfuetzen legen ("Mamas
+## Stoeckelschuhe"). Ohne das wuerde der Spieler in seine eigene Spur laufen
+## und sich selbst zerlegen. Leer lassen = Standardverhalten (trifft jeden).
+@export var ignore_group: String = ""
 
 @export var display_name: String = "Lemonade"
 @export var debug_logging: bool = false
@@ -359,6 +368,12 @@ func _rescan_overlaps() -> void:
 
 
 func _register(body: Node3D) -> void:
+	# ZUERST die Ausnahme pruefen, VOR dem Health-Check: sonst landet der
+	# Spieler trotzdem in _occupants und bekommt ueber _update_occupants()
+	# Auftrieb und Submersion-Overlay ab.
+	if ignore_group != "" and body.is_in_group(ignore_group):
+		return
+
 	var health: Node = body.find_child("Health", true, false)
 	if health == null or not (health is Health):
 		return

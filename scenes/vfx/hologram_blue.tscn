@@ -1,0 +1,48 @@
+[gd_scene load_steps=4 format=3]
+
+; HOLOGRAM_BLUE — blaue, langsam aufsteigende Hologramm-Partikel.
+; Verwendung: Plastik-Heiligenschein (Ring ueber dem Kopf), Ungerader
+; Wuerfel (Buff-Anzeige beim Raumbeitritt).
+;
+; Anders als die Funken-Effekte: NEGATIVE Schwerkraft und lange Lebensdauer.
+; Der Effekt soll ruhig nach oben ziehen, nicht knallen.
+;
+; Die Emission liegt als Ring (emission_shape = 1 mit Radius) um den
+; Ursprung. Wer den Effekt ueber dem Kopf haben will, spawnt ihn schon an
+; der richtigen Hoehe - VFX.spawn() nimmt die Weltposition direkt.
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_holo"]
+emission_shape = 1
+emission_sphere_radius = 0.6
+direction = Vector3(0, 1, 0)
+spread = 12.0
+initial_velocity_min = 0.7
+initial_velocity_max = 1.6
+gravity = Vector3(0, 1.2, 0)
+damping_min = 0.5
+damping_max = 1.5
+scale_min = 0.6
+scale_max = 1.3
+color = Color(0.35, 0.75, 1, 0.9)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_holo"]
+shading_mode = 0
+transparency = 1
+blend_mode = 1
+billboard_mode = 3
+albedo_color = Color(0.45, 0.82, 1, 0.85)
+
+[sub_resource type="QuadMesh" id="QuadMesh_holo"]
+material = SubResource("StandardMaterial3D_holo")
+size = Vector2(0.22, 0.22)
+
+[node name="HologramBlue" type="GPUParticles3D"]
+emitting = false
+amount = 16
+lifetime = 1.1
+one_shot = true
+explosiveness = 0.75
+randomness = 0.5
+fixed_fps = 30
+process_material = SubResource("ParticleProcessMaterial_holo")
+draw_pass_1 = SubResource("QuadMesh_holo")
