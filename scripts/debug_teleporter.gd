@@ -22,9 +22,33 @@ func _ready() -> void:
 	if only_in_debug_build and not OS.is_debug_build():
 		queue_free()
 		return
-		
+
+	# BUGFIX "Teleporter weg nach Neustart (2. Run)":
+	# "Teleporter" ist ein AUTOLOAD (siehe project.godot) - _ready() hier
+	# laeuft deshalb GENAU EINMAL fuer die gesamte Spielsitzung. Ein Neustart
+	# (ResetOverlay -> RunRestart.restart() -> reload_current_scene()) ersetzt
+	# aber die komplette Szene INKLUSIVE der alten LevelGenerator-Instanz
+	# durch eine neue. Die bisherige einmalige Verbindung zu
+	# level_gen.stage_generated haengt danach an einem laengst freigegebenen
+	# Objekt, feuert nie wieder, und die Pads (die ausserdem unter dem
+	# ebenfalls freigegebenen alten Startraum haengen) werden nie neu gebaut.
+	#
+	# Fix nach demselben Muster wie loot_manager.gd (dort dasselbe Problem mit
+	# RoomInstance statt LevelGenerator, siehe Kopfkommentar dort): ueber
+	# SceneTree.node_added auf JEDEN neu hinzugefuegten LevelGenerator
+	# reagieren, nicht nur auf den allerersten.
+	get_tree().node_added.connect(_on_node_added)
+
 	# Verbinde mit dem LevelGenerator, sobald dieser geladen ist
 	call_deferred("_connect_to_generator")
+
+
+func _on_node_added(node: Node) -> void:
+	if node is LevelGenerator:
+		# Deferred: der Node haengt in diesem Frame evtl. noch nicht
+		# vollstaendig im Baum (Gruppenzugehoerigkeit, Kinder), und
+		# _connect_to_generator() sucht ueber die Gruppe.
+		_connect_to_generator.call_deferred()
 
 func _connect_to_generator() -> void:
 	var level_gen := get_tree().get_first_node_in_group("level_generator") as LevelGenerator

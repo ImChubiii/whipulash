@@ -26,11 +26,24 @@ class_name ResetOverlay
 # Ereignis. Ein losgelassenes R soll sofort abbrechen, auch wenn in dem
 # Frame gar kein Input-Event ankommt.
 
-## Sekunden, die R gehalten werden muss.
-## Von 1.5 auf 0.9 gesenkt: 1,5 s fuehlen sich bei einem Run, den man in
-## der ersten Sekunde als verloren erkennt, wie eine Strafe an. 0,9 s ist
-## immer noch deutlich mehr als ein versehentlicher Tastendruck.
-@export var hold_duration: float = 0.9
+## Sekunden, die R beim ALLERERSTEN Neustart dieser Sitzung gehalten werden
+## muss.
+@export var hold_duration_first: float = 1.0
+
+## Sekunden, die R bei JEDEM UNMITTELBAR DARAUFFOLGENDEN Neustart gehalten
+## werden muss (also ab dem zweiten Mal, fuer den Rest der Sitzung). Kuerzer,
+## weil man den Ablauf dann schon kennt und ihn nicht ein zweites Mal in
+## voller Laenge bestaetigen muss.
+@export var hold_duration_repeat: float = 0.5
+
+## true, sobald diese Sitzung mindestens einmal ueber [R] neugestartet hat.
+## Overlay-Node ueberlebt den Szenenwechsel (Autoload-CanvasLayer), der Flag
+## bleibt also fuer den Rest der Sitzung gesetzt.
+var _has_restarted_once: bool = false
+
+## Aktuell geltende Haltedauer - kuerzer ab dem zweiten Neustart.
+func _current_hold_duration() -> float:
+	return hold_duration_repeat if _has_restarted_once else hold_duration_first
 ## Ab wann die Vorschau eingeblendet wird (Anteil der Haltedauer).
 @export_range(0.0, 1.0) var preview_threshold: float = 0.25
 
@@ -191,7 +204,7 @@ func _process(_delta: float) -> void:
 
 	# Echtzeit statt skalierter delta-Summe — Begruendung an _hold_started_ms.
 	_hold_time = float(Time.get_ticks_msec() - _hold_started_ms) / 1000.0
-	var progress: float = clampf(_hold_time / maxf(hold_duration, 0.01), 0.0, 1.0)
+	var progress: float = clampf(_hold_time / maxf(_current_hold_duration(), 0.01), 0.0, 1.0)
 
 	# Quadratisch statt linear: die Abblende soll spaet richtig zupacken,
 	# damit das Bild waehrend der Entscheidungsphase noch lesbar bleibt.
@@ -252,6 +265,8 @@ func _restart() -> void:
 	_is_restarting = true
 	_fade.color.a = 1.0
 	_preview_box.visible = false
+	# Ab hier gilt fuer den Rest der Sitzung die kuerzere Haltedauer.
+	_has_restarted_once = true
 
 	# Der komplette Aufraeum- und Reload-Ablauf liegt jetzt in RunRestart
 	# (Autoload). Vorher stand er HIER — und nur hier: die Restart-Buttons

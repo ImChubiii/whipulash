@@ -146,6 +146,16 @@ const PANTS_MIN_SPEED: float = 8.0
 const PANTS_RANGE: float = 2.4
 const PANTS_DAMAGE_FACTOR: float = 0.5
 const PANTS_COOLDOWN_PER_TARGET: float = 1.0
+## ITEM-REWORK: Richtungswechsel als zweiter Ausloeser neben dem
+## Vorbeirennen ("Body-Check"). Winkel zwischen letzter und aktueller
+## Bewegungsrichtung, ab dem ein Wechsel als "abrupt" zaehlt.
+const PANTS_TURN_ANGLE_DEG: float = 100.0
+## Rueckstoss-Distanz "4 Meter" aus der Design-Vorgabe, umgerechnet ueber
+## dieselbe Abbrems-Formel wie EnemyAI.apply_knockback()/knockback_friction
+## (v0^2 = 2 * Reibung * Distanz). knockback_friction ist bei EnemyAI ein
+## @export mit Standardwert 10.0 - der Wert hier trifft die 4 Meter fuer
+## Gegner mit dieser Standardreibung.
+const PANTS_KNOCKBACK: float = 9.0
 
 # --- P3. Plastik-Heiligenschein ---
 const HALO_HEAL_CHANCE: float = 0.10
@@ -240,12 +250,28 @@ const CARD_COINS_PER_STEP: int = 10
 const CARD_BONUS_PER_STEP: float = 0.02
 const CARD_MAX_BONUS: float = 0.50
 
+# --- Papp-Wahrsagerbrett (Rachegeist) ---
+const OUIJA_CHANCE: float = 0.20
+## Umkreis, in dem nach einem gueltigen Rachegeist-Ziel gesucht wird.
+const OUIJA_SEARCH_RADIUS: float = 20.0
+## Ab welcher Entfernung ein Gegner als "ausserhalb der Nahkampf-Reichweite"
+## zaehlt - grosszuegig ueber der tatsaechlichen Hitbox-Reichweite, damit
+## wirklich nur Ziele zaehlen, die man im Nahkampf gerade NICHT bequem
+## erreicht.
+const OUIJA_MELEE_RANGE: float = 3.5
+
 # --- P20. Mamas Stoeckelschuhe ---
 const HEELS_MIN_SPEED: float = 6.0
 const HEELS_SPAWN_INTERVAL: float = 0.45
 const HEELS_LIFETIME: float = 2.0
 const HEELS_SIZE: Vector3 = Vector3(3.0, 0.5, 3.0)
 const HEELS_DAMAGE_PER_TICK: float = 4.0
+## ITEM-REWORK: jeder N-te "Schritt" (= Pfuetzen-Spawn-Takt, siehe
+## _tick_stiletto_heels) loest zusaetzlich eine Bodenschockwelle aus, die
+## nahe Gegner kurz straucheln laesst.
+const HEELS_SHOCKWAVE_EVERY_N_STEPS: int = 3
+const HEELS_SHOCKWAVE_RADIUS: float = 4.0
+const HEELS_SHOCKWAVE_STUN: float = 0.4
 
 # ============================================================================
 # PHASE 4 — AKTIVE ITEMS
@@ -305,8 +331,13 @@ var _modem_hit_count: int = 0
 var _spray_hit_count: int = 0
 var _horns_cooldowns: Dictionary = {}
 var _pants_cooldowns: Dictionary = {}
+## Letzte horizontale Bewegungsrichtung, fuer die Richtungswechsel-Erkennung
+## (siehe PANTS_TURN_ANGLE_DEG).
+var _pants_prev_dir: Vector2 = Vector2.ZERO
 var _oil_timer: float = 0.0
 var _heels_timer: float = 0.0
+## Zaehlt Pfuetzen-Spawns seit dem letzten Schockwellen-Ausloeser.
+var _heels_step_count: int = 0
 var _cables_timer: float = 0.0
 var _cables_hit: Array[int] = []
 var _toaster_cooldown: float = 0.0
@@ -320,6 +351,13 @@ var _was_dashing: bool = false
 ## --- Milchreis-Schild ---
 var _rice_charge: float = 0.0
 var _rice_shield: float = 0.0
+## Sichtbare Schild-Aura, solange _rice_shield > 0 - BUGFIX "Schild tut
+## nichts sichtbares": vorher gab es ausser einem einzelnen Ring-Impuls beim
+## erstmaligen Aufbau KEINE Dauer-Anzeige, der Effekt lief also unsichtbar
+## im Hintergrund und wirkte dadurch wie "funktioniert nicht", obwohl die
+## Absorption in _on_player_damaged() technisch bereits griff.
+var _rice_aura: MeshInstance3D = null
+var _rice_aura_material: StandardMaterial3D = null
 
 ## --- Laser-Pointer ---
 var _laser_target: Node3D = null
@@ -514,6 +552,35 @@ func _collect_shader_materials(node: Node, out: Array[ShaderMaterial]) -> void:
 		_collect_shader_materials(child, out)
 
 
+const DAMAGE_NUMBER_SCENE_PATH: String = "res://scenes/ui/damage_number.tscn"
+var _cached_damage_number_scene: PackedScene = null
+
+## Spawnt eine Schadenszahl in der Item-Farbe (damage_number.gd, Kind.ITEM)
+## ueber dem getroffenen Ziel. Fuer STANDALONE Item-/Passiv-Schaden gedacht
+## (Ramm-Attacken, Tritte, Geister, Aktiv-Item-Treffer, ...) - ein normaler
+## Hitbox-Treffer bekommt seine Zahl schon ueber primary_hitbox.gd, und
+## DoT-Ticks (bleed/burn/acid/Pfuetzen) haben ihr eigenes Tick-System und
+## werden hier bewusst NICHT zusaetzlich verdoppelt.
+func _spawn_item_damage_number(target: Node3D, amount: float) -> void:
+	if target == null or not is_instance_valid(target) or amount <= 0.0:
+		return
+	if _cached_damage_number_scene == null:
+		if not ResourceLoader.exists(DAMAGE_NUMBER_SCENE_PATH):
+			return
+		_cached_damage_number_scene = load(DAMAGE_NUMBER_SCENE_PATH)
+	if _cached_damage_number_scene == null:
+		return
+
+	var number: Node = _cached_damage_number_scene.instantiate()
+	get_tree().current_scene.add_child(number)
+	(number as Node3D).global_position = target.global_position + Vector3.UP * 1.8
+
+	if number.has_method("show_item_damage"):
+		number.show_item_damage(amount)
+	elif number.has_method("show_damage"):
+		number.show_damage(amount)
+
+
 ## Ein einfacher, ungeshadeter Farbwuerfel/-zylinder als Wegwerf-Mesh.
 ## Wird von Laser, Tennisball, Schallwellen und Sahneteppich benutzt.
 func _make_glow_material(color: Color, alpha: float = 1.0) -> StandardMaterial3D:
@@ -583,6 +650,18 @@ func _on_player_ready(player: CharacterBody3D) -> void:
 		_laser_beam.queue_free()
 	_laser_beam = null
 	_laser_target = null
+
+	# Milchreis-Schild NICHT mit ueber den Charakterwechsel retten: er ist
+	# als Anteil der ALTEN max_health berechnet (RICE_SHIELD_FRACTION) und
+	# waere auf dem neuen Charakter falsch dimensioniert. Die Aura-Instanz
+	# haengt ausserdem an der alten Spieler-Instanz und wuerde sonst ins
+	# Leere zeigen - derselbe Grund wie beim Laserstrahl oben.
+	_rice_charge = 0.0
+	_rice_shield = 0.0
+	if is_instance_valid(_rice_aura):
+		_rice_aura.queue_free()
+	_rice_aura = null
+	_rice_aura_material = null
 
 	_apply_protein_shake_hitbox()
 	_refresh_credit_card_bonus()
@@ -735,6 +814,8 @@ func _on_player_hit_enemy(target: Node3D, hitbox: Hitbox) -> void:
 	# --- Phase 4 ---
 	if _has(ItemCatalog.ID_ROOF_NAIL):
 		_apply_roof_nail(target)
+	if _has(ItemCatalog.ID_OUIJA_BOARD):
+		_apply_ouija_board()
 	if _has(ItemCatalog.ID_BLOOD_PACT):
 		_apply_blood_pact()
 	if _has(ItemCatalog.ID_ICE_BAG):
@@ -753,7 +834,9 @@ func _on_player_hit_enemy(target: Node3D, hitbox: Hitbox) -> void:
 		# NAECHSTEN Schlag gewirkt. Der Nachschlag hier trifft dagegen genau
 		# den markierten Gegner, genau jetzt.
 		if health != null and health.is_alive():
-			health.take_damage(base_damage * LASER_DAMAGE_BONUS, _player())
+			var laser_bonus: float = base_damage * LASER_DAMAGE_BONUS
+			health.take_damage(laser_bonus, _player())
+			_spawn_item_damage_number(target, laser_bonus)
 
 	if was_kill:
 		if _has(ItemCatalog.ID_PLASTIC_HALO):
@@ -832,6 +915,7 @@ func _apply_static_sock(hitbox: Hitbox) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(wave_damage, player)
+			_spawn_item_damage_number(enemy, wave_damage)
 		if enemy.has_method("apply_knockback"):
 			var push: Vector3 = (enemy.global_position - origin)
 			push.y = 0.0
@@ -851,7 +935,64 @@ func _apply_roof_nail(target: Node3D) -> void:
 	if randf() > NAIL_CHANCE:
 		return
 	if StatusRooted.apply(target, StatusRooted.DEFAULT_DURATION, _player()):
+		# ITEM-REWORK: bricht einen laufenden Angriffs-Telegraph SOFORT ab -
+		# ohne das haette sich der schon angekuendigte Schlag trotz Festnageln
+		# noch entladen. Knockback wird separat in EnemyAI.apply_knockback()
+		# blockiert, solange "rooted" aktiv ist.
+		if target.has_method("interrupt_attack"):
+			target.interrupt_attack()
 		_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.0)
+
+
+# ----------------------------------------------------------------------------
+# Papp-Wahrsagerbrett — beschwoert einen Rachegeist gegen einen Gegner im
+# blinden Fleck (hinter dem Spieler oder ausserhalb der Nahkampf-Reichweite)
+# ----------------------------------------------------------------------------
+func _apply_ouija_board() -> void:
+	if randf() > OUIJA_CHANCE:
+		return
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return
+	var target: Node3D = _find_ouija_target(player)
+	if target == null:
+		return
+
+	var stats: PlayerStats = _stats()
+	var damage: float = RevengeGhost.DEFAULT_DAMAGE * (stats.get_damage_multiplier() if stats != null else 1.0)
+	RevengeGhost.spawn(player, target, damage, player)
+
+
+## Sucht den am besten geeigneten "blinden Fleck"-Gegner: hinter dem
+## Spieler (Blickrichtung zeigt vom Ziel weg) ODER ausserhalb der
+## Nahkampf-Reichweite. Bevorzugt wird, wer BEIDE Kriterien am staerksten
+## erfuellt - ein Gegner weit hinter dem Ruecken vor einem, der nur knapp
+## ausserhalb der Reichweite direkt vor einem steht.
+func _find_ouija_target(player: CharacterBody3D) -> Node3D:
+	var forward: Vector3 = _player_forward(player)
+	var best: Node3D = null
+	var best_score: float = -INF
+
+	for enemy: Node3D in _enemies_near(player.global_position, OUIJA_SEARCH_RADIUS):
+		var to_enemy: Vector3 = enemy.global_position - player.global_position
+		to_enemy.y = 0.0
+		var dist: float = to_enemy.length()
+		if dist < 0.05:
+			continue
+
+		var dir: Vector3 = to_enemy / dist
+		var facing_dot: float = forward.dot(dir)
+		var is_behind: bool = facing_dot < 0.0
+		var is_out_of_range: bool = dist > OUIJA_MELEE_RANGE
+		if not (is_behind or is_out_of_range):
+			continue
+
+		var score: float = -facing_dot + maxf(dist - OUIJA_MELEE_RANGE, 0.0) * 0.1
+		if score > best_score:
+			best_score = score
+			best = enemy
+
+	return best
 
 
 # ----------------------------------------------------------------------------
@@ -915,7 +1056,9 @@ func _apply_modem(target: Node3D) -> void:
 	if StatusStun.active(target):
 		var health: Health = _health_of(target)
 		if health != null and health.is_alive():
-			health.take_damage(health.max_health * 0.05 * StatusStun.MODEM_CRIT_MULTIPLIER, _player())
+			var modem_bonus: float = health.max_health * 0.05 * StatusStun.MODEM_CRIT_MULTIPLIER
+			health.take_damage(modem_bonus, _player())
+			_spawn_item_damage_number(target, modem_bonus)
 			_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.2)
 
 	_modem_hit_count += 1
@@ -969,6 +1112,7 @@ func _apply_knitting_needles(target: Node3D, base_damage: float) -> void:
 	health.incoming_damage_multiplier = 1.0
 	health.take_damage(bonus, _player())
 	health.incoming_damage_multiplier = saved
+	_spawn_item_damage_number(target, bonus)
 
 	_flash_player(FLASH_WHITE)
 	_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.3)
@@ -990,12 +1134,16 @@ func _apply_disco_ball(target: Node3D) -> void:
 # ============================================================================
 func _on_player_damaged(amount: float, source: Node3D) -> void:
 	# --- P11. Ueberkochter Milchreis: Schild faengt zuerst ab ------------
-	if _rice_shield > 0.0 and _player_health != null:
+	# Guard auf _has(ID_RICE_PUDDING): _rice_shield ist ein rohes
+	# Laufzeit-Feld und darf keinen Schaden mehr abfangen, wenn das Item
+	# nicht (mehr) im Inventar steckt.
+	if _rice_shield > 0.0 and _player_health != null and _has(ItemCatalog.ID_RICE_PUDDING):
 		var absorbed: float = minf(_rice_shield, amount)
 		_rice_shield -= absorbed
 		_player_health.current_health = minf(_player_health.current_health + absorbed, _player_health.max_health)
 		_player_health.health_changed.emit(_player_health.current_health, _player_health.max_health)
 		_flash_player(FLASH_WHITE)
+		_update_rice_aura()
 		if _rice_shield <= 0.0:
 			_rice_charge = 0.0
 
@@ -1042,6 +1190,7 @@ func _apply_broken_toaster() -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(TOASTER_DAMAGE, player)
+			_spawn_item_damage_number(enemy, TOASTER_DAMAGE)
 		if enemy.has_method("apply_knockback"):
 			var push: Vector3 = enemy.global_position - origin
 			push.y = 0.0
@@ -1218,6 +1367,24 @@ func _tick_stiletto_heels(delta: float, player: CharacterBody3D, speed: float) -
 	)
 	_spawn_vfx(DUST_RING_SCENE, player.global_position + Vector3.UP * 0.05)
 
+	# ITEM-REWORK: jeder dritte "Schritt" loest zusaetzlich eine haptische
+	# Bodenschockwelle aus.
+	_heels_step_count += 1
+	if _heels_step_count >= HEELS_SHOCKWAVE_EVERY_N_STEPS:
+		_heels_step_count = 0
+		_trigger_heels_shockwave(player)
+
+
+## Micro-Stun/Interrupt fuer nahe Gegner - StatusStun.apply() interrupt't
+## einen laufenden Telegraph bereits automatisch (siehe EnemyAI.
+## _on_status_effect_applied), zusaetzlicher Code dafuer ist hier nicht
+## noetig.
+func _trigger_heels_shockwave(player: CharacterBody3D) -> void:
+	for enemy: Node3D in _enemies_near(player.global_position, HEELS_SHOCKWAVE_RADIUS):
+		StatusStun.apply(enemy, HEELS_SHOCKWAVE_STUN, player)
+	_spawn_ring_wave(player.global_position, HEELS_SHOCKWAVE_RADIUS, Color(0.85, 0.55, 1.0), 0.3)
+	Juice.shake(0.6)
+
 
 ## Gemeinsamer Bauplan fuer Oel-, Saeure- und Klebe-Pfuetzen.
 ##
@@ -1375,6 +1542,7 @@ func _fire_tennis_ball(player: CharacterBody3D) -> void:
 				var health: Health = _health_of(enemy)
 				if health != null:
 					health.take_damage(TENNIS_DAMAGE, player)
+					_spawn_item_damage_number(enemy, TENNIS_DAMAGE)
 				if enemy.has_method("apply_knockback"):
 					enemy.apply_knockback(forward * TENNIS_KNOCKBACK)
 				# Frischt eine laufende Blutung komplett auf.
@@ -1407,6 +1575,7 @@ func _tick_brimstone_horns(delta: float, player: CharacterBody3D, speed: float) 
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(HORNS_DAMAGE, player)
+			_spawn_item_damage_number(enemy, HORNS_DAMAGE)
 		if enemy.has_method("apply_knockback"):
 			var push: Vector3 = enemy.global_position - player.global_position
 			push.y = 0.0
@@ -1421,7 +1590,19 @@ func _tick_brimstone_horns(delta: float, player: CharacterBody3D, speed: float) 
 # ----------------------------------------------------------------------------
 func _tick_tight_pants(delta: float, player: CharacterBody3D, speed: float) -> void:
 	_tick_cooldown_map(_pants_cooldowns, delta)
-	if speed < PANTS_MIN_SPEED:
+
+	# ITEM-REWORK: zweiter Ausloeser neben "schnell an einem Gegner vorbei"
+	# (Body-Check) - ein abrupter Richtungswechsel (Juke) zaehlt jetzt
+	# genauso. Erkannt ueber den Winkel zwischen letzter und aktueller
+	# horizontaler Bewegungsrichtung.
+	var current_dir: Vector2 = Vector2(player.velocity.x, player.velocity.z)
+	var abrupt_turn: bool = false
+	if current_dir.length() > 0.5 and _pants_prev_dir.length() > 0.5:
+		abrupt_turn = _pants_prev_dir.normalized().angle_to(current_dir.normalized()) > deg_to_rad(PANTS_TURN_ANGLE_DEG)
+	if current_dir.length() > 0.5:
+		_pants_prev_dir = current_dir
+
+	if speed < PANTS_MIN_SPEED and not abrupt_turn:
 		return
 
 	var stats: PlayerStats = _stats()
@@ -1434,8 +1615,19 @@ func _tick_tight_pants(delta: float, player: CharacterBody3D, speed: float) -> v
 		_pants_cooldowns[id] = PANTS_COOLDOWN_PER_TARGET
 
 		var health: Health = _health_of(enemy)
+		var pants_damage: float = base * PANTS_DAMAGE_FACTOR
 		if health != null:
-			health.take_damage(base * PANTS_DAMAGE_FACTOR, player)
+			health.take_damage(pants_damage, player)
+			# Item-Damage-Number in Spezialfarbe - siehe damage_number.gd,
+			# Kind.ITEM.
+			_spawn_item_damage_number(enemy, pants_damage)
+		# ITEM-REWORK: starker Rueckstoss (~4 Meter) statt nur eines
+		# kosmetischen Staubrings.
+		if enemy.has_method("apply_knockback"):
+			var push: Vector3 = enemy.global_position - player.global_position
+			push.y = 0.0
+			if push.length_squared() > 0.0001:
+				enemy.apply_knockback(push.normalized() * PANTS_KNOCKBACK)
 		_spawn_vfx(DUST_RING_SCENE, enemy.global_position + Vector3.UP * 0.1)
 	# Windlinien an den Fuessen des Spielers.
 	if not _pants_cooldowns.is_empty():
@@ -1477,6 +1669,7 @@ func _tick_rice_pudding(delta: float, player: CharacterBody3D, speed: float) -> 
 		if _rice_shield <= 0.0 and wanted > 0.0:
 			_spawn_ring_wave(player.global_position, 2.5, Color(1.0, 1.0, 1.0), 0.5)
 		_rice_shield = wanted
+		_update_rice_aura()
 
 	# Saeure-Immunitaet, solange der Schild steht.
 	var stats: PlayerStats = _stats()
@@ -1489,6 +1682,56 @@ func _tick_rice_pudding(delta: float, player: CharacterBody3D, speed: float) -> 
 	elif stats.has_source("item:rice_shield"):
 		stats.remove_source("item:rice_shield")
 		stats.apply()
+
+
+## Persistente Schild-Aura: ein halbtransparenter weisser Ball um den
+## Spieler, der sich mit _rice_shield relativ zu max_shield skaliert und
+## verschwindet, sobald der Schild aufgebraucht ist. Ohne diese Dauer-Anzeige
+## gab es ausser dem einmaligen Ring-Impuls beim ersten Aufbau KEIN
+## sichtbares Zeichen, dass der Schild ueberhaupt aktiv ist.
+func _update_rice_aura() -> void:
+	var player: CharacterBody3D = _player()
+	if player == null or _player_health == null:
+		_clear_rice_aura()
+		return
+
+	if _rice_shield <= 0.0:
+		_clear_rice_aura()
+		return
+
+	if _rice_aura == null or not is_instance_valid(_rice_aura):
+		var sphere := SphereMesh.new()
+		sphere.radius = 1.0
+		sphere.height = 2.0
+		sphere.radial_segments = 16
+		sphere.rings = 8
+
+		_rice_aura_material = _make_glow_material(Color(1.0, 1.0, 1.0), 0.28)
+		_rice_aura_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+		_rice_aura = MeshInstance3D.new()
+		_rice_aura.name = "RiceShieldAura"
+		_rice_aura.mesh = sphere
+		_rice_aura.set_surface_override_material(0, _rice_aura_material)
+		_rice_aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		player.add_child(_rice_aura)
+		_rice_aura.position = Vector3(0.0, 0.9, 0.0)
+
+	var max_shield: float = _player_health.max_health * RICE_SHIELD_FRACTION
+	var fraction: float = clampf(_rice_shield / maxf(max_shield, 0.001), 0.0, 1.0)
+	# Nie ganz auf 0 skalieren (sonst "verschwindet" die Kugel invertiert
+	# statt zu schrumpfen) - 0.55 bis 1.0 als sichtbarer Bereich.
+	var scale_amount: float = lerpf(0.55, 1.0, fraction)
+	_rice_aura.scale = Vector3.ONE * scale_amount
+	if _rice_aura_material != null:
+		_rice_aura_material.albedo_color.a = lerpf(0.12, 0.32, fraction)
+
+
+func _clear_rice_aura() -> void:
+	if is_instance_valid(_rice_aura):
+		_rice_aura.queue_free()
+	_rice_aura = null
+	_rice_aura_material = null
 
 
 # ----------------------------------------------------------------------------
@@ -1658,6 +1901,7 @@ func _ignite_hairspray_cloud(world_pos: Vector3) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(SPRAY_IGNITE_DAMAGE, _player())
+			_spawn_item_damage_number(enemy, SPRAY_IGNITE_DAMAGE)
 		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, _player())
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
 	_spawn_ring_wave(world_pos, SPRAY_IGNITE_RADIUS, Color(1.0, 0.55, 0.10), 0.35)
@@ -1720,6 +1964,7 @@ func _tick_jumper_cables(delta: float, player: CharacterBody3D) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(CABLES_DAMAGE, player)
+			_spawn_item_damage_number(enemy, CABLES_DAMAGE)
 		StatusStun.apply(enemy, CABLES_STUN, player)
 		_spawn_vfx(HIT_SPARK_SCENE, enemy.global_position + Vector3.UP)
 
@@ -1736,6 +1981,7 @@ func _use_storm_lighter(player: CharacterBody3D) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(damage, player)
+			_spawn_item_damage_number(enemy, damage)
 		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, player)
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
 
@@ -1759,7 +2005,9 @@ func _use_library_book(player: CharacterBody3D) -> void:
 			continue
 		if health.get_health_percent() > BOOK_EXECUTE_THRESHOLD:
 			continue
-		health.take_damage(health.current_health + 1.0, player)
+		var execute_amount: float = health.current_health + 1.0
+		health.take_damage(execute_amount, player)
+		_spawn_item_damage_number(enemy, execute_amount)
 		_spawn_vfx(FLASH_WHITE_SCENE, enemy.global_position + Vector3.UP)
 
 	_spawn_vfx(FLASH_WHITE_SCENE, player.global_position + Vector3.UP)
@@ -1918,8 +2166,10 @@ func _use_megaphone(player: CharacterBody3D) -> void:
 		# Die confused-Synergie steckt in StatusStun.damage_multiplier_against.
 		var factor: float = StatusStun.damage_multiplier_against(enemy, StatusStun.MEGAPHONE_DAMAGE_MULTIPLIER)
 		var health: Health = _health_of(enemy)
+		var megaphone_damage: float = base * factor
 		if health != null:
-			health.take_damage(base * factor, player)
+			health.take_damage(megaphone_damage, player)
+			_spawn_item_damage_number(enemy, megaphone_damage)
 		# Interrupt: laufende Telegraphs abbrechen.
 		if enemy.has_method("interrupt_attack"):
 			enemy.interrupt_attack()
@@ -1978,6 +2228,7 @@ func _use_whipped_cream(player: CharacterBody3D) -> void:
 				var health: Health = _health_of(body)
 				if health != null and health.is_alive():
 					health.take_damage(CREAM_EXTINGUISH_DAMAGE, _player())
+					_spawn_item_damage_number(body, CREAM_EXTINGUISH_DAMAGE)
 				_spawn_vfx(HIT_SPARK_SCENE, body.global_position + Vector3.UP)
 	)
 

@@ -82,6 +82,9 @@ const ID_HANDBALL_PADS: String = "handball_pads"
 const ID_GOLDEN_CREDIT_CARD: String = "golden_credit_card"
 const ID_STILETTO_HEELS: String = "stiletto_heels"
 
+# --- Neuzugang: Papp-Wahrsagerbrett ------------------------------------------
+const ID_OUIJA_BOARD: String = "ouija_board"
+
 # --- Phase 4: 8 aktive Items ------------------------------------------------
 const ID_STORM_LIGHTER: String = "storm_lighter"
 const ID_LIBRARY_BOOK: String = "library_book"
@@ -201,7 +204,7 @@ static func build_all() -> Array[ItemData]:
 		ID_TIGHT_PANTS,
 		"Omas Enge Hosen",
 		"Sitzt wie angegossen. Zu gut.",
-		"+20 % Tempo. Wer im Vorbeirennen einen Gegner streift, tritt automatisch zu (halber Schaden).",
+		"+20 % Tempo. Vorbeirennen oder ein abrupter Richtungswechsel loesen einen Tritt aus: halber Schaden und starker Rueckstoss (~4 m).",
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.UNCOMMON
 	)
 	pants.stat_modifiers = { PlayerStats.STAT_MOVE_SPEED: {"mul": 1.20} }
@@ -234,7 +237,7 @@ static func build_all() -> Array[ItemData]:
 		ID_ROOF_NAIL,
 		"Rostiger Dachnagel",
 		"Festgenagelt",
-		"25 % Chance, einen getroffenen Gegner 1,5 s lang festzunageln. Er kann sich nicht mehr bewegen.",
+		"25 % Chance, einen getroffenen Gegner 1,5 s lang festzunageln: er kann sich nicht mehr bewegen, sein Angriff wird sofort unterbrochen, und er ist gegen Rueckstoss immun.",
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE
 	)
 	items.append(nail)
@@ -387,10 +390,20 @@ static func build_all() -> Array[ItemData]:
 		ID_STILETTO_HEELS,
 		"Mamas Stoeckelschuhe",
 		"Klack. Klack. Zisch.",
-		"Beim Rennen bleiben 2 s lange Saeure-Lachen zurueck. Gegner darin nehmen Saeureschaden und werden langsamer.",
+		"Beim Rennen bleiben 2 s lange Saeure-Lachen zurueck. Gegner darin nehmen Saeureschaden und werden langsamer. Jeder 3. Schritt loest eine Schockwelle aus, die nahe Gegner kurz straucheln laesst.",
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.EPIC
 	)
 	items.append(heels)
+
+	# --- 21. Papp-Wahrsagerbrett ------------------------------------------
+	var ouija := ItemData.create(
+		ID_OUIJA_BOARD,
+		"Papp-Wahrsagerbrett",
+		"Etwas antwortet",
+		"Nahkampftreffer haben 20 % Chance, einen Rachegeist zu beschwoeren. Er visiert gezielt Gegner an, die hinter dir oder ausserhalb deiner Nahkampf-Reichweite stehen.",
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE
+	)
+	items.append(ouija)
 
 	# ======================================================================
 	# PHASE 4 — 8 AKTIVE ITEMS

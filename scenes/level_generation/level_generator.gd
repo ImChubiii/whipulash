@@ -577,7 +577,11 @@ func _apply_door_kinds(layout: Dictionary) -> void:
 					room.set_door_hack_enabled(dir, room.is_cleared() or is_inside_special)
 				RoomData.RoomType.TREASURE:
 					room.set_door_kind(dir, Door.DoorKind.TREASURE)
-					room.set_door_hack_enabled(dir, true)
+					# BUGFIX "Hacking waehrend des Kampfs moeglich": galt bisher
+					# bedingungslos, anders als der BOSS-Zweig direkt darueber.
+					# Von aussen: erst hackbar, wenn DIESER Raum (der davor)
+					# leergeraeumt ist - exakt dieselbe Bedingung wie bei BOSS.
+					room.set_door_hack_enabled(dir, room.is_cleared() or is_inside_special)
 
 
 func _on_room_entered(room: RoomInstance) -> void:
@@ -600,12 +604,17 @@ func _on_room_cleared(room: RoomInstance) -> void:
 			if spawn_victory_trophy:
 				_spawn_victory_trophy(room)
 
-	# Angrenzende Boss-Tuer freischalten - ab jetzt darf gehackt werden.
+	# Angrenzende Boss-/Tresor-Tuer freischalten - ab jetzt darf gehackt
+	# werden. TREASURE muss hier GENAUSO behandelt werden wie BOSS: seit die
+	# Tuer beim Anlegen nur noch bei room.is_cleared() freigeschaltet wird
+	# (siehe _apply_door_kinds), bleibt sie sonst dauerhaft gesperrt, weil
+	# der Raum zu dem Zeitpunkt noch nicht gecleared war.
 	for dir in DIR_KEYS:
 		var neighbor_pos: Vector2i = room.grid_position + DIR_OFFSETS[dir]
 		if not _current_layout.has(neighbor_pos):
 			continue
-		if _current_layout[neighbor_pos].room_type == RoomData.RoomType.BOSS:
+		var neighbor_type: int = _current_layout[neighbor_pos].room_type
+		if neighbor_type == RoomData.RoomType.BOSS or neighbor_type == RoomData.RoomType.TREASURE:
 			room.set_door_hack_enabled(dir, true)
 
 	_refresh_minimap_fog()
