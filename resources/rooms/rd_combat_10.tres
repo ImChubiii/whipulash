@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_data.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/rooms/combat/room_combat_10.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+scene = ExtResource("2_scene")
+room_type = 0
+available_exits = 15
+spawn_weight = 1
+min_stage = 0
+unique_per_run = false
+footprint_cells = Vector2i(1, 1)

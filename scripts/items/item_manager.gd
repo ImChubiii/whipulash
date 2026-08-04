@@ -1,4 +1,5 @@
 
+
 extends Node
 
 # ============================================================================
@@ -96,6 +97,14 @@ var active_items: Array[ItemData] = [null, null]
 ## Kopfkommentar. Ein Item, das gerade in keinem Slot steckt, behaelt seinen
 ## Eintrag hier trotzdem (falls es spaeter wieder eingewechselt wird).
 var _active_charges: Dictionary = {}
+
+## PHASE 4: sekundenbasierte Cooldowns. item_id -> Restsekunden.
+##
+## BEWUSST GETRENNT von _active_charges: die beiden Mechaniken haben
+## unterschiedliche Einheiten (Raeume vs. Sekunden) und unterschiedliche
+## Nullpunkte. In EINEM Dictionary gemischt haette jede Abfrage erst den
+## Item-Typ nachschlagen muessen, um zu wissen, was der Wert bedeutet.
+var _active_cooldowns: Dictionary = {}
 
 var player: CharacterBody3D = null
 var stats: PlayerStats = null
@@ -321,6 +330,8 @@ func reset_run() -> void:
 	inventory.clear()
 	active_items = [null, null]
 	_active_charges.clear()
+	# PHASE 4: sonst startet der neue Run mit dem Cooldown des alten.
+	_active_cooldowns.clear()
 	coins = START_COINS
 	bombs = START_BOMBS
 	if stats:
@@ -386,7 +397,62 @@ func is_active_slot_ready(slot: int) -> bool:
 	var item: ItemData = active_items[slot]
 	if item == null:
 		return false
+	if item.uses_time_cooldown():
+		return float(_active_cooldowns.get(item.id, 0.0)) <= 0.0
 	return int(_active_charges.get(item.id, 0)) <= 0
+
+
+## PHASE 4: laesst die Sekunden-Cooldowns ablaufen.
+##
+## _process statt eines Timers pro Item: es gibt hoechstens zwei aktive
+## Slots, die Schleife kostet nichts, und ein Timer-Node pro Item haette bei
+## jedem Slot-Tausch neu verdrahtet werden muessen.
+func _process(delta: float) -> void:
+	if _active_cooldowns.is_empty():
+		return
+	var finished: Array = []
+	for id: String in _active_cooldowns.keys():
+		var left: float = float(_active_cooldowns[id]) - delta
+		if left <= 0.0:
+			finished.append(id)
+		else:
+			_active_cooldowns[id] = left
+
+	for id: String in finished:
+		_active_cooldowns.erase(id)
+		for slot: int in range(ACTIVE_SLOT_COUNT):
+			var item: ItemData = active_items[slot]
+			if item != null and item.id == id:
+				active_item_charge_changed.emit(slot, 0, 0)
+
+
+## PHASE 4: von der Nonnen-Kutte benutzt — laedt ein Aktiv-Item sofort auf,
+## egal welche der beiden Mechaniken es benutzt.
+## Rueckgabe: true, wenn wirklich etwas aufgeladen wurde.
+func force_recharge_active(slot: int = -1) -> bool:
+	var slots: Array[int] = []
+	if slot >= 0:
+		slots.append(slot)
+	else:
+		for i: int in range(ACTIVE_SLOT_COUNT):
+			slots.append(i)
+
+	var did: bool = false
+	for s: int in slots:
+		var item: ItemData = active_items[s]
+		if item == null:
+			continue
+		if item.uses_time_cooldown():
+			if float(_active_cooldowns.get(item.id, 0.0)) <= 0.0:
+				continue
+			_active_cooldowns.erase(item.id)
+		else:
+			if int(_active_charges.get(item.id, 0)) <= 0:
+				continue
+			_active_charges[item.id] = 0
+		active_item_charge_changed.emit(s, 0, item.charge_rooms)
+		did = true
+	return did
 
 
 ## Fuer combat_base.gd's Cooldown-Anzeige im HUD: 1.0 = nicht bereit (Overlay
@@ -396,7 +462,12 @@ func get_active_charge_percent(slot: int) -> float:
 	if slot < 0 or slot >= ACTIVE_SLOT_COUNT:
 		return 0.0
 	var item: ItemData = active_items[slot]
-	if item == null or item.charge_rooms <= 0:
+	if item == null:
+		return 0.0
+	if item.uses_time_cooldown():
+		var left: float = float(_active_cooldowns.get(item.id, 0.0))
+		return clampf(left / maxf(item.cooldown_seconds, 0.001), 0.0, 1.0)
+	if item.charge_rooms <= 0:
 		return 0.0
 	var remaining: int = int(_active_charges.get(item.id, 0))
 	return clampf(float(remaining) / float(item.charge_rooms), 0.0, 1.0)
@@ -409,6 +480,10 @@ func get_active_charge_remaining(slot: int) -> float:
 	var item: ItemData = active_items[slot]
 	if item == null:
 		return 0.0
+	if item.uses_time_cooldown():
+		# Aufgerundet: "noch 1 s" ist ehrlicher als "noch 0 s", solange der
+		# Knopf noch nicht geht.
+		return ceilf(float(_active_cooldowns.get(item.id, 0.0)))
 	return float(_active_charges.get(item.id, 0))
 
 
@@ -419,8 +494,12 @@ func use_active_item(slot: int) -> void:
 		return
 
 	var item: ItemData = active_items[slot]
-	_active_charges[item.id] = item.charge_rooms
-	active_item_charge_changed.emit(slot, item.charge_rooms, item.charge_rooms)
+	if item.uses_time_cooldown():
+		_active_cooldowns[item.id] = item.cooldown_seconds
+		active_item_charge_changed.emit(slot, int(ceilf(item.cooldown_seconds)), int(ceilf(item.cooldown_seconds)))
+	else:
+		_active_charges[item.id] = item.charge_rooms
+		active_item_charge_changed.emit(slot, item.charge_rooms, item.charge_rooms)
 	active_item_used.emit(item, slot)
 
 
@@ -455,5 +534,6 @@ func get_luck() -> float:
 	if stats == null:
 		return 0.0
 	return stats.get_luck()
+
 
 

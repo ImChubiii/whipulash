@@ -1,47 +1,54 @@
-
+# res://scripts/items/item_behaviours.gd
 extends Node
 class_name ItemBehaviours
 
 # ============================================================================
 # ItemBehaviours — hier steht, was die Items TATSAECHLICH tun.
 # ============================================================================
-# Wird von item_manager.gd als Kind erzeugt und haengt sich an dessen
-# Signale. Jeder Effekt liegt in einem eigenen, klar benannten Block. Items,
-# die NUR Stat-Boni geben (Magnetischer Kompass, Saeurefeste Stiefel,
-# Proteinshake-Schadensteil), tauchen hier gar nicht auf — die erledigt
+# Wird von item_manager.gd als Kind erzeugt und haengt sich an dessen Signale.
+# Jeder Effekt liegt in einem eigenen, klar benannten Block. Items, die NUR
+# Stat-Boni geben (Magnetischer Kompass, Saeurefeste Stiefel, Proteinshake-
+# Schadensteil), tauchen hier gar nicht auf — die erledigt
 # ItemData.stat_modifiers.
 #
-# ALLE Zahlen liegen als Konstanten oben im jeweiligen Block, nicht mitten
-# im Code. Balancing soll man an einer Stelle drehen koennen, ohne die Logik
-# zu lesen.
+# ALLE Zahlen liegen als Konstanten oben im jeweiligen Block, nicht mitten im
+# Code. Balancing soll man an einer Stelle drehen koennen, ohne die Logik zu
+# lesen.
 #
 # ############################################################################
-# WICHTIG: DIESE DATEI ERSETZT AUCH item_behaviours_1.gd
+# EVENT-HOOKS — WO WAS EINGEHAENGT IST
 # ############################################################################
-# Es gab zwei Dateien mit demselben `class_name ItemBehaviours`. Godot bricht
-# beim Projektladen ab, sobald beide existieren ("hides a global script
-# class"). item_behaviours_1.gd muss geloescht werden; ihr einziger inhalt-
-# licher Vorsprung (VFX-Preloads) ist hier eingearbeitet.
+#   player_hit_enemy   -> _on_player_hit_enemy()      (Items.player_hit_enemy)
+#   enemy_died         -> im selben Aufruf: Health.is_alive() ist dann false
+#   take_damage        -> _on_player_damaged()        (Health.damage_taken)
+#   room_cleared       -> _on_room_cleared()          (Items.room_cleared)
+#   step_tick          -> _physics_process()          (Bewegungs-Spuren)
+#   dash_started       -> _poll_dash()                (Flanke aus combat.is_dashing())
+#
+# WARUM dash_started GEPOLLT UND NICHT ALS SIGNAL:
+# combat_base.gd hat kein Dash-Signal, nur is_dashing(). Ein Signal dort
+# einzubauen haette alle vier Combat-Unterklassen angefasst. Eine
+# Flankenerkennung im ohnehin laufenden _physics_process kostet nichts und
+# laesst die Charakter-Skripte unberuehrt.
 #
 # ############################################################################
 # WIE KILLS ERKANNT WERDEN — und wo die Grenze liegt
 # ############################################################################
 # Hitbox.take_damage laeuft VOR hit_landed. Wenn player_hit_enemy hier
-# ankommt, ist der Gegner also schon tot, falls der Schlag toedlich war —
-# ein Blick auf Health.is_alive() reicht als Kill-Erkennung.
+# ankommt, ist der Gegner also schon tot, falls der Schlag toedlich war — ein
+# Blick auf Health.is_alive() reicht als Kill-Erkennung.
 #
-# NICHT erfasst werden dadurch Kills durch Blutung, Schockwelle oder
+# NICHT erfasst werden dadurch Kills durch Blutung, Brand oder
 # Umgebungsschaden. Das ist bewusst so: die Alternative waere, sich an das
 # died-Signal JEDES Gegners zu haengen und dabei den Verursacher zu
-# rekonstruieren (Health.last_damage_source zeigt bei einem Bleed-Tick auf
-# den Spieler, bei Lava auf den Hazard). Der Aufwand steht in keinem
-# Verhaeltnis zu "der Heiligenschein heilt gelegentlich nicht".
+# rekonstruieren. Der Aufwand steht in keinem Verhaeltnis zu "der
+# Heiligenschein heilt gelegentlich nicht".
 #
 # ############################################################################
 # WARUM MANCHE EFFEKTE UEBER Health.damage_taken LAUFEN
 # ############################################################################
 # Health.take_damage kann von aussen nicht abgebrochen werden. Effekte, die
-# einen Treffer "verhindern" sollen (Wackelpudding-Ring, Handball-Polster),
+# einen Treffer "verhindern" sollen (Handball-Polster, Milchreis-Schild),
 # haengen sich deshalb an das damage_taken-Signal und machen den Schaden
 # NACHTRAEGLICH rueckgaengig. Das ist kein Trick, sondern die einzige
 # Reihenfolge, die funktioniert:
@@ -63,13 +70,28 @@ const DUST_RING_SCENE: PackedScene = preload("res://scenes/vfx/dust_ring.tscn")
 const SPARK_YELLOW_SCENE: PackedScene = preload("res://scenes/vfx/spark_yellow.tscn")
 const HOLOGRAM_BLUE_SCENE: PackedScene = preload("res://scenes/vfx/hologram_blue.tscn")
 const FLASH_WHITE_SCENE: PackedScene = preload("res://scenes/vfx/flash_white.tscn")
+const CORROSION_SCENE: PackedScene = preload("res://scenes/vfx/corrosion_vfx.tscn")
+const OIL_BUBBLES_SCENE: PackedScene = preload("res://scenes/vfx/oil_bubbles.tscn")
 
-## Die Saeure-Lache der Stoeckelschuhe ist eine bestehende Hazard-Szene.
-## Bewusst load() statt preload(): wer den Hazard-Ordner umbenennt, soll eine
-## Warnung bekommen und keinen Parse-Fehler im ganzen Item-System.
+## Die Saeure-Lache ist eine bestehende Hazard-Szene. Bewusst load() statt
+## preload(): wer den Hazard-Ordner umbenennt, soll eine Warnung bekommen und
+## keinen Parse-Fehler im ganzen Item-System.
 const LEMONADE_SCENE_PATH: String = "res://scenes/hazards/lemonade.tscn"
 
 const ENEMY_GROUP: String = "enemies"
+const PICKUP_GROUP: String = "pickups"
+
+# --- Shader-Flash auf dem Spielermodell -------------------------------------
+const FLASH_DURATION: float = 0.22
+const FLASH_STRENGTH: float = 0.85
+const FLASH_RED: Color = Color(1.0, 0.15, 0.15)
+const FLASH_WHITE: Color = Color(1.0, 1.0, 1.0)
+const FLASH_GREEN: Color = Color(0.35, 1.0, 0.35)
+const FLASH_BLUE: Color = Color(0.35, 0.70, 1.0)
+
+# ============================================================================
+# BESTANDSITEMS
+# ============================================================================
 
 # --- 1. Mamas Kochloeffel ---
 const SPOON_DURATION: float = 0.75
@@ -77,6 +99,8 @@ const SPOON_SPEED_MULTIPLIER: float = 1.5
 
 # --- 2. Rostiges Beil ---
 const CLEAVER_CHANCE: float = 0.30
+## Omas Stricknadeln heben die Chance auf diesen Wert an.
+const CLEAVER_CHANCE_WITH_NEEDLES: float = 0.50
 const BLEED_DURATION: float = 4.0
 const BLEED_TICK_INTERVAL: float = 1.0
 const BLEED_DAMAGE_PER_TICK: float = 5.0
@@ -109,119 +133,210 @@ const CABLES_DAMAGE: float = 45.0
 const CABLES_STUN: float = 2.0
 const CABLES_HIT_RADIUS: float = 2.6
 
-# --- P4/1. Proteinshake aus den 90ern ---
+# ============================================================================
+# PHASE 4 — PASSIVE ITEMS
+# ============================================================================
+
+# --- P1. Proteinshake aus den 90ern ---
 ## Faktor auf die Skalierung der Angriffs-Hitboxen. 0.85 = 15 % kleiner.
 const SHAKE_HITBOX_SCALE: float = 0.85
 
-# --- P4/2. Omas Enge Hosen ---
+# --- P2. Omas Enge Hosen ---
 const PANTS_MIN_SPEED: float = 8.0
 const PANTS_RANGE: float = 2.4
 const PANTS_DAMAGE_FACTOR: float = 0.5
 const PANTS_COOLDOWN_PER_TARGET: float = 1.0
 
-# --- P4/3. Plastik-Heiligenschein ---
+# --- P3. Plastik-Heiligenschein ---
 const HALO_HEAL_CHANCE: float = 0.10
 const HALO_HEAL_AMOUNT: float = 0.5
 
-# --- P4/4. Das Blutpakt ---
+# --- P4. Das Blutpakt ---
 const PACT_HITS_PER_COST: int = 5
 const PACT_SELF_DAMAGE: float = 0.5
 
-# --- P4/5. Rostiger Dachnagel ---
+# --- P5. Rostiger Dachnagel ---
 const NAIL_CHANCE: float = 0.25
-const NAIL_ROOT_DURATION: float = 1.5
 
-# --- P4/6. Sturmfeuerzeug ---
-const LIGHTER_RANGE: float = 8.0
-## Halber Oeffnungswinkel in Grad. 45 = 90-Grad-Bogen.
-const LIGHTER_HALF_ANGLE_DEG: float = 45.0
-const LIGHTER_DAMAGE_MULTIPLIER: float = 3.0
-const LIGHTER_BURN_DURATION: float = 3.0
-const LIGHTER_BURN_TICK: float = 0.75
-const LIGHTER_BURN_DAMAGE: float = 6.0
+# --- P6. Kaugummi unter dem Schuh ---
+const GUM_LIFETIME: float = 1.5
+const GUM_RADIUS: float = 2.2
+const GUM_SLOW_AMOUNT: float = 0.45
+const GUM_SLOW_DURATION: float = 1.5
+## Wie viele Klebeflecken ein Dash hinterlaesst.
+const GUM_BLOB_COUNT: int = 3
 
-# --- P4/7. Schulbibliotheks-Buch ---
-const BOOK_EXECUTE_THRESHOLD: float = 0.20
+# --- P7. Kaputter Toaster ---
+const TOASTER_RADIUS: float = 5.5
+const TOASTER_KNOCKBACK: float = 16.0
+const TOASTER_DAMAGE: float = 6.0
+## Mindestabstand zwischen zwei Funken-Bursts, damit ein Dauerbeschuss nicht
+## zum Dauer-Pushback wird.
+const TOASTER_COOLDOWN: float = 0.6
 
-# --- P4/8. Wackelpudding-Ring ---
-const JELLY_COOLDOWN: float = 4.0
+# --- P8. Mutters Haarspray ---
+const SPRAY_RADIUS: float = 4.0
+const SPRAY_DURATION: float = 2.5
+## Wie viel laenger ein Gegner in der Wolke fuer seinen Angriff braucht.
+const SPRAY_TELEGRAPH_DELAY: float = 0.5
+const SPRAY_IGNITE_DAMAGE: float = 30.0
+const SPRAY_IGNITE_RADIUS: float = 5.0
+## Nur bei jedem n-ten Schlag, sonst haengt permanent eine Wolke im Raum.
+const SPRAY_EVERY_N_HITS: int = 3
 
-# --- P4/9. Teufelchen-Outfit ---
+# --- P9. Altes Modulations-Modem (56k) ---
+const MODEM_HITS_NEEDED: int = 10
+const MODEM_RADIUS: float = 9.0
+const MODEM_SILENCE_DURATION: float = 1.0
+
+# --- P10. Laser-Pointer aus dem Kiosk ---
+const LASER_RANGE: float = 40.0
+const LASER_DAMAGE_BONUS: float = 0.15
+## Anteil eines DoT-Ticks, der auf Nachbargegner ueberspringt.
+const LASER_DOT_SPLIT: float = 0.50
+const LASER_SPLIT_RADIUS: float = 6.0
+const LASER_RETARGET_INTERVAL: float = 0.35
+const LASER_BEAM_THICKNESS: float = 0.06
+const LASER_COLOR: Color = Color(1.0, 0.12, 0.12)
+
+# --- P11. Ueberkochter Milchreis ---
+## Ab welcher Geschwindigkeit "Stillstehen" nicht mehr gilt.
+const RICE_STAND_SPEED: float = 1.2
+## Sekunden Stillstand, bis der Schild komplett aufgebaut ist.
+const RICE_BUILD_TIME: float = 2.5
+## Schild als Anteil der Maximal-HP.
+const RICE_SHIELD_FRACTION: float = 0.15
+
+# --- P12. Tennisball an der Schnur ---
+const TENNIS_SPEED: float = 34.0
+const TENNIS_RANGE: float = 18.0
+const TENNIS_RADIUS: float = 1.4
+const TENNIS_DAMAGE: float = 12.0
+const TENNIS_KNOCKBACK: float = 20.0
+
+# --- P13. Disco-Kugel-Anhaenger ---
+const DISCO_CHANCE: float = 0.10
+const DISCO_RADIUS: float = 7.0
+const DISCO_CONFUSE_DURATION: float = 2.0
+
+# --- P14. Gefrierbeutel voll Eis ---
+const ICE_CHANCE: float = 0.15
+
+# --- P15. Omas Stricknadeln ---
+## Anteil der Ruestung, den ein kritischer Treffer ignoriert.
+const NEEDLES_ARMOR_PIERCE: float = 1.0
+const NEEDLES_CRIT_CHANCE: float = 0.20
+const NEEDLES_CRIT_MULTIPLIER: float = 1.6
+
+# --- P16. Teufelchen-Outfit ---
 const DEVIL_HEALTH_THRESHOLD: float = 0.50
 const DEVIL_DAMAGE_MULTIPLIER: float = 1.50
 
-# --- P4/10. Nonnen-Kutte ---
-const HABIT_CHANCE: float = 0.25
+# --- P17. Nonnen-Kutte ---
+const NUN_CHANCE: float = 0.25
 
-# --- P4/12. Goldene Kreditkarte ---
+# --- P19. Goldene Kreditkarte ---
 const CARD_COINS_PER_STEP: int = 10
 const CARD_BONUS_PER_STEP: float = 0.02
 const CARD_MAX_BONUS: float = 0.50
 
-# --- P4/13. Phiole Heiligenblut ---
-const VIAL_RADIUS: float = 4.5
-const VIAL_DAMAGE: float = 22.0
-
-# --- P4/14. Papp-Wahrsagerbrett ---
-const OUIJA_CHANCE: float = 0.20
-const OUIJA_PIERCE_RANGE: float = 4.0
-
-# --- P4/15. Ungerader Wuerfel ---
-const DIE_BUFF_DURATION: float = 25.0
-const DIE_BUFF_STRENGTH: float = 0.25
-
-# --- P4/16. Plastik-Teufelshoerner ---
-const PLASTIC_CONTACT_RANGE: float = 1.8
-const PLASTIC_DAMAGE_FACTOR: float = 0.3
-const PLASTIC_COOLDOWN_PER_TARGET: float = 0.6
-
-# --- P4/17. Defekter Gameboy ---
-const GAMEBOY_CHAIN_RANGE: float = 7.0
-const GAMEBOY_DAMAGE_FACTOR: float = 0.45
-
-# --- P4/18. Rote Pappfluegel ---
-const WINGS_DURATION: float = 0.3
-const WINGS_SPEED: float = 26.0
-
-# --- P4/19. Mamas Stoeckelschuhe ---
+# --- P20. Mamas Stoeckelschuhe ---
 const HEELS_MIN_SPEED: float = 6.0
 const HEELS_SPAWN_INTERVAL: float = 0.45
 const HEELS_LIFETIME: float = 2.0
 const HEELS_SIZE: Vector3 = Vector3(3.0, 0.5, 3.0)
 const HEELS_DAMAGE_PER_TICK: float = 4.0
 
-# --- P4/20. Verfluchter Glueckswuerfel ---
+# ============================================================================
+# PHASE 4 — AKTIVE ITEMS
+# ============================================================================
+
+# --- A1. Sturmfeuerzeug ---
+const LIGHTER_RANGE: float = 8.0
+## Halber Oeffnungswinkel in Grad. 45 = 90-Grad-Bogen.
+const LIGHTER_HALF_ANGLE_DEG: float = 45.0
+const LIGHTER_DAMAGE_MULTIPLIER: float = 3.0
+const LIGHTER_BASE_DAMAGE: float = 15.0
+
+# --- A2. Schulbibliotheks-Buch ---
+const BOOK_EXECUTE_THRESHOLD: float = 0.20
+
+# --- A3. Verfluchter Glueckswuerfel ---
 const CURSED_RADIUS: float = 30.0
 
-# --- Shader-Flash (FLASH_RED / FLASH_WHITE auf dem Spielermodell) ---
-const FLASH_DURATION: float = 0.22
-const FLASH_STRENGTH: float = 0.85
+# --- A4. Alter Handstaubsauger ---
+const VACUUM_DURATION: float = 2.5
+const VACUUM_RANGE: float = 12.0
+const VACUUM_HALF_ANGLE_DEG: float = 35.0
+const VACUUM_PULL_SPEED: float = 9.0
+## Saeureschaden des Rueckstrahls pro getroffenem Gegner.
+const VACUUM_ACID_DAMAGE: float = 6.0
+const VACUUM_ACID_DURATION: float = 4.0
+
+# --- A5. Omas Pfeffermuehle ---
+const PEPPER_RADIUS: float = 9.0
+const PEPPER_SILENCE_DURATION: float = 2.0
+const PEPPER_DOT_EXTENSION: float = 3.0
+
+# --- A6. Walkman (kaputt) ---
+const WALKMAN_RADIUS: float = 12.0
+const WALKMAN_KNOCKBACK: float = 26.0
+const WALKMAN_CONFUSE_DURATION: float = 4.0
+const WALKMAN_SHAKE: float = 2.0
+
+# --- A7. Megafon aus der Schule ---
+const MEGAPHONE_RANGE: float = 11.0
+const MEGAPHONE_HALF_ANGLE_DEG: float = 30.0
+const MEGAPHONE_DAMAGE: float = 26.0
+
+# --- A8. Spruehsahne-Dose ---
+const CREAM_RADIUS: float = 6.0
+const CREAM_LIFETIME: float = 6.0
+const CREAM_KNOCKDOWN_DURATION: float = 1.5
+## Schaden, wenn die Sahne einen brennenden Gegner loescht.
+const CREAM_EXTINGUISH_DAMAGE: float = 45.0
 
 var _items: Node = null
 
 # --- Laufzeit-Zustand -------------------------------------------------------
 var _sock_hit_count: int = 0
 var _pact_hit_count: int = 0
+var _modem_hit_count: int = 0
+var _spray_hit_count: int = 0
 var _horns_cooldowns: Dictionary = {}
 var _pants_cooldowns: Dictionary = {}
-var _plastic_cooldowns: Dictionary = {}
 var _oil_timer: float = 0.0
 var _heels_timer: float = 0.0
 var _cables_timer: float = 0.0
 var _cables_hit: Array[int] = []
-var _wings_timer: float = 0.0
-var _wings_direction: Vector3 = Vector3.ZERO
-var _jelly_cooldown: float = 0.0
+var _toaster_cooldown: float = 0.0
 var _pads_used_this_room: bool = false
 var _book_used_in_stage: int = -1
 var _devil_active: bool = false
 
-## Zuletzt gesehener Raum bzw. Etage. Der ItemManager kennt kein
-## "room_entered", nur "room_cleared" — fuer den Ungeraden Wuerfel und das
-## Zuruecksetzen des Handball-Polsters brauchen wir aber den EINTRITT. Statt
-## eine neue Signalkette durch RoomInstance und LevelGenerator zu ziehen,
-## wird der aktuelle Raum hier abgefragt. Der Generator veroeffentlicht ihn
-## ohnehin schon fuer Minimap und Boss-Leiste.
+## Dash-Flankenerkennung (siehe Kopfkommentar, "dash_started").
+var _was_dashing: bool = false
+
+## --- Milchreis-Schild ---
+var _rice_charge: float = 0.0
+var _rice_shield: float = 0.0
+
+## --- Laser-Pointer ---
+var _laser_target: Node3D = null
+var _laser_retarget_timer: float = 0.0
+var _laser_beam: MeshInstance3D = null
+var _laser_dot_relay: Dictionary = {}
+
+## --- Handstaubsauger (laeuft ueber mehrere Sekunden) ---
+var _vacuum_timer: float = 0.0
+var _vacuum_direction: Vector3 = Vector3.ZERO
+var _vacuum_absorbed_acid: bool = false
+
+## Zuletzt gesehener Raum. Der ItemManager kennt kein "room_entered", nur
+## "room_cleared" — fuer das Zuruecksetzen des Handball-Polsters brauchen wir
+## aber den EINTRITT. Statt eine neue Signalkette durch RoomInstance und
+## LevelGenerator zu ziehen, wird der aktuelle Raum hier abgefragt; der
+## Generator veroeffentlicht ihn ohnehin schon fuer Minimap und Boss-Leiste.
 var _last_room: Vector2i = Vector2i(2147483647, 2147483647)
 var _room_poll_timer: float = 0.0
 const ROOM_POLL_INTERVAL: float = 0.25
@@ -264,8 +379,7 @@ func _has(item_id: String) -> bool:
 func _stats() -> PlayerStats:
 	if _items == null:
 		return null
-	var s = _items.stats
-	return s as PlayerStats
+	return _items.stats as PlayerStats
 
 
 func _health_of(enemy: Node) -> Health:
@@ -291,6 +405,23 @@ func _enemies_near(origin: Vector3, radius: float, exclude: Node = null) -> Arra
 	result.sort_custom(func(a: Node3D, b: Node3D) -> bool:
 		return a.global_position.distance_to(origin) < b.global_position.distance_to(origin)
 	)
+	return result
+
+
+## Gegner in einem Kegel vor dem Spieler. Basis fuer Sturmfeuerzeug,
+## Handstaubsauger und Megafon — die drei unterscheiden sich nur in Reichweite,
+## Winkel und Wirkung, nicht in der Suche.
+func _enemies_in_cone(origin: Vector3, forward: Vector3, range_m: float, half_angle_deg: float) -> Array[Node3D]:
+	var result: Array[Node3D] = []
+	var cos_limit: float = cos(deg_to_rad(half_angle_deg))
+	for enemy: Node3D in _enemies_near(origin, range_m):
+		var to_enemy: Vector3 = enemy.global_position - origin
+		to_enemy.y = 0.0
+		if to_enemy.length_squared() < 0.0001:
+			result.append(enemy)
+			continue
+		if forward.dot(to_enemy.normalized()) >= cos_limit:
+			result.append(enemy)
 	return result
 
 
@@ -320,12 +451,15 @@ func _spawn_vfx(scene: PackedScene, world_pos: Vector3, direction: Vector3 = Vec
 	VFX.spawn(scene, world_pos, direction)
 
 
-## Faerbt das Spielermodell kurz ein (FLASH_RED / FLASH_WHITE).
+## Faerbt das Spielermodell kurz ein (FLASH_RED / FLASH_WHITE / ...).
 ##
 ## Setzt flash_color/flash_strength im psx.gdshader. Modelle ohne
 ## ShaderMaterial werden stillschweigend uebersprungen — der Effekt ist
 ## Zuckerguss, kein Spielmechanismus, und darf nichts abbrechen.
-func _flash_player(color: Color) -> void:
+##
+## permanent = true haelt die Faerbung, bis _clear_player_flash() sie loest
+## (Teufelchen-Outfit).
+func _flash_player(color: Color, permanent: bool = false) -> void:
 	var player: CharacterBody3D = _player()
 	if player == null:
 		return
@@ -338,6 +472,11 @@ func _flash_player(color: Color) -> void:
 	for material: ShaderMaterial in materials:
 		material.set_shader_parameter("flash_color", color)
 
+	if permanent:
+		for material: ShaderMaterial in materials:
+			material.set_shader_parameter("flash_strength", 0.35)
+		return
+
 	var tween: Tween = create_tween()
 	tween.tween_method(
 		func(value: float) -> void:
@@ -346,6 +485,16 @@ func _flash_player(color: Color) -> void:
 					material.set_shader_parameter("flash_strength", value),
 		FLASH_STRENGTH, 0.0, FLASH_DURATION
 	)
+
+
+func _clear_player_flash() -> void:
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return
+	var materials: Array[ShaderMaterial] = []
+	_collect_shader_materials(player, materials)
+	for material: ShaderMaterial in materials:
+		material.set_shader_parameter("flash_strength", 0.0)
 
 
 func _collect_shader_materials(node: Node, out: Array[ShaderMaterial]) -> void:
@@ -365,6 +514,52 @@ func _collect_shader_materials(node: Node, out: Array[ShaderMaterial]) -> void:
 		_collect_shader_materials(child, out)
 
 
+## Ein einfacher, ungeshadeter Farbwuerfel/-zylinder als Wegwerf-Mesh.
+## Wird von Laser, Tennisball, Schallwellen und Sahneteppich benutzt.
+func _make_glow_material(color: Color, alpha: float = 1.0) -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(color.r, color.g, color.b, alpha)
+	mat.emission_enabled = true
+	mat.emission = color
+	mat.emission_energy_multiplier = 2.2
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	if alpha < 1.0:
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	# PSX-Optik: keine Filterung, harte Kanten.
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	return mat
+
+
+## Haengt einen Node an die aktuelle Szene statt an den Ausloeser.
+##
+## WARUM NICHT AN DEN SPIELER: Hitboxen werden 0.15 s nach dem Schlag
+## deaktiviert, Gegner rufen bei Tod queue_free(), und PartyManager tauscht
+## beim Charakterwechsel die komplette Spieler-Instanz. Ein Kind-Node waere in
+## allen drei Faellen mitten im Abspielen weg.
+func _attach_to_world(node: Node3D, world_pos: Vector3) -> void:
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		parent = get_tree().get_root()
+	parent.add_child(node)
+	# NACH add_child(): global_position ist vorher nicht gueltig.
+	node.global_position = world_pos
+
+
+## Blendet einen Node aus und raeumt ihn danach ab.
+func _fade_and_free(node: Node3D, lifetime: float, mesh: MeshInstance3D = null) -> void:
+	var tween: Tween = create_tween()
+	if mesh != null and mesh.get_surface_override_material(0) is StandardMaterial3D:
+		var mat := mesh.get_surface_override_material(0) as StandardMaterial3D
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		tween.tween_property(mat, "albedo_color:a", 0.0, lifetime)
+	else:
+		tween.tween_interval(lifetime)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(node):
+			node.queue_free()
+	)
+
+
 # ============================================================================
 # Anbindung an den Spieler (laeuft bei jedem Charakterwechsel neu)
 # ============================================================================
@@ -382,20 +577,30 @@ func _on_player_ready(player: CharacterBody3D) -> void:
 			_player_health.health_changed.connect(_on_player_health_changed)
 
 	_scaled_hitboxes.clear()
+	# Der Laserstrahl haengt am alten Spieler und ist nach dem Wechsel
+	# ungueltig — sonst zeigt er ins Leere.
+	if is_instance_valid(_laser_beam):
+		_laser_beam.queue_free()
+	_laser_beam = null
+	_laser_target = null
+
 	_apply_protein_shake_hitbox()
-	_apply_ghost_collision()
 	_refresh_credit_card_bonus()
 	_refresh_devil_outfit()
 
 
 ## Wird bei JEDEM neu aufgesammelten Item gerufen — die passiven Dauereffekte
-## unten muessen sich sofort einschalten und nicht erst beim naechsten
+## muessen sich sofort einschalten und nicht erst beim naechsten
 ## Charakterwechsel.
-func _on_item_added(_item: ItemData) -> void:
+func _on_item_added(item: ItemData) -> void:
 	_apply_protein_shake_hitbox()
-	_apply_ghost_collision()
 	_refresh_credit_card_bonus()
 	_refresh_devil_outfit()
+
+	# Proteinshake: FLASH_GREEN beim Aufheben (Design-Dokument).
+	if item != null and item.id == ItemCatalog.ID_PROTEIN_SHAKE:
+		_flash_player(FLASH_GREEN)
+		_apply_protein_shake_mesh_scale()
 
 
 func _on_room_cleared(_room: Node) -> void:
@@ -403,8 +608,16 @@ func _on_room_cleared(_room: Node) -> void:
 	_pads_used_this_room = false
 
 
+func _on_coins_changed(_amount: int) -> void:
+	_refresh_credit_card_bonus()
+
+
+func _on_player_health_changed(_current: float, _max: float) -> void:
+	_refresh_devil_outfit()
+
+
 # ----------------------------------------------------------------------------
-# P4/1. Proteinshake aus den 90ern — kleinere Hitbox
+# P1. Proteinshake aus den 90ern — kleinere Hitbox + kleineres Modell
 # ----------------------------------------------------------------------------
 # Der Schadensbonus steckt in stat_modifiers. Hier wird nur die Reichweite
 # verkleinert.
@@ -428,22 +641,74 @@ func _apply_protein_shake_hitbox() -> void:
 		hitbox.scale = Vector3.ONE * wanted
 
 
-# ----------------------------------------------------------------------------
-# P4/16. Plastik-Teufelshoerner — durch Gegner hindurchlaufen
-# ----------------------------------------------------------------------------
-# add_collision_exception_with() statt an den Kollisions-Layern zu drehen:
-# welche Ebene "Gegner" ist, steht in den Charakter- und Gegner-Szenen und
-# nicht im Code. Eine Ausnahme pro Paar ist layer-unabhaengig und laesst
-# alles andere (Waende, Boden, Hazards) unangetastet.
-func _apply_ghost_collision() -> void:
+## Design-Dokument: "Dauerhaft: Mesh-Skalierung (mesh.scale * 0.85)".
+##
+## NUR das sichtbare Modell, NICHT der CharacterBody3D: dessen
+## CollisionShape mitzuskalieren wuerde den Spieler durch Wandluecken
+## rutschen lassen und die Kamerahoehe verschieben.
+func _apply_protein_shake_mesh_scale() -> void:
 	var player: CharacterBody3D = _player()
-	if player == null or not _has(ItemCatalog.ID_DEVIL_HORNS_PLASTIC):
+	if player == null or not _has(ItemCatalog.ID_PROTEIN_SHAKE):
+		return
+	for child: Node in player.get_children():
+		var model := child as Node3D
+		if model == null or model is Area3D or model is CollisionShape3D:
+			continue
+		if model.name == "CameraPivot" or model.name == "Health":
+			continue
+		model.scale = model.scale * SHAKE_HITBOX_SCALE
+
+
+# ----------------------------------------------------------------------------
+# P16. Teufelchen-Outfit — dauerhafter roter Glow unter 50 % HP
+# ----------------------------------------------------------------------------
+func _refresh_devil_outfit() -> void:
+	if not _has(ItemCatalog.ID_DEVIL_OUTFIT) or _player_health == null:
+		if _devil_active:
+			_devil_active = false
+			_clear_player_flash()
+			var stats_off: PlayerStats = _stats()
+			if stats_off != null:
+				stats_off.remove_source("item:devil_outfit")
 		return
 
-	for node: Node in get_tree().get_nodes_in_group(ENEMY_GROUP):
-		var enemy := node as PhysicsBody3D
-		if enemy != null and is_instance_valid(enemy):
-			player.add_collision_exception_with(enemy)
+	var low: bool = _player_health.get_health_percent() < DEVIL_HEALTH_THRESHOLD
+	if low == _devil_active:
+		return
+	_devil_active = low
+
+	var stats: PlayerStats = _stats()
+	if stats == null:
+		return
+
+	if low:
+		stats.add_modifier("item:devil_outfit", PlayerStats.STAT_DAMAGE, 0.0, DEVIL_DAMAGE_MULTIPLIER)
+		_flash_player(FLASH_RED, true)
+	else:
+		stats.remove_source("item:devil_outfit")
+		_clear_player_flash()
+	stats.apply()
+
+
+# ----------------------------------------------------------------------------
+# P19. Goldene Kreditkarte — +2 % Schaden je 10 Muenzen
+# ----------------------------------------------------------------------------
+func _refresh_credit_card_bonus() -> void:
+	var stats: PlayerStats = _stats()
+	if stats == null:
+		return
+
+	if not _has(ItemCatalog.ID_GOLDEN_CREDIT_CARD):
+		if stats.has_source("item:credit_card"):
+			stats.remove_source("item:credit_card")
+			stats.apply()
+		return
+
+	var coins: int = int(_items.coins)
+	var steps: int = coins / CARD_COINS_PER_STEP
+	var bonus: float = minf(float(steps) * CARD_BONUS_PER_STEP, CARD_MAX_BONUS)
+	stats.add_modifier("item:credit_card", PlayerStats.STAT_DAMAGE, 0.0, 1.0 + bonus)
+	stats.apply()
 
 
 # ============================================================================
@@ -472,18 +737,29 @@ func _on_player_hit_enemy(target: Node3D, hitbox: Hitbox) -> void:
 		_apply_roof_nail(target)
 	if _has(ItemCatalog.ID_BLOOD_PACT):
 		_apply_blood_pact()
-	if _has(ItemCatalog.ID_OUIJA_BOARD):
-		_apply_ouija_board(target, base_damage)
-	if _has(ItemCatalog.ID_BROKEN_GAMEBOY):
-		_apply_broken_gameboy(target, base_damage)
+	if _has(ItemCatalog.ID_ICE_BAG):
+		_apply_ice_bag(target)
+	if _has(ItemCatalog.ID_MODEM_56K):
+		_apply_modem(target)
+	if _has(ItemCatalog.ID_HAIRSPRAY):
+		_apply_hairspray(target)
+	if _has(ItemCatalog.ID_KNITTING_NEEDLES):
+		_apply_knitting_needles(target, base_damage)
 	if _has(ItemCatalog.ID_GOLDEN_CREDIT_CARD):
 		_spawn_vfx(SPARK_YELLOW_SCENE, target.global_position + Vector3.UP * 1.2)
+	if _has(ItemCatalog.ID_LASER_POINTER) and target == _laser_target:
+		# Der Markierungs-Bonus laeuft NACHTRAEGLICH: die Hitbox hat ihren
+		# Schaden schon ausgeteilt, ein Stat-Modifier haette also erst beim
+		# NAECHSTEN Schlag gewirkt. Der Nachschlag hier trifft dagegen genau
+		# den markierten Gegner, genau jetzt.
+		if health != null and health.is_alive():
+			health.take_damage(base_damage * LASER_DAMAGE_BONUS, _player())
 
 	if was_kill:
 		if _has(ItemCatalog.ID_PLASTIC_HALO):
 			_apply_plastic_halo(target)
-		if _has(ItemCatalog.ID_HOLY_BLOOD_VIAL):
-			_apply_holy_blood_vial(target)
+		if _has(ItemCatalog.ID_DISCO_BALL):
+			_apply_disco_ball(target)
 
 	# --- Game Juice -----------------------------------------------------
 	# Der Hit-Stop haengt an der Wucht des Angriffs, nicht am Item: die
@@ -509,36 +785,30 @@ func _apply_wooden_spoon() -> void:
 	var stats: PlayerStats = _stats()
 	if stats != null:
 		stats.add_timed_modifier(
-			"buff:wooden_spoon",
-			PlayerStats.STAT_MOVE_SPEED,
-			SPOON_DURATION,
-			0.0,
-			SPOON_SPEED_MULTIPLIER
+			"buff:wooden_spoon", PlayerStats.STAT_MOVE_SPEED,
+			SPOON_DURATION, 0.0, SPOON_SPEED_MULTIPLIER
 		)
+
+	_spawn_vfx(DUST_RING_SCENE, player.global_position + Vector3.UP * 0.1)
 
 
 # ----------------------------------------------------------------------------
 # 2. Rostiges Beil — Blutung
 # ----------------------------------------------------------------------------
-# Nutzt den bestehenden StatusEffectManager statt einer eigenen Coroutine:
-# der Effekt laeuft dann automatisch mit ab, wenn der Gegner stirbt oder der
-# Raum zurueckgesetzt wird.
+# Nutzt den bestehenden StatusEffectManager statt einer eigenen Coroutine: der
+# Effekt laeuft dann automatisch mit ab, wenn der Gegner stirbt oder der Raum
+# zurueckgesetzt wird.
 #
-# Seit dem Patch an enemy_ai.gd tickt "bleed" auch wirklich Schaden — vorher
-# stand dort nur "poison" und der Effekt lief ins Leere.
+# SYNERGIE: Omas Stricknadeln heben die Chance von 30 % auf 50 %.
 func _apply_rusty_cleaver(target: Node3D) -> void:
-	if randf() > CLEAVER_CHANCE:
+	var chance: float = CLEAVER_CHANCE_WITH_NEEDLES if _has(ItemCatalog.ID_KNITTING_NEEDLES) else CLEAVER_CHANCE
+	if randf() > chance:
 		return
 	if not target.has_method("apply_status_effect"):
 		return
 
-	target.apply_status_effect(
-		"bleed",
-		BLEED_DURATION,
-		BLEED_DAMAGE_PER_TICK,
-		_player(),
-		BLEED_TICK_INTERVAL
-	)
+	target.apply_status_effect("bleed", BLEED_DURATION, BLEED_DAMAGE_PER_TICK, _player(), BLEED_TICK_INTERVAL)
+	_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.0)
 
 
 # ----------------------------------------------------------------------------
@@ -560,601 +830,602 @@ func _apply_static_sock(hitbox: Hitbox) -> void:
 
 	for enemy: Node3D in _enemies_near(origin, SOCK_RADIUS):
 		var health: Health = _health_of(enemy)
-		if health == null:
-			continue
-		health.take_damage(wave_damage, player)
-
-		if enemy.get("is_heavy") == true:
-			continue
-
-		var offset: Vector3 = enemy.global_position - origin
-		var push := Vector3(offset.x, 0.0, offset.z)
-		if push.length() < 0.01:
-			push = _player_forward(player)
-		push = push.normalized() * SOCK_KNOCKBACK
-
+		if health != null:
+			health.take_damage(wave_damage, player)
 		if enemy.has_method("apply_knockback"):
-			enemy.apply_knockback(push)
-		elif enemy is CharacterBody3D:
-			(enemy as CharacterBody3D).velocity += push
+			var push: Vector3 = (enemy.global_position - origin)
+			push.y = 0.0
+			if push.length_squared() > 0.0001:
+				enemy.apply_knockback(push.normalized() * SOCK_KNOCKBACK)
+		_spawn_vfx(HIT_SPARK_SCENE, enemy.global_position + Vector3.UP)
 
+	_spawn_ring_wave(origin, SOCK_RADIUS, Color(0.55, 0.85, 1.0), 0.35)
 	_spawn_vfx(SPARK_YELLOW_SCENE, origin + Vector3.UP)
-	Juice.impact(0.6, Juice.DURATION_HEAVY)
+	Juice.shake(1.2)
 
 
 # ----------------------------------------------------------------------------
-# P4/5. Rostiger Dachnagel — Gegner festnageln
+# 5. Rostiger Dachnagel — festnageln
 # ----------------------------------------------------------------------------
-# "rooted" wird von enemy_ai.is_movement_locked() ausgewertet und setzt das
-# effektive Tempo auf 0. Angreifen darf ein gewurzelter Gegner weiterhin —
-# das ist der Unterschied zu "stun".
 func _apply_roof_nail(target: Node3D) -> void:
 	if randf() > NAIL_CHANCE:
 		return
-	if not target.has_method("apply_status_effect"):
-		return
-
-	target.apply_status_effect("rooted", NAIL_ROOT_DURATION, 1.0, _player(), 0.0)
-	_spawn_vfx(DUST_RING_SCENE, target.global_position)
+	if StatusRooted.apply(target, StatusRooted.DEFAULT_DURATION, _player()):
+		_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.0)
 
 
 # ----------------------------------------------------------------------------
-# P4/4. Das Blutpakt — jeder 5. Treffer kostet eigenes Leben
+# 4. Das Blutpakt — jeder 5. Treffer kostet eigenes Leben
 # ----------------------------------------------------------------------------
-# Der Schadensbonus steckt in stat_modifiers, hier steht nur der Preis.
-#
-# clear_invulnerable() wird NICHT aufgerufen: laeuft gerade eine
-# Unverwundbarkeit (Kochloeffel, Pappfluegel), soll der Pakt sie nicht
-# aushebeln. Der Spieler kommt dann eben einmal umsonst davon.
 func _apply_blood_pact() -> void:
 	_pact_hit_count += 1
 	if _pact_hit_count < PACT_HITS_PER_COST:
 		return
 	_pact_hit_count = 0
 
-	if _player_health == null or not _player_health.is_alive():
+	if _player_health == null:
 		return
-
-	_player_health.take_damage(PACT_SELF_DAMAGE, null)
-	_flash_player(Color(1.0, 0.1, 0.1))
+	# BEWUSST OHNE Unverwundbarkeits-Pruefung: der Pakt kostet immer. Ginge
+	# der Schaden ueber take_damage(), wuerde ihn jede laufende i-Frame
+	# schlucken — und der Kochloeffel machte das Blutpakt gratis.
+	_player_health.current_health = maxf(_player_health.current_health - PACT_SELF_DAMAGE, 1.0)
+	_player_health.health_changed.emit(_player_health.current_health, _player_health.max_health)
+	_flash_player(FLASH_RED)
 
 
 # ----------------------------------------------------------------------------
-# P4/3. Plastik-Heiligenschein — Heilung bei Kill
+# P3. Plastik-Heiligenschein — Heilung bei Kill
 # ----------------------------------------------------------------------------
 func _apply_plastic_halo(target: Node3D) -> void:
 	if randf() > HALO_HEAL_CHANCE:
 		return
-	if _player_health == null:
-		return
-
-	_player_health.heal(HALO_HEAL_AMOUNT)
-
+	if _player_health != null:
+		_player_health.heal(HALO_HEAL_AMOUNT)
 	var player: CharacterBody3D = _player()
 	if player != null:
 		_spawn_vfx(HOLOGRAM_BLUE_SCENE, player.global_position + Vector3.UP * 2.2)
-	_spawn_vfx(HOLOGRAM_BLUE_SCENE, target.global_position + Vector3.UP)
+	_spawn_vfx(HOLOGRAM_BLUE_SCENE, target.global_position + Vector3.UP * 1.5)
 
 
 # ----------------------------------------------------------------------------
-# P4/13. Phiole Heiligenblut — Gegner explodieren bei Tod
+# P14. Gefrierbeutel voll Eis — starke Verlangsamung + Thermoschock
 # ----------------------------------------------------------------------------
-func _apply_holy_blood_vial(target: Node3D) -> void:
-	var origin: Vector3 = target.global_position
-	var player: CharacterBody3D = _player()
-
-	for enemy: Node3D in _enemies_near(origin, VIAL_RADIUS, target):
-		var health: Health = _health_of(enemy)
-		if health != null:
-			health.take_damage(VIAL_DAMAGE, player)
-
-	_spawn_vfx(SPARK_YELLOW_SCENE, origin + Vector3.UP)
-	_spawn_vfx(HIT_SPARK_SCENE, origin + Vector3.UP * 1.5)
-	Juice.impact(0.5, Juice.DURATION_HEAVY)
-
-
-# ----------------------------------------------------------------------------
-# P4/14. Papp-Wahrsagerbrett — Schlag geht durch
-# ----------------------------------------------------------------------------
-# "Geht durch den Gegner hindurch" ist im Code die Aussage: der Schlag
-# trifft ZUSAETZLICH den naechsten Gegner dahinter. Eine echte
-# Kollisions-Durchdringung haette einen Eingriff in Hitbox._on_body_entered
-# gebraucht, und die Wirkung waere fuer den Spieler dieselbe.
-func _apply_ouija_board(target: Node3D, base_damage: float) -> void:
-	if randf() > OUIJA_CHANCE:
+func _apply_ice_bag(target: Node3D) -> void:
+	if randf() > ICE_CHANCE:
 		return
 
-	var player: CharacterBody3D = _player()
-	if player == null:
-		return
+	# REIHENFOLGE IST WICHTIG: der Thermoschock liest die RESTdauer des
+	# Brands. Wuerde erst der Slow angewendet, waere das egal — aber wuerde
+	# erst StatusBurn.clear() laufen, waere der Restschaden weg. Deshalb
+	# zuerst der Schock, dann die Verlangsamung.
+	if StatusBurn.active(target):
+		StatusBurn.thermal_shock(target, _player())
 
-	var forward: Vector3 = _player_forward(player)
-	for enemy: Node3D in _enemies_near(target.global_position, OUIJA_PIERCE_RANGE, target):
-		var offset: Vector3 = enemy.global_position - target.global_position
-		offset.y = 0.0
-		if offset.length_squared() < 0.0001:
-			continue
-		# Nur wer WEITER in Schlagrichtung steht, gilt als "dahinter".
-		if forward.dot(offset.normalized()) < 0.4:
-			continue
-
-		var health: Health = _health_of(enemy)
-		if health != null:
-			health.take_damage(base_damage, player)
-		_spawn_vfx(FLASH_WHITE_SCENE, enemy.global_position + Vector3.UP * 1.2)
-		break
-
-	_flash_player(Color(1.0, 1.0, 1.0))
+	StatusSlow.apply_heavy(target, _player())
+	_flash_player(FLASH_BLUE)
+	_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.0)
 
 
 # ----------------------------------------------------------------------------
-# P4/17. Defekter Gameboy — Kettenblitz
+# P9. Altes Modulations-Modem — jeder 10. Schlag schaltet stumm
 # ----------------------------------------------------------------------------
-func _apply_broken_gameboy(target: Node3D, base_damage: float) -> void:
-	var chain: Array[Node3D] = _enemies_near(target.global_position, GAMEBOY_CHAIN_RANGE, target)
-	if chain.is_empty():
+func _apply_modem(target: Node3D) -> void:
+	# Kritischer Zusatzschaden gegen BETAEUBTE Gegner — greift bei JEDEM
+	# Schlag, nicht nur beim zehnten.
+	if StatusStun.active(target):
+		var health: Health = _health_of(target)
+		if health != null and health.is_alive():
+			health.take_damage(health.max_health * 0.05 * StatusStun.MODEM_CRIT_MULTIPLIER, _player())
+			_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.2)
+
+	_modem_hit_count += 1
+	if _modem_hit_count < MODEM_HITS_NEEDED:
 		return
+	_modem_hit_count = 0
 
-	var next: Node3D = chain[0]
-	var health: Health = _health_of(next)
-	if health != null:
-		health.take_damage(base_damage * GAMEBOY_DAMAGE_FACTOR, _player())
-
-	# Zwei Funkenpunkte statt eines: der Blitz soll als STRECKE lesbar sein,
-	# nicht als zweiter, zusammenhangloser Treffer.
-	_spawn_vfx(SPARK_YELLOW_SCENE, target.global_position.lerp(next.global_position, 0.5) + Vector3.UP)
-	_spawn_vfx(SPARK_YELLOW_SCENE, next.global_position + Vector3.UP)
-
-
-# ============================================================================
-# Reaktionen auf erlittenen Schaden
-# ============================================================================
-# Reihenfolge ist hier entscheidend, siehe Kopfkommentar:
-#   1. Handball-Polster (verhindert den Tod - muss VOR allem anderen laufen)
-#   2. Wackelpudding-Ring (macht den Schaden rueckgaengig)
-#   3. Nonnen-Kutte / Pappfluegel (reagieren auf den Treffer)
-func _on_player_damaged(amount: float, _source: Node3D) -> void:
-	if _player_health == null:
-		return
-
-	if _has(ItemCatalog.ID_HANDBALL_PADS):
-		_apply_handball_pads()
-
-	if _has(ItemCatalog.ID_JELLY_RING):
-		_apply_jelly_ring(amount)
-
-	if _has(ItemCatalog.ID_NUN_HABIT):
-		_apply_nun_habit()
-
-	if _has(ItemCatalog.ID_CARDBOARD_WINGS):
-		_apply_cardboard_wings()
-
-
-# ----------------------------------------------------------------------------
-# P4/11. Handball-Schulterpolster — einmal pro Raum den Tod verhindern
-# ----------------------------------------------------------------------------
-func _apply_handball_pads() -> void:
-	if _pads_used_this_room:
-		return
-	if _player_health.current_health > 0.0:
-		return
-
-	_pads_used_this_room = true
-	# died.emit() wird erst NACH diesem Signal geprueft — wer hier wieder
-	# ueber 0 steht, stirbt nicht.
-	_player_health.current_health = 1.0
-	_player_health.health_changed.emit(1.0, _player_health.max_health)
-	_player_health.set_invulnerable(1.0)
-
-	var player: CharacterBody3D = _player()
-	if player != null:
-		_spawn_vfx(FLASH_WHITE_SCENE, player.global_position + Vector3.UP)
-	_flash_player(Color(1.0, 1.0, 1.0))
-	Juice.impact(0.9, Juice.DURATION_HEAVY)
-
-
-# ----------------------------------------------------------------------------
-# P4/8. Wackelpudding-Ring — Treffer blocken
-# ----------------------------------------------------------------------------
-func _apply_jelly_ring(amount: float) -> void:
-	if _jelly_cooldown > 0.0:
-		return
-	_jelly_cooldown = JELLY_COOLDOWN
-
-	_player_health.heal(amount)
-	# Kurze Unverwundbarkeit hinterher: sonst schlaegt derselbe Gegner im
-	# naechsten Frame nochmal zu und der Block fuehlt sich wirkungslos an.
-	_player_health.set_invulnerable(0.25)
-
-	var player: CharacterBody3D = _player()
-	if player != null:
-		_spawn_vfx(HOLOGRAM_BLUE_SCENE, player.global_position + Vector3.UP)
-
-
-# ----------------------------------------------------------------------------
-# P4/10. Nonnen-Kutte — Aktiv-Item aufladen
-# ----------------------------------------------------------------------------
-# Greift direkt in _active_charges des ItemManagers. Der fuehrende
-# Unterstrich ist in GDScript reine Namenskonvention, kein Zugriffsschutz —
-# und eine oeffentliche "recharge()"-Methode nur fuer dieses eine Item waere
-# eine Aenderung an einer Datei, die das Feature sonst nicht anfasst.
-func _apply_nun_habit() -> void:
-	if randf() > HABIT_CHANCE:
-		return
-	if _items == null:
-		return
-
-	var charges = _items.get("_active_charges")
-	if not (charges is Dictionary):
-		return
-
-	for slot: int in range(2):
-		var item: ItemData = _items.active_items[slot]
-		if item == null:
-			continue
-		if int((charges as Dictionary).get(item.id, 0)) <= 0:
-			continue
-		(charges as Dictionary)[item.id] = 0
-		_items.active_item_charge_changed.emit(slot, 0, item.charge_rooms)
-		_flash_player(Color(1.0, 1.0, 1.0))
-		var player: CharacterBody3D = _player()
-		if player != null:
-			_spawn_vfx(FLASH_WHITE_SCENE, player.global_position + Vector3.UP)
-		return
-
-
-# ----------------------------------------------------------------------------
-# P4/18. Rote Pappfluegel — Rueckwaerts-Dash mit I-Frames
-# ----------------------------------------------------------------------------
-func _apply_cardboard_wings() -> void:
 	var player: CharacterBody3D = _player()
 	if player == null:
 		return
 
-	_wings_direction = -_player_forward(player)
-	_wings_timer = WINGS_DURATION
-	_player_health.set_invulnerable(WINGS_DURATION)
-	_spawn_vfx(DUST_RING_SCENE, player.global_position)
+	for enemy: Node3D in _enemies_near(player.global_position, MODEM_RADIUS):
+		StatusSilenced.apply(enemy, MODEM_SILENCE_DURATION, player)
+
+	_spawn_ring_wave(player.global_position, MODEM_RADIUS, Color(0.30, 0.60, 1.0), 0.45)
+	_flash_player(FLASH_WHITE)
 
 
 # ----------------------------------------------------------------------------
-# P4/9. Teufelchen-Outfit — Schadensbonus unter 50 % Leben
+# P8. Mutters Haarspray — Spruehwolke
 # ----------------------------------------------------------------------------
-func _on_player_health_changed(_current: float, _maximum: float) -> void:
+func _apply_hairspray(target: Node3D) -> void:
+	_spray_hit_count += 1
+	if _spray_hit_count < SPRAY_EVERY_N_HITS:
+		return
+	_spray_hit_count = 0
+	_spawn_hairspray_cloud(target.global_position)
+
+
+# ----------------------------------------------------------------------------
+# P15. Omas Stricknadeln — kritische Treffer durchdringen Ruestung
+# ----------------------------------------------------------------------------
+# Die +10 % Angriffsgeschwindigkeit stecken in stat_modifiers. Hier nur der
+# Krit: Health.incoming_damage_multiplier wird fuer genau EINEN Schlag
+# hochgesetzt und sofort wieder zurueckgestellt.
+#
+# WARUM NACHTRAEGLICH UND NICHT VORHER: der Schaden ist beim Eintreffen dieses
+# Signals bereits ausgeteilt. Ein Multiplikator haette also erst beim naechsten
+# Schlag gewirkt und der Krit waere immer einen Treffer zu spaet gekommen.
+func _apply_knitting_needles(target: Node3D, base_damage: float) -> void:
+	if randf() > NEEDLES_CRIT_CHANCE:
+		return
+	var health: Health = _health_of(target)
+	if health == null or not health.is_alive():
+		return
+
+	# Ruestung ignorieren = der Zusatzschaden umgeht incoming_damage_multiplier
+	# des Ziels, indem er direkt in voller Hoehe nachgereicht wird.
+	var bonus: float = base_damage * (NEEDLES_CRIT_MULTIPLIER - 1.0)
+	var saved: float = health.incoming_damage_multiplier
+	health.incoming_damage_multiplier = 1.0
+	health.take_damage(bonus, _player())
+	health.incoming_damage_multiplier = saved
+
+	_flash_player(FLASH_WHITE)
+	_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.3)
+
+
+# ----------------------------------------------------------------------------
+# P13. Disco-Kugel-Anhaenger — Lichtreflexe bei Kill
+# ----------------------------------------------------------------------------
+func _apply_disco_ball(target: Node3D) -> void:
+	_spawn_vfx(SPARK_YELLOW_SCENE, target.global_position + Vector3.UP * 1.4)
+	if randf() > DISCO_CHANCE:
+		return
+	for enemy: Node3D in _enemies_near(target.global_position, DISCO_RADIUS, target):
+		StatusConfused.apply(enemy, DISCO_CONFUSE_DURATION, StatusConfused.DEFAULT_MAX_ANGLE_DEG, _player())
+
+
+# ============================================================================
+# Schaden am Spieler
+# ============================================================================
+func _on_player_damaged(amount: float, source: Node3D) -> void:
+	# --- P11. Ueberkochter Milchreis: Schild faengt zuerst ab ------------
+	if _rice_shield > 0.0 and _player_health != null:
+		var absorbed: float = minf(_rice_shield, amount)
+		_rice_shield -= absorbed
+		_player_health.current_health = minf(_player_health.current_health + absorbed, _player_health.max_health)
+		_player_health.health_changed.emit(_player_health.current_health, _player_health.max_health)
+		_flash_player(FLASH_WHITE)
+		if _rice_shield <= 0.0:
+			_rice_charge = 0.0
+
+	# --- P18. Handball-Schulterpolster: Todesschutz ----------------------
+	# MUSS VOR allem anderen laufen, was den Frame beenden koennte: der
+	# died-Check in Health.take_damage kommt direkt nach diesem Signal.
+	if _has(ItemCatalog.ID_HANDBALL_PADS) and not _pads_used_this_room and _player_health != null:
+		if _player_health.current_health <= 0.0:
+			_pads_used_this_room = true
+			_player_health.current_health = 1.0
+			_player_health.health_changed.emit(_player_health.current_health, _player_health.max_health)
+			_player_health.set_invulnerable(1.0)
+			_flash_player(FLASH_WHITE)
+			_spawn_shield_pulse()
+
+	# --- P17. Nonnen-Kutte: Aktiv-Item aufladen -------------------------
+	if _has(ItemCatalog.ID_NUN_HABIT) and randf() <= NUN_CHANCE:
+		if _items.has_method("force_recharge_active") and _items.force_recharge_active():
+			_flash_player(FLASH_WHITE)
+
+	# --- P7. Kaputter Toaster: Funken stossen Nahkaempfer zurueck -------
+	if _has(ItemCatalog.ID_BROKEN_TOASTER) and _toaster_cooldown <= 0.0:
+		_toaster_cooldown = TOASTER_COOLDOWN
+		_apply_broken_toaster()
+
 	_refresh_devil_outfit()
 
 
-func _refresh_devil_outfit() -> void:
-	var stats: PlayerStats = _stats()
-	if stats == null:
-		return
-
-	var should_be_active: bool = false
-	if _has(ItemCatalog.ID_DEVIL_OUTFIT) and _player_health != null:
-		should_be_active = _player_health.get_health_percent() < DEVIL_HEALTH_THRESHOLD
-
-	if should_be_active == _devil_active:
-		return
-	_devil_active = should_be_active
-
-	if should_be_active:
-		stats.add_modifier("buff:devil_outfit", PlayerStats.STAT_DAMAGE, 0.0, DEVIL_DAMAGE_MULTIPLIER)
-		_flash_player(Color(1.0, 0.15, 0.15))
-	else:
-		stats.remove_source("buff:devil_outfit")
-
-
 # ----------------------------------------------------------------------------
-# P4/12. Goldene Kreditkarte — Schaden skaliert mit Muenzen
+# P7. Kaputter Toaster
 # ----------------------------------------------------------------------------
-func _on_coins_changed(_amount: int) -> void:
-	_refresh_credit_card_bonus()
-
-
-func _refresh_credit_card_bonus() -> void:
-	var stats: PlayerStats = _stats()
-	if stats == null:
-		return
-
-	if not _has(ItemCatalog.ID_GOLDEN_CREDIT_CARD):
-		stats.remove_source("buff:credit_card")
-		return
-
-	var steps: int = int(_items.coins) / CARD_COINS_PER_STEP
-	var bonus: float = minf(float(steps) * CARD_BONUS_PER_STEP, CARD_MAX_BONUS)
-	stats.add_modifier("buff:credit_card", PlayerStats.STAT_DAMAGE, 0.0, 1.0 + bonus)
-
-
-# ============================================================================
-# Aktive Items
-# ============================================================================
-# Signatur mit slot: das Signal heisst seit dem Q/E-Umbau
-# active_item_used(item, slot). Die alte Fassung dieser Datei hat nur (item)
-# entgegengenommen — Godot bricht so eine Verbindung zur Laufzeit mit
-# "Error calling from signal" ab, und das aktive Item tut schlicht nichts.
-func _on_active_item_used(item: ItemData, _slot: int) -> void:
-	if item == null:
-		return
-
-	match item.id:
-		ItemCatalog.ID_JUMPER_CABLES:
-			_use_jumper_cables()
-		ItemCatalog.ID_STORM_LIGHTER:
-			_use_storm_lighter()
-		ItemCatalog.ID_LIBRARY_BOOK:
-			_use_library_book()
-		ItemCatalog.ID_CURSED_DIE:
-			_use_cursed_die()
-
-
-# ----------------------------------------------------------------------------
-# 6. Papas Starthilfekabel — Stoss-Dash
-# ----------------------------------------------------------------------------
-func _use_jumper_cables() -> void:
+# Funken stossen alle Nahkampf-Gegner im Umkreis zurueck. Brennende Gegner
+# bekommen zusaetzlich einen sofortigen doppelten Feuer-Tick — die
+# Feuersturm-Synergie aus dem Design-Dokument. Die Regel dafuer steht in
+# burn.gd (StatusBurn.detonate), nicht hier: sie beschreibt, wie sich Feuer
+# verhaelt, nicht was der Toaster tut.
+func _apply_broken_toaster() -> void:
 	var player: CharacterBody3D = _player()
 	if player == null:
 		return
-
-	var combat := player.get_node_or_null("Combat") as CombatBase
-	if combat == null:
-		return
-
-	var forward: Vector3 = _player_forward(player)
-
-	# Der bestehende Dash-Zustand von CombatBase wird direkt gesetzt, statt
-	# eine eigene Bewegung zu bauen: player_base._physics_process fragt
-	# combat.is_dashing() bereits ab und uebernimmt dann die Dash-Velocity.
-	# So laeuft der Stoss ueber exakt denselben, getesteten Codepfad wie der
-	# normale Dash — inklusive Kamera-Federarm-Schutz.
-	combat.set("_dash_direction", forward)
-	combat.set("_dash_timer", CABLES_DURATION)
-	combat.set("_is_dashing", true)
-
-	if player.has_method("play_dash_fov_effect"):
-		player.play_dash_fov_effect()
-
-	_cables_timer = CABLES_DURATION
-	_cables_hit.clear()
-	Juice.shake(0.35)
-
-
-# ----------------------------------------------------------------------------
-# P4/6. Sturmfeuerzeug — 90-Grad-Feuerbogen
-# ----------------------------------------------------------------------------
-func _use_storm_lighter() -> void:
-	var player: CharacterBody3D = _player()
-	if player == null:
-		return
-
-	var forward: Vector3 = _player_forward(player)
 	var origin: Vector3 = player.global_position
-	var base_damage: float = 15.0
-	var primary := player.get_node_or_null("CameraPivot/PrimaryHitbox") as Hitbox
-	if primary != null:
-		base_damage = primary.damage
 
-	var cos_limit: float = cos(deg_to_rad(LIGHTER_HALF_ANGLE_DEG))
-	var hit_any: bool = false
-
-	for enemy: Node3D in _enemies_near(origin, LIGHTER_RANGE):
-		var offset: Vector3 = enemy.global_position - origin
-		offset.y = 0.0
-		if offset.length_squared() < 0.0001:
-			continue
-		if forward.dot(offset.normalized()) < cos_limit:
-			continue
-
+	for enemy: Node3D in _enemies_near(origin, TOASTER_RADIUS):
 		var health: Health = _health_of(enemy)
 		if health != null:
-			health.take_damage(base_damage * LIGHTER_DAMAGE_MULTIPLIER, player)
-		if enemy.has_method("apply_status_effect"):
-			enemy.apply_status_effect("burn", LIGHTER_BURN_DURATION, LIGHTER_BURN_DAMAGE, player, LIGHTER_BURN_TICK)
-
+			health.take_damage(TOASTER_DAMAGE, player)
+		if enemy.has_method("apply_knockback"):
+			var push: Vector3 = enemy.global_position - origin
+			push.y = 0.0
+			if push.length_squared() > 0.0001:
+				enemy.apply_knockback(push.normalized() * TOASTER_KNOCKBACK)
+		# Feuersturm.
+		StatusBurn.detonate(enemy, player)
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
-		hit_any = true
 
-	# Funkenkranz im Bogen, auch ohne Treffer — sonst wirkt eine Fehlzuendung
-	# wie ein nicht ausgeloestes Item.
-	for step: int in range(5):
-		var angle: float = deg_to_rad(lerpf(-LIGHTER_HALF_ANGLE_DEG, LIGHTER_HALF_ANGLE_DEG, float(step) / 4.0))
-		var direction: Vector3 = forward.rotated(Vector3.UP, angle)
-		_spawn_vfx(SPARK_YELLOW_SCENE, origin + direction * 3.0 + Vector3.UP, direction)
-
-	Juice.impact(0.8 if hit_any else 0.3, Juice.DURATION_HEAVY)
+	_spawn_vfx(SPARK_YELLOW_SCENE, origin + Vector3.UP)
+	_flash_player(Color(1.0, 0.55, 0.15))
 
 
 # ----------------------------------------------------------------------------
-# P4/7. Schulbibliotheks-Buch — Hinrichtung, einmal pro Etage
+# P18. Handball-Schulterpolster — sichtbarer Schild-Impuls
 # ----------------------------------------------------------------------------
-func _use_library_book() -> void:
-	var stage: int = _current_stage()
-	if stage == _book_used_in_stage:
-		return
-	_book_used_in_stage = stage
-
+func _spawn_shield_pulse() -> void:
 	var player: CharacterBody3D = _player()
 	if player == null:
 		return
-
-	for node: Node in get_tree().get_nodes_in_group(ENEMY_GROUP):
-		var enemy := node as Node3D
-		if enemy == null or not is_instance_valid(enemy):
-			continue
-		var health: Health = _health_of(enemy)
-		if health == null or not health.is_alive():
-			continue
-		if health.get_health_percent() > BOOK_EXECUTE_THRESHOLD:
-			continue
-
-		# Grosszuegig ueberdosiert: Ruestungs-Multiplikatoren des Gegners
-		# duerfen die Hinrichtung nicht in einen Kratzer verwandeln.
-		health.take_damage(health.max_health * 10.0, player)
-		_spawn_vfx(FLASH_WHITE_SCENE, enemy.global_position + Vector3.UP)
-
-	_spawn_vfx(FLASH_WHITE_SCENE, player.global_position + Vector3.UP * 2.0)
-	_flash_player(Color(1.0, 1.0, 1.0))
-	Juice.impact(1.0, Juice.DURATION_HEAVY)
+	_spawn_ring_wave(player.global_position, 3.5, Color(1.0, 1.0, 1.0), 0.4)
 
 
 # ----------------------------------------------------------------------------
-# P4/20. Verfluchter Glueckswuerfel — Drops umwandeln
+# Wiederverwendbare Schallwelle / Ring
 # ----------------------------------------------------------------------------
-# Bestehende Pickups werden ERSETZT, nicht umgeschrieben: pickup.gd baut sein
-# Aussehen komplett in _ready() (Mesh, Farbe, Glow, Licht). Ein nachtraeglich
-# geaendertes `kind` waere mechanisch ein Herz und optisch weiter eine Muenze.
-func _use_cursed_die() -> void:
-	var player: CharacterBody3D = _player()
-	if player == null:
-		return
+# Wird von Socke, Modem, Walkman, Handball-Polster und Milchreis benutzt.
+# TorusMesh statt GPUParticles3D: ein Ring, der von 0 auf radius waechst, ist
+# als Mesh billiger UND liest sich klarer als Reichweiten-Anzeige.
+func _spawn_ring_wave(world_pos: Vector3, radius: float, color: Color, duration: float) -> void:
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.75
+	torus.outer_radius = 1.0
+	ring.mesh = torus
 
-	var found: Array[Pickup] = []
-	_collect_pickups(get_tree().current_scene, found)
+	var mat: StandardMaterial3D = _make_glow_material(color, 0.75)
+	ring.set_surface_override_material(0, mat)
+	ring.scale = Vector3(0.15, 0.15, 0.15)
 
-	var kinds: Array[int] = [Pickup.Kind.COIN, Pickup.Kind.HEAL, Pickup.Kind.BOMB]
-	var converted: int = 0
+	_attach_to_world(ring, world_pos + Vector3.UP * 0.35)
 
-	for pickup: Pickup in found:
-		if not is_instance_valid(pickup):
-			continue
-		# ITEM-Sockel bleiben unangetastet: ein Item gegen eine Muenze zu
-		# tauschen waere kein Glueckswuerfel, sondern eine Strafe.
-		if pickup.kind == Pickup.Kind.ITEM:
-			continue
-		if pickup.global_position.distance_to(player.global_position) > CURSED_RADIUS:
-			continue
-
-		var parent: Node = pickup.get_parent()
-		if parent == null:
-			continue
-
-		var new_kind: int = kinds[randi() % kinds.size()]
-		var position: Vector3 = pickup.global_position
-
-		var replacement: Pickup = Pickup.create(new_kind)
-		parent.add_child(replacement)
-		replacement.global_position = position
-
-		_spawn_vfx(SPARK_YELLOW_SCENE, position + Vector3.UP * 0.5)
-		pickup.queue_free()
-		converted += 1
-
-	if converted > 0:
-		Juice.impact(0.4, Juice.DURATION_LIGHT)
-
-
-func _collect_pickups(node: Node, out: Array[Pickup]) -> void:
-	if node == null:
-		return
-	if node is Pickup:
-		out.append(node as Pickup)
-	for child: Node in node.get_children():
-		_collect_pickups(child, out)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ring, "scale", Vector3(radius, radius * 0.35, radius), duration)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(mat, "albedo_color:a", 0.0, duration)
+	tween.set_parallel(false)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(ring):
+			ring.queue_free()
+	)
 
 
 # ============================================================================
-# Pro-Frame-Effekte
+# Laufende Effekte (pro Physik-Frame)
 # ============================================================================
 func _physics_process(delta: float) -> void:
-	_tick_cooldowns(delta)
-	_poll_current_room(delta)
+	if _items == null:
+		return
+
+	if _toaster_cooldown > 0.0:
+		_toaster_cooldown -= delta
 
 	var player: CharacterBody3D = _player()
 	if player == null:
 		return
 
-	if _has(ItemCatalog.ID_BRIMSTONE_HORNS):
-		_process_brimstone_horns(player)
+	var speed: float = Vector2(player.velocity.x, player.velocity.z).length()
+
+	_poll_dash(player)
+	_poll_room_change()
+
+	# --- Bewegungs-Spuren ("step_tick") ---------------------------------
 	if _has(ItemCatalog.ID_HOLY_OIL):
-		_process_holy_oil(player, delta)
-	if _has(ItemCatalog.ID_TIGHT_PANTS):
-		_process_tight_pants(player)
-	if _has(ItemCatalog.ID_DEVIL_HORNS_PLASTIC):
-		_process_plastic_horns(player)
+		_tick_holy_oil(delta, player, speed)
 	if _has(ItemCatalog.ID_STILETTO_HEELS):
-		_process_stiletto_heels(player, delta)
+		_tick_stiletto_heels(delta, player, speed)
 
+	# --- Kontakt-Effekte -------------------------------------------------
+	if _has(ItemCatalog.ID_BRIMSTONE_HORNS):
+		_tick_brimstone_horns(delta, player, speed)
+	if _has(ItemCatalog.ID_TIGHT_PANTS):
+		_tick_tight_pants(delta, player, speed)
+
+	# --- Dauerzustaende ---------------------------------------------------
+	if _has(ItemCatalog.ID_RICE_PUDDING):
+		_tick_rice_pudding(delta, player, speed)
+	if _has(ItemCatalog.ID_LASER_POINTER):
+		_tick_laser_pointer(delta, player)
+	elif is_instance_valid(_laser_beam):
+		_laser_beam.visible = false
+
+	# --- Aktiv-Items mit Laufzeit -----------------------------------------
 	if _cables_timer > 0.0:
-		_process_jumper_cables(player, delta)
-	if _wings_timer > 0.0:
-		_process_cardboard_wings(player, delta)
+		_tick_jumper_cables(delta, player)
+	if _vacuum_timer > 0.0:
+		_tick_hand_vacuum(delta, player)
 
 
-func _tick_cooldowns(delta: float) -> void:
-	_jelly_cooldown = maxf(_jelly_cooldown - delta, 0.0)
-	_tick_dictionary(_horns_cooldowns, delta)
-	_tick_dictionary(_pants_cooldowns, delta)
-	_tick_dictionary(_plastic_cooldowns, delta)
+## Flankenerkennung fuer den Dash (siehe Kopfkommentar "dash_started").
+func _poll_dash(player: CharacterBody3D) -> void:
+	var combat: Node = player.get("combat")
+	var dashing: bool = false
+	if combat != null and is_instance_valid(combat) and combat.has_method("is_dashing"):
+		dashing = bool(combat.is_dashing())
+
+	if dashing and not _was_dashing:
+		_on_dash_started(player)
+	_was_dashing = dashing
 
 
-func _tick_dictionary(store: Dictionary, delta: float) -> void:
-	if store.is_empty():
+func _on_dash_started(player: CharacterBody3D) -> void:
+	if _has(ItemCatalog.ID_CHEWING_GUM):
+		_spawn_gum_trail(player)
+	if _has(ItemCatalog.ID_TENNIS_BALL):
+		_fire_tennis_ball(player)
+
+
+## Raumwechsel erkennen — setzt das Handball-Polster zurueck.
+func _poll_room_change() -> void:
+	_room_poll_timer -= get_physics_process_delta_time()
+	if _room_poll_timer > 0.0:
 		return
-	var expired: Array = []
-	for id in store.keys():
-		var remaining: float = float(store[id]) - delta
-		if remaining <= 0.0:
-			expired.append(id)
-		else:
-			store[id] = remaining
-	for id in expired:
-		store.erase(id)
+	_room_poll_timer = ROOM_POLL_INTERVAL
+
+	var generators: Array[Node] = get_tree().get_nodes_in_group("level_generator")
+	if generators.is_empty():
+		return
+	var gen: Node = generators[0]
+	if not gen.has_method("get_current_room"):
+		return
+
+	var room: Vector2i = gen.get_current_room()
+	if room == _last_room:
+		return
+	_last_room = room
+	_pads_used_this_room = false
+
+
+# ----------------------------------------------------------------------------
+# 5. Heiliges Oel — Pfuetzenspur
+# ----------------------------------------------------------------------------
+func _tick_holy_oil(delta: float, player: CharacterBody3D, speed: float) -> void:
+	if speed < OIL_MIN_SPEED:
+		return
+	_oil_timer -= delta
+	if _oil_timer > 0.0:
+		return
+	_oil_timer = OIL_SPAWN_INTERVAL
+	_spawn_hazard_puddle(
+		player.global_position,
+		Vector3(OIL_RADIUS * 2.0, 0.4, OIL_RADIUS * 2.0),
+		OIL_LIFETIME, OIL_DAMAGE_PER_TICK, OIL_TICK_INTERVAL,
+		OIL_SLOW_AMOUNT, false
+	)
+	_spawn_vfx(OIL_BUBBLES_SCENE, player.global_position + Vector3.UP * 0.1)
+
+
+# ----------------------------------------------------------------------------
+# P20. Mamas Stoeckelschuhe — Saeure-Lachen
+# ----------------------------------------------------------------------------
+func _tick_stiletto_heels(delta: float, player: CharacterBody3D, speed: float) -> void:
+	if speed < HEELS_MIN_SPEED:
+		return
+	_heels_timer -= delta
+	if _heels_timer > 0.0:
+		return
+	_heels_timer = HEELS_SPAWN_INTERVAL
+	_spawn_hazard_puddle(
+		player.global_position, HEELS_SIZE, HEELS_LIFETIME,
+		HEELS_DAMAGE_PER_TICK, StatusAcid.DEFAULT_TICK_INTERVAL,
+		StatusSlow.DEFAULT_AMOUNT, true
+	)
+	_spawn_vfx(DUST_RING_SCENE, player.global_position + Vector3.UP * 0.05)
+
+
+## Gemeinsamer Bauplan fuer Oel-, Saeure- und Klebe-Pfuetzen.
+##
+## WARUM NICHT lemonade.tscn INSTANZIIEREN:
+## Die Hazard-Szene bringt ihre eigene Groesse, ihr eigenes Material und ihre
+## eigenen Tick-Werte mit. Sie fuer drei verschiedene Items umzukonfigurieren
+## haette bedeutet, jede dieser Eigenschaften nach dem Instanziieren zu
+## ueberschreiben — inklusive der SubResource-Falle (BoxMesh/BoxShape3D sind
+## in .tscn geteilt und muessen VOR jeder Aenderung dupliziert werden, sonst
+## waechst mit der ersten Pfuetze auch jede Lava-Flaeche im Level mit).
+## Ein im Code gebauter Area3D ist kuerzer und hat das Problem gar nicht.
+func _spawn_hazard_puddle(
+		world_pos: Vector3,
+		puddle_size: Vector3,
+		lifetime: float,
+		damage_per_tick: float,
+		tick_interval: float,
+		slow_amount: float,
+		is_acid: bool
+) -> void:
+	var area := Area3D.new()
+	area.monitoring = true
+	# Layer 0 / Maske auf "alles": die Pfuetze soll Gegner finden, nicht selbst
+	# gefunden werden.
+	area.collision_layer = 0
+	area.collision_mask = 0xFFFFFFFF
+
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = puddle_size
+	shape.shape = box
+	area.add_child(shape)
+
+	var mesh_node := MeshInstance3D.new()
+	var box_mesh := BoxMesh.new()
+	box_mesh.size = Vector3(puddle_size.x, 0.08, puddle_size.z)
+	mesh_node.mesh = box_mesh
+	var color: Color = Color(0.62, 0.92, 0.28) if is_acid else Color(0.85, 0.78, 0.35)
+	mesh_node.set_surface_override_material(0, _make_glow_material(color, 0.55))
+	area.add_child(mesh_node)
+
+	_attach_to_world(area, world_pos + Vector3(0.0, 0.05, 0.0))
+
+	# Der Tick laeuft ueber einen eigenen Timer im Node, damit die Pfuetze
+	# unabhaengig von diesem Script weiterlebt (Charakterwechsel!).
+	var timer := Timer.new()
+	timer.wait_time = tick_interval
+	timer.autostart = true
+	area.add_child(timer)
+	timer.timeout.connect(func() -> void:
+		if not is_instance_valid(area):
+			return
+		for body: Node3D in area.get_overlapping_bodies():
+			if not body.is_in_group(ENEMY_GROUP):
+				continue
+			var health: Health = _health_of(body)
+			if health == null or not health.is_alive():
+				continue
+			if is_acid:
+				StatusAcid.apply(body, StatusAcid.DEFAULT_DURATION, damage_per_tick, _player(), tick_interval)
+			else:
+				health.take_damage(damage_per_tick, _player())
+			if slow_amount > 0.0:
+				StatusSlow.apply(body, maxf(tick_interval * 2.0, 0.6), slow_amount, _player())
+	)
+
+	_fade_and_free(area, lifetime, mesh_node)
+
+
+# ----------------------------------------------------------------------------
+# P6. Kaugummi unter dem Schuh — Klebespur beim Dash
+# ----------------------------------------------------------------------------
+func _spawn_gum_trail(player: CharacterBody3D) -> void:
+	var forward: Vector3 = _player_forward(player)
+	for i: int in range(GUM_BLOB_COUNT):
+		var pos: Vector3 = player.global_position - forward * (float(i) * 1.6)
+		_spawn_gum_blob(pos)
+
+
+## Ein Klebefleck. Verlangsamt und verlaengert laufende Saeure um 50 %
+## (Synergie aus dem Design-Dokument, Regel steht in acid.gd).
+func _spawn_gum_blob(world_pos: Vector3) -> void:
+	var area := Area3D.new()
+	area.collision_layer = 0
+	area.collision_mask = 0xFFFFFFFF
+
+	var shape := CollisionShape3D.new()
+	var cyl := CylinderShape3D.new()
+	cyl.radius = GUM_RADIUS
+	cyl.height = 1.2
+	shape.shape = cyl
+	area.add_child(shape)
+
+	var mesh_node := MeshInstance3D.new()
+	var cyl_mesh := CylinderMesh.new()
+	cyl_mesh.top_radius = GUM_RADIUS
+	cyl_mesh.bottom_radius = GUM_RADIUS
+	cyl_mesh.height = 0.08
+	mesh_node.mesh = cyl_mesh
+	mesh_node.set_surface_override_material(0, _make_glow_material(Color(0.55, 0.90, 0.45), 0.6))
+	area.add_child(mesh_node)
+
+	_attach_to_world(area, world_pos + Vector3(0.0, 0.06, 0.0))
+
+	var timer := Timer.new()
+	timer.wait_time = 0.3
+	timer.autostart = true
+	area.add_child(timer)
+	timer.timeout.connect(func() -> void:
+		if not is_instance_valid(area):
+			return
+		for body: Node3D in area.get_overlapping_bodies():
+			if not body.is_in_group(ENEMY_GROUP):
+				continue
+			StatusSlow.apply(body, GUM_SLOW_DURATION, GUM_SLOW_AMOUNT, _player())
+			# Synergie: Saeure haelt 50 % laenger.
+			StatusAcid.extend_for_gum(body)
+	)
+
+	_fade_and_free(area, GUM_LIFETIME, mesh_node)
+
+
+# ----------------------------------------------------------------------------
+# P12. Tennisball an der Schnur — Projektil beim Dash
+# ----------------------------------------------------------------------------
+func _fire_tennis_ball(player: CharacterBody3D) -> void:
+	var forward: Vector3 = _player_forward(player)
+	var start: Vector3 = player.global_position + Vector3.UP * 1.0 + forward * 1.0
+
+	var ball := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.35
+	sphere.height = 0.7
+	ball.mesh = sphere
+	ball.set_surface_override_material(0, _make_glow_material(Color(0.90, 0.95, 0.20)))
+	_attach_to_world(ball, start)
+
+	# Die Schnur: ein duenner Zylinder zwischen Spieler und Ball. Wird jeden
+	# Frame nachgezogen (siehe unten).
+	var travel_time: float = TENNIS_RANGE / TENNIS_SPEED
+	var target: Vector3 = start + forward * TENNIS_RANGE
+	var already_hit: Array[int] = []
+
+	var tween: Tween = create_tween()
+	tween.tween_method(
+		func(t: float) -> void:
+			if not is_instance_valid(ball):
+				return
+			ball.global_position = start.lerp(target, t)
+			for enemy: Node3D in _enemies_near(ball.global_position, TENNIS_RADIUS):
+				var id: int = enemy.get_instance_id()
+				if already_hit.has(id):
+					continue
+				already_hit.append(id)
+				var health: Health = _health_of(enemy)
+				if health != null:
+					health.take_damage(TENNIS_DAMAGE, player)
+				if enemy.has_method("apply_knockback"):
+					enemy.apply_knockback(forward * TENNIS_KNOCKBACK)
+				# Frischt eine laufende Blutung komplett auf.
+				if StatusEffectBase.is_active(enemy, "bleed"):
+					enemy.apply_status_effect("bleed", BLEED_DURATION, BLEED_DAMAGE_PER_TICK, player, BLEED_TICK_INTERVAL)
+				_spawn_vfx(HIT_SPARK_SCENE, enemy.global_position + Vector3.UP)
+				_spawn_vfx(DUST_RING_SCENE, ball.global_position),
+		0.0, 1.0, travel_time
+	)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(ball):
+			ball.queue_free()
+	)
 
 
 # ----------------------------------------------------------------------------
 # 4. Hoellenfeuer-Hoerner — Ramm-Attacke bei hohem Tempo
 # ----------------------------------------------------------------------------
-# Ausgewertet wird die HORIZONTALE Geschwindigkeit plus die Naehe zum Gegner,
-# nicht get_slide_collision(). Der Grund: eine Kollisionsabfrage haette einen
-# Eingriff in player_base._physics_process gebraucht, und gegen einen Gegner,
-# der selbst wegrennt, meldet move_and_slide je nach Frame gar keine
-# Kollision — die Ramme haette dann zufaellig ausgesetzt.
-func _process_brimstone_horns(player: CharacterBody3D) -> void:
-	var flat := Vector3(player.velocity.x, 0.0, player.velocity.z)
-	if flat.length() < HORNS_MIN_SPEED:
+func _tick_brimstone_horns(delta: float, player: CharacterBody3D, speed: float) -> void:
+	_tick_cooldown_map(_horns_cooldowns, delta)
+	if speed < HORNS_MIN_SPEED:
 		return
-	var direction: Vector3 = flat.normalized()
 
 	for enemy: Node3D in _enemies_near(player.global_position, HORNS_CONTACT_RANGE):
 		var id: int = enemy.get_instance_id()
 		if _horns_cooldowns.has(id):
 			continue
-
-		var offset: Vector3 = enemy.global_position - player.global_position
-		offset.y = 0.0
-		if offset.length_squared() < 0.0001:
-			continue
-		# Nur, wenn der Gegner tatsaechlich VOR mir liegt — sonst rammt man
-		# jemanden, an dem man gerade vorbeigelaufen ist.
-		if direction.dot(offset.normalized()) < 0.3:
-			continue
-
-		var health: Health = _health_of(enemy)
-		if health == null:
-			continue
-		health.take_damage(HORNS_DAMAGE, player)
 		_horns_cooldowns[id] = HORNS_COOLDOWN_PER_TARGET
 
-		if enemy.get("is_heavy") != true and enemy.has_method("apply_knockback"):
-			enemy.apply_knockback(direction * HORNS_KNOCKBACK)
-
-		_spawn_vfx(HIT_SPARK_SCENE, enemy.global_position + Vector3.UP, direction)
-		Juice.impact(0.7, Juice.DURATION_HEAVY)
+		var health: Health = _health_of(enemy)
+		if health != null:
+			health.take_damage(HORNS_DAMAGE, player)
+		if enemy.has_method("apply_knockback"):
+			var push: Vector3 = enemy.global_position - player.global_position
+			push.y = 0.0
+			if push.length_squared() > 0.0001:
+				enemy.apply_knockback(push.normalized() * HORNS_KNOCKBACK)
+		_spawn_vfx(HIT_SPARK_SCENE, enemy.global_position + Vector3.UP)
+		Juice.hit_stop(Juice.DURATION_HEAVY)
 
 
 # ----------------------------------------------------------------------------
-# P4/2. Omas Enge Hosen — Tritt im Vorbeilaufen
+# P2. Omas Enge Hosen — Tritt im Vorbeirennen
 # ----------------------------------------------------------------------------
-# Schwaechere, aber breitere Variante der Hoerner: kein Mindesttempo von 18,
-# dafuer nur halber Schaden und kein Rueckstoss.
-func _process_tight_pants(player: CharacterBody3D) -> void:
-	var flat := Vector3(player.velocity.x, 0.0, player.velocity.z)
-	if flat.length() < PANTS_MIN_SPEED:
+func _tick_tight_pants(delta: float, player: CharacterBody3D, speed: float) -> void:
+	_tick_cooldown_map(_pants_cooldowns, delta)
+	if speed < PANTS_MIN_SPEED:
 		return
 
-	var base_damage: float = 15.0
-	var primary := player.get_node_or_null("CameraPivot/PrimaryHitbox") as Hitbox
-	if primary != null:
-		base_damage = primary.damage
+	var stats: PlayerStats = _stats()
+	var base: float = 15.0 * (stats.get_damage_multiplier() if stats != null else 1.0)
 
 	for enemy: Node3D in _enemies_near(player.global_position, PANTS_RANGE):
 		var id: int = enemy.get_instance_id()
@@ -1164,306 +1435,578 @@ func _process_tight_pants(player: CharacterBody3D) -> void:
 
 		var health: Health = _health_of(enemy)
 		if health != null:
-			health.take_damage(base_damage * PANTS_DAMAGE_FACTOR, player)
+			health.take_damage(base * PANTS_DAMAGE_FACTOR, player)
+		_spawn_vfx(DUST_RING_SCENE, enemy.global_position + Vector3.UP * 0.1)
+	# Windlinien an den Fuessen des Spielers.
+	if not _pants_cooldowns.is_empty():
+		_spawn_vfx(DUST_RING_SCENE, player.global_position + Vector3.UP * 0.05)
 
-		# Staubring AM FUSS des Gegners, nicht auf Brusthoehe — der Tritt
-		# soll als Bodenkontakt lesbar sein.
-		_spawn_vfx(DUST_RING_SCENE, enemy.global_position)
-		Juice.hit_stop(Juice.DURATION_LIGHT)
 
-
-# ----------------------------------------------------------------------------
-# P4/16. Plastik-Teufelshoerner — Beruehrungsschaden beim Durchlaufen
-# ----------------------------------------------------------------------------
-func _process_plastic_horns(player: CharacterBody3D) -> void:
-	var base_damage: float = 15.0
-	var primary := player.get_node_or_null("CameraPivot/PrimaryHitbox") as Hitbox
-	if primary != null:
-		base_damage = primary.damage
-
-	for enemy: Node3D in _enemies_near(player.global_position, PLASTIC_CONTACT_RANGE):
-		var id: int = enemy.get_instance_id()
-		if _plastic_cooldowns.has(id):
-			continue
-		_plastic_cooldowns[id] = PLASTIC_COOLDOWN_PER_TARGET
-
-		var health: Health = _health_of(enemy)
-		if health != null:
-			health.take_damage(base_damage * PLASTIC_DAMAGE_FACTOR, player)
-		_spawn_vfx(DUST_RING_SCENE, enemy.global_position)
+## Laesst alle Eintraege einer Cooldown-Tabelle ablaufen und raeumt sie ab.
+func _tick_cooldown_map(map: Dictionary, delta: float) -> void:
+	if map.is_empty():
+		return
+	var done: Array = []
+	for id in map.keys():
+		var left: float = float(map[id]) - delta
+		if left <= 0.0:
+			done.append(id)
+		else:
+			map[id] = left
+	for id in done:
+		map.erase(id)
 
 
 # ----------------------------------------------------------------------------
-# 5. Heiliges Oel — Spur aus Pfuetzen
+# P11. Ueberkochter Milchreis — Schild beim Stillstehen
 # ----------------------------------------------------------------------------
-func _process_holy_oil(player: CharacterBody3D, delta: float) -> void:
-	var flat_speed: float = Vector3(player.velocity.x, 0.0, player.velocity.z).length()
-	if flat_speed < OIL_MIN_SPEED:
+func _tick_rice_pudding(delta: float, player: CharacterBody3D, speed: float) -> void:
+	if _player_health == null:
 		return
 
-	_oil_timer -= delta
-	if _oil_timer > 0.0:
-		return
-	_oil_timer = OIL_SPAWN_INTERVAL
+	var max_shield: float = _player_health.max_health * RICE_SHIELD_FRACTION
 
-	var parent: Node = get_tree().current_scene
-	if parent == null:
+	if speed > RICE_STAND_SPEED:
+		# In Bewegung: der Schild BLEIBT, er waechst nur nicht weiter. Ein
+		# Schild, der beim ersten Schritt verpufft, waere im Kampf nutzlos.
 		return
 
-	var puddle := OilPuddle.new()
-	puddle.setup(OIL_RADIUS, OIL_LIFETIME, OIL_DAMAGE_PER_TICK, OIL_TICK_INTERVAL, OIL_SLOW_AMOUNT, player)
-	parent.add_child(puddle)
-	# Leicht unter dem Pivot, sonst z-fightet die Scheibe mit der Bodenplatte.
-	puddle.global_position = player.global_position + Vector3(0.0, -0.85, 0.0)
+	_rice_charge = minf(_rice_charge + delta, RICE_BUILD_TIME)
+	var wanted: float = max_shield * (_rice_charge / RICE_BUILD_TIME)
+	if wanted > _rice_shield:
+		if _rice_shield <= 0.0 and wanted > 0.0:
+			_spawn_ring_wave(player.global_position, 2.5, Color(1.0, 1.0, 1.0), 0.5)
+		_rice_shield = wanted
 
-
-# ----------------------------------------------------------------------------
-# P4/19. Mamas Stoeckelschuhe — Saeure-Lachen
-# ----------------------------------------------------------------------------
-# Nutzt die BESTEHENDE lemonade.tscn statt einer zweiten Pfuetzen-Klasse: die
-# Lache bringt Schaden, Verlangsamung, Partikel und Optik bereits mit, und
-# der Spieler erkennt sofort, dass es dieselbe Substanz ist wie die Hazards
-# im Level.
-#
-# ignore_group = "player" ist Pflicht — ohne das laeuft man in die eigene
-# Spur und zerlegt sich selbst. Der Export dafuer kam mit dem Lemonade-Patch
-# aus Paket 1.
-func _process_stiletto_heels(player: CharacterBody3D, delta: float) -> void:
-	var flat_speed: float = Vector3(player.velocity.x, 0.0, player.velocity.z).length()
-	if flat_speed < HEELS_MIN_SPEED:
-		return
-
-	_heels_timer -= delta
-	if _heels_timer > 0.0:
-		return
-	_heels_timer = HEELS_SPAWN_INTERVAL
-
-	var packed: PackedScene = load(LEMONADE_SCENE_PATH) as PackedScene
-	if packed == null:
-		push_warning("[Items] Stoeckelschuhe: '%s' nicht gefunden - keine Saeure-Lache." % LEMONADE_SCENE_PATH)
-		return
-
-	var parent: Node = get_tree().current_scene
-	if parent == null:
-		return
-
-	var puddle: Node3D = packed.instantiate() as Node3D
-	if puddle == null:
-		return
-
-	# VOR add_child(): _ready() der Lache registriert bereits ueberlappende
-	# Bodies. Stuende ignore_group erst danach, waere der Spieler im ersten
-	# Frame schon eingetragen.
-	puddle.set("ignore_group", PartyManager.PLAYER_GROUP)
-	puddle.set("hazard_mode", LavaHazard.HazardMode.SURFACE)
-	puddle.set("damage_per_tick", HEELS_DAMAGE_PER_TICK)
-	puddle.set("damage_on_entry", true)
-
-	parent.add_child(puddle)
-	puddle.global_position = player.global_position + Vector3(0.0, -0.75, 0.0)
-	# size NACH add_child: der Setter greift auf @onready-Referenzen zu, die
-	# vorher null sind (er ist null-sicher, aber die Groesse wuerde nicht
-	# angewendet).
-	puddle.set("size", HEELS_SIZE)
-
-	_spawn_vfx(DUST_RING_SCENE, player.global_position)
-	_despawn_after(puddle, HEELS_LIFETIME)
-
-
-## Raeumt einen Node nach Ablauf wieder ab. Eigene Funktion, weil ein await
-## mitten im _physics_process den restlichen Frame verschlucken wuerde.
-func _despawn_after(node: Node, seconds: float) -> void:
-	await get_tree().create_timer(seconds).timeout
-	if is_instance_valid(node):
-		node.queue_free()
-
-
-# ----------------------------------------------------------------------------
-# 6. Papas Starthilfekabel — Trefferauswertung waehrend des Dashs
-# ----------------------------------------------------------------------------
-func _process_jumper_cables(player: CharacterBody3D, delta: float) -> void:
-	_cables_timer -= delta
-
-	for enemy: Node3D in _enemies_near(player.global_position, CABLES_HIT_RADIUS):
-		var id: int = enemy.get_instance_id()
-		if id in _cables_hit:
-			continue
-		if absf(enemy.global_position.y - player.global_position.y) > 3.0:
-			continue
-
-		var health: Health = _health_of(enemy)
-		if health == null:
-			continue
-
-		_cables_hit.append(id)
-		health.take_damage(CABLES_DAMAGE, player)
-
-		if enemy.has_method("apply_stun"):
-			enemy.apply_stun(CABLES_STUN)
-
-		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
-		Juice.impact(0.5, Juice.DURATION_HEAVY)
-
-	if _cables_timer <= 0.0:
-		_cables_hit.clear()
-
-
-# ----------------------------------------------------------------------------
-# P4/18. Rote Pappfluegel — der eigentliche Rueckwaerts-Schub
-# ----------------------------------------------------------------------------
-# Direkt auf velocity statt ueber den Dash-Zustand von CombatBase: der Dash
-# richtet den Charakter aus und zaehlt in die Combo. Ein Treffer-Rueckstoss
-# soll beides NICHT tun.
-func _process_cardboard_wings(player: CharacterBody3D, delta: float) -> void:
-	_wings_timer -= delta
-	player.velocity.x = _wings_direction.x * WINGS_SPEED
-	player.velocity.z = _wings_direction.z * WINGS_SPEED
-
-
-# ============================================================================
-# Raum- und Etagenwechsel
-# ============================================================================
-func _poll_current_room(delta: float) -> void:
-	_room_poll_timer -= delta
-	if _room_poll_timer > 0.0:
-		return
-	_room_poll_timer = ROOM_POLL_INTERVAL
-
-	var generator: Node = _generator()
-	if generator == null:
-		return
-
-	var current: Vector2i = generator.get_current_room()
-	if current == _last_room:
-		return
-	_last_room = current
-
-	# Neuer Raum betreten.
-	_pads_used_this_room = false
-	if _has(ItemCatalog.ID_CROOKED_DIE):
-		_roll_crooked_die()
-
-
-func _generator() -> Node:
-	var found: Array[Node] = get_tree().get_nodes_in_group("level_generator")
-	if found.is_empty():
-		return null
-	var generator: Node = found[0]
-	if not is_instance_valid(generator) or not generator.has_method("get_current_room"):
-		return null
-	return generator
-
-
-func _current_stage() -> int:
-	var generator: Node = _generator()
-	if generator == null or not generator.has_method("get_current_stage"):
-		return 1
-	return int(generator.get_current_stage())
-
-
-# ----------------------------------------------------------------------------
-# P4/15. Ungerader Wuerfel — zufaelliger Buff beim Raumbeitritt
-# ----------------------------------------------------------------------------
-# Bewusst randi() statt eines abgeleiteten RNG: Buffs sind reine Optik fuer
-# den Speedrun-Vergleich - sie veraendern weder Layout noch Gegnermischung.
-# Ein eigener Stream haette den Seed nur unnoetig verzweigt.
-func _roll_crooked_die() -> void:
+	# Saeure-Immunitaet, solange der Schild steht.
 	var stats: PlayerStats = _stats()
 	if stats == null:
 		return
-
-	var player: CharacterBody3D = _player()
-	match randi() % 3:
-		0:
-			stats.add_timed_modifier("buff:crooked_die", PlayerStats.STAT_MOVE_SPEED,
-				DIE_BUFF_DURATION, 0.0, 1.0 + DIE_BUFF_STRENGTH)
-		1:
-			stats.add_timed_modifier("buff:crooked_die", PlayerStats.STAT_DAMAGE,
-				DIE_BUFF_DURATION, 0.0, 1.0 + DIE_BUFF_STRENGTH)
-		_:
-			# STAT_ARMOR ist ein Multiplikator auf ANKOMMENDEN Schaden -
-			# kleiner ist besser. Deshalb hier 1 - Staerke statt 1 + Staerke.
-			stats.add_timed_modifier("buff:crooked_die", PlayerStats.STAT_ARMOR,
-				DIE_BUFF_DURATION, 0.0, 1.0 - DIE_BUFF_STRENGTH)
-
-	if player != null:
-		_spawn_vfx(HOLOGRAM_BLUE_SCENE, player.global_position + Vector3.UP * 2.0)
+	if _rice_shield > 0.0:
+		if not stats.has_source("item:rice_shield"):
+			stats.add_modifier("item:rice_shield", PlayerStats.STAT_HAZARD_RESIST, 0.0, 0.0)
+			stats.apply()
+	elif stats.has_source("item:rice_shield"):
+		stats.remove_source("item:rice_shield")
+		stats.apply()
 
 
-# ============================================================================
-# Oel-Pfuetze
-# ============================================================================
-# Als verschachtelte Klasse statt eigener Datei: sie wird ausschliesslich von
-# "Heiliges Oel" benutzt und braucht weder Szene noch Inspector-Werte.
-class OilPuddle extends Area3D:
-	var _lifetime: float = 3.0
-	var _damage: float = 3.0
-	var _tick_interval: float = 0.5
-	var _slow_amount: float = 0.25
-	var _source: Node3D = null
-	var _tick_timer: float = 0.0
-	var _age: float = 0.0
-	var _mesh: MeshInstance3D = null
+# ----------------------------------------------------------------------------
+# P10. Laser-Pointer aus dem Kiosk
+# ----------------------------------------------------------------------------
+# Markiert dauerhaft den Gegner mit den MEISTEN Lebenspunkten und zieht einen
+# Strahl dorthin. Der Schadensbonus haengt in _on_player_hit_enemy(); hier
+# laeuft nur Zielsuche, Strahl-Darstellung und die DoT-Verteilung.
+func _tick_laser_pointer(delta: float, player: CharacterBody3D) -> void:
+	_laser_retarget_timer -= delta
+	if _laser_retarget_timer <= 0.0:
+		_laser_retarget_timer = LASER_RETARGET_INTERVAL
+		_laser_target = _find_strongest_enemy(player.global_position)
+		_rebind_laser_dot_relay()
 
-	func setup(radius: float, lifetime: float, damage: float, tick_interval: float, slow_amount: float, source: Node3D) -> void:
-		_lifetime = lifetime
-		_damage = damage
-		_tick_interval = tick_interval
-		_tick_timer = tick_interval
-		_slow_amount = slow_amount
-		_source = source
+	if _laser_target == null or not is_instance_valid(_laser_target):
+		if is_instance_valid(_laser_beam):
+			_laser_beam.visible = false
+		return
 
-		var shape := CollisionShape3D.new()
-		var cylinder := CylinderShape3D.new()
-		cylinder.radius = radius
-		cylinder.height = 0.6
-		shape.shape = cylinder
-		add_child(shape)
+	_update_laser_beam(player.global_position + Vector3.UP * 1.5,
+		_laser_target.global_position + Vector3.UP * 1.2)
 
-		var cyl_mesh := CylinderMesh.new()
-		cyl_mesh.top_radius = radius
-		cyl_mesh.bottom_radius = radius
-		cyl_mesh.height = 0.06
 
-		var material := StandardMaterial3D.new()
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		material.albedo_color = Color(0.95, 0.90, 0.45, 0.55)
+## Gegner mit den HOECHSTEN absoluten Lebenspunkten in Reichweite.
+func _find_strongest_enemy(origin: Vector3) -> Node3D:
+	var best: Node3D = null
+	var best_hp: float = -1.0
+	for enemy: Node3D in _enemies_near(origin, LASER_RANGE):
+		var health: Health = _health_of(enemy)
+		if health == null:
+			continue
+		if health.current_health > best_hp:
+			best_hp = health.current_health
+			best = enemy
+	return best
 
-		_mesh = MeshInstance3D.new()
-		_mesh.mesh = cyl_mesh
-		# material_override statt surface_material_override — Vorrangregel.
-		_mesh.material_override = material
-		_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(_mesh)
 
-		monitoring = true
-		# Siehe bomb.gd: enge Masken fallen beim Testen nicht auf.
-		collision_mask = 0xFFFFF
+## Baut den Strahl beim ersten Aufruf und richtet ihn danach nur noch aus.
+##
+## SKALIERUNG STATT NEUBAU: ein Zylinder mit Hoehe 1.0, der auf die Distanz
+## gestreckt wird, kostet pro Frame eine Zuweisung. Ein neues Mesh pro Frame
+## waere Speichermuell im Sekundentakt.
+func _update_laser_beam(from: Vector3, to: Vector3) -> void:
+	if not is_instance_valid(_laser_beam):
+		_laser_beam = MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = LASER_BEAM_THICKNESS
+		cyl.bottom_radius = LASER_BEAM_THICKNESS
+		cyl.height = 1.0
+		_laser_beam.mesh = cyl
+		_laser_beam.set_surface_override_material(0, _make_glow_material(LASER_COLOR, 0.85))
+		_attach_to_world(_laser_beam, from)
 
-	func _physics_process(delta: float) -> void:
-		_age += delta
-		if _age >= _lifetime:
-			queue_free()
+	_laser_beam.visible = true
+	var distance: float = from.distance_to(to)
+	if distance < 0.05:
+		_laser_beam.visible = false
+		return
+
+	_laser_beam.global_position = (from + to) * 0.5
+	# CylinderMesh steht entlang +Y. look_at richtet -Z aus, deshalb die
+	# zusaetzliche Drehung um 90 Grad auf der X-Achse.
+	var up: Vector3 = Vector3.UP
+	if absf((to - from).normalized().dot(up)) > 0.99:
+		up = Vector3.FORWARD
+	_laser_beam.look_at(to, up)
+	_laser_beam.rotate_object_local(Vector3.RIGHT, PI * 0.5)
+	_laser_beam.scale = Vector3(1.0, distance, 1.0)
+
+
+## Haengt sich an das Tick-Signal des markierten Gegners, um 50 % jedes
+## DoT-Ticks auf Nachbargegner zu verteilen.
+##
+## WARUM UEBER DAS SIGNAL UND NICHT PER POLLING:
+## Ein Poll haette den DoT-Schaden nachbauen muessen (Tick-Intervall,
+## Magnitude, Restdauer) — also eine zweite Wahrheit neben dem
+## StatusEffectManager. Am Signal haengt automatisch genau der Wert, der
+## gerade wirklich ausgeteilt wurde.
+func _rebind_laser_dot_relay() -> void:
+	# Alte Verbindung loesen.
+	for id in _laser_dot_relay.keys():
+		var entry: Dictionary = _laser_dot_relay[id]
+		var manager: StatusEffectManager = entry.get("manager")
+		var callable: Callable = entry.get("callable")
+		if is_instance_valid(manager) and manager.effect_ticked.is_connected(callable):
+			manager.effect_ticked.disconnect(callable)
+	_laser_dot_relay.clear()
+
+	if _laser_target == null or not is_instance_valid(_laser_target):
+		return
+
+	var manager: StatusEffectManager = StatusEffectBase.manager_of(_laser_target)
+	if manager == null:
+		return
+
+	var target: Node3D = _laser_target
+	var relay: Callable = func(id: String, magnitude: float, source: Node) -> void:
+		if not StatusEffectManager.DOT_IDS.has(id):
 			return
-
-		# Ausblenden statt hart verschwinden — sonst sieht die Spur aus wie
-		# ein Fehler in der Darstellung.
-		if _mesh and _mesh.material_override is StandardMaterial3D:
-			var fade: float = clampf(1.0 - _age / _lifetime, 0.0, 1.0)
-			var mat: StandardMaterial3D = _mesh.material_override
-			mat.albedo_color.a = 0.55 * fade
-
-		_tick_timer -= delta
-		if _tick_timer > 0.0:
+		if not is_instance_valid(target):
 			return
-		_tick_timer = _tick_interval
+		var split: float = magnitude * LASER_DOT_SPLIT
+		for neighbor: Node3D in _enemies_near(target.global_position, LASER_SPLIT_RADIUS, target):
+			var health: Health = _health_of(neighbor)
+			if health != null and health.is_alive():
+				health.take_damage(split, source)
+				_spawn_vfx(HIT_SPARK_SCENE, neighbor.global_position + Vector3.UP)
 
-		for body: Node3D in get_overlapping_bodies():
-			if not body.is_in_group("enemies"):
+	manager.effect_ticked.connect(relay)
+	_laser_dot_relay[target.get_instance_id()] = {"manager": manager, "callable": relay}
+
+
+# ----------------------------------------------------------------------------
+# P8. Mutters Haarspray — die Wolke
+# ----------------------------------------------------------------------------
+# Verlaengert die Telegraphs von Gegnern in der Wolke. Faengt die Wolke Feuer
+# (brennender Gegner darin), explodiert sie und setzt alles in Brand.
+func _spawn_hairspray_cloud(world_pos: Vector3) -> void:
+	var area := Area3D.new()
+	area.collision_layer = 0
+	area.collision_mask = 0xFFFFFFFF
+
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = SPRAY_RADIUS
+	shape.shape = sphere
+	area.add_child(shape)
+
+	var mesh_node := MeshInstance3D.new()
+	var sphere_mesh := SphereMesh.new()
+	sphere_mesh.radius = SPRAY_RADIUS
+	sphere_mesh.height = SPRAY_RADIUS * 2.0
+	mesh_node.mesh = sphere_mesh
+	mesh_node.set_surface_override_material(0, _make_glow_material(Color(0.85, 0.92, 0.35), 0.22))
+	area.add_child(mesh_node)
+
+	_attach_to_world(area, world_pos + Vector3.UP * 1.2)
+
+	var ignited: Array[bool] = [false]
+	var timer := Timer.new()
+	timer.wait_time = 0.25
+	timer.autostart = true
+	area.add_child(timer)
+	timer.timeout.connect(func() -> void:
+		if not is_instance_valid(area) or ignited[0]:
+			return
+		for body: Node3D in area.get_overlapping_bodies():
+			if not body.is_in_group(ENEMY_GROUP):
 				continue
-			var health := body.find_child("Health", true, false) as Health
-			if health and health.is_alive():
-				health.take_damage(_damage, _source)
+			# Brennt jemand in der Wolke -> Feuerwelle.
+			if StatusBurn.active(body):
+				ignited[0] = true
+				_ignite_hairspray_cloud(area.global_position)
+				return
+			# Sonst: Telegraphs werden traeger.
 			if body.has_method("apply_status_effect"):
-				body.apply_status_effect("slow", _tick_interval + 0.1, _slow_amount, _source, 0.0)
+				body.apply_status_effect("spray_slow_telegraph", 0.4, SPRAY_TELEGRAPH_DELAY, _player(), 0.0)
+			StatusSlow.apply(body, 0.4, 0.15, _player())
+	)
+
+	_fade_and_free(area, SPRAY_DURATION, mesh_node)
+
+
+func _ignite_hairspray_cloud(world_pos: Vector3) -> void:
+	for enemy: Node3D in _enemies_near(world_pos, SPRAY_IGNITE_RADIUS):
+		var health: Health = _health_of(enemy)
+		if health != null:
+			health.take_damage(SPRAY_IGNITE_DAMAGE, _player())
+		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, _player())
+		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
+	_spawn_ring_wave(world_pos, SPRAY_IGNITE_RADIUS, Color(1.0, 0.55, 0.10), 0.35)
+	Juice.shake(1.5)
+
+
+# ============================================================================
+# AKTIVE ITEMS
+# ============================================================================
+func _on_active_item_used(item: ItemData, _slot: int) -> void:
+	if item == null:
+		return
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return
+
+	match item.id:
+		ItemCatalog.ID_JUMPER_CABLES:
+			_use_jumper_cables(player)
+		ItemCatalog.ID_STORM_LIGHTER:
+			_use_storm_lighter(player)
+		ItemCatalog.ID_LIBRARY_BOOK:
+			_use_library_book(player)
+		ItemCatalog.ID_CURSED_DIE:
+			_use_cursed_die(player)
+		ItemCatalog.ID_HAND_VACUUM:
+			_use_hand_vacuum(player)
+		ItemCatalog.ID_PEPPER_MILL:
+			_use_pepper_mill(player)
+		ItemCatalog.ID_WALKMAN:
+			_use_walkman(player)
+		ItemCatalog.ID_MEGAPHONE:
+			_use_megaphone(player)
+		ItemCatalog.ID_WHIPPED_CREAM:
+			_use_whipped_cream(player)
+
+
+# --- 6. Papas Starthilfekabel ------------------------------------------------
+func _use_jumper_cables(player: CharacterBody3D) -> void:
+	_cables_timer = CABLES_DURATION
+	_cables_hit.clear()
+	_spawn_vfx(SPARK_YELLOW_SCENE, player.global_position + Vector3.UP)
+	_flash_player(FLASH_BLUE)
+
+
+func _tick_jumper_cables(delta: float, player: CharacterBody3D) -> void:
+	_cables_timer -= delta
+	var forward: Vector3 = _player_forward(player)
+	# Der Spieler wird aktiv geschoben — dash_speed des Charakters ist hier
+	# bewusst NICHT die Referenz: das Kabel soll immer gleich weit tragen,
+	# unabhaengig davon, wer gerade gespielt wird.
+	player.velocity.x = forward.x * 30.0
+	player.velocity.z = forward.z * 30.0
+
+	for enemy: Node3D in _enemies_near(player.global_position, CABLES_HIT_RADIUS):
+		var id: int = enemy.get_instance_id()
+		if _cables_hit.has(id):
+			continue
+		_cables_hit.append(id)
+		var health: Health = _health_of(enemy)
+		if health != null:
+			health.take_damage(CABLES_DAMAGE, player)
+		StatusStun.apply(enemy, CABLES_STUN, player)
+		_spawn_vfx(HIT_SPARK_SCENE, enemy.global_position + Vector3.UP)
+
+
+# --- A1. Sturmfeuerzeug ------------------------------------------------------
+func _use_storm_lighter(player: CharacterBody3D) -> void:
+	var forward: Vector3 = _player_forward(player)
+	var stats: PlayerStats = _stats()
+	var damage: float = LIGHTER_BASE_DAMAGE * LIGHTER_DAMAGE_MULTIPLIER
+	if stats != null:
+		damage *= stats.get_damage_multiplier()
+
+	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, LIGHTER_RANGE, LIGHTER_HALF_ANGLE_DEG):
+		var health: Health = _health_of(enemy)
+		if health != null:
+			health.take_damage(damage, player)
+		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, player)
+		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
+
+	_spawn_cone_flash(player, forward, LIGHTER_RANGE, LIGHTER_HALF_ANGLE_DEG, Color(1.0, 0.55, 0.12))
+	Juice.shake(1.0)
+
+
+# --- A2. Schulbibliotheks-Buch ----------------------------------------------
+# "1x pro Etage": weder Zeit- noch Raum-Cooldown, deshalb eine eigene Sperre.
+# Die Etage kommt vom LevelGenerator — der ist die einzige Stelle, die weiss,
+# wann eine neue anfaengt.
+func _use_library_book(player: CharacterBody3D) -> void:
+	var stage: int = _current_stage()
+	if _book_used_in_stage == stage:
+		return
+	_book_used_in_stage = stage
+
+	for enemy: Node3D in _enemies_near(player.global_position, 60.0):
+		var health: Health = _health_of(enemy)
+		if health == null or not health.is_alive():
+			continue
+		if health.get_health_percent() > BOOK_EXECUTE_THRESHOLD:
+			continue
+		health.take_damage(health.current_health + 1.0, player)
+		_spawn_vfx(FLASH_WHITE_SCENE, enemy.global_position + Vector3.UP)
+
+	_spawn_vfx(FLASH_WHITE_SCENE, player.global_position + Vector3.UP)
+	_flash_player(FLASH_WHITE)
+	Juice.shake(1.6)
+
+
+func _current_stage() -> int:
+	var generators: Array[Node] = get_tree().get_nodes_in_group("level_generator")
+	if generators.is_empty():
+		return 1
+	var gen: Node = generators[0]
+	if gen.has_method("get_current_stage"):
+		return int(gen.get_current_stage())
+	return 1
+
+
+# --- A3. Verfluchter Glueckswuerfel -----------------------------------------
+func _use_cursed_die(player: CharacterBody3D) -> void:
+	var rerolled: int = 0
+	for node: Node in get_tree().get_nodes_in_group(PICKUP_GROUP):
+		var pickup := node as Node3D
+		if pickup == null or not is_instance_valid(pickup):
+			continue
+		if pickup.global_position.distance_to(player.global_position) > CURSED_RADIUS:
+			continue
+		_spawn_vfx(SPARK_YELLOW_SCENE, pickup.global_position + Vector3.UP * 0.5)
+		if pickup.has_method("reroll"):
+			pickup.reroll()
+			rerolled += 1
+		elif Loot != null and Loot.has_method("spawn_random_drop"):
+			# Fallback: altes Pickup weg, neues an derselben Stelle.
+			var pos: Vector3 = pickup.global_position
+			pickup.queue_free()
+			Loot.spawn_random_drop(pos)
+			rerolled += 1
+
+	if rerolled > 0:
+		Juice.shake(0.8)
+
+
+# --- A4. Alter Handstaubsauger ----------------------------------------------
+func _use_hand_vacuum(player: CharacterBody3D) -> void:
+	_vacuum_timer = VACUUM_DURATION
+	_vacuum_direction = _player_forward(player)
+	_vacuum_absorbed_acid = false
+	_spawn_cone_flash(player, _vacuum_direction, VACUUM_RANGE, VACUUM_HALF_ANGLE_DEG, Color(0.45, 0.95, 0.35))
+
+
+func _tick_hand_vacuum(delta: float, player: CharacterBody3D) -> void:
+	_vacuum_timer -= delta
+	# Richtung mitdrehen: der Sauger folgt dem Blick, sonst muesste man
+	# 2,5 Sekunden lang still stehen.
+	_vacuum_direction = _player_forward(player)
+
+	for enemy: Node3D in _enemies_in_cone(player.global_position, _vacuum_direction, VACUUM_RANGE, VACUUM_HALF_ANGLE_DEG):
+		var pull: Vector3 = player.global_position - enemy.global_position
+		pull.y = 0.0
+		if pull.length() < 2.0:
+			continue
+		if enemy is CharacterBody3D:
+			var body := enemy as CharacterBody3D
+			body.velocity.x += pull.normalized().x * VACUUM_PULL_SPEED * delta * 10.0
+			body.velocity.z += pull.normalized().z * VACUUM_PULL_SPEED * delta * 10.0
+
+	# Saeure aufsaugen: einmal pro Einsatz, sobald der Spieler in einer
+	# Hazard-Flaeche steht.
+	if not _vacuum_absorbed_acid and _player_stands_in_hazard(player):
+		_vacuum_absorbed_acid = true
+
+	if _vacuum_timer <= 0.0 and _vacuum_absorbed_acid:
+		_fire_acid_beam(player)
+
+
+func _player_stands_in_hazard(player: CharacterBody3D) -> bool:
+	for node: Node in get_tree().get_nodes_in_group("hazard"):
+		var hazard := node as Node3D
+		if hazard != null and is_instance_valid(hazard):
+			if hazard.global_position.distance_to(player.global_position) < 4.0:
+				return true
+	return false
+
+
+## Der zurueckgefeuerte Saeurestrahl. Dicker Zylinder nach vorn plus
+## Saeure-DoT auf alles im Weg.
+func _fire_acid_beam(player: CharacterBody3D) -> void:
+	var forward: Vector3 = _player_forward(player)
+	var start: Vector3 = player.global_position + Vector3.UP * 1.2
+
+	var beam := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.5
+	cyl.bottom_radius = 0.5
+	cyl.height = VACUUM_RANGE
+	beam.mesh = cyl
+	beam.set_surface_override_material(0, _make_glow_material(Color(0.55, 0.95, 0.25), 0.7))
+	_attach_to_world(beam, start + forward * VACUUM_RANGE * 0.5)
+	beam.look_at(start + forward * VACUUM_RANGE, Vector3.UP)
+	beam.rotate_object_local(Vector3.RIGHT, PI * 0.5)
+
+	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, VACUUM_RANGE, 12.0):
+		StatusAcid.apply(enemy, VACUUM_ACID_DURATION, VACUUM_ACID_DAMAGE, player)
+		_spawn_vfx(CORROSION_SCENE, enemy.global_position + Vector3.UP * 0.4)
+
+	_fade_and_free(beam, 0.4, beam)
+
+
+# --- A5. Omas Pfeffermuehle -------------------------------------------------
+func _use_pepper_mill(player: CharacterBody3D) -> void:
+	for enemy: Node3D in _enemies_near(player.global_position, PEPPER_RADIUS):
+		# Niesen = kein Angriff moeglich. silenced statt stun: der Gegner
+		# soll sich weiter bewegen duerfen, nur eben nicht zuschlagen.
+		StatusSilenced.apply(enemy, PEPPER_SILENCE_DURATION, player)
+		# Alle laufenden DoTs halten 3 s laenger.
+		var manager: StatusEffectManager = StatusEffectBase.manager_of(enemy)
+		if manager != null:
+			manager.extend_all(PEPPER_DOT_EXTENSION)
+		_spawn_vfx(DUST_RING_SCENE, enemy.global_position + Vector3.UP * 1.8)
+
+	_spawn_ring_wave(player.global_position, PEPPER_RADIUS, Color(0.55, 0.52, 0.48), 0.5)
+
+
+# --- A6. Walkman (kaputt) ---------------------------------------------------
+func _use_walkman(player: CharacterBody3D) -> void:
+	var origin: Vector3 = player.global_position
+
+	# Projektile zerstoeren.
+	for node: Node in get_tree().get_nodes_in_group("projectiles"):
+		var proj := node as Node3D
+		if proj != null and is_instance_valid(proj):
+			if proj.global_position.distance_to(origin) <= WALKMAN_RADIUS:
+				_spawn_vfx(HIT_SPARK_SCENE, proj.global_position)
+				proj.queue_free()
+
+	for enemy: Node3D in _enemies_near(origin, WALKMAN_RADIUS):
+		if enemy.has_method("apply_knockback"):
+			var push: Vector3 = enemy.global_position - origin
+			push.y = 0.0
+			if push.length_squared() > 0.0001:
+				enemy.apply_knockback(push.normalized() * WALKMAN_KNOCKBACK)
+		StatusConfused.apply(enemy, WALKMAN_CONFUSE_DURATION, StatusConfused.HEAVY_MAX_ANGLE_DEG, player)
+
+	_spawn_ring_wave(origin, WALKMAN_RADIUS, Color(0.35, 0.60, 1.0), 0.45)
+	_flash_player(FLASH_WHITE)
+	Juice.shake(WALKMAN_SHAKE)
+
+
+# --- A7. Megafon aus der Schule ---------------------------------------------
+func _use_megaphone(player: CharacterBody3D) -> void:
+	var forward: Vector3 = _player_forward(player)
+	var stats: PlayerStats = _stats()
+	var base: float = MEGAPHONE_DAMAGE * (stats.get_damage_multiplier() if stats != null else 1.0)
+
+	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, MEGAPHONE_RANGE, MEGAPHONE_HALF_ANGLE_DEG):
+		# Dreifacher Schaden gegen betaeubte Gegner (Design-Dokument).
+		# Die confused-Synergie steckt in StatusStun.damage_multiplier_against.
+		var factor: float = StatusStun.damage_multiplier_against(enemy, StatusStun.MEGAPHONE_DAMAGE_MULTIPLIER)
+		var health: Health = _health_of(enemy)
+		if health != null:
+			health.take_damage(base * factor, player)
+		# Interrupt: laufende Telegraphs abbrechen.
+		if enemy.has_method("interrupt_attack"):
+			enemy.interrupt_attack()
+		StatusSilenced.apply(enemy, 0.8, player)
+		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
+
+	_spawn_cone_flash(player, forward, MEGAPHONE_RANGE, MEGAPHONE_HALF_ANGLE_DEG, Color(1.0, 0.60, 0.15))
+	Juice.shake(1.2)
+
+
+# --- A8. Spruehsahne-Dose ---------------------------------------------------
+func _use_whipped_cream(player: CharacterBody3D) -> void:
+	var origin: Vector3 = player.global_position + _player_forward(player) * 3.0
+
+	var area := Area3D.new()
+	area.collision_layer = 0
+	area.collision_mask = 0xFFFFFFFF
+
+	var shape := CollisionShape3D.new()
+	var cyl := CylinderShape3D.new()
+	cyl.radius = CREAM_RADIUS
+	cyl.height = 1.5
+	shape.shape = cyl
+	area.add_child(shape)
+
+	var mesh_node := MeshInstance3D.new()
+	var cyl_mesh := CylinderMesh.new()
+	cyl_mesh.top_radius = CREAM_RADIUS
+	cyl_mesh.bottom_radius = CREAM_RADIUS
+	cyl_mesh.height = 0.12
+	mesh_node.mesh = cyl_mesh
+	mesh_node.set_surface_override_material(0, _make_glow_material(Color(1.0, 0.98, 0.94), 0.85))
+	area.add_child(mesh_node)
+
+	_attach_to_world(area, origin + Vector3(0.0, 0.08, 0.0))
+
+	var timer := Timer.new()
+	timer.wait_time = 0.35
+	timer.autostart = true
+	area.add_child(timer)
+	timer.timeout.connect(func() -> void:
+		if not is_instance_valid(area):
+			return
+		for body: Node3D in area.get_overlapping_bodies():
+			if not body.is_in_group(ENEMY_GROUP):
+				continue
+			# Knockdown = rooted. Ein Gegner, der am Boden liegt, soll sich
+			# nicht bewegen, aber sichtbar noch "leben" — deshalb rooted und
+			# nicht stun.
+			StatusRooted.apply(body, CREAM_KNOCKDOWN_DURATION, _player())
+			_spawn_vfx(DUST_RING_SCENE, body.global_position + Vector3.UP * 0.1)
+
+			# Synergie: loescht Brand und richtet dabei massiven Schaden an.
+			if StatusBurn.active(body):
+				StatusBurn.clear(body)
+				var health: Health = _health_of(body)
+				if health != null and health.is_alive():
+					health.take_damage(CREAM_EXTINGUISH_DAMAGE, _player())
+				_spawn_vfx(HIT_SPARK_SCENE, body.global_position + Vector3.UP)
+	)
+
+	_fade_and_free(area, CREAM_LIFETIME, mesh_node)
+
+
+## Kegelfoermiger Aufblitzer fuer Feuerzeug, Sauger und Megafon.
+##
+## Ein ConeMesh mit Spitze am Spieler, das kurz aufgeht und ausblendet.
+## CylinderMesh mit top_radius = 0 statt ConeMesh: ConeMesh gibt es in
+## Godot 4 nicht als eigene Klasse.
+func _spawn_cone_flash(player: CharacterBody3D, forward: Vector3, range_m: float, half_angle_deg: float, color: Color) -> void:
+	var cone := MeshInstance3D.new()
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = range_m * tan(deg_to_rad(half_angle_deg))
+	mesh.bottom_radius = 0.15
+	mesh.height = range_m
+	cone.mesh = mesh
+	var mat: StandardMaterial3D = _make_glow_material(color, 0.45)
+	cone.set_surface_override_material(0, mat)
+
+	var center: Vector3 = player.global_position + Vector3.UP * 1.0 + forward * (range_m * 0.5)
+	_attach_to_world(cone, center)
+	cone.look_at(player.global_position + Vector3.UP * 1.0 + forward * range_m, Vector3.UP)
+	cone.rotate_object_local(Vector3.RIGHT, PI * 0.5)
+
+	var tween: Tween = create_tween()
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.28)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(cone):
+			cone.queue_free()
+	)
