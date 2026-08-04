@@ -46,6 +46,7 @@ func _ready() -> void:
 
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+	_build_main_menu_button()
 	_build_item_list()
 
 
@@ -217,6 +218,8 @@ func show_win() -> void:
 	if _pause_menu:
 		_pause_menu.lock_out()
 
+	GameStats.report_win()
+
 	var run_time: String = _stop_and_read_run_timer()
 	if _time_label:
 		_time_label.text = ("ZEIT: %s" % run_time) if run_time != "" else ""
@@ -248,6 +251,29 @@ func _on_restart_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+## Prozedural ergaenzt, gleiches Prinzip wie death_screen.gd's Version:
+## GameStats.report_win() hat has_live_run bereits auf false gesetzt, ein
+## normaler Szenenwechsel zurueck zum Hauptmenue ist hier ausreichend.
+func _build_main_menu_button() -> void:
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Hauptmenue-Button faellt aus." % name)
+		return
+
+	var button := Button.new()
+	button.text = "Hauptmenue"
+	button.custom_minimum_size = Vector2(0, 40)
+	button.pressed.connect(_on_main_menu_pressed)
+	column.add_child(button)
+	column.move_child(button, quit_button.get_index())
+
+
+func _on_main_menu_pressed() -> void:
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
 # ============================================================================

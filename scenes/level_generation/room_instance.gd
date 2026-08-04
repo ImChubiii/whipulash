@@ -121,6 +121,24 @@ enum DoorState {
 ## Box-Collider (Kollision braucht keine Ausrichtung).
 @export var build_ceiling: bool = true
 @export var ceiling_color: Color = Color(0.035, 0.04, 0.035)
+
+## --- Lokale Raumbeleuchtung ---------------------------------------------
+## ERSATZ fuer das globale DirectionalLight3D, das vorher die gesamte Karte
+## von oben beleuchtet hat (siehe level_generation_test.tscn). Mit einer
+## "Sonne" ueber der ganzen Map waeren Abgruende (pit_floor.gd) NIE wirklich
+## dunkel, egal wie tief die Grube ist - Licht faellt von oben direkt
+## hinein. Jeder Raum beleuchtet sich deshalb jetzt selbst; ausserhalb der
+## Lichtkegel (Gruben, Korridor-Enden) bleibt es dunkel.
+@export var build_room_lights: bool = true
+@export var room_light_color: Color = Color(1.0, 0.92, 0.78)
+@export var room_light_energy: float = 2.4
+## Anteil von room_height, auf dem die Lichter haengen (nahe der Decke).
+@export_range(0.1, 1.0) var room_light_height_ratio: float = 0.85
+## Ab dieser Kantenlaenge (lokale Einheiten) wird das Licht-Raster verdichtet
+## statt EINES Lichts, das grosse/multi-Zellen-Raeume nicht mehr randvoll
+## ausleuchtet.
+@export var room_light_spacing: float = 42.0
+@export_range(1.0, 2.0) var room_light_range_margin: float = 1.35
 ## Pfad zum geteilten PSX-Material. Fallback auf eine schlichte, dunkle
 ## StandardMaterial3D, falls die Resource fehlt/verschoben wurde.
 @export var ceiling_material_path: String = "res://materials/psx_material.tres"
@@ -403,6 +421,8 @@ func _ready() -> void:
 		_build_door_lintels()
 	if wall_cap_enabled:
 		_build_wall_caps()
+	if build_room_lights:
+		_build_room_lights()
 
 
 func _exit_tree() -> void:
@@ -480,6 +500,44 @@ func _build_ceiling() -> void:
 		body.add_child(shape)
 	else:
 		body.collision_layer = 0
+
+
+## Verteilt OmniLight3D-Quellen in einem Raster ueber die Raumflaeche, nahe
+## der Decke haengend. Ein einzelnes Licht in der Mitte wuerde bei grossen
+## oder Multi-Zellen-Raeumen (siehe room_footprint bei 2x2-Raeumen) die Ecken
+## im Dunkeln lassen - das Raster verdichtet sich deshalb automatisch mit der
+## Raumgroesse (room_light_spacing).
+func _build_room_lights() -> void:
+	if get_node_or_null("RoomLights") != null:
+		return
+
+	var container := Node3D.new()
+	container.name = "RoomLights"
+	add_child(container)
+
+	var cols: int = maxi(1, int(ceil(room_footprint.x / maxf(room_light_spacing, 1.0))))
+	var rows: int = maxi(1, int(ceil(room_footprint.y / maxf(room_light_spacing, 1.0))))
+	var cell_x: float = room_footprint.x / float(cols)
+	var cell_z: float = room_footprint.y / float(rows)
+	var light_range: float = maxf(cell_x, cell_z) * 0.5 * room_light_range_margin + 4.0
+
+	for cx: int in range(cols):
+		for cz: int in range(rows):
+			var light := OmniLight3D.new()
+			light.name = "RoomLight_%d_%d" % [cx, cz]
+			light.light_color = room_light_color
+			light.light_energy = room_light_energy
+			light.omni_range = light_range
+			# AUS: mehrere schattenwerfende Punktlichter pro Raum, ueber
+			# mehrere gleichzeitig geladene Raeume hinweg, kosten auf Forward
+			# Mobile spuerbar Leistung (dieselbe Abwaegung wie beim
+			# Pickup-Glow in pickup.gd) - fuer die reine Ausleuchtung eines
+			# PSX-Dungeons unnoetig.
+			light.shadow_enabled = false
+			var px: float = (float(cx) + 0.5) * cell_x - room_footprint.x * 0.5
+			var pz: float = (float(cz) + 0.5) * cell_z - room_footprint.y * 0.5
+			light.position = Vector3(px, room_height * room_light_height_ratio, pz)
+			container.add_child(light)
 
 
 ## Dupliziert das geteilte PSX-Shader-Material (NIEMALS die Original-
@@ -1533,9 +1591,26 @@ func apply_exit_flags(required_flags: int) -> void:
 		var flag: int = int(_FLAG_BY_KEY[key])
 		if flag & required_flags != 0:
 			continue
+
+		# DIAGNOSE "Raum wirkt an einer Seite als wuerde er fehlen": hatte
+		# dieser Raum ueberhaupt einen ExitPoint fuer 'key' (das Template
+		# unterstuetzt die Richtung also physisch), _seal_exit() aber NICHTS
+		# zugemauert, bleibt eine echte Wandoeffnung offen - obwohl die Zelle
+		# daneben laut Layout GAR KEINEN Nachbarn hat. Man sieht dann durch
+		# die Wand ins Leere, was von aussen wie ein fehlender Raum aussieht.
+		# Nur warnen, wenn hier WIRKLICH etwas zu versiegeln war - sonst waere
+		# jeder normale 1-2-Exit-Raum ein Fehlalarm (dessen unbenutzte
+		# Richtungen hatten nie eine Tuer).
+		var had_exit_point: bool = exit_points.has(key)
 		exit_points.erase(key)
-		if seal_unused_exits and _seal_exit(key):
+
+		if not seal_unused_exits:
+			continue
+
+		if _seal_exit(key):
 			sealed_any = true
+		elif had_exit_point:
+			push_warning("RoomInstance (%s): Richtung '%s' hatte einen ExitPoint, konnte aber nicht zugemauert werden (Tuer nicht in _doors_by_dir registriert) - die Oeffnung bleibt offen und fuehrt ins Leere." % [grid_position, key])
 
 	# Die frisch gemauerten Waende brauchen ihre Minimap-Kappe. Der zweite
 	# Durchlauf ist billig: _build_wall_caps ueberspringt jede Wand, die

@@ -50,6 +50,18 @@ enum Category {
 @export var id: String = ""
 @export var display_name: String = "Unbenanntes Item"
 
+## --- Organisatorische Metadaten aus dem Design-Dokument ------------------
+## Werden aktuell NIRGENDS im Spiel gelesen (kein UI, keine Logik haengt
+## dran) - reine Buchhaltung, damit sich ein Item im Code eindeutig auf
+## seine Zeile in der Item-Tabelle zurueckfuehren laesst.
+##   nr        - fortlaufende Nummer ueber ALLE Items (Tabellenspalte "Nr.")
+##   entity_id - "A.B": A = 1 (Aktiv) oder 2 (Passiv), B = laufender Index
+##               INNERHALB des Typs (Tabellenspalte "Entity ID")
+## id (oben) entspricht der Tabellenspalte "ITEM ID" - dafuer ist kein
+## separates Feld noetig.
+@export var nr: int = 0
+@export var entity_id: String = ""
+
 ## Der kursive Einzeiler unter dem Namen ("Schlag die Hitze zurueck").
 @export_multiline var flavor_text: String = ""
 
@@ -173,7 +185,9 @@ static func create(
 		p_description: String,
 		p_kind: Kind = Kind.PASSIVE,
 		p_category: Category = Category.UTILITY,
-		p_rarity: Rarity = Rarity.COMMON
+		p_rarity: Rarity = Rarity.COMMON,
+		p_nr: int = 0,
+		p_entity_id: String = ""
 ) -> ItemData:
 	var data := ItemData.new()
 	data.id = p_id
@@ -182,6 +196,8 @@ static func create(
 	data.description = p_description
 	data.kind = p_kind
 	data.category = p_category
+	data.nr = p_nr
+	data.entity_id = p_entity_id
 	# ZULETZT: der Setter von rarity schreibt pedestal_color mit. Stuende
 	# die Zeile weiter oben, koennte eine spaetere Zuweisung sie wieder
 	# ueberschreiben.

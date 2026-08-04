@@ -433,6 +433,10 @@ func apply_knockback(impulse: Vector3) -> void:
 # --- Status-Effekt-System (Poison, Slow, Fear, ...) ---
 var status_effects: StatusEffectManager
 
+## "charm"-Ziel (siehe _current_target() weiter unten). Sticky fuer die
+## Effektdauer, damit ein Gegner nicht bei jedem Frame neu waehlt.
+var _charm_target: Node3D = null
+
 func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, source: Node = null, tick_interval: float = 0.0) -> void:
 	status_effects.apply_effect(id, duration, magnitude, source, tick_interval)
 
@@ -465,6 +469,13 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 func _on_status_effect_applied(id: String, _duration: float, _magnitude: float, _source: Node) -> void:
 	if id == "stun" or id == "silenced":
 		interrupt_attack()
+	if id == "charm":
+		# Ein laufender Telegraph zielt noch auf den Spieler - abbrechen,
+		# statt ihn zuende zu spielen und erst DANACH umzuschwenken.
+		interrupt_attack()
+		# Erzwingt eine frische Zielwahl statt eines evtl. laengst toten
+		# Ziels aus einer vorherigen Verzauberung.
+		_charm_target = null
 
 
 ## PHASE 4. Haengt die dauerhafte Effekt-Einfaerbung an.
@@ -714,7 +725,61 @@ func _distance_to_player_xz() -> float:
 	offset.y = 0.0
 	return offset.length()
 
-# Prueft, ob der Gegner den Spieler grob anschaut. Ohne diesen Check
+
+# ============================================================================
+# Charm/Confusion — Ziel-Umleitung auf einen anderen Gegner
+# ============================================================================
+## Aktuelles Verfolgungs-/Angriffsziel: normalerweise der Spieler, waehrend
+## "charm" aktiv ist stattdessen ein anderer lebender Gegner (siehe
+## _pick_charm_target()). Zentrale Stelle, damit Verfolgen, Anschauen und
+## Angreifen niemals auseinanderlaufen koennen — jede dieser drei Funktionen
+## fragt HIER, nicht direkt bei _player.
+func _current_target() -> Node3D:
+	if has_status_effect("charm"):
+		if _charm_target == null or not is_instance_valid(_charm_target) or not _is_alive_enemy(_charm_target):
+			_charm_target = _pick_charm_target()
+		if _charm_target != null:
+			return _charm_target
+	return _player
+
+
+func _is_alive_enemy(node: Node) -> bool:
+	if node == null or not is_instance_valid(node):
+		return false
+	var health: Node = node.find_child("Health", true, false)
+	return health != null and health.has_method("is_alive") and health.call("is_alive")
+
+
+## Der naechste lebende ANDERE Gegner - "charm" laesst den Betroffenen auf
+## sein eigenes Team losgehen, nicht auf sich selbst.
+func _pick_charm_target() -> Node3D:
+	var best: Node3D = null
+	var best_dist: float = INF
+	for node: Node in get_tree().get_nodes_in_group("enemies"):
+		if node == self or not is_instance_valid(node):
+			continue
+		var enemy := node as Node3D
+		if enemy == null or not _is_alive_enemy(enemy):
+			continue
+		var d: float = global_position.distance_to(enemy.global_position)
+		if d < best_dist:
+			best_dist = d
+			best = enemy
+	return best
+
+
+## Wie _distance_to_player_xz(), aber gegen das aktuelle Ziel (Spieler ODER
+## Charm-Opfer).
+func _distance_to_target_xz() -> float:
+	var target: Node3D = _current_target()
+	if target == null or not is_instance_valid(target):
+		return INF
+	var offset: Vector3 = target.global_position - global_position
+	offset.y = 0.0
+	return offset.length()
+
+
+# Prueft, ob der Gegner sein aktuelles Ziel grob anschaut. Ohne diesen Check
 # starten Gegner Angriffe waehrend sie sich noch drehen und schlagen
 # seitlich vorbei.
 #
@@ -725,10 +790,11 @@ func _distance_to_player_xz() -> float:
 func _is_facing_player() -> bool:
 	if attack_min_facing_dot <= -1.0:
 		return true
-	if _player == null or not is_instance_valid(_player):
+	var target: Node3D = _current_target()
+	if target == null or not is_instance_valid(target):
 		return false
 
-	var to_player: Vector3 = _player.global_position - global_position
+	var to_player: Vector3 = target.global_position - global_position
 	to_player.y = 0.0
 	if to_player.length() < 0.01:
 		return true
@@ -1294,7 +1360,10 @@ func _physics_process(delta: float) -> void:
 		_update_locomotion_animation()
 		return
 
-	var distance: float = global_position.distance_to(_player.global_position)
+	# _current_target() faellt bei laufendem "charm" auf einen anderen
+	# Gegner zurueck statt auf den Spieler - siehe Kopfkommentar dort.
+	var target: Node3D = _current_target()
+	var distance: float = global_position.distance_to(target.global_position) if target != null else INF
 	var previous_state: State = _state
 
 	_update_focus(delta, distance)
@@ -1585,13 +1654,18 @@ func _is_nav_usable() -> bool:
 func _move_towards_player(delta: float) -> void:
 	var dir: Vector3 = Vector3.ZERO
 	var following_nav_path: bool = false
+	# Verfolgungsziel: normalerweise der Spieler, waehrend "charm" aktiv ist
+	# ein anderer Gegner - siehe _current_target().
+	var target: Node3D = _current_target()
+	if target == null or not is_instance_valid(target):
+		return
 
 	# --- NavMesh-Pfadverfolgung, FALLS ein gueltiger Pfad existiert ---
 	if _is_nav_usable():
 		_nav_update_timer -= delta
 		if _nav_update_timer <= 0.0:
 			_nav_update_timer = max(nav_target_update_interval, 0.05)
-			nav_agent.target_position = _player.global_position
+			nav_agent.target_position = target.global_position
 
 		if nav_agent.is_target_reachable():
 			var next_point: Vector3 = nav_agent.get_next_path_position()
@@ -1602,14 +1676,14 @@ func _move_towards_player(delta: float) -> void:
 				dir = to_next.normalized()
 
 	if not following_nav_path:
-		dir = (_player.global_position - global_position)
+		dir = (target.global_position - global_position)
 		dir.y = 0.0
 		dir = dir.normalized()
 
 	# VOR den Kanten- und Hindernis-Pruefungen ausweichen: die pruefen
 	# dir, und geprueft werden muss die Richtung, in die der Gegner
 	# tatsaechlich laeuft - sonst testet er den Boden neben seinem Weg.
-	if zigzag_enabled and _player != null:
+	if zigzag_enabled and target != null:
 		var zigzag_angle: float = _zigzag_step(delta)
 		if _zigzag_holding:
 			# Pausenphase: stehen bleiben, aber weiter den Spieler
@@ -1637,7 +1711,7 @@ func _move_towards_player(delta: float) -> void:
 
 			var drop_depth: float = _measure_drop_depth(dir, effective_forward_distance)
 			var feet_y: float = _get_feet_y()
-			var player_is_below: bool = _player.global_position.y <= feet_y - ledge_drop_player_below_margin
+			var player_is_below: bool = target.global_position.y <= feet_y - ledge_drop_player_below_margin
 
 			var may_drop: bool = ledge_drop_enabled and player_is_below and drop_depth <= max_safe_drop_height
 
@@ -1736,8 +1810,9 @@ func _random_ground_direction() -> Vector3:
 ## versetzt naeher kommt oder kurz einfriert.
 func _zigzag_step(delta: float) -> float:
 	# Nah am Ziel: kein Ausschlag, keine Pause. Sonst bliebe der Gegner
-	# direkt vor dem Spieler stehen, statt in attack_range zu gehen.
-	var distance: float = global_position.distance_to(_player.global_position)
+	# direkt vor seinem Ziel stehen, statt in attack_range zu gehen.
+	var zigzag_target: Node3D = _current_target()
+	var distance: float = global_position.distance_to(zigzag_target.global_position) if zigzag_target != null else INF
 	var span: float = maxf(zigzag_fade_distance - zigzag_min_distance, 0.01)
 	var amount: float = clampf((distance - zigzag_min_distance) / span, 0.0, 1.0)
 
@@ -1937,9 +2012,10 @@ func _try_jump_across_ledge(dir: Vector3) -> bool:
 	return false
 
 func _face_player(delta: float) -> void:
-	if _player == null or not is_instance_valid(_player):
+	var target: Node3D = _current_target()
+	if target == null or not is_instance_valid(target):
 		return
-	var dir: Vector3 = (_player.global_position - global_position)
+	var dir: Vector3 = (target.global_position - global_position)
 	dir.y = 0.0
 	if dir.length() < 0.01:
 		return
@@ -2022,19 +2098,36 @@ func _do_attack() -> void:
 	if telegraph_inner:
 		telegraph_inner.visible = false
 
-	# --- Freigabe-Check: steht der Spieler UEBERHAUPT noch in Reichweite? ---
-	# Ohne diesen Check wird die Hitbox auch dann aktiviert, wenn der Spieler
+	# --- Freigabe-Check: steht das Ziel UEBERHAUPT noch in Reichweite? ---
+	# Ohne diesen Check wird die Hitbox auch dann aktiviert, wenn das Ziel
 	# waehrend pre_attack_delay + attack_windup_time laengst weggelaufen ist.
+	# _distance_to_target_xz() faellt bei laufendem "charm" auf das
+	# umgeleitete Ziel zurueck statt auf den Spieler.
 	var commit_range: float = attack_range * maxf(attack_commit_range_multiplier, 0.1)
-	if _distance_to_player_xz() > commit_range:
-		_debug("Angriff ABGEBROCHEN — Spieler ausser Reichweite (%.2f > %.2f)." % [_distance_to_player_xz(), commit_range])
+	if _distance_to_target_xz() > commit_range:
+		_debug("Angriff ABGEBROCHEN — Ziel ausser Reichweite (%.2f > %.2f)." % [_distance_to_target_xz(), commit_range])
 		_abort_attack()
 		return
 
 	# Treffer-Fenster und sichtbarer Schlag starten im GLEICHEN Frame.
 	_strike_attack_swing()
 
-	if attack_hitbox:
+	# ITEM/STATUS-REWORK "charm": die AttackHitbox erkennt physisch nur den
+	# Spieler (collision_mask der Vorlagen ist auf die Spieler-Ebene
+	# beschraenkt, Gegner stehen auf einer anderen Ebene) - ein charmter
+	# Gegner wuerde sonst sichtbar auf einen anderen Gegner einschlagen,
+	# ohne dass je Schaden ankommt. Deshalb wird der Schaden hier bei
+	# aktivem Charm-Ziel DIREKT zugestellt, unabhaengig von der Hitbox-
+	# Kollision.
+	var charm_target: Node3D = _charm_target if has_status_effect("charm") else null
+	if charm_target != null:
+		_strike_charm_target(charm_target)
+		# Gleiche Haltezeit wie der hitboxlose Fallback weiter unten - der
+		# Schlag soll genauso lang "sitzen" wie ein normaler Treffer.
+		await get_tree().create_timer(maxf(attack_strike_time, 0.05)).timeout
+		if _is_dead or not is_instance_valid(self):
+			return
+	elif attack_hitbox:
 		attack_hitbox.activate()
 		await get_tree().create_timer(0.2).timeout
 		if _is_dead or not is_instance_valid(self):
@@ -2051,6 +2144,26 @@ func _do_attack() -> void:
 
 	if _state != State.ATTACK and telegraph_outer:
 		telegraph_outer.visible = false
+
+
+## "charm": stellt den Schaden direkt zu (siehe Kommentar in _do_attack()),
+## unabhaengig von der AttackHitbox-Kollision. Der Schaden entspricht dem,
+## was die eigene Hitbox normalerweise austeilt.
+func _strike_charm_target(target: Node3D) -> void:
+	if target == null or not is_instance_valid(target):
+		return
+	var health: Node = target.find_child("Health", true, false)
+	if health == null or not health.has_method("take_damage"):
+		return
+	if health.has_method("is_alive") and not health.call("is_alive"):
+		return
+
+	var dmg: float = attack_hitbox.damage if attack_hitbox != null else 10.0
+	health.call("take_damage", dmg, self)
+
+	if attack_hitbox != null and attack_hitbox.impact_vfx != null:
+		var spawn_pos: Vector3 = target.global_position + Vector3.UP * attack_hitbox.impact_height
+		VFX.spawn(attack_hitbox.impact_vfx, spawn_pos, Vector3.UP)
 
 # --- Transparenz nach HP + Hit-Flash ---
 
@@ -2093,6 +2206,11 @@ func _on_died() -> void:
 	if _is_dead:
 		return
 	_is_dead = true
+	# VOR set_physics_process(false)/collision-Aus, aber Position ist zu
+	# diesem Zeitpunkt noch die echte Todesposition - der Spritzer soll
+	# dort liegen, nicht erst nach der Schrumpf-Animation.
+	BloodDecal.spawn(self, global_position)
+	GameStats.report_kill(is_in_group("boss"))
 	set_physics_process(false)
 	# Kollision sofort abschalten, damit die sterbende Instanz waehrend der
 	# Death-Animation weder den Spieler blockiert noch von Hitboxen

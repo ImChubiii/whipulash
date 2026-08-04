@@ -28,7 +28,7 @@ class_name StatusEffectVisuals
 ## Ein betaeubter, brennender Gegner zeigt Stun, weil das die Information
 ## ist, auf die der Spieler reagieren muss.
 const PRIORITY: PackedStringArray = [
-	"stun", "rooted", "confused", "silenced", "burn", "acid", "bleed", "poison", "slow"
+	"stun", "rooted", "charm", "confused", "silenced", "burn", "acid", "bleed", "poison", "slow"
 ]
 
 ## Wie stark die Grundfarbe pulsiert (0 = konstant).
@@ -131,6 +131,8 @@ func _color_for(id: String) -> Color:
 			return StatusStun.TINT_COLOR
 		StatusRooted.ID:
 			return StatusRooted.TINT_COLOR
+		StatusCharm.ID:
+			return StatusCharm.TINT_COLOR
 		StatusSilenced.ID:
 			return StatusSilenced.TINT_COLOR
 		StatusBurn.ID:
@@ -155,6 +157,8 @@ func _strength_for(id: String) -> float:
 			return StatusStun.TINT_STRENGTH
 		StatusRooted.ID:
 			return StatusRooted.TINT_STRENGTH
+		StatusCharm.ID:
+			return StatusCharm.TINT_STRENGTH
 		StatusSilenced.ID:
 			return StatusSilenced.TINT_STRENGTH
 		StatusBurn.ID:

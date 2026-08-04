@@ -321,6 +321,22 @@ var _buoyancy_rise_speed: float = 2.5
 var _buoyancy_surface_y: float = 0.0
 var _bob_time: float = 0.0
 
+# --- "Instant Death Zone": Sturz in einen Abgrund ---------------------------
+# Bewusst NICHT ueber eine feste Welt-Y-Schwelle geloest: Raeume werden auf
+# unterschiedlichen Hoehenstufen generiert (elevation_step in
+# level_generator.gd), eine feste Zahl waere je nach Layout mal zu
+# grosszuegig, mal toedlich schon auf einer normalen Rampe. Stattdessen
+# zaehlt, wie lange der Spieler ununterbrochen faellt UND wie weit er seit
+# dem letzten sicheren Boden gefallen ist - beides zusammen unterscheidet
+# einen echten Sturz in einen dunklen, bodenlosen Abgrund (pit_floor.gd ohne
+# Lava-Auffuellung) zuverlaessig von Treppen, Rampen oder einem Sprung.
+@export var void_death_enabled: bool = true
+@export var void_death_fall_time: float = 2.5
+@export var void_death_fall_distance: float = 40.0
+
+var _void_fall_timer: float = 0.0
+var _void_last_safe_y: float = 0.0
+
 func set_buoyancy(active: bool, rise_speed: float = 2.5, surface_y: float = 0.0) -> void:
 	if active and not _buoyancy_active:
 		_bob_time = 0.0
@@ -791,3 +807,38 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			velocity.z = 0.0
 			break
+
+	# NACH move_and_slide(): is_on_floor() ist erst jetzt fuer diesen Frame
+	# aktuell.
+	if void_death_enabled:
+		_update_void_death(delta)
+
+
+## "Instant Death Zone": siehe Kopfkommentar bei den void_death_*-Exports.
+##
+## BEWUSST OHNE eigenen "schon ausgeloest"-Merker: health.take_damage() ist
+## bei current_health <= 0 ein No-Op (siehe health.gd), re-triggert also
+## niemals einen zweiten Tod. Faengt z.B. das Handball-Polster den Sturz
+## einmalig mit 1 HP + kurzer Unverwundbarkeit ab, faellt der Spieler aber
+## weiter - genau dann SOLL der naechste Frame nach Ablauf der
+## Unverwundbarkeit erneut zuschlagen, statt den Spieler fuer immer im
+## Abgrund fallen zu lassen.
+func _update_void_death(delta: float) -> void:
+	if is_on_floor() or _buoyancy_active:
+		_void_fall_timer = 0.0
+		_void_last_safe_y = global_position.y
+		return
+
+	_void_fall_timer += delta
+	var fallen: float = _void_last_safe_y - global_position.y
+	if _void_fall_timer >= void_death_fall_time and fallen >= void_death_fall_distance:
+		_die_from_void_fall()
+
+
+func _die_from_void_fall() -> void:
+	if health != null:
+		# Ueber den normalen Schadensweg statt eines Sonder-Kill-Pfads: das
+		# respektiert bestehende Regeln (Unverwundbarkeit, Handball-Polster)
+		# einheitlich, statt eine zweite, konkurrierende Todesursache
+		# einzufuehren.
+		health.take_damage(health.max_health * 1000.0, null)
