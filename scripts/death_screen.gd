@@ -58,6 +58,17 @@ func _ready() -> void:
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
 
+	# BUGFIX/REWORK "Game Over pro Charakter statt pro Party": vorher hing
+	# dieser Screen direkt am Health.died DES JEWEILS AKTIVEN Charakters
+	# (siehe _on_active_player_changed weiter unten) - jeder einzelne
+	# Charaktertod loeste damit sofort den Death-Screen aus, obwohl
+	# PartyManager fuer genau diesen Fall ein Last-Stand-System hat (naechster
+	# lebender Charakter uebernimmt automatisch). Jetzt haengt der Screen an
+	# PartyManager.party_wiped - dem Signal, das ERST feuert, wenn KEIN
+	# Last-Stand-Uebernahme mehr moeglich ist.
+	if not PartyManager.party_wiped.is_connected(_on_party_wiped):
+		PartyManager.party_wiped.connect(_on_party_wiped)
+
 	if PartyManager.player and is_instance_valid(PartyManager.player):
 		_on_active_player_changed(PartyManager.player)
 	else:
@@ -141,13 +152,13 @@ func _stop_and_read_run_timer() -> String:
 	return ""
 
 
-# Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — der alte
-# Player-Node samt seiner Health-Komponente wird komplett entfernt, also
-# muss auch died-Verbindung jedes Mal neu aufgebaut werden. Ohne das würde
-# der DeathScreen nach dem ersten Charakterwechsel nie wieder auslösen.
+# Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — nur noch
+# fuer die Health-Referenz gebraucht, die _get_killer_name() liest. Das
+# eigentliche Game-Over-Signal ist jetzt PartyManager.party_wiped (siehe
+# _on_party_wiped()), nicht mehr das Health.died des jeweils aktiven
+# Charakters - ein Charaktertod bei noch lebenden Party-Mitgliedern loest
+# stattdessen PartyManager's Last-Stand-Uebernahme aus, kein Game Over.
 func _on_active_player_changed(new_player: CharacterBody3D) -> void:
-	if _health_node and is_instance_valid(_health_node) and _health_node.died.is_connected(_on_player_died):
-		_health_node.died.disconnect(_on_player_died)
 	_health_node = null
 
 	if new_player == null or not is_instance_valid(new_player):
@@ -160,7 +171,14 @@ func _on_active_player_changed(new_player: CharacterBody3D) -> void:
 		return
 
 	_health_node = health_node
-	_health_node.died.connect(_on_player_died)
+
+
+## PartyManager meldet: der letzte lebende Charakter der Party ist gerade
+## gestorben, keine Last-Stand-Uebernahme mehr moeglich. Das war vorher
+## _on_player_died(), direkt am Health.died verdrahtet - Name bewusst
+## beibehalten fuer den Rest der Funktion (Killer-Anzeige, Timer, Delay).
+func _on_party_wiped() -> void:
+	_on_player_died()
 
 
 func _on_player_died() -> void:

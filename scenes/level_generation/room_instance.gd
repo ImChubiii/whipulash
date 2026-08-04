@@ -1947,6 +1947,14 @@ func requires_clear() -> bool:
 	return _requires_clear
 
 
+## Aktiver Kampf laeuft: Gegner wurden gespawnt, der Raum ist aber noch nicht
+## geleert. Von door.gd benutzt, um Hacking waehrend des Kampfs direkt am
+## Raumzustand zu verweigern - unabhaengig davon, ob set_door_hack_enabled()
+## fuer diese Tuer (noch) korrekt gesetzt wurde.
+func is_in_combat() -> bool:
+	return _requires_clear and _enemies_spawned and not _is_cleared
+
+
 func get_active_enemy_count() -> int:
 	return _active_enemies
 

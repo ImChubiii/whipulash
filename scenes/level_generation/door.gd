@@ -571,6 +571,19 @@ func _process_hack(delta: float) -> void:
 		_decay(delta)
 		return
 
+	# BUGFIX "Hacking waehrend des Kampfs moeglich": _hack_enabled kommt vom
+	# LevelGenerator und wird nur bei bestimmten Ereignissen (Raum-Clear,
+	# Instanziierung) aktualisiert. Ein direkter Check auf den RAUMZUSTAND
+	# hier ist die zusaetzliche Absicherung, die verlangt wurde - unabhaengig
+	# davon, ob irgendwo ein set_hack_enabled()-Aufruf fehlt oder verspaetet
+	# kommt, kann waehrend eines laufenden Kampfs im davorliegenden Raum nie
+	# gehackt werden.
+	var room: RoomInstance = _owning_room()
+	if room != null and room.is_in_combat():
+		_show_prompt("GESPERRT", 0.0)
+		_decay(delta)
+		return
+
 	if Input.is_action_pressed(INTERACT_ACTION):
 		if _hack_progress <= 0.0:
 			hack_started.emit()
@@ -681,13 +694,28 @@ func _position_hologram() -> void:
 	_hologram_base_y = _hologram.position.y
 
 
+## Der RoomInstance-Vorfahre dieser Tuer, oder null (z.B. Tuer manuell in ein
+## Testlevel gesetzt). Wird gecacht: die Elternkette einer Tuer aendert sich
+## nach dem Einhaengen in die Szene nicht mehr.
+var _owning_room_cache: RoomInstance = null
+var _owning_room_resolved: bool = false
+
+func _owning_room() -> RoomInstance:
+	if _owning_room_resolved:
+		return _owning_room_cache
+	_owning_room_resolved = true
+	var node: Node = get_parent()
+	while node != null and not (node is RoomInstance):
+		node = node.get_parent()
+	_owning_room_cache = node as RoomInstance
+	return _owning_room_cache
+
+
 ## Richtung "in den Raum hinein", ausgedrueckt im LOKALEN Raum der Tuer.
 ## Fallback auf -Z (Godot-Vorwaerts), falls kein RoomInstance-Vorfahre
 ## existiert (z.B. Tuer manuell in ein Testlevel gesetzt).
 func _inward_direction() -> Vector3:
-	var room: Node = get_parent()
-	while room != null and not (room is RoomInstance):
-		room = room.get_parent()
+	var room: RoomInstance = _owning_room()
 
 	if room == null:
 		return Vector3(0.0, 0.0, -1.0)

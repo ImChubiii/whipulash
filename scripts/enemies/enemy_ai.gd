@@ -177,6 +177,20 @@ func get_display_name() -> String:
 ## wird linear geblendet.
 @export var zigzag_fade_distance: float = 10.0
 
+## BUGFIX "Teleport-Dash": der Kurvenwinkel sprang beim Phasenwechsel
+## bisher schlagartig von 0 auf den vollen Ausschlag - der Gegner wirkte wie
+## seitlich teleportiert statt wie eine gelaufene Kurve. Begrenzt jetzt, wie
+## viele Grad pro Sekunde sich der Winkel maximal aendern darf.
+@export var zigzag_angle_smoothing_deg: float = 260.0
+
+## Sichtbares Lean-Telegraphing: das Modell legt sich in dieselbe Richtung
+## wie der Kurvenwinkel, bevor/waehrend der Ausschlag greift - ein fruehes
+## visuelles Signal, in welche Richtung der Gegner als naechstes ausweicht.
+@export_range(0.0, 45.0) var zigzag_lean_angle_deg: float = 16.0
+
+var _zigzag_current_angle_deg: float = 0.0
+var _zigzag_lean_current_deg: float = 0.0
+
 ## Ab welchem Ausschlags-Anteil ueberhaupt noch pausiert wird.
 ##
 ## WARUM: Bei 0.32 s Bein und 0.4 s Pause ist der Gegner nur 44 % der Zeit
@@ -289,6 +303,86 @@ var jump_velocity: float = 0.0
 # Raycasts keinen Boden finden.
 @export var ledge_check_lateral_samples: bool = true
 
+## --- Automatisches Entklemmen -------------------------------------------
+## Ein Gegner, der in Bodengeometrie versinkt oder in einem erhoehten Mesh
+## haengen bleibt, kann eine Raum-Clear-Bedingung dauerhaft blockieren (der
+## Raum zaehlt ihn als "aktiv", der Spieler kommt aber nicht mehr an ihn
+## heran). Diese Routine erkennt beide Faelle per Raycast/Fortschritts-
+## Messung und loest sie mit einem Impuls.
+@export var unstuck_enabled: bool = true
+## Wie lange der Gegner kaum Strecke macht, OBWOHL er sich bewegen will
+## (State.CHASE, nicht an einer Kante wartend, nicht in einer Zickzack-
+## Pause), bevor die Routine eingreift.
+@export var unstuck_stationary_time: float = 1.5
+## Minimale erwartete Bewegung innerhalb dieser Zeit, um NICHT als
+## "haengt fest" zu gelten (Meter).
+@export var unstuck_min_progress: float = 0.35
+## Wie tief unter dem per Raycast gemessenen Boden die Fuesse stecken
+## duerfen, bevor das als "im Boden versunken" gilt.
+@export var unstuck_sunk_threshold: float = 0.4
+@export var unstuck_impulse_up: float = 9.0
+@export var unstuck_impulse_horizontal: float = 6.0
+@export var unstuck_check_interval: float = 0.4
+
+var _unstuck_timer: float = 0.0
+var _unstuck_check_timer: float = 0.0
+var _unstuck_reference_pos: Vector3 = Vector3.ZERO
+var _unstuck_cooldown: float = 0.0
+
+## --- Auftrieb in Lava/Hazard-Pools (POOL-Modus, siehe hazards/lemonade.gd) --
+## BUGFIX "Gegner tauchen komplett unter statt zu schwimmen": lemonade.gd
+## ruft set_buoyancy() auf JEDEM Body auf, der set_buoyancy hat - vorher
+## hatte nur player_base.gd diese Methode. Ein Gegner, der in eine
+## Lava-Grube fiel, sank deshalb bis auf den Grubenboden durch.
+##
+## submersion_body_ratio bestimmt den Anteil des Koerpers UEBER der
+## Oberflaeche (siehe _apply_buoyancy: float_target_y haengt genau davon
+## ab). 0.667 = 2/3 sichtbar, 1/3 darf unter Wasser sein - bewusst anders
+## als beim Spieler (player_base.gd: 0.33, der schwimmt eher, als dass er
+## treibt).
+@export_range(0.0, 1.0) var submersion_body_ratio: float = 0.667
+@export var buoyancy_accel: float = 6.0
+@export var bob_amplitude: float = 0.12
+@export var bob_frequency: float = 0.55
+
+var _buoyancy_active: bool = false
+var _buoyancy_rise_speed: float = 2.5
+var _buoyancy_surface_y: float = 0.0
+var _bob_time: float = 0.0
+
+## Wird von lemonade.gd (LavaHazard) aufgerufen - siehe
+## _start_submersion_effects()/_stop_submersion_effects() dort.
+func set_buoyancy(active: bool, rise_speed: float = 2.5, surface_y: float = 0.0) -> void:
+	if active and not _buoyancy_active:
+		_bob_time = 0.0
+	_buoyancy_active = active
+	_buoyancy_rise_speed = rise_speed
+	_buoyancy_surface_y = surface_y
+
+
+func _get_body_height() -> float:
+	var shape_node: CollisionShape3D = _get_collision_shape_node()
+	if shape_node != null and shape_node.shape is CapsuleShape3D:
+		return (shape_node.shape as CapsuleShape3D).height
+	return 1.8
+
+
+## Treibt sanft zur Zielhoehe (submersion_body_ratio) auf und pendelt dort
+## leicht - dieselbe Formel wie player_base.gd._physics_process(), nur ohne
+## die "aktiv rausschwimmen"-Eingabe, die es fuer Gegner nicht gibt.
+func _apply_buoyancy(delta: float) -> void:
+	var body_height: float = _get_body_height()
+	var float_target_y: float = _buoyancy_surface_y - body_height * (0.5 - submersion_body_ratio)
+
+	if global_position.y < float_target_y - bob_amplitude:
+		velocity.y = move_toward(velocity.y, _buoyancy_rise_speed, buoyancy_accel * delta)
+	else:
+		_bob_time += delta
+		var bob_offset: float = sin(_bob_time * bob_frequency * TAU) * bob_amplitude
+		var bob_target_y: float = float_target_y + bob_offset
+		var to_target: float = (bob_target_y - global_position.y) * 4.0
+		velocity.y = move_toward(velocity.y, to_target, buoyancy_accel * delta)
+
 @export var movement_acceleration: float = 40.0
 
 # --- NavMesh-Pfadverfolgung ---
@@ -323,6 +417,15 @@ var _slide_cooldown: float = 0.0
 var _knockback_velocity: Vector3 = Vector3.ZERO
 
 func apply_knockback(impulse: Vector3) -> void:
+	# ITEM-REWORK Rostiger Dachnagel: "festgenagelt" soll auch Knockback
+	# vollstaendig blockieren, nicht nur Eigenbewegung - sonst liesse sich
+	# ein gerade angenageltes Ziel trotzdem quer durch den Raum schieben.
+	# NUR "rooted" prueft hier, bewusst NICHT is_movement_locked(): ein
+	# betaeubtes ("stun") Ziel soll weiterhin knockbackbar bleiben (siehe
+	# Statische Socke, Walkman, ...), das ist ein anderer Effekt mit
+	# anderer Absicht.
+	if status_effects != null and status_effects.has_effect("rooted"):
+		return
 	_knockback_velocity.x += impulse.x
 	_knockback_velocity.z += impulse.z
 	velocity.y += impulse.y
@@ -1168,7 +1271,9 @@ func _setup_slope_stability() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not is_on_floor():
+	if _buoyancy_active:
+		_apply_buoyancy(delta)
+	elif not is_on_floor():
 		velocity.y -= gravity * delta
 	elif velocity.y <= 0.0:
 		# BUGFIX: Frueher wurde velocity.y auf dem Boden bedingungslos
@@ -1252,6 +1357,8 @@ func _physics_process(delta: float) -> void:
 	velocity.z += _knockback_velocity.z
 	_knockback_velocity.x = move_toward(_knockback_velocity.x, 0.0, knockback_friction * delta)
 	_knockback_velocity.z = move_toward(_knockback_velocity.z, 0.0, knockback_friction * delta)
+
+	_update_unstuck(delta)
 
 	move_and_slide()
 
@@ -1364,6 +1471,100 @@ func _get_separation_velocity() -> Vector3:
 			var strength: float = (1.0 - dist / separation_radius) * separation_strength
 			push += offset.normalized() * strength
 	return push
+
+# ============================================================================
+# Automatisches Entklemmen
+# ============================================================================
+## Laeuft in unstuck_check_interval-Schritten (nicht jeden Frame — ein
+## Raycast plus Fortschrittsvergleich lohnt sich nicht 60x/s) und prueft die
+## beiden Faelle aus dem Kopfkommentar: im Boden versunken, oder bewegen-
+## wollen ohne tatsaechlichen Fortschritt.
+func _update_unstuck(delta: float) -> void:
+	if not unstuck_enabled or _is_dead:
+		return
+
+	if _unstuck_cooldown > 0.0:
+		_unstuck_cooldown -= delta
+		return
+
+	_unstuck_check_timer -= delta
+	if _unstuck_check_timer > 0.0:
+		return
+	_unstuck_check_timer = maxf(unstuck_check_interval, 0.05)
+
+	if _is_sunk_into_ground():
+		_trigger_unstuck("im Boden versunken")
+		return
+
+	# Nur zaehlen, wenn der Gegner ueberhaupt vorwaerts kommen WILL - ein
+	# Gegner, der bewusst steht (IDLE, an einer Kante wartend, in einer
+	# Zickzack-Pause, abgelenkt), soll nicht als "haengt fest" gelten.
+	var wants_to_move: bool = _state == State.CHASE and not _waiting_at_ledge \
+		and not _zigzag_holding and _focus_lost_timer <= 0.0
+
+	if not wants_to_move:
+		_unstuck_reference_pos = global_position
+		_unstuck_timer = 0.0
+		return
+
+	var moved: float = global_position.distance_to(_unstuck_reference_pos)
+	if moved >= unstuck_min_progress:
+		_unstuck_reference_pos = global_position
+		_unstuck_timer = 0.0
+		return
+
+	_unstuck_timer += unstuck_check_interval
+	if _unstuck_timer >= unstuck_stationary_time:
+		_trigger_unstuck("haengt fest (kaum Fortschritt trotz Verfolgung)")
+
+
+## Raycast von oben auf denselben Layer wie die Kanten-/Hindernis-Checks.
+## "Versunken" heisst: die Fuesse liegen deutlich UNTER dem gefundenen Boden.
+func _is_sunk_into_ground() -> bool:
+	var space_state := get_world_3d().direct_space_state
+	var ray_origin: Vector3 = global_position + Vector3.UP * 2.0
+	var ray_end: Vector3 = global_position - Vector3.UP * telegraph_ground_raycast_range
+
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	query.exclude = [self]
+	query.collision_mask = ground_raycast_mask
+
+	var result := space_state.intersect_ray(query)
+	if result.is_empty():
+		return false
+
+	var ground_y: float = result.position.y
+	var feet_y: float = _get_feet_y()
+	return feet_y < ground_y - unstuck_sunk_threshold
+
+
+## Stupst den Gegner mit einem Impuls frei: nach oben (aus dem Boden/Mesh
+## heraus) und seitlich weg von benachbarten Gegnern (dieselbe Richtung, die
+## auch die normale Separation benutzt — die zeigt zuverlaessig "vom
+## Gedraenge weg", auch wenn kein anderer Gegner in der Naehe ist, in dem
+## Fall wird zufaellig ausgewichen).
+func _trigger_unstuck(reason: String) -> void:
+	_debug("Auto-Unstuck ausgeloest: %s" % reason)
+
+	var away: Vector3 = _get_separation_velocity()
+	away.y = 0.0
+	if away.length() < 0.01:
+		away = Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0))
+	away = away.normalized()
+
+	velocity.x = away.x * unstuck_impulse_horizontal
+	velocity.z = away.z * unstuck_impulse_horizontal
+	velocity.y = unstuck_impulse_up
+
+	# Sofortiger kleiner Schub nach oben, damit move_and_slide() im selben
+	# Frame nicht direkt wieder in dieselbe Flaeche hineinkollidiert und den
+	# Impuls dabei schluckt.
+	global_position += Vector3.UP * 0.15
+
+	_unstuck_timer = 0.0
+	_unstuck_reference_pos = global_position
+	_unstuck_cooldown = 1.0
+
 
 # Prueft EINMALIG, ob die Navigation-Map ueberhaupt Regionen enthaelt.
 # Im Level-Generator-Test fehlte die NavigationRegion3D komplett - dann
@@ -1539,26 +1740,52 @@ func _zigzag_step(delta: float) -> float:
 	var distance: float = global_position.distance_to(_player.global_position)
 	var span: float = maxf(zigzag_fade_distance - zigzag_min_distance, 0.01)
 	var amount: float = clampf((distance - zigzag_min_distance) / span, 0.0, 1.0)
+
+	var target_deg: float = 0.0
+
 	if amount <= 0.0:
 		_zigzag_holding = false
-		return 0.0
+	else:
+		_zigzag_timer -= delta
+		if _zigzag_timer <= 0.0:
+			_zigzag_phase_index = (_zigzag_phase_index + 1) % 4
+			_zigzag_timer = zigzag_pause_time if _zigzag_is_pause() else zigzag_leg_time
 
-	_zigzag_timer -= delta
-	if _zigzag_timer <= 0.0:
-		_zigzag_phase_index = (_zigzag_phase_index + 1) % 4
-		_zigzag_timer = zigzag_pause_time if _zigzag_is_pause() else zigzag_leg_time
+		_zigzag_holding = _zigzag_is_pause() and amount >= zigzag_pause_min_amount
+		if not _zigzag_holding:
+			# Phase 0 schlaegt nach rechts aus, Phase 2 nach links.
+			var side: float = 1.0 if _zigzag_phase_index == 0 else -1.0
+			target_deg = zigzag_angle_degrees * side * amount
 
-	_zigzag_holding = _zigzag_is_pause() and amount >= zigzag_pause_min_amount
-	if _zigzag_holding:
-		return 0.0
+	# Winkel mit begrenzter Geschwindigkeit dem Ziel nachfahren statt
+	# schlagartig zu springen - siehe Bugfix-Kommentar bei
+	# zigzag_angle_smoothing_deg.
+	_zigzag_current_angle_deg = move_toward(_zigzag_current_angle_deg, target_deg, zigzag_angle_smoothing_deg * delta)
+	_apply_zigzag_lean(delta, target_deg)
 
-	# Phase 0 schlaegt nach rechts aus, Phase 2 nach links.
-	var side: float = 1.0 if _zigzag_phase_index == 0 else -1.0
-	return deg_to_rad(zigzag_angle_degrees) * side * amount
+	return deg_to_rad(_zigzag_current_angle_deg)
 
 
 func _zigzag_is_pause() -> bool:
 	return (_zigzag_phase_index % 2) == 1
+
+
+## Bankt das Modell sichtbar in Richtung des aktuellen Kurvenwinkels. Laeuft
+## auf derselben Rampe wie der Winkel selbst, damit Lean und tatsaechliche
+## Kurve immer synchron wirken. Greift nicht waehrend eines Angriffs — dort
+## bestimmt _set_lean() die Modell-Rotation (Vorlehnen, andere Achse).
+func _apply_zigzag_lean(delta: float, target_deg: float) -> void:
+	if _visual_root == null or not is_instance_valid(_visual_root) or _is_attacking:
+		return
+
+	var target_lean: float = clampf(target_deg / maxf(zigzag_angle_degrees, 0.01), -1.0, 1.0) * zigzag_lean_angle_deg
+	_zigzag_lean_current_deg = move_toward(_zigzag_lean_current_deg, target_lean, zigzag_angle_smoothing_deg * delta)
+
+	_visual_root.rotation = Vector3(
+		_model_base_rotation.x,
+		_model_base_rotation.y,
+		_model_base_rotation.z + deg_to_rad(_zigzag_lean_current_deg) * _lean_sign
+	)
 
 
 func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:

@@ -49,6 +49,11 @@ extends Node
 signal party_changed
 signal active_character_changed(index: int)
 signal member_health_changed(index: int, current: float, max_hp: float)
+## Feuert, wenn der LETZTE verbleibende Charakter der Party auf 0 HP faellt -
+## also erst, wenn KEIN Last-Stand-Uebernahme (siehe _on_player_health_died())
+## mehr moeglich ist. Das ist das eigentliche Game-Over-Signal; death_screen.gd
+## haengt sich hieran statt an das Health.died des jeweils aktiven Charakters.
+signal party_wiped
 # Wird JEDES MAL gefeuert, wenn die aktive Spieler-Instanz ausgetauscht
 # wurde (erstes Spawnen UND jeder Charakterwechsel). Systeme, die sich
 # den Player-Node merken (HUD, Minimap, ...), MÜSSEN darauf reagieren und
@@ -62,6 +67,12 @@ const PLAYER_GROUP: String = "player"
 # Wie lange ein Charakter gesperrt bleibt, NACHDEM man von ihm weggewechselt
 # ist (nicht: nachdem man ihn ausgewählt hat).
 const SWITCH_COOLDOWN_DURATION: float = 10.0
+
+## Last-Stand-System: stirbt der aktive Charakter und lebt noch mindestens
+## ein weiteres Party-Mitglied, uebernimmt das automatisch - aber gedeckelt
+## auf hoechstens diesen Anteil seiner Maximal-HP, damit der Wechsel keine
+## Gratisheilung wird und der Druck im Kampf bestehen bleibt.
+const LAST_STAND_HP_FRACTION: float = 0.20
 
 var party: Array[CharacterData] = []
 
@@ -100,6 +111,8 @@ func notify_scene_reset() -> void:
 	if _player_health != null and is_instance_valid(_player_health):
 		if _player_health.health_changed.is_connected(_on_player_health_changed):
 			_player_health.health_changed.disconnect(_on_player_health_changed)
+		if _player_health.died.is_connected(_on_player_health_died):
+			_player_health.died.disconnect(_on_player_health_died)
 	player = null
 	_player_health = null
 	_spawn_parent = null
@@ -217,6 +230,9 @@ func _connect_player_health() -> void:
 		_player_health = h
 		if not _player_health.health_changed.is_connected(_on_player_health_changed):
 			_player_health.health_changed.connect(_on_player_health_changed)
+		# Last-Stand-Uebernahme: siehe _on_player_health_died().
+		if not _player_health.died.is_connected(_on_player_health_died):
+			_player_health.died.connect(_on_player_health_died)
 
 func _on_player_health_changed(current: float, max_hp: float) -> void:
 	if _active_index < 0 or _active_index >= _current_health.size():
@@ -233,6 +249,87 @@ func _apply_active_health_to_player() -> void:
 	_player_health.max_health = _max_health[_active_index]
 	_player_health.current_health = _current_health[_active_index]
 	_player_health.health_changed.emit(_player_health.current_health, _player_health.max_health)
+
+
+# ============================================================================
+# Last-Stand: Charakterwechsel bei 0 HP statt sofortigem Game Over
+# ============================================================================
+## Der aktive Charakter ist gerade gestorben (Health.died des aktuell
+## gebundenen player). Lebt noch ein anderes Party-Mitglied, uebernimmt DAS
+## automatisch (mit gedeckelter HP - siehe LAST_STAND_HP_FRACTION). Erst wenn
+## niemand mehr uebrig ist, feuert party_wiped - DAS ist das eigentliche
+## Game-Over-Signal, das death_screen.gd jetzt abonniert, statt direkt am
+## Health.died jedes einzelnen Charakters zu haengen.
+func _on_player_health_died() -> void:
+	if _active_index >= 0 and _active_index < _current_health.size():
+		_current_health[_active_index] = 0.0
+		member_health_changed.emit(_active_index, 0.0, _max_health[_active_index] if _active_index < _max_health.size() else 1.0)
+
+	var next_index: int = _find_next_alive(_active_index)
+	if next_index == -1:
+		party_wiped.emit()
+		return
+
+	_current_health[next_index] = minf(_current_health[next_index], _max_health[next_index] * LAST_STAND_HP_FRACTION)
+	member_health_changed.emit(next_index, _current_health[next_index], _max_health[next_index])
+
+	_force_switch_to_survivor(next_index)
+
+
+## Naechstes lebendes Party-Mitglied ab exclude_index, im Kreis gesucht -
+## damit die Reihenfolge (1, 2, 3, 4, 1, ...) unabhaengig davon ist, WELCHER
+## Index gerade gestorben ist. -1, wenn niemand mehr lebt.
+func _find_next_alive(exclude_index: int) -> int:
+	for offset: int in range(1, party.size()):
+		var idx: int = (exclude_index + offset) % party.size()
+		if is_member_alive(idx):
+			return idx
+	return -1
+
+
+## Wie switch_to(), aber OHNE Cooldown-Sperre und ohne dass irgendjemand
+## einen Cooldown bekommt: das ist eine erzwungene Rettung im letzten Moment,
+## keine freiwillige taktische Wahl, die man missbrauchen koennte.
+func _force_switch_to_survivor(index: int) -> void:
+	if not has_player():
+		_active_index = index
+		active_character_changed.emit(index)
+		return
+
+	var carried_transform: Transform3D = _sanitize_spawn_transform(player.global_transform)
+	var carried_camera_yaw: float = 0.0
+	var carried_camera_pitch: float = 0.0
+	var old_camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
+	var old_spring_arm: SpringArm3D = player.get_node_or_null("CameraPivot/SpringArm3D")
+	if old_camera_pivot:
+		carried_camera_yaw = old_camera_pivot.rotation.y
+	if old_spring_arm:
+		carried_camera_pitch = old_spring_arm.rotation.x
+
+	if _player_health != null and is_instance_valid(_player_health):
+		if _player_health.health_changed.is_connected(_on_player_health_changed):
+			_player_health.health_changed.disconnect(_on_player_health_changed)
+		if _player_health.died.is_connected(_on_player_health_died):
+			_player_health.died.disconnect(_on_player_health_died)
+
+	_deactivate_old_player(player)
+	player.queue_free()
+	player = null
+	_player_health = null
+
+	_active_index = index
+	_spawn_active_character(carried_transform)
+
+	if has_player():
+		var new_camera_pivot: Node3D = player.get_node_or_null("CameraPivot")
+		var new_spring_arm: SpringArm3D = player.get_node_or_null("CameraPivot/SpringArm3D")
+		if new_camera_pivot:
+			new_camera_pivot.rotation.y = carried_camera_yaw
+		if new_spring_arm:
+			new_spring_arm.rotation.x = carried_camera_pitch
+
+	active_character_changed.emit(index)
+
 
 # Schaltet Kollision UND Processing der alten Instanz SOFORT ab, statt
 # darauf zu warten, dass queue_free() sie entfernt (das passiert erst am

@@ -119,6 +119,10 @@ class RoomCell:
 
 @export var boss_min_distance: int = 2
 
+## Chance, dass der Tresorraum als Sackgasse DIREKT am Startraum (0,0)
+## platziert wird, statt wie sonst am weitesten entfernten passenden Punkt.
+@export_range(0.0, 1.0) var treasure_start_adjacent_chance: float = 0.35
+
 ## --- PHASE 3.1: Multi-Zellen-Raeume ------------------------------------
 ## Wahrscheinlichkeit, dass ein geeigneter Kampfraum auf mehrere Zellen
 ## aufgeblasen wird.
@@ -359,7 +363,14 @@ func _place_special_rooms(cells: Dictionary) -> void:
 		if boss_anchor != INVALID_POS:
 			forbidden_anchors.append(boss_anchor)
 
-	var treasure_pos: Vector2i = _reserve_dead_end(cells, 1, [boss_pos], forbidden_anchors)
+	# 35 %-Regel: bevorzugt eine Sackgasse DIREKT am Start, bevor auf die
+	# alte "immer am weitesten entfernten Punkt"-Suche zurueckgefallen wird.
+	var treasure_pos: Vector2i = INVALID_POS
+	if _rng.randf() < treasure_start_adjacent_chance:
+		treasure_pos = _reserve_dead_end_near_start(cells, [boss_pos], forbidden_anchors)
+
+	if treasure_pos == INVALID_POS:
+		treasure_pos = _reserve_dead_end(cells, 1, [boss_pos], forbidden_anchors)
 	if treasure_pos == INVALID_POS and not forbidden_anchors.is_empty():
 		# Lieber ein Tresor am Bossvorraum als gar keiner.
 		treasure_pos = _reserve_dead_end(cells, 1, [boss_pos], [])
@@ -436,6 +447,53 @@ func _reserve_dead_end(cells: Dictionary, min_distance: int, exclude: Array, for
 			cells[new_pos] = new_cell
 			_link_neighbors(cells, anchor, new_pos, dir)
 			return new_pos
+
+	return INVALID_POS
+
+
+## Fuer die 35 %-Regel: eine Sackgasse, die DIREKT am Startraum (0,0) haengt.
+##
+## Jede Zelle mit Manhattan-Distanz 1 von (0,0) kann waehrend des
+## Baumwachstums NUR von (0,0) selbst erzeugt worden sein (alle anderen
+## potenziellen Nachbarn liegen auf Distanz 2 und koennen zu dem Zeitpunkt
+## noch nicht existieren) - eine dort gefundene Sackgasse haengt also
+## garantiert direkt am Start, keine zusaetzliche Verbindungspruefung noetig.
+func _reserve_dead_end_near_start(cells: Dictionary, exclude: Array, forbidden_anchors: Array = []) -> Vector2i:
+	if forbidden_anchors.has(Vector2i.ZERO):
+		return INVALID_POS
+
+	# 1) Vorhandene Sackgasse direkt am Start.
+	var candidates: Array[Vector2i] = []
+	for dir in DIRECTION_OFFSETS.keys():
+		var pos: Vector2i = Vector2i.ZERO + DIRECTION_OFFSETS[dir]
+		if not cells.has(pos) or exclude.has(pos):
+			continue
+		var cell: RoomCell = cells[pos]
+		if cell.room_type != RoomData.RoomType.COMBAT:
+			continue
+		if _count_flags(cell.exit_flags) != 1:
+			continue
+		candidates.append(pos)
+
+	if not candidates.is_empty():
+		return candidates[_rng.randi_range(0, candidates.size() - 1)]
+
+	# 2) Nichts Passendes da -> direkt am Start anbauen, falls eine Richtung
+	# frei ist.
+	var directions: Array = DIRECTION_OFFSETS.keys()
+	DetRng.shuffle(directions, _rng)
+
+	for dir in directions:
+		var new_pos: Vector2i = Vector2i.ZERO + DIRECTION_OFFSETS[dir]
+		if cells.has(new_pos) or exclude.has(new_pos):
+			continue
+
+		var new_cell := RoomCell.new()
+		new_cell.grid_pos = new_pos
+		new_cell.room_type = RoomData.RoomType.COMBAT
+		cells[new_pos] = new_cell
+		_link_neighbors(cells, Vector2i.ZERO, new_pos, dir)
+		return new_pos
 
 	return INVALID_POS
 
