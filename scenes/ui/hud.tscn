@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://eabq6wxgfv3a" path="res://scripts/items/item_description_hud.gd" id="6_itemhud"]
 [ext_resource type="Script" uid="uid://c40hh6d6mnfdi" path="res://scripts/stats_panel.gd" id="7_stats"]
 [ext_resource type="Script" uid="uid://bouy7cn5am2oe" path="res://scripts/ui/boss_health_bar.gd" id="11_4d46k"]
+[ext_resource type="Script" path="res://scripts/ui/low_hp_vignette.gd" id="12_lowhp"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
 bg_color = Color(0.06, 0.06, 0.09, 0.82)
@@ -373,3 +374,10 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("11_4d46k")
+
+[node name="LowHpVignette" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+script = ExtResource("12_lowhp")

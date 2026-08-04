@@ -360,7 +360,7 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Contro
 	if item.flavor_text != "":
 		text = "\u201c%s\u201d\n%s" % [item.flavor_text, item.description]
 	if item.is_active_item():
-		text += "\n[C] \u00b7 laedt ueber %d Raeume" % item.charge_rooms
+		text += "\n%s" % _format_active_status(item)
 	_detail_text.text = text
 
 	var panel_style: StyleBox = _detail_panel.get_theme_stylebox("panel")
@@ -374,6 +374,31 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Contro
 
 	# Zeile hervorheben, damit klar ist, wozu die Beschreibung gehoert.
 	style.bg_color = Color(color.r, color.g, color.b, 0.16)
+
+
+## BUGFIX "zeigt manchmal noch [C]": stammte noch aus der Vor-Phase-5-Zeit
+## mit genau einem aktiven Item auf Taste C. Seit Q/E zwei unabhaengige Slots
+## sind (siehe item_manager.gd) UND es zeitbasierte Cooldowns neben den alten
+## Raum-Ladungen gibt, war der Text sowohl in der Taste als auch im
+## Ladungstyp falsch. Spiegelt jetzt dieselbe Logik wie
+## item_description_hud.gd._format_active_status().
+func _format_active_status(item: ItemData) -> String:
+	if _items == null:
+		return ""
+
+	var slot: int = -1
+	for i: int in range(_items.ACTIVE_SLOT_COUNT):
+		if _items.active_items[i] == item:
+			slot = i
+			break
+
+	if slot < 0:
+		return "Aktiv — nicht ausgeruestet (Q/E bereits belegt)"
+
+	var key: String = ["Q", "E"][slot]
+	if item.uses_time_cooldown():
+		return "%s · laedt in %d s" % [key, int(ceilf(item.cooldown_seconds))]
+	return "%s · laedt ueber %d Raeume" % [key, item.charge_rooms]
 
 
 ## Setzt die Karte neben die ueberfahrene Zeile — rechts bevorzugt, links

@@ -54,9 +54,21 @@ func _ready() -> void:
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 	_build_item_list()
+	_build_main_menu_button()
 
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
+
+	# BUGFIX/REWORK "Game Over pro Charakter statt pro Party": vorher hing
+	# dieser Screen direkt am Health.died DES JEWEILS AKTIVEN Charakters
+	# (siehe _on_active_player_changed weiter unten) - jeder einzelne
+	# Charaktertod loeste damit sofort den Death-Screen aus, obwohl
+	# PartyManager fuer genau diesen Fall ein Last-Stand-System hat (naechster
+	# lebender Charakter uebernimmt automatisch). Jetzt haengt der Screen an
+	# PartyManager.party_wiped - dem Signal, das ERST feuert, wenn KEIN
+	# Last-Stand-Uebernahme mehr moeglich ist.
+	if not PartyManager.party_wiped.is_connected(_on_party_wiped):
+		PartyManager.party_wiped.connect(_on_party_wiped)
 
 	if PartyManager.player and is_instance_valid(PartyManager.player):
 		_on_active_player_changed(PartyManager.player)
@@ -141,13 +153,13 @@ func _stop_and_read_run_timer() -> String:
 	return ""
 
 
-# Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — der alte
-# Player-Node samt seiner Health-Komponente wird komplett entfernt, also
-# muss auch died-Verbindung jedes Mal neu aufgebaut werden. Ohne das würde
-# der DeathScreen nach dem ersten Charakterwechsel nie wieder auslösen.
+# Wird bei JEDEM Charakterwechsel gefeuert (siehe PartyManager) — nur noch
+# fuer die Health-Referenz gebraucht, die _get_killer_name() liest. Das
+# eigentliche Game-Over-Signal ist jetzt PartyManager.party_wiped (siehe
+# _on_party_wiped()), nicht mehr das Health.died des jeweils aktiven
+# Charakters - ein Charaktertod bei noch lebenden Party-Mitgliedern loest
+# stattdessen PartyManager's Last-Stand-Uebernahme aus, kein Game Over.
 func _on_active_player_changed(new_player: CharacterBody3D) -> void:
-	if _health_node and is_instance_valid(_health_node) and _health_node.died.is_connected(_on_player_died):
-		_health_node.died.disconnect(_on_player_died)
 	_health_node = null
 
 	if new_player == null or not is_instance_valid(new_player):
@@ -160,7 +172,14 @@ func _on_active_player_changed(new_player: CharacterBody3D) -> void:
 		return
 
 	_health_node = health_node
-	_health_node.died.connect(_on_player_died)
+
+
+## PartyManager meldet: der letzte lebende Charakter der Party ist gerade
+## gestorben, keine Last-Stand-Uebernahme mehr moeglich. Das war vorher
+## _on_player_died(), direkt am Health.died verdrahtet - Name bewusst
+## beibehalten fuer den Rest der Funktion (Killer-Anzeige, Timer, Delay).
+func _on_party_wiped() -> void:
+	_on_player_died()
 
 
 func _on_player_died() -> void:
@@ -169,6 +188,8 @@ func _on_player_died() -> void:
 	# waehrend der Verzoegerung noch ESC druecken und die Pause oeffnen.
 	if _pause_menu:
 		_pause_menu.lock_out()
+
+	GameStats.report_death()
 
 	var run_time: String = _stop_and_read_run_timer()
 	killed_by_label.text = "Getötet von: %s" % _get_killer_name()
@@ -235,6 +256,33 @@ func _on_restart_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+## Prozedural statt in der .tscn ergaenzt — gleiches Prinzip wie
+## _build_item_list() oben. Anders als pause_menu.gd's "Hauptmenue"-Button
+## wird hier NICHT als Overlay instanziert: der Run ist vorbei
+## (GameStats.report_death() in _on_player_died() hat has_live_run bereits
+## auf false gesetzt), es gibt also nichts mehr, das ein Overlay am Leben
+## erhalten muesste - ein normaler Szenenwechsel ist hier der einfachere UND
+## korrekte Weg.
+func _build_main_menu_button() -> void:
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Hauptmenue-Button faellt aus." % name)
+		return
+
+	var button := Button.new()
+	button.text = "Hauptmenue"
+	button.custom_minimum_size = button_size if fix_layout_in_code else Vector2(0, 40)
+	button.pressed.connect(_on_main_menu_pressed)
+	column.add_child(button)
+	column.move_child(button, quit_button.get_index())
+
+
+func _on_main_menu_pressed() -> void:
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
 # ============================================================================

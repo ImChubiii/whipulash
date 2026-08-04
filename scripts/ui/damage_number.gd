@@ -10,10 +10,14 @@ class_name DamageNumber
 ##   NORMAL - Nahkampf-Hitbox (cyan)
 ##   CRIT   - kritischer Treffer (orange-rot)
 ##   DASH   - Durchdashen (gelb) - siehe CombatBase.dash_damage
+##   ITEM   - Passiv-/Item-Schaden (Tritt, Ramm-Attacke, Geister, ...) -
+##            siehe item_behaviours.gd. EIGENE Farbe noetig: ohne die sah
+##            Item-Schaden identisch zu einem normalen Treffer aus, obwohl
+##            er von einer ganz anderen Quelle kam.
 ##
 ## show_damage(amount, is_crit) bleibt unveraendert erhalten, damit die
 ## bestehenden Aufrufe in primary_hitbox.gd weiterlaufen.
-enum Kind { NORMAL, CRIT, DASH }
+enum Kind { NORMAL, CRIT, DASH, ITEM }
 
 @export var rise_distance: float = 2.5
 @export var horizontal_drift: float = 0.9  # max. seitliche Abweichung
@@ -27,6 +31,12 @@ enum Kind { NORMAL, CRIT, DASH }
 @export var dash_color: Color = Color(1.0, 0.85, 0.1, 1.0)
 @export var dash_outline_color: Color = Color(1.0, 0.55, 0.0, 1.0)
 @export var crit_outline_color: Color = Color(1.0, 0.2, 0.0, 1.0)
+
+## Neon-Magenta: bewusst der einzige Ton im Set, der weder in Richtung Cyan
+## (normal) noch Gelb (dash) noch Orange-Rot (crit) driftet - eindeutig als
+## "das kam von einem Item, nicht von einem Schlag" lesbar.
+@export var item_color: Color = Color(1.0, 0.25, 0.95, 1.0)
+@export var item_outline_color: Color = Color(0.55, 0.0, 0.65, 1.0)
 @export var horizontal_stretch: float = 3  # >1.0 = breiter, <1.0 = schmaler
 
 func _ready() -> void:
@@ -54,6 +64,11 @@ func show_dash_damage(amount: float) -> void:
 	show_damage_kind(amount, Kind.DASH)
 
 
+## Bequemer Einzeiler fuer Item-/Passiv-Schaden - siehe item_behaviours.gd.
+func show_item_damage(amount: float) -> void:
+	show_damage_kind(amount, Kind.ITEM)
+
+
 func show_damage_kind(amount: float, kind: int) -> void:
 	text = str(int(round(amount)))
 
@@ -64,6 +79,9 @@ func show_damage_kind(amount: float, kind: int) -> void:
 		Kind.DASH:
 			modulate = dash_color
 			outline_modulate = dash_outline_color
+		Kind.ITEM:
+			modulate = item_color
+			outline_modulate = item_outline_color
 		_:
 			modulate = normal_color
 			outline_modulate = outline_color

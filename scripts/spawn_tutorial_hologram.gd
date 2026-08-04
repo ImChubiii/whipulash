@@ -218,6 +218,17 @@ enum Placement {
 
 @export var debug_logging: bool = false
 
+## --- Interaktion: Vergroessern zum Lesen ------------------------------
+## Analog zum Minimap-Zoom (minimap.gd: TAB/M oeffnet eine groessere,
+## besser lesbare Ansicht derselben Karte) - dieselbe Idee hier: [interact]
+## in der Naehe skaliert das Schild groesser, ein zweites Mal (oder
+## Weggehen) skaliert zurueck.
+@export var interact_zoom_enabled: bool = true
+## Abstand in LOKALEN Einheiten, ab dem der Interaktions-Hinweis erscheint.
+@export var interact_range: float = 4.0
+@export var interact_zoom_scale: float = 1.7
+@export var interact_zoom_duration: float = 0.3
+
 const PLAYER_GROUP: String = "player"
 
 var _board: Sprite3D = null
@@ -232,6 +243,12 @@ var _time: float = 0.0
 var _visible_target: float = 1.0
 var _current_fade: float = 1.0
 var _rebuild_queued: bool = false
+
+## --- Interaktions-Zustand ----------------------------------------------
+var _interact_prompt: Label3D = null
+var _zoomed: bool = false
+var _zoom_tween: Tween = null
+var _player_in_interact_range: bool = false
 
 
 func _debug(msg: String) -> void:
@@ -306,8 +323,10 @@ func _build() -> void:
 	_build_backdrop()
 	_build_board()
 	_build_projector()
+	_build_interact_prompt()
 
 	_base_y = _pivot.position.y
+	_zoomed = false
 
 
 ## remove_child() VOR queue_free(): queue_free() raeumt erst am Frame-Ende
@@ -325,6 +344,10 @@ func _clear() -> void:
 	_backdrop_material = null
 	_projector = null
 	_projector_material = null
+	_interact_prompt = null
+	if _zoom_tween != null and _zoom_tween.is_valid():
+		_zoom_tween.kill()
+	_zoom_tween = null
 
 
 func _build_board() -> void:
@@ -495,6 +518,25 @@ func _build_projector() -> void:
 	add_child(_projector)
 
 
+## Kleiner Hinweis unter dem Schild, nur sichtbar wenn der Spieler nah genug
+## steht - siehe _update_interact() weiter unten.
+func _build_interact_prompt() -> void:
+	if not interact_zoom_enabled or _pivot == null:
+		return
+	_interact_prompt = Label3D.new()
+	_interact_prompt.name = "InteractPrompt"
+	_interact_prompt.text = "[F] Vergroessern"
+	_interact_prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_interact_prompt.no_depth_test = true
+	_interact_prompt.font_size = 40
+	_interact_prompt.pixel_size = 0.008
+	_interact_prompt.outline_size = 10
+	_interact_prompt.modulate = Color(0.72, 0.94, 1.0, 0.9)
+	_interact_prompt.position = Vector3(0.0, -_board_half_height() - 0.4, 0.0)
+	_interact_prompt.visible = false
+	_pivot.add_child(_interact_prompt)
+
+
 # ============================================================================
 # Platzierung
 # ============================================================================
@@ -630,6 +672,7 @@ func _process(delta: float) -> void:
 
 	_update_distance_fade(delta)
 	_apply_alpha()
+	_update_interact(delta)
 
 
 ## Zwei getrennte Schwellen (fade_out_distance / fade_in_distance) statt
@@ -686,6 +729,52 @@ func _apply_alpha() -> void:
 		)
 	if _projector != null and is_instance_valid(_projector):
 		_projector.visible = alpha > 0.01
+
+
+## Interaktion: [F] in der Naehe vergroessert das Schild (analog zum
+## Minimap-Zoom - dieselbe Grundidee, dieselbe Karte/dasselbe Bild groesser
+## fuer bessere Lesbarkeit statt eines separaten Ansicht-Modus).
+func _update_interact(_delta: float) -> void:
+	if not interact_zoom_enabled:
+		return
+
+	var player: Node3D = _find_player()
+	var in_range: bool = false
+	if player != null:
+		var d: float = global_position.distance_to(player.global_position)
+		# Gleiche lokal->Welt-Umrechnung wie _update_distance_fade(), aus
+		# demselben Grund (room_scale).
+		var world_scale: float = maxf(global_transform.basis.x.length(), 0.001)
+		in_range = d <= interact_range * world_scale
+
+	if in_range != _player_in_interact_range:
+		_player_in_interact_range = in_range
+		if not in_range and _zoomed:
+			_set_zoomed(false)
+		if _interact_prompt != null and is_instance_valid(_interact_prompt):
+			_interact_prompt.visible = in_range
+
+	if not in_range:
+		return
+
+	if _interact_prompt != null and is_instance_valid(_interact_prompt):
+		_interact_prompt.text = "[F] Verkleinern" if _zoomed else "[F] Vergroessern"
+
+	if Input.is_action_just_pressed("interact"):
+		_set_zoomed(not _zoomed)
+
+
+func _set_zoomed(value: bool) -> void:
+	_zoomed = value
+	if _pivot == null or not is_instance_valid(_pivot):
+		return
+	if _zoom_tween != null and _zoom_tween.is_valid():
+		_zoom_tween.kill()
+
+	var target_scale: Vector3 = Vector3.ONE * (interact_zoom_scale if value else 1.0)
+	_zoom_tween = create_tween()
+	_zoom_tween.tween_property(_pivot, "scale", target_scale, interact_zoom_duration)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 ## Ueber die Gruppe statt find_child("Player"): der PartyManager tauscht die

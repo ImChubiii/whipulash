@@ -66,6 +66,12 @@ func _ready() -> void:
 	else:
 		push_warning("PauseMenu: settings_menu_path ist nicht gesetzt — Settings-Button bleibt ohne Funktion.")
 
+	# Der Button heisst im Editor noch "Quit" (siehe .tscn) - er fuehrt jetzt
+	# aber zum Hauptmenue statt die Anwendung zu beenden (siehe
+	# _on_quit_pressed). Laufzeit-Override statt .tscn-Aenderung, gleiches
+	# Prinzip wie bei den prozedural ergaenzten Controls in dieser Datei.
+	quit_button.text = "Main Menu"
+
 	resume_button.pressed.connect(_on_resume_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)
 	restart_button.pressed.connect(_on_restart_pressed)
@@ -302,8 +308,20 @@ func _restart_level() -> void:
 	get_tree().reload_current_scene()
 
 
+## Quit fuehrt NICHT mehr direkt aus der Anwendung — stattdessen zurueck zum
+## Hauptmenue (main_menu.gd), von dort aus quittet ein eigener Quit-Button
+## die Anwendung wirklich. Der laufende Run gilt damit als verlassen
+## (GameStats.has_live_run = false): es gibt in diesem Projekt keine
+## Serialisierung des prozeduralen Dungeons, "Fortsetzen" im Hauptmenue ist
+## also folgerichtig deaktiviert, nachdem man ihn hier verlassen hat — siehe
+## main_menu.gd Kopfkommentar.
 func _on_quit_pressed() -> void:
-	get_tree().quit()
+	if _blur_overlay:
+		_blur_overlay.visible = false
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	GameStats.has_live_run = false
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
 # ============================================================================
