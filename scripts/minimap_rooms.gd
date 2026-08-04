@@ -1,3 +1,4 @@
+
 extends Control
 class_name MinimapRooms
 
@@ -50,6 +51,35 @@ const OPPOSITE_DIR := {
 @export var gap_px: float = 4.0
 @export var view_radius: int = 2
 @export var show_unexplored_neighbors: bool = true
+
+## ############################################################################
+## PHASE 5.1 — SCHMALE KORRIDORE
+## ############################################################################
+## Anteil der Zellbreite, mit dem ein KORRIDOR quer zu seiner Laufrichtung
+## gezeichnet wird. 1.0 = so breit wie ein Raum (altes Verhalten).
+##
+## WARUM DAS NOETIG WAR: im Level sind Korridore nur 20 statt 48 Einheiten
+## breit, auf der Karte sahen sie aber aus wie vollwertige Raeume. Damit war
+## der Rhythmus "Arena - Gang - Arena", der das Layout ausmacht, auf der
+## Minimap unsichtbar; alle Zellen wirkten gleichwertig.
+##
+## Die Laufrichtung wird aus den exit_flags abgeleitet: Nord|Sued = senkrecht,
+## Ost|West = waagerecht. Ein Korridor hat per Konstruktion immer genau diese
+## beiden Muster (siehe RoomGridGenerator._place_corridors), ein Sonderfall
+## fuer Ecken oder T-Stuecke ist also nicht noetig.
+@export_range(0.2, 1.0) var corridor_width_factor: float = 0.42
+
+## ############################################################################
+## PHASE 3.1 — MULTI-ZELLEN-RAEUME
+## ############################################################################
+## Ein Raum, der mehrere Rasterzellen belegt, wird als EIN zusammenhaengendes
+## Rechteck ueber die gesamte Flaeche gezeichnet - nicht als mehrere Quadrate
+## nebeneinander. Sonst waere auf der Karte nicht zu erkennen, ob dort ein
+## grosser Raum steht oder zwei kleine.
+##
+## Die Fugen zwischen den Zellen werden dabei mitgefuellt (gap_px), damit das
+## Rechteck geschlossen wirkt.
+@export var merge_multi_cell_rooms: bool = true
 
 ## Dreht NUR die Positionierung der Zellen/Tueren zueinander, damit das
 ## Layout zur kalibrierten 3D-Minimap passt. Buchstaben und Symbole
@@ -170,6 +200,11 @@ func _draw() -> void:
 	# Blickrichtungen auf demselben Eintrag.
 	var drawn_passages: Dictionary = {}
 
+	# PHASE 3.1: Zusatzzellen eines Multi-Zellen-Raums stehen NICHT in
+	# get_map_cells() - dort liegt nur die Ankerzelle mit ihrem footprint.
+	# Es gibt hier also nichts zu ueberspringen; das Rechteck der Ankerzelle
+	# deckt die Flaeche bereits ab.
+
 	# --- Durchgaenge zuerst, damit die Raumquadrate spaeter sauber
 	# darueber gezeichnet werden und den ueberschuessigen Teil der
 	# Fuellung in der Raummitte automatisch abschneiden -----------------
@@ -209,6 +244,10 @@ func _draw() -> void:
 
 			var neighbor_data: Dictionary = cells[neighbor_grid]
 			var neighbor_visited: bool = bool(neighbor_data.get("visited", false))
+			# PHASE 3.1: Der Durchgang endet an der ZELLE, nicht am
+			# Raum-Mittelpunkt. Das ist genau die Stelle, an der die Tuer im
+			# Level sitzt (siehe LevelGenerator._apply_multi_cell_exit_offsets),
+			# und deshalb auch die, die auf der Karte stimmen muss.
 			var neighbor_center := _cell_center(neighbor_grid, current, center, pitch)
 
 			# Sortiertes Schluesselpaar: (A,B) und (B,A) ergeben denselben
@@ -239,7 +278,7 @@ func _draw() -> void:
 		# Zelle bleibt ein achsenparalleles Rect2 - NUR ihre Position
 		# wandert entlang der rotierten Achsen, die Box selbst dreht sich
 		# nicht. Dadurch bleiben Glyphen/Text darin aufrecht.
-		var rect := Rect2(c - Vector2(cell_px, cell_px) * 0.5, Vector2(cell_px, cell_px))
+		var rect := _rect_for_cell(data, grid, current, center, pitch, exits_of(data))
 
 		if not visited:
 			draw_rect(rect, color_unexplored, true)
@@ -267,6 +306,68 @@ func _draw() -> void:
 		var txt := "STAGE CLEAR"
 		draw_string(font, Vector2(0.0, size.y - 4.0), txt,
 			HORIZONTAL_ALIGNMENT_CENTER, size.x, 11, color_cleared_tint)
+
+
+## Exit-Bitmaske einer Zelle. Kleiner Helfer, damit _rect_for_cell() nicht
+## noch einen Parameter mehr braucht.
+func exits_of(data: Dictionary) -> int:
+	return int(data.get("exits", 0))
+
+
+## ############################################################################
+## Das Rechteck, mit dem eine Zelle gezeichnet wird.
+## ############################################################################
+## Deckt drei Faelle ab:
+##   1. Normaler Raum      -> Quadrat von cell_px.
+##   2. Korridor           -> quer zur Laufrichtung auf corridor_width_factor
+##                            geschrumpft (Phase 5.1).
+##   3. Multi-Zellen-Raum  -> ein Rechteck ueber die gesamte belegte Flaeche,
+##                            inklusive der Fugen dazwischen (Phase 3.1).
+##
+## Fall 2 und 3 schliessen sich gegenseitig aus: Korridore bleiben laut
+## RoomGridGenerator._assign_footprints() immer einzellig.
+##
+## ROTATION: das Rechteck selbst bleibt achsenparallel, damit Glyphen aufrecht
+## stehen. Bei overlay_rotation_degrees = -90 vertauschen sich aber Breite und
+## Hoehe auf dem Bildschirm — deshalb wird die Ausdehnung ueber die rotierten
+## Eckpunkte bestimmt statt ueber die Rasterachsen direkt.
+func _rect_for_cell(
+		data: Dictionary,
+		grid: Vector2i,
+		current: Vector2i,
+		center: Vector2,
+		pitch: float,
+		exits: int
+) -> Rect2:
+	var c: Vector2 = _cell_center(grid, current, center, pitch)
+	var type: int = int(data.get("type", 0))
+
+	# --- Fall 3: Multi-Zellen-Raum ---------------------------------------
+	var footprint: Vector2i = data.get("footprint", Vector2i.ONE)
+	if merge_multi_cell_rooms and (footprint.x > 1 or footprint.y > 1):
+		# Mittelpunkt der Flaeche statt der Ankerzelle.
+		var half: Vector2 = Vector2(float(footprint.x - 1) * 0.5, float(footprint.y - 1) * 0.5)
+		var shifted: Vector2 = c + _rotate(Vector2(half.x * pitch, half.y * pitch))
+		# Volle Ausdehnung inkl. Fugen: n Zellen + (n-1) Luecken.
+		var span := Vector2(
+			float(footprint.x) * cell_px + float(footprint.x - 1) * gap_px,
+			float(footprint.y) * cell_px + float(footprint.y - 1) * gap_px
+		)
+		var rotated_span: Vector2 = _rotate(span).abs()
+		return Rect2(shifted - rotated_span * 0.5, rotated_span)
+
+	# --- Fall 2: Korridor -------------------------------------------------
+	if type == RoomData.RoomType.CORRIDOR:
+		var narrow: float = cell_px * corridor_width_factor
+		# Nord|Sued (1|2) = der Gang laeuft senkrecht durchs Raster, ist also
+		# in RASTER-X schmal. Alles andere behandeln wir als waagerecht.
+		var vertical: bool = (exits & 1) != 0 and (exits & 2) != 0
+		var raw := Vector2(narrow, cell_px) if vertical else Vector2(cell_px, narrow)
+		var span_c: Vector2 = _rotate(raw).abs()
+		return Rect2(c - span_c * 0.5, span_c)
+
+	# --- Fall 1: normaler Raum -------------------------------------------
+	return Rect2(c - Vector2(cell_px, cell_px) * 0.5, Vector2(cell_px, cell_px))
 
 
 ## Eindeutiger Schluessel fuer ein Zellenpaar, unabhaengig von der

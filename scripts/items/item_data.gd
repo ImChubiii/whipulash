@@ -1,4 +1,5 @@
 
+
 extends Resource
 class_name ItemData
 
@@ -60,7 +61,32 @@ enum Category {
 @export var category: Category = Category.UTILITY
 
 ## Nur fuer ACTIVE: nach so vielen gecleareten Raeumen ist es wieder bereit.
+##
+## Wird IGNORIERT, sobald cooldown_seconds > 0 ist.
 @export var charge_rooms: int = 2
+
+## PHASE 4 — NEU: sekundenbasierter Cooldown.
+##
+## WARUM ES BEIDE MECHANIKEN GIBT:
+## Das urspruengliche Aktiv-Item-System laedt ueber GECLEARTE RAEUME auf
+## (charge_rooms). Fuer die acht Aktiv-Items aus dem Design-Dokument passt
+## das nicht: dort stehen Sekunden ("Sturmfeuerzeug 3s", "Walkman 12s"), und
+## ein Item, das man erst nach dem naechsten Raum wieder benutzen darf, ist
+## etwas voellig anderes als eines mit 3 Sekunden Abklingzeit.
+##
+## 0.0 = alte Raum-Aufladung benutzen. > 0.0 = Sekunden-Cooldown, wobei
+## charge_rooms dann unbeachtet bleibt. Beides gleichzeitig waere ein
+## Doppel-Gate, bei dem nie klar ist, welches gerade blockiert.
+##
+## SONDERFALL "1x pro Etage" (Schulbibliotheks-Buch): weder das eine noch
+## das andere. Das laeuft ueber charge_rooms = 0 UND cooldown_seconds = 0
+## plus die Sperre in item_behaviours.gd (_book_used_in_stage).
+@export var cooldown_seconds: float = 0.0
+
+
+## true, wenn dieses Item ueber Sekunden statt ueber Raeume auflaedt.
+func uses_time_cooldown() -> bool:
+	return cooldown_seconds > 0.0
 
 ## Reine Stat-Boni, die ohne eigenen Code auskommen.
 ## Format: { PlayerStats.STAT_* : { "add": float, "mul": float } }
@@ -176,5 +202,6 @@ func get_category_name() -> String:
 		Category.DEFENSE:
 			return "Defensive"
 	return "Sonstiges"
+
 
 

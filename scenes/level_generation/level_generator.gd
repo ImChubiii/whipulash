@@ -1,3 +1,4 @@
+
 extends Node
 class_name LevelGenerator
 
@@ -186,6 +187,10 @@ var _current_layout: Dictionary = {}
 var _map_cells: Dictionary = {}
 var _current_room: Vector2i = Vector2i.ZERO
 var _stage_cleared: bool = false
+## PHASE 3.2: Thema der laufenden Etage.
+var _stage_theme: StageTheme = null
+## PHASE 3.1: Rasterposition -> Ankerzelle. Enthaelt auch die Anker selbst.
+var _occupancy: Dictionary = {}
 
 ## Der wirklich verwendete Run-Seed (nie 0, sobald _ready() durch ist).
 var _run_seed: int = 0
@@ -200,6 +205,10 @@ func _ready() -> void:
 	# irgendetwas anderes in _ready() sie lesen koennte. Siehe Kommentar
 	# bei den var-Deklarationen oben, warum das keine @export-Werte mehr sind.
 	_apply_room_scale()
+
+	# PHASE 3.2: Thema der Startetage festlegen, BEVOR generiert wird —
+	# sonst laeuft Etage 1 ungefaerbt und erst ab Etage 2 greift das System.
+	_stage_theme = StageTheme.for_stage(current_stage)
 
 	# --- Schutz gegen doppelte Generatoren --------------------------------
 	# Zwei aktive LevelGenerator erzeugen ZWEI komplette Raumsaetze an
@@ -252,6 +261,12 @@ func _ready() -> void:
 
 func get_map_cells() -> Dictionary:
 	return _map_cells
+
+
+## PHASE 3.1: Rasterposition -> Ankerzelle des belegenden Raums. Die Minimap
+## fuellt damit die komplette Flaeche eines Multi-Zellen-Raums auf.
+func get_occupancy() -> Dictionary:
+	return _occupancy
 
 func get_current_room() -> Vector2i:
 	return _current_room
@@ -316,14 +331,63 @@ func get_room_type_name(type: int) -> String:
 # --- Generierung ----------------------------------------------------
 
 func generate_new_stage() -> void:
-	_current_layout = grid_generator.generate_layout(_run_seed)
-	print("[LevelGenerator] Layout generiert: %d Zellen" % _current_layout.size())
+	_current_layout = grid_generator.generate_layout(_run_seed, current_stage)
+	print("[LevelGenerator] Layout generiert: %d Zellen (Etage %d)" % [_current_layout.size(), current_stage])
 	_instantiate_layout(_current_layout)
 
 
 func generate_next_stage_same_pattern() -> void:
 	current_stage += 1
 	_instantiate_layout(_current_layout)
+
+
+## ############################################################################
+## PHASE 3.2 — ETAGENWECHSEL
+## ############################################################################
+## Baut eine KOMPLETT NEUE Etage: neues Layout, neues Thema, staerkere Gegner.
+## Wird vom StageManager (stage_manager.gd) gerufen.
+##
+## Unterschied zu generate_next_stage_same_pattern(): dort wird dasselbe
+## Grundriss-Muster mit anderen Raeumen neu bestueckt. Hier wird auch das
+## Muster neu gewuerfelt — der Seed geht mit der Etagennummer in die
+## Ableitung ein (siehe RoomGridGenerator.generate_layout), der Run bleibt
+## also trotzdem vollstaendig reproduzierbar.
+##
+## Der Spielerzustand wird hier BEWUSST NICHT ANGEFASST. Items, PlayerStats
+## und PartyManager sind Autoloads und ueberleben, weil kein Szenenwechsel
+## stattfindet.
+func generate_stage(stage: int) -> void:
+	current_stage = maxi(stage, 1)
+	_stage_theme = StageTheme.for_stage(current_stage)
+	print("[LevelGenerator] Baue Etage %d (Thema: %s)" % [current_stage, _stage_theme.theme_name])
+	_current_layout = grid_generator.generate_layout(_run_seed, current_stage)
+	_instantiate_layout(_current_layout)
+
+
+## Weltposition, an der der Spieler in der neuen Etage abgesetzt wird.
+##
+## Bevorzugt den PlayerSpawnPoint der Startraum-Szene; ohne ihn die Raummitte.
+## NIE Vector3.ZERO als Fallback: liegt der Startraum auf einer Hoehenstufe
+## ungleich 0, faellt der Spieler sonst durch den Boden.
+func get_start_room_spawn() -> Vector3:
+	var start: RoomInstance = _instances.get(Vector2i.ZERO)
+	if start == null or not is_instance_valid(start):
+		return Vector3.ZERO
+
+	var marker: Node3D = start.find_child("PlayerSpawnPoint", true, false) as Node3D
+	if marker != null:
+		return marker.global_position
+
+	var center: Vector3 = start.get_room_center()
+	center.y = start.global_position.y + 1.0
+	return center
+
+
+## Das aktuelle Thema der Etage. Die Minimap und der StageManager lesen hier.
+func get_stage_theme() -> StageTheme:
+	if _stage_theme == null:
+		_stage_theme = StageTheme.for_stage(current_stage)
+	return _stage_theme
 
 
 func _instantiate_layout(layout: Dictionary) -> void:
@@ -333,24 +397,39 @@ func _instantiate_layout(layout: Dictionary) -> void:
 	_stage_cleared = false
 	_current_room = Vector2i.ZERO
 
+	# PHASE 3.1: Belegungstabelle uebernehmen, damit Minimap und Fog-of-War
+	# die volle Flaeche eines Multi-Zellen-Raums kennen.
+	_occupancy.clear()
+	if grid_generator.has_method("get_occupancy"):
+		_occupancy = grid_generator.get_occupancy().duplicate()
+
 	for grid_pos in layout.keys():
 		var cell: RoomGridGenerator.RoomCell = layout[grid_pos]
-		var data: RoomData = _pick_room(cell.room_type, cell.exit_flags)
+		var data: RoomData = _pick_room(cell.room_type, cell.exit_flags, cell.footprint)
 		if data == null:
 			continue
 
-		# Hoehenstufe der Eingangsseite -> Welt-Y.
+		# PHASE 3.1: Ein Multi-Zellen-Raum sitzt in der MITTE seiner Flaeche,
+		# nicht auf der Ankerzelle. center_offset() liefert die Verschiebung
+		# in Rasterzellen — bei (2,1) also (0.5, 0), der Raum rueckt um eine
+		# halbe Zelle nach Osten.
+		var center_offset: Vector2 = cell.center_offset()
 		var world_pos := Vector3(
-			grid_pos.x * cell_size.x,
+			(float(grid_pos.x) + center_offset.x) * cell_size.x,
 			cell.elevation * elevation_step,
-			grid_pos.y * cell_size.z
+			(float(grid_pos.y) + center_offset.y) * cell_size.z
 		)
 		var room := load_room(data, Transform3D(Basis.IDENTITY, world_pos))
 		if room == null:
 			continue
 
 		room.grid_position = grid_pos
+
 		room.apply_exit_flags(cell.exit_flags)
+
+		# PHASE 3.2: Thema der Etage auflegen.
+		if _stage_theme != null and room.has_method("apply_theme"):
+			room.apply_theme(_stage_theme)
 
 		# Korridor mit Hoehenunterschied -> Rampe im Inneren bauen und die
 		# Tuer auf der hohen Seite entsprechend anheben.
@@ -403,6 +482,10 @@ func _instantiate_layout(layout: Dictionary) -> void:
 			"visited": grid_pos == Vector2i.ZERO,
 			"cleared": not room.requires_clear(),
 			"hostile": room.requires_clear(),
+			# PHASE 3.1: die Minimap zeichnet damit die volle Flaeche statt
+			# eines Quadrats auf der Ankerzelle.
+			"footprint": cell.footprint,
+			"covered": cell.covered_cells.duplicate(),
 		}
 
 	_apply_door_kinds(layout)
@@ -617,6 +700,12 @@ func get_enemy_damage_multiplier() -> float:
 ## schematische Karte und 3D-Ansicht nicht unterschiedlich viel verraten.
 func is_room_revealed(grid: Vector2i) -> bool:
 	if not _map_cells.has(grid):
+		# PHASE 3.1: Zusatzzelle eines Multi-Zellen-Raums -> der Anker
+		# entscheidet. Ohne diese Umleitung waere die halbe Flaeche eines
+		# grossen Raums dauerhaft im Nebel.
+		var anchor: Vector2i = _occupancy.get(grid, grid)
+		if anchor != grid and _map_cells.has(anchor):
+			return is_room_revealed(anchor)
 		return false
 	if bool(_map_cells[grid].get("visited", false)):
 		return true
@@ -845,7 +934,32 @@ func _clear_current_rooms() -> void:
 	_instances.clear()
 
 
-func _pick_room(type: int, required_exit_flags: int) -> RoomData:
+## PHASE 3.1: footprint kam dazu. Eine Vorlage passt nur, wenn ihre
+## footprint_cells EXAKT der geforderten Grundflaeche entsprechen — ein
+## 1x1-Raum in eine 2x1-Luecke zu setzen wuerde die halbe Flaeche als Loch
+## im Level stehen lassen.
+##
+## FALLBACK: findet sich nichts, wird auf (1,1) zurueckgefallen und die
+## Zusatzzellen bleiben ungenutzt. Besser ein etwas leereres Layout als ein
+## Abbruch mitten in der Generierung.
+func _pick_room(type: int, required_exit_flags: int, footprint: Vector2i = Vector2i.ONE) -> RoomData:
+	var candidates: Array[RoomData] = _collect_candidates(type, required_exit_flags, footprint)
+
+	if candidates.is_empty() and (footprint.x > 1 or footprint.y > 1):
+		push_warning("LevelGenerator: Keine %dx%d-Vorlage fuer Typ %s im Pool - falle auf 1x1 zurueck. Die Zusatzzellen bleiben leer." % [footprint.x, footprint.y, type])
+		candidates = _collect_candidates(type, required_exit_flags, Vector2i.ONE)
+
+	if candidates.is_empty():
+		push_error("LevelGenerator: Kein passender Raum fuer Typ %s (Exits %d, Flaeche %dx%d) gefunden!" % [type, required_exit_flags, footprint.x, footprint.y])
+		return null
+
+	var chosen: RoomData = _weighted_pick(candidates)
+	if chosen.unique_per_run:
+		_used_unique_rooms.append(chosen)
+	return chosen
+
+
+func _collect_candidates(type: int, required_exit_flags: int, footprint: Vector2i) -> Array[RoomData]:
 	var candidates: Array[RoomData] = []
 	for data in room_pool:
 		if data == null or data.scene == null:
@@ -858,16 +972,40 @@ func _pick_room(type: int, required_exit_flags: int) -> RoomData:
 			continue
 		if (data.available_exits & required_exit_flags) != required_exit_flags:
 			continue
+		if data.footprint_cells != footprint:
+			continue
 		candidates.append(data)
+	return candidates
 
-	if candidates.is_empty():
-		push_error("LevelGenerator: Kein passender Raum fuer Typ %s (Exits %d) gefunden!" % [type, required_exit_flags])
-		return null
 
-	var chosen: RoomData = _weighted_pick(candidates)
-	if chosen.unique_per_run:
-		_used_unique_rooms.append(chosen)
-	return chosen
+## ############################################################################
+## PHASE 3.1 — WO DIE TUEREN EINES MULTI-ZELLEN-RAUMS SITZEN
+## ############################################################################
+## Der Raum steht in der MITTE seiner Flaeche, die Nachbarn haengen aber an der
+## ANKERZELLE (die Ecke mit den kleinsten Koordinaten). Eine Tuer in der Mitte
+## der langen Wand wuerde also gegen die Wand des Nachbarn laufen.
+##
+## GELOEST WIRD DAS IN DER RAUM-SZENE, NICHT HIER — und das ist der
+## entscheidende Punkt:
+##
+##   Der Generator kann eine Tuer verschieben. Er kann die WANDLUECKE nicht
+##   verschieben. Die Waende stehen als feste Transform3D-Werte in der .tscn.
+##   Eine nachtraeglich versetzte Tuer stuende also vor einer geschlossenen
+##   Wand, und an ihrer alten Stelle klaffte ein offenes Loch.
+##
+## Deshalb gilt fuer jede Szene mit footprint_cells != (1,1) die Konvention:
+##
+##   Tuer, ExitPoint UND Wandluecke liegen auf der Achse der Ankerzelle, also
+##   bei -(cells-1) * 24 in lokalen Koordinaten.
+##
+## Die mitgelieferten Szenen (room_combat_wide_01, _tall_01, _arena_01) sind
+## genau so gebaut. Wer eine eigene anlegt: die Zahl ist -24 bei zwei Zellen,
+## -48 bei drei.
+##
+## RoomInstance.set_exit_offset() existiert weiterhin und verschiebt Tuer,
+## ExitPoint und Tuersturz gemeinsam — als Werkzeug fuer den Fall, dass jemand
+## eine Szene mit mittigen Tueren einpassen will UND die Wandluecke dort selbst
+## anpasst. Automatisch aufgerufen wird sie bewusst nicht.
 
 
 func _weighted_pick(candidates: Array[RoomData]) -> RoomData:

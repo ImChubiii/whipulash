@@ -1,5 +1,6 @@
 
 
+
 extends CharacterBody3D
 class_name EnemyAI
 
@@ -343,13 +344,31 @@ func get_status_effect_magnitude(id: String) -> float:
 ## StatusEffectManager hat brav effect_ticked gefeuert, aber niemand hat auf
 ## die IDs reagiert. Das Rostige Beil hat also seit jeher korrekt "bleed"
 ## aufgetragen - nur ist nie Schaden angekommen.
-const DOT_EFFECT_IDS: PackedStringArray = ["poison", "bleed", "burn"]
+## PHASE 4: "acid" ist dazugekommen. Die Liste ist bewusst eine Kopie von
+## StatusEffectManager.DOT_IDS und keine Referenz darauf — const-Ausdruecke
+## duerfen in GDScript nicht auf andere Klassen zugreifen. Wer hier etwas
+## aendert, aendert es DORT mit.
+const DOT_EFFECT_IDS: PackedStringArray = ["poison", "bleed", "burn", "acid"]
 
 func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> void:
 	if health == null:
 		return
 	if id in DOT_EFFECT_IDS:
 		health.take_damage(magnitude, source)
+
+
+## PHASE 4. Reagiert sofort auf neu aufgetragene Effekte, statt erst beim
+## naechsten Frame im State-Automaten.
+func _on_status_effect_applied(id: String, _duration: float, _magnitude: float, _source: Node) -> void:
+	if id == "stun" or id == "silenced":
+		interrupt_attack()
+
+
+## PHASE 4. Haengt die dauerhafte Effekt-Einfaerbung an.
+func _setup_status_visuals() -> void:
+	if _is_dead or not is_instance_valid(self):
+		return
+	StatusEffectVisuals.attach(self)
 
 
 ## Betaeubung. Existierte vorher GAR NICHT - Hitbox.stun_duration und die
@@ -368,6 +387,48 @@ func is_movement_locked() -> bool:
 	if status_effects == null:
 		return false
 	return status_effects.has_effect("rooted") or status_effects.has_effect("stun")
+
+
+## PHASE 4: true, wenn der Gegner GERADE KEINEN telegraphierten Angriff
+## starten darf.
+##
+## ZWEI VERSCHIEDENE SPERREN, BEWUSST GETRENNT:
+##   * "stun"     — komplette Handlungsunfaehigkeit. Vorher durfte ein
+##                  betaeubter Gegner aus dem Stand weiter zuschlagen; der
+##                  Effekt war damit praktisch wertlos, weil er nur das
+##                  Nachlaufen verhinderte.
+##   * "silenced" — nur der ANGEKUENDIGTE Angriff faellt aus (Altes
+##                  Modulations-Modem). Bewegung und Drehung bleiben frei.
+##
+## "rooted" steht bewusst NICHT hier: festnageln soll den Gegner ortsfest
+## machen, nicht wehrlos. Genau das ist der Unterschied zu stun.
+func is_attack_locked() -> bool:
+	if status_effects == null:
+		return false
+	return status_effects.has_effect("stun") or status_effects.has_effect("silenced")
+
+
+## PHASE 4: bricht einen LAUFENDEN Telegraph ab.
+##
+## Ohne diesen Aufruf waere die Stummschaltung gegen genau den Angriff
+## wirkungslos, den man abfangen wollte: _do_attack() laeuft als Coroutine
+## ueber mehrere await-Punkte weiter, auch wenn der Effekt mittendrin
+## auftrifft. Die Pruefung auf _attack_interrupted in _do_attack() steigt
+## dann beim naechsten Aufwachen aus.
+func interrupt_attack() -> void:
+	if not _is_attacking:
+		return
+	_attack_interrupted = true
+	if telegraph_inner:
+		telegraph_inner.visible = false
+	if telegraph_outer:
+		telegraph_outer.visible = false
+	_debug("Angriff durch Status-Effekt unterbrochen.")
+
+
+## Wird von _on_status_effect_applied() gesetzt und von _do_attack() an jedem
+## await-Punkt geprueft.
+var _attack_interrupted: bool = false
 
 # --- Debug ---
 @export var debug_logging: bool = false
@@ -624,6 +685,13 @@ func _ready() -> void:
 
 	status_effects = StatusEffectManager.get_or_create(self)
 	status_effects.effect_ticked.connect(_on_status_effect_ticked)
+	# PHASE 4: Stun/Silence muessen einen laufenden Telegraph abbrechen
+	# koennen — sonst kommt der angekuendigte Schlag trotzdem an.
+	status_effects.effect_applied.connect(_on_status_effect_applied)
+	# PHASE 4: dauerhafte Einfaerbung nach Effekt. Muss NACH _setup_visuals()
+	# eingehaengt werden (die Materialien entstehen erst dort) - deshalb
+	# call_deferred statt eines direkten Aufrufs.
+	call_deferred("_setup_status_visuals")
 
 	_recalculate_jump_velocity()
 
@@ -1154,7 +1222,8 @@ func _physics_process(delta: float) -> void:
 				_face_player(delta)
 				if distance > attack_range * 1.3 and not _is_attacking:
 					_state = State.CHASE
-				elif _attack_timer <= 0.0 and not _is_attacking and _is_facing_player():
+				elif _attack_timer <= 0.0 and not _is_attacking and _is_facing_player() and not is_attack_locked():
+					# PHASE 4: is_attack_locked() sperrt stun und silenced.
 					_do_attack()
 
 	if _state != previous_state:
@@ -1649,16 +1718,60 @@ func _face_player(delta: float) -> void:
 		return
 	dir = dir.normalized()
 	var target_rotation: float = atan2(dir.x, dir.z)
+
+	# PHASE 4 — "confused": der Gegner zielt bewusst daneben.
+	#
+	# WARUM EIN GEHALTENER OFFSET UND KEIN ZUFALL PRO FRAME:
+	# Ein pro Frame neu gewuerfelter Winkel liest sich als Zittern, nicht als
+	# Verwirrung — der Gegner steht dann im Mittel doch wieder richtig und
+	# trifft. Der Offset wird deshalb nur alle CONFUSED_REROLL_INTERVAL
+	# Sekunden neu gezogen und dazwischen gehalten. Sichtbares Ergebnis: der
+	# Gegner laeuft und schlaegt entschlossen in die falsche Richtung.
+	if status_effects != null and status_effects.has_effect("confused"):
+		_confused_timer -= delta
+		if _confused_timer <= 0.0:
+			_confused_timer = CONFUSED_REROLL_INTERVAL
+			# magnitude traegt den maximalen Fehlwinkel in GRAD (siehe
+			# confused.gd) - deshalb hier die Umrechnung.
+			var max_rad: float = deg_to_rad(status_effects.get_effect_magnitude("confused"))
+			_confused_offset = randf_range(-max_rad, max_rad)
+		target_rotation += _confused_offset
+	elif _confused_offset != 0.0:
+		_confused_offset = 0.0
+		_confused_timer = 0.0
+
 	rotation.y = lerp_angle(rotation.y, target_rotation, delta * 6.0)
 
+
+## Wie lange ein Verwirrungs-Fehlwinkel gehalten wird, bevor neu gewuerfelt
+## wird. Kuerzer = hektischer, laenger = stur in die falsche Richtung.
+const CONFUSED_REROLL_INTERVAL: float = 0.5
+var _confused_offset: float = 0.0
+var _confused_timer: float = 0.0
+
 func _do_attack() -> void:
+	# PHASE 4: Sicherheitsnetz. Der Aufrufer prueft is_attack_locked()
+	# bereits, aber _do_attack() wird auch aus Unterklassen/Boss-Skripten
+	# heraus gerufen.
+	if is_attack_locked():
+		return
 	_is_attacking = true
+	_attack_interrupted = false
 	_attack_timer = attack_cooldown
 	_debug("_do_attack() gestartet. pre_attack_delay=%.2fs" % pre_attack_delay)
 
 	if pre_attack_delay > 0.0:
 		await get_tree().create_timer(pre_attack_delay).timeout
 	if _is_dead or not is_instance_valid(self):
+		return
+	# PHASE 4: Stun/Silence waehrend der Ausholphase.
+	#
+	# WICHTIG: hier NICHT einfach "return". _is_attacking bliebe dann
+	# dauerhaft true und der Gegner wuerde nach dem Effekt nie wieder
+	# angreifen — der Stun waere permanent. _abort_attack() raeumt Flag,
+	# Telegraph und Armpose auf und setzt den Zustand zurueck auf CHASE.
+	if _attack_interrupted:
+		_abort_attack()
 		return
 
 	if telegraph_inner:
@@ -1674,6 +1787,9 @@ func _do_attack() -> void:
 	if attack_windup_time > 0.0:
 		await get_tree().create_timer(attack_windup_time).timeout
 	if _is_dead or not is_instance_valid(self):
+		return
+	if _attack_interrupted:
+		_abort_attack()
 		return
 
 	if telegraph_inner:

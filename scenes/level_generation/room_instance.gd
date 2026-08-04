@@ -1,4 +1,5 @@
 
+
 extends Node3D
 class_name RoomInstance
 
@@ -1845,6 +1846,92 @@ func get_door_report() -> Array:
 ## Bevorzugt den ersten LootSpawnPoint-Marker: der ist von Hand gesetzt und
 ## liegt garantiert auf begehbarem Boden. Der reine Raum-Ursprung kann in
 ## Raeumen mit zentralem Lava-Pool, Loch oder Podest daneben liegen.
+## ############################################################################
+## PHASE 3.1 — MULTI-ZELLEN-RAEUME
+## ############################################################################
+## Verschiebt einen Durchgang ENTLANG seiner Wand.
+##
+## WOZU: ein Raum mit 2x1-Grundflaeche ist 96 Einheiten breit, die Nachbar-
+## zelle daneben aber nur 48. Der Nordausgang muss deshalb nicht in der Mitte
+## der langen Wand liegen, sondern genau vor der Zelle, an die er anschliesst.
+## Ohne diese Verschiebung endet jede Tuer eines Multi-Zellen-Raums an der
+## falschen Stelle und der Durchgang fuehrt gegen eine Wand.
+##
+## offset ist LOKAL und wird vom LevelGenerator aus der Differenz zwischen
+## Raum-Mittelpunkt und Anker-Zelle berechnet (siehe _exit_offset_for_cell()).
+##
+## MUSS VOR apply_exit_flags() aufgerufen werden: die Zustandsplatten
+## (_build_door_markers) leiten ihre Position von der Tuer ab und wuerden
+## sonst an der alten Stelle stehen bleiben.
+##
+## BEKANNTE GRENZE: es bleibt bei EINER Tuer pro Himmelsrichtung. Mehrere
+## Tuer-Slots pro Aussenkante brauchen einen Umbau von _doors_by_dir auf eine
+## Liste und sind bewusst NICHT Teil dieser Aenderung.
+func set_exit_offset(dir: String, offset: Vector3) -> void:
+	if offset.length_squared() < 0.0001:
+		return
+
+	var marker := exit_points.get(dir) as Node3D
+	if marker != null and is_instance_valid(marker):
+		marker.position += offset
+
+	var door := _doors_by_dir.get(dir) as Node3D
+	if door != null and is_instance_valid(door):
+		door.position += offset
+
+	# Der Tuersturz wird bereits in _ready() gebaut und muss mitwandern.
+	if _lintels_by_dir.has(dir):
+		var lintel := _lintels_by_dir[dir] as Node3D
+		if lintel != null and is_instance_valid(lintel):
+			lintel.position += offset
+
+
+## PHASE 3.2 — THEMEN-EBENEN
+## Faerbt alle PSX-Materialien dieses Raums nach dem Theme der Etage ein.
+##
+## WARUM DUPLIZIERT WIRD:
+## psx_material.tres ist EINE Resource, die sich alle Raeume teilen. Wuerde
+## sie direkt eingefaerbt, haetten Etage 1 und Etage 2 dieselbe Farbe — bzw.
+## die letzte gewinnt. Das ist derselbe geteilte-SubResource-Fehler wie bei
+## den BoxMeshes. Deshalb bekommt jede MeshInstance3D beim ersten
+## Theme-Wechsel ihre EIGENE Kopie.
+func apply_theme(theme: StageTheme) -> void:
+	if theme == null:
+		return
+	_apply_theme_recursive(self, theme)
+	# Decke und Wandkappen werden im Code gebaut und haben eigene Materialien.
+	ceiling_color = theme.ceiling_color
+	wall_cap_color = theme.ceiling_color
+
+
+func _apply_theme_recursive(node: Node, theme: StageTheme) -> void:
+	var mesh := node as MeshInstance3D
+	if mesh != null:
+		var tint: Color = theme.tint_for_node_name(mesh.get_parent().name if mesh.get_parent() else mesh.name)
+		# material_override hat Vorrang vor surface_material_override.
+		if mesh.material_override != null:
+			var copy: Material = mesh.material_override.duplicate()
+			_tint_material(copy, tint)
+			mesh.material_override = copy
+		else:
+			for i: int in range(mesh.get_surface_override_material_count()):
+				var surface: Material = mesh.get_surface_override_material(i)
+				if surface == null:
+					continue
+				var dup: Material = surface.duplicate()
+				_tint_material(dup, tint)
+				mesh.set_surface_override_material(i, dup)
+	for child: Node in node.get_children():
+		_apply_theme_recursive(child, theme)
+
+
+func _tint_material(material: Material, tint: Color) -> void:
+	if material is ShaderMaterial:
+		(material as ShaderMaterial).set_shader_parameter("albedo_color", tint)
+	elif material is BaseMaterial3D:
+		(material as BaseMaterial3D).albedo_color = tint
+
+
 func get_room_center() -> Vector3:
 	for marker in loot_spawn_points:
 		if is_instance_valid(marker):
