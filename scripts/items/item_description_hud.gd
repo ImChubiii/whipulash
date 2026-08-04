@@ -140,6 +140,9 @@ var _card_tag: Label = null
 var _card_tag_panel: PanelContainer = null
 var _card_flavor: Label = null
 var _card_description: Label = null
+## Entity-ID-Zeile ("[ID: ID_OUIJA_BOARD]") - technischer Bezeichner fuer
+## Bug-Reports/Absprache im Team, unabhaengig vom Anzeigenamen.
+var _card_id: Label = null
 var _card_charge: Label = null
 var _card_hint: Label = null
 
@@ -312,9 +315,13 @@ func _build_card() -> void:
 	_card_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(_card_name)
 
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_row.add_child(spacer)
+	# BUGFIX "Textumbruch/Karte zu schmal": hier stand vorher ein zweites
+	# Control mit SIZE_EXPAND_FILL. In einer HBoxContainer teilen sich ALLE
+	# expand-fill-Kinder den verfuegbaren Platz zu gleichen Teilen - der Name
+	# bekam dadurch nur die HAELFTE der Zeilenbreite, obwohl er der einzige
+	# Text mit variabler Laenge ist. _card_name ist bereits SIZE_EXPAND_FILL;
+	# das reicht allein aus, um _card_tag_panel (SIZE_SHRINK_CENTER) an den
+	# rechten Rand zu druecken, ohne die Haelfte der Breite zu verschenken.
 
 	_card_tag_panel = PanelContainer.new()
 	_card_tag_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -345,6 +352,11 @@ func _build_card() -> void:
 	_card_description.custom_minimum_size.x = 1.0
 	_card_description.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(_card_description)
+
+	_card_id = Label.new()
+	_card_id.add_theme_font_size_override("font_size", 10)
+	_card_id.add_theme_color_override("font_color", MUTED_COLOR)
+	column.add_child(_card_id)
 
 	_card_charge = Label.new()
 	_card_charge.add_theme_font_size_override("font_size", 12)
@@ -389,6 +401,10 @@ func show_item(item: ItemData, persistent: bool = false) -> void:
 	_card_flavor.text = "\u201c%s\u201d" % item.flavor_text if item.flavor_text != "" else ""
 	_card_flavor.visible = item.flavor_text != ""
 	_card_description.text = item.description
+	# Entity-ID: die Katalog-Konstante rekonstruiert aus item.id, damit sich
+	# ein Item im Code (ItemCatalog.ID_...) und im HUD eindeutig demselben
+	# Eintrag zuordnen lassen - z.B. beim Melden eines Item-Bugs.
+	_card_id.text = "[ID: ID_%s]" % item.id.to_upper()
 
 	_apply_tag(item)
 
@@ -467,6 +483,7 @@ func _resize_card_to_content() -> void:
 	content = maxf(content, _measure_label_width(_card_name) + _measure_label_width(_card_tag) + 24.0)
 	content = maxf(content, _measure_label_width(_card_flavor))
 	content = maxf(content, _measure_label_width(_card_description))
+	content = maxf(content, _measure_label_width(_card_id))
 	content = maxf(content, _measure_label_width(_card_charge))
 	content = maxf(content, _measure_label_width(_card_hint))
 

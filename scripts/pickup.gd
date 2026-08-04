@@ -91,7 +91,12 @@ var _glow_light: OmniLight3D = null
 var _glow_material: StandardMaterial3D = null
 
 
+## Gruppe, ueber die der Verfluchte Glueckswuerfel (item_behaviours.gd,
+## _use_cursed_die) alle herumliegenden Drops findet, um sie neu zu wuerfeln.
+const PICKUP_GROUP: String = "pickups"
+
 func _ready() -> void:
+	add_to_group(PICKUP_GROUP)
 	_base_y = global_position.y
 	monitoring = true
 	monitorable = false
@@ -455,3 +460,80 @@ func _play_collect_feedback() -> void:
 	tween.tween_property(_visual, "position:y", _visual.position.y + 0.7, 0.18)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.chain().tween_callback(queue_free)
+
+
+# ============================================================================
+# Verfluchter Glueckswuerfel — Reroll
+# ============================================================================
+## Verwandelt dieses Pickup in einen zufaelligen ANDEREN Drop an derselben
+## Stelle. Fuer Kind.ITEM wird ein neues, noch nicht (voll) besessenes Item
+## gewuerfelt statt eines Verbrauchsguts — ein Item, das man schon hat,
+## bliebe sonst unbrauchbar liegen.
+func reroll() -> void:
+	if _collected:
+		return
+
+	if kind == Kind.ITEM:
+		_reroll_item()
+	else:
+		_reroll_consumable()
+
+	_rebuild_visual()
+	_spawn_reroll_pop()
+
+
+## Wuerfelt eine ANDERE Verbrauchsgut-Sorte als die aktuelle.
+func _reroll_consumable() -> void:
+	var choices: Array = [Kind.COIN, Kind.HEAL, Kind.BOMB]
+	choices.erase(kind)
+	kind = choices[randi() % choices.size()]
+
+
+## Wuerfelt ein anderes Item aus dem Katalog. Schliesst das aktuelle Item und
+## bereits maximal gestapelte Items aus.
+func _reroll_item() -> void:
+	var items: Node = get_node_or_null("/root/Items")
+	if items == null:
+		return
+
+	var choices: Array[ItemData] = []
+	for candidate: ItemData in items.catalog:
+		if item_data != null and candidate.id == item_data.id:
+			continue
+		if candidate.max_stacks > 0 and items.count_item(candidate.id) >= candidate.max_stacks:
+			continue
+		choices.append(candidate)
+
+	if choices.is_empty():
+		return
+	item_data = choices[randi() % choices.size()]
+
+
+## Baut das Erscheinungsbild komplett neu auf — Kind (oder Item) hat sich
+## gerade geaendert, das alte Mesh/Glow/Prompt passt nicht mehr.
+func _rebuild_visual() -> void:
+	if _visual != null and is_instance_valid(_visual):
+		_visual.queue_free()
+	_visual = null
+	if _prompt != null and is_instance_valid(_prompt):
+		_prompt.queue_free()
+	_prompt = null
+	_glow_quad = null
+	if _glow_light != null and is_instance_valid(_glow_light):
+		_glow_light.queue_free()
+	_glow_light = null
+	_glow_material = null
+
+	_build_visual()
+	if kind == Kind.ITEM:
+		_build_prompt()
+
+
+func _spawn_reroll_pop() -> void:
+	if _visual == null:
+		return
+	var tween := create_tween()
+	tween.tween_property(_visual, "scale", Vector3.ONE * 1.4, 0.1)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_visual, "scale", Vector3.ONE, 0.15)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)

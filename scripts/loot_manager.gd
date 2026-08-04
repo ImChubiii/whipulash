@@ -194,6 +194,17 @@ func _spawn_pickup(kind: int, spawn_position: Vector3) -> void:
 	loot_dropped.emit(kind, spawn_position)
 
 
+## Fallback fuer den Verfluchten Glueckswuerfel (item_behaviours.gd,
+## _use_cursed_die): wird nur aufgerufen, wenn ein am Boden liegendes Pickup
+## KEINE eigene reroll()-Methode hat. Wuerfelt eine ganz normale
+## Verbrauchsgut-Sorte ueber dieselbe Gewichtung wie ein regulaerer Drop und
+## spawnt sie an derselben Stelle.
+func spawn_random_drop(spawn_position: Vector3) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	_spawn_pickup(_pick_kind(rng), spawn_position)
+
+
 # ============================================================================
 # Deterministischer RNG pro Raum
 # ============================================================================

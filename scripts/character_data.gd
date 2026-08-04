@@ -16,6 +16,11 @@ class_name CharacterData
 @export var character_name: String = "Char"
 @export var portrait: Texture2D = null
 
+## Kurzbeschreibung fuer den Charakter-Screen im Hauptmenue (main_menu.gd).
+## Leer ist ein gueltiger Default: bestehende .tres-Ressourcen ohne diesen
+## Wert zeigen dort einfach keinen Beschreibungstext an.
+@export_multiline var description: String = ""
+
 # Die komplette Charakter-Szene (CharacterBody3D-Root), die PartyManager
 # instanziert, sobald dieser Charakter aktiv wird.
 # z.B. res://scenes/characters/char_ningning.tscn

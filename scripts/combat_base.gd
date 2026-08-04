@@ -281,6 +281,7 @@ func _on_hit_landed(target: Node) -> void:
 	_combo_count += 1
 	_combo_timer = combo_window
 	combo_changed.emit(_combo_count)
+	GameStats.report_combo(_combo_count)
 
 	# "Bohrer"-Tilt: Richtung bleibt gleich, solange derselbe Gegner
 	# getroffen wird (dreht sich immer weiter rein) — wechselt das Ziel
@@ -679,6 +680,7 @@ func _apply_dash_damage(enemy: Node3D) -> void:
 		_combo_count += 1
 		_combo_timer = combo_window
 		combo_changed.emit(_combo_count)
+		GameStats.report_combo(_combo_count)
 		if enemy != _last_hit_target:
 			_tilt_direction *= -1.0
 			_last_hit_target = enemy
