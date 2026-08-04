@@ -69,9 +69,10 @@ const PLAYER_GROUP: String = "player"
 const SWITCH_COOLDOWN_DURATION: float = 10.0
 
 ## Last-Stand-System: stirbt der aktive Charakter und lebt noch mindestens
-## ein weiteres Party-Mitglied, uebernimmt das automatisch - aber gedeckelt
-## auf hoechstens diesen Anteil seiner Maximal-HP, damit der Wechsel keine
-## Gratisheilung wird und der Druck im Kampf bestehen bleibt.
+## ein weiteres Party-Mitglied, uebernimmt das automatisch. Als Strafe fuer
+## den Tod wird die HP der GESAMTEN restlichen Party auf hoechstens diesen
+## Anteil ihrer jeweiligen Maximal-HP gedeckelt (siehe
+## _on_player_health_died()) - nicht nur die des Nachrueckers.
 const LAST_STAND_HP_FRACTION: float = 0.20
 
 var party: Array[CharacterData] = []
@@ -220,6 +221,12 @@ func _spawn_active_character(at_transform: Transform3D) -> void:
 	_connect_player_health()
 	_apply_active_health_to_player()
 
+	# Markiert fuers Hauptmenue, dass "Fortsetzen" jetzt sinnvoll waere
+	# (siehe GameStats.has_live_run-Kommentar in game_stats.gd). Steht hier
+	# und nicht in setup_party(): DAS hier ist der Punkt, an dem tatsaechlich
+	# eine lebende Spieler-Instanz in der Welt existiert.
+	GameStats.has_live_run = true
+
 	active_player_changed.emit(player)
 
 func _connect_player_health() -> void:
@@ -256,10 +263,16 @@ func _apply_active_health_to_player() -> void:
 # ============================================================================
 ## Der aktive Charakter ist gerade gestorben (Health.died des aktuell
 ## gebundenen player). Lebt noch ein anderes Party-Mitglied, uebernimmt DAS
-## automatisch (mit gedeckelter HP - siehe LAST_STAND_HP_FRACTION). Erst wenn
-## niemand mehr uebrig ist, feuert party_wiped - DAS ist das eigentliche
-## Game-Over-Signal, das death_screen.gd jetzt abonniert, statt direkt am
-## Health.died jedes einzelnen Charakters zu haengen.
+## automatisch. Erst wenn niemand mehr uebrig ist, feuert party_wiped - DAS
+## ist das eigentliche Game-Over-Signal, das death_screen.gd jetzt
+## abonniert, statt direkt am Health.died jedes einzelnen Charakters zu
+## haengen.
+##
+## STRAFE FUER DEN TOD: trifft NICHT nur den uebernehmenden Charakter,
+## sondern die GESAMTE restliche (noch lebende) Party wird auf hoechstens
+## LAST_STAND_HP_FRACTION ihrer Maximal-HP gedeckelt - ein Charaktertod soll
+## das ganze Team schwaechen, nicht nur einen Nachruecker mit frischer HP
+## belohnen.
 func _on_player_health_died() -> void:
 	if _active_index >= 0 and _active_index < _current_health.size():
 		_current_health[_active_index] = 0.0
@@ -270,8 +283,13 @@ func _on_player_health_died() -> void:
 		party_wiped.emit()
 		return
 
-	_current_health[next_index] = minf(_current_health[next_index], _max_health[next_index] * LAST_STAND_HP_FRACTION)
-	member_health_changed.emit(next_index, _current_health[next_index], _max_health[next_index])
+	for i: int in range(party.size()):
+		if i == _active_index or not is_member_alive(i):
+			continue  # gerade gestorben (HP bleibt 0) oder ohnehin schon tot
+		var capped: float = minf(_current_health[i], _max_health[i] * LAST_STAND_HP_FRACTION)
+		if not is_equal_approx(capped, _current_health[i]):
+			_current_health[i] = capped
+			member_health_changed.emit(i, capped, _max_health[i])
 
 	_force_switch_to_survivor(next_index)
 

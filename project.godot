@@ -15,7 +15,7 @@ general/updates_per_second=100
 [application]
 
 config/name="Github-Whiplash"
-run/main_scene="uid://c31lh8cafu3h5"
+run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
@@ -36,6 +36,7 @@ EnemyDensity="*uid://bxxty8yqhh1d"
 HudExtra="*uid://bys4sieyin6ky"
 Teleporter="*uid://dxfotrd7xhn1p"
 Stages="*uid://buqywesge6fy4"
+GameStats="*res://scripts/game_stats.gd"
 
 [display]
 

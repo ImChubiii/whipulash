@@ -54,6 +54,7 @@ func _ready() -> void:
 	restart_button.pressed.connect(_on_restart_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 	_build_item_list()
+	_build_main_menu_button()
 
 	if not PartyManager.active_player_changed.is_connected(_on_active_player_changed):
 		PartyManager.active_player_changed.connect(_on_active_player_changed)
@@ -188,6 +189,8 @@ func _on_player_died() -> void:
 	if _pause_menu:
 		_pause_menu.lock_out()
 
+	GameStats.report_death()
+
 	var run_time: String = _stop_and_read_run_timer()
 	killed_by_label.text = "Getötet von: %s" % _get_killer_name()
 	if run_time != "":
@@ -253,6 +256,33 @@ func _on_restart_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+## Prozedural statt in der .tscn ergaenzt — gleiches Prinzip wie
+## _build_item_list() oben. Anders als pause_menu.gd's "Hauptmenue"-Button
+## wird hier NICHT als Overlay instanziert: der Run ist vorbei
+## (GameStats.report_death() in _on_player_died() hat has_live_run bereits
+## auf false gesetzt), es gibt also nichts mehr, das ein Overlay am Leben
+## erhalten muesste - ein normaler Szenenwechsel ist hier der einfachere UND
+## korrekte Weg.
+func _build_main_menu_button() -> void:
+	var column: VBoxContainer = get_node_or_null("Panel/VBoxContainer")
+	if column == null:
+		push_warning("%s: 'Panel/VBoxContainer' nicht gefunden — Hauptmenue-Button faellt aus." % name)
+		return
+
+	var button := Button.new()
+	button.text = "Hauptmenue"
+	button.custom_minimum_size = button_size if fix_layout_in_code else Vector2(0, 40)
+	button.pressed.connect(_on_main_menu_pressed)
+	column.add_child(button)
+	column.move_child(button, quit_button.get_index())
+
+
+func _on_main_menu_pressed() -> void:
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
 # ============================================================================
