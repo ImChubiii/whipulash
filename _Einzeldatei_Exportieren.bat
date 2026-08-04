@@ -1,1 +1,0 @@
-powershell -ExecutionPolicy Bypass -File "export_single_file.ps1"
