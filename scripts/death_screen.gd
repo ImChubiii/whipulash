@@ -274,6 +274,12 @@ func _build_main_menu_button() -> void:
 	var button := Button.new()
 	button.text = "Hauptmenue"
 	button.custom_minimum_size = button_size if fix_layout_in_code else Vector2(0, 40)
+	# BUGFIX "Hauptmenue-Button zu gross": _fix_content_layout() setzt
+	# SIZE_SHRINK_CENTER nur auf restart_button/quit_button (die schon in der
+	# .tscn stehen), weil dieser Button hier erst DANACH erzeugt wird. Ohne
+	# den Flag behaelt er Godots Default SIZE_FILL und zieht sich ueber die
+	# volle VBoxContainer-Breite statt auf dieselbe Box wie die anderen beiden.
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.pressed.connect(_on_main_menu_pressed)
 	column.add_child(button)
 	column.move_child(button, quit_button.get_index())

@@ -21,9 +21,15 @@ class_name DungeonAtmosphere
 ## Farbe des Nebels. Sehr dunkel, leicht gruenstichig passend zur Limonade.
 @export var fog_color: Color = Color(0.02, 0.03, 0.02)
 ## Ab hier beginnt das Abdunkeln (Meter vor der Kamera).
-@export var fog_begin: float = 20.0
+##
+## BUGFIX "Character wirkt schwarz/im Schatten, obwohl der Raum hell ist":
+## bei 20 griff der Nebel schon recht nah an der Kamera - kombiniert mit dem
+## niedrigen ambient_energy weiter unten sackte alles ausserhalb der
+## unmittelbaren Naehe sichtbar ab. Weiter nach hinten geschoben, damit mehr
+## vom Raum in der eigentlichen Beleuchtung bleibt.
+@export var fog_begin: float = 30.0
 ## Ab hier ist praktisch alles schwarz.
-@export var fog_end: float = 80.0
+@export var fog_end: float = 85.0
 ## Wie schnell der Nebel zwischen begin und end zumacht (>1 = spaeter,
 ## dafuer haerter; das fuehlt sich weniger nach Milchglas an).
 @export var fog_curve: float = 2.2
@@ -31,9 +37,13 @@ class_name DungeonAtmosphere
 @export_range(0.0, 1.0) var fog_density: float = 0.95
 
 ## Ambient-Licht runterziehen - ohne das leuchten die Waende trotz Nebel.
+## BUGFIX "Character wirkt schwarz": 0.35 war zu knapp, um Charaktermodelle
+## (echtes Shading, nicht die eher flachen Wand/Boden-Flaechen) lesbar zu
+## halten, solange keine Fackel (torch.gd) direkt danebensteht - siehe auch
+## fog_begin oben.
 @export var override_ambient: bool = true
 @export var ambient_color: Color = Color(0.105, 0.12, 0.105, 1.0)
-@export var ambient_energy: float = 0.35
+@export var ambient_energy: float = 0.55
 
 ## Himmel/Hintergrund ebenfalls auf Nebelfarbe ziehen, damit ueber der
 ## Nebelgrenze keine helle Kante steht.

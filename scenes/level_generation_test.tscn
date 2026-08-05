@@ -34,20 +34,27 @@
 [ext_resource type="Texture2D" uid="uid://b66s3j5jjf1yw" path="res://assets/textures/ui/image-removebg-preview (11).png" id="32_u4jxp"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="33_w24rf"]
 [ext_resource type="Script" uid="uid://5ccb87ohsjij" path="res://scripts/dungeon_atmosphere.gd" id="34_bqido"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_07.tres" id="35_c7"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_08.tres" id="36_c8"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_09.tres" id="37_c9"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_10.tres" id="38_c10"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_11.tres" id="39_c11"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_12.tres" id="40_c12"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_wide_01.tres" id="41_cwide"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_tall_01.tres" id="42_ctall"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_arena_01.tres" id="43_carena"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_03.tres" id="44_cor3"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_02.tres" id="45_treasure2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_03.tres" id="46_treasure3"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_abyss_01.tres" id="47_abyss1"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_abyss_02.tres" id="48_abyss2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_abyss_03.tres" id="49_abyss3"]
 
 [sub_resource type="Environment" id="Environment_gen"]
 background_mode = 1
 background_color = Color(0.05, 0.05, 0.08, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.55, 0.55, 0.65, 1)
-# BUGFIX/REWORK "raumbasierte Beleuchtung": von 0.5 auf 0.05 gesenkt. Das
-# globale DirectionalLight3D weiter unten ist komplett entfernt - jeder Raum
-# beleuchtet sich jetzt selbst (siehe room_instance.gd, _build_room_lights).
-# Ein hoher Ambient-Wert haette das unterlaufen: Abgruende und Korridor-Enden
-# waeren trotz fehlender Lichtquelle nie wirklich dunkel geworden. Der
-# verbleibende winzige Rest verhindert nur reines, kontrastloses Schwarz
-# ausserhalb jeder Lichtquelle.
-ambient_light_energy = 0.05
 tonemap_mode = 2
 glow_enabled = true
 glow_intensity = 0.5
@@ -98,7 +105,7 @@ script = ExtResource("2_grid")
 
 [node name="LevelGenerator" type="Node" parent="." unique_id=864998062 node_paths=PackedStringArray("grid_generator", "navigation_region")]
 script = ExtResource("1_lg")
-room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2")])
+room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("35_c7"), ExtResource("36_c8"), ExtResource("37_c9"), ExtResource("38_c10"), ExtResource("39_c11"), ExtResource("40_c12"), ExtResource("41_cwide"), ExtResource("42_ctall"), ExtResource("43_carena"), ExtResource("44_cor3"), ExtResource("45_treasure2"), ExtResource("46_treasure3"), ExtResource("47_abyss1"), ExtResource("48_abyss2"), ExtResource("49_abyss3")])
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")
@@ -314,3 +321,5 @@ pulse_amount = 0.0
 
 [node name="DungeonAtmosphere" type="Node" parent="." unique_id=1358924922]
 script = ExtResource("34_bqido")
+fog_end = 65.0
+fog_density = 1.0
