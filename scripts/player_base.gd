@@ -441,6 +441,14 @@ func _spawn_ragdoll_corpse() -> void:
 	collision.shape = shape
 	corpse.add_child(collision)
 
+	# BUGFIX "Leiche blockiert Kamera und Spieler": ohne diese Zeilen behaelt
+	# die Leiche Godots Default-Layer (1) - dieselbe Ebene wie Weltgeometrie.
+	# Die Kamera-SpringArm3D haelt sie dann faelschlich fuer eine Wand und
+	# zieht die Kamera heran, und sie bleibt ein echtes Physik-Hindernis.
+	# Gleiches Muster wie beim Gegner-Tod (siehe enemy_ai.gd _on_died()).
+	corpse.collision_layer = 0
+	corpse.collision_mask = 0
+
 	mesh.get_parent().remove_child(mesh)
 	corpse.add_child(mesh)
 	mesh.transform = Transform3D.IDENTITY

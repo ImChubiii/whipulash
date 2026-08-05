@@ -2,6 +2,50 @@
 TEIL 1: GIT COMMITS UND HISTORY
 ==================================================
 
+commit 603fc498f39ae8089428fecbe36d0fe482152b71
+Author: ImChubiii <chucki2005@gmail.com>
+Date:   Wed Aug 5 00:24:11 2026 +0200
+
+    feat: Massive Gameplay-Erweiterung, 47 neue Items & Main Menu Rework
+    
+    Dieses Update integriert den Großteil der fehlenden Design-Dokument-Features,
+    überarbeitet die Kernsysteme und behebt kritische Gameplay-Blocker.
+    
+    Items & Status-Effekte:
+    - feat(items): 14 bisher fehlende Standard-Items in Katalog und Behaviours integriert.
+    - feat(items): 33 neue "Ultimate"-Items (ID 51-83) inkl. Mechaniken, VFX und Synergien vollständig implementiert.
+    - feat(status): Neue Statuseffekte 'charm' (Gegner greifen sich gegenseitig an) und 'vulnerable' hinzugefügt.
+    - feat(items): Ouija-Board beschwört nun zielsuchende Rachegeister (revenge_ghost.gd).
+    
+    Gameplay & Level-Systeme:
+    - feat(level): Lokale Raumbeleuchtung eingeführt; globales DirectionalLight entfernt für tieferes Dunkel in Abgründen.
+    - feat(level): Void-Death-System eingebaut (Spieler stirbt beim Fall in tiefe Abgründe).
+    - feat(hazards): Neues modulares Turret-System (Wall, Pillar, Homing, Bomb) inkl. turret_projectile.gd.
+    - feat(party): Last-Stand-Rework; der Tod eines Charakters bestraft nun die gesamte Rest-Party mit einem 20% HP-Cap.
+    - feat(gen): Treasure-Räume haben nun eine 35%-Chance, direkt am Startraum zu spawnen.
+    
+    KI & Combat:
+    - feat(ai): Zentrales `_current_target()` für Gegner etabliert, um nahtloses Targeting während des 'charm'-Effekts zu gewährleisten.
+    - feat(ai): Gegner treiben jetzt physisch in Lava (Buoyancy), statt auf den Grund zu sinken.
+    - refactor(ai): Zigzag-Bewegung interpoliert nun weich (inkl. Lean-Telegraphing) statt zu springen.
+    - feat(ai): Auto-Unstuck-Routine für feststeckende Gegner hinzugefügt.
+    
+    UI, VFX & Menüs:
+    - feat(ui): Neues, vollständig prozedurales Hauptmenü (main_menu.gd/tscn) implementiert.
+    - feat(ui): Pause-, Win- und Death-Screens leiten nun ins Hauptmenü weiter, anstatt das Spiel direkt zu beenden.
+    - feat(ui): Boss-HP-System von einem globalen Balken auf 3 individuelle Balken pro Boss-Entity umgeschrieben.
+    - feat(ui): Rote, pulsierende Low-HP Vignette (<= 20% HP) hinzugefügt.
+    - feat(vfx): Magenta eingefärbte Damage-Numbers für passiven Item-Schaden integriert.
+    - feat(vfx): Blood-Decals spawnen nun beim Tod von Gegnern.
+    - feat(stats): GameStats-Autoload für persistentes Tracking von Kills, Deaths, Wins und Combos erstellt.
+    
+    Bug Fixes:
+    - fix(doors): Türen lassen sich während eines aktiven Kampfes nicht mehr hacken.
+    - fix(teleporter): Teleporter-Pads spawnen nun auch beim 2. Run nach einem Restart zuverlässig wieder.
+    - fix(items): Verfluchter Würfel rerollt Drops jetzt korrekt (Fallback in loot_manager.gd ergänzt).
+    - fix(ui): Layout-Bug in Item-Karten behoben (Spacer entfernte halbe Zeilenbreite) und Entity-ID-Anzeige hinzugefügt.
+    - fix(items): Alter "[C]"-Cooldown-Text in der Item-UI entfernt und an das neue Q/E-System angepasst.
+
 commit c63b3972bb3497123e06ba5b9235b336979e4fd9
 Author: ImChubiii <chucki2005@gmail.com>
 Date:   Tue Aug 4 22:20:22 2026 +0200
@@ -1656,43 +1700,20 @@ Date:   Thu Jul 23 23:48:40 2026 +0200
 
     fix: reassign Area3D script to correct parent node
 
-commit 0887d72e86919fd7d5269f4356062bc700b1fac4
-Author: ImChubiii <chucki2005@gmail.com>
-Date:   Thu Jul 23 23:45:10 2026 +0200
-
-    feat(hud): add full party HUD with abilities, minimap and character switching
-    
-    - Add AbilitySet resource for per-character icons, cooldowns, and stats
-    - Add PartyManager autoload: 4-member party, HP mirroring for inactive
-      members, character switching via input actions 1-4
-    - Extend Combat with Q/E ability slots (cooldowns, signals, generic
-      get_cooldown_percent/remaining API for slot 0-4)
-    - Add PartySlot UI: portrait + HP bar with color gradient, active
-      character scales up and reveals name
-    - Add AbilitySlot UI: radial cooldown overlay, countdown label,
-      ready-flash animation
-    - Add Minimap: top-down orthographic SubViewport camera following
-      player, zone name via Area3D "zone" group, live X/Y coordinates
-    - Consolidate hud.tscn into a single reusable scene, replacing
-      duplicated HUD nodes across 5 level scenes
-    - Fix: rename PartySlot.get_index() to get_party_index() to avoid
-      signature clash with inherited Node.get_index(bool)
-    
-    New files: scripts/{ability_set,party_manager,ability_slot,party_slot,
-    minimap,zone_marker,party_setup}.gd, scenes/{hud,party_slot,
-    ability_slot}.tscn, resources/char_1-4.tres
-    
-    Modified: scripts/combat.gd, scripts/hud.gd
-
 ==================================================
 TEIL 2: DATEIUEBERSICHT UND STRUKTUR
-Gesamtanzahl Dateien: 847
+Gesamtanzahl Dateien: 862
 ==================================================
 
 • .claude\settings.local.json
 • .editorconfig
 • .gitattributes
 • .gitignore
+• .obsidian\app.json
+• .obsidian\appearance.json
+• .obsidian\core-plugins.json
+• .obsidian\graph.json
+• .obsidian\workspace.json
 • assets\blossom_the_powerpuff_girls.glb.import
 • assets\blossom_the_powerpuff_girls_0.png.import
 • assets\characters\blossom_rig_the_powerpuff_girls.glb
@@ -2231,6 +2252,9 @@ Gesamtanzahl Dateien: 847
 • resources\rooms\rd_corridor_01.tres
 • resources\rooms\rd_corridor_02.tres
 • resources\rooms\rd_corridor_03.tres
+• resources\rooms\rd_corridor_abyss_01.tres
+• resources\rooms\rd_corridor_abyss_02.tres
+• resources\rooms\rd_corridor_abyss_03.tres
 • resources\rooms\rd_start_01.tres
 • resources\rooms\rd_treasure_01.tres
 • resources\rooms\rd_treasure_02.tres
@@ -2306,6 +2330,9 @@ Gesamtanzahl Dateien: 847
 • scenes\rooms\corridor\room_corridor_01.tscn
 • scenes\rooms\corridor\room_corridor_02.tscn
 • scenes\rooms\corridor\room_corridor_03.tscn
+• scenes\rooms\corridor\room_corridor_abyss_01.tscn
+• scenes\rooms\corridor\room_corridor_abyss_02.tscn
+• scenes\rooms\corridor\room_corridor_abyss_03.tscn
 • scenes\rooms\room_start_01.tscn
 • scenes\rooms\treasure\room_treasure_01.tscn
 • scenes\rooms\treasure\room_treasure_02.tscn
@@ -2388,6 +2415,8 @@ Gesamtanzahl Dateien: 847
 • scripts\game_stats.gd.uid
 • scripts\hack_prompt.gd
 • scripts\hack_prompt.gd.uid
+• scripts\hazards\cannon.gd
+• scripts\hazards\cannon.gd.uid
 • scripts\hazards\lemonade.gd
 • scripts\hazards\lemonade.gd.uid
 • scripts\hazards\turret.gd
@@ -2514,6 +2543,8 @@ Gesamtanzahl Dateien: 847
 • scripts\vfx\blood_decal.gd.uid
 • scripts\vfx\homing_bolt.gd
 • scripts\vfx\homing_bolt.gd.uid
+• scripts\vfx\torch.gd
+• scripts\vfx\torch.gd.uid
 • scripts\vfx_manager.gd
 • scripts\vfx_manager.gd.uid
 • scripts\victory_trophy.gd
@@ -2538,7 +2569,7 @@ Gesamtanzahl Dateien: 847
 • textures\sidewalk-texture.jpg.import
 
 ==================================================
-TEIL 3: VOLLSTAENDIGER PROJEKT-CODE (404 DATEIEN)
+TEIL 3: VOLLSTAENDIGER PROJEKT-CODE (412 DATEIEN)
 ==================================================
 
 ===== FILE: assets\blossom_the_powerpuff_girls.glb.import =====
@@ -10633,6 +10664,57 @@ unique_per_run = false
 footprint_cells = Vector2i(1, 1)
 
 
+===== FILE: resources\rooms\rd_corridor_abyss_01.tres =====
+
+[gd_resource type="Resource" script_class="RoomData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_data.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/rooms/corridor/room_corridor_abyss_01.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+scene = ExtResource("2_scene")
+room_type = 3
+available_exits = 3
+spawn_weight = 1.0
+min_stage = 0
+unique_per_run = false
+
+
+===== FILE: resources\rooms\rd_corridor_abyss_02.tres =====
+
+[gd_resource type="Resource" script_class="RoomData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_data.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/rooms/corridor/room_corridor_abyss_02.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+scene = ExtResource("2_scene")
+room_type = 3
+available_exits = 3
+spawn_weight = 1.0
+min_stage = 0
+unique_per_run = false
+
+
+===== FILE: resources\rooms\rd_corridor_abyss_03.tres =====
+
+[gd_resource type="Resource" script_class="RoomData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_data.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/rooms/corridor/room_corridor_abyss_03.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+scene = ExtResource("2_scene")
+room_type = 3
+available_exits = 3
+spawn_weight = 1.0
+min_stage = 0
+unique_per_run = false
+
+
 ===== FILE: resources\rooms\rd_start_01.tres =====
 
 [gd_resource type="Resource" script_class="RoomData" load_steps=3 format=3]
@@ -14901,6 +14983,19 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		if data == null:
 			continue
 
+		# BUGFIX "1x2-Raum zeigt sich als 1x1 auf Minimap/ingame":
+		# _pick_room() faellt auf eine kleinere Vorlage zurueck, wenn der Pool
+		# keine passende Groesse hat (siehe dortiger Kommentar). cell.footprint
+		# blieb dabei bisher auf der urspruenglich reservierten, groesseren
+		# Flaeche stehen - Minimap UND _map_cells haetten dann eine Flaeche
+		# gemeldet, die der tatsaechlich instanzierte 1x1-Raum gar nicht
+		# einnimmt. Deshalb hier korrigieren, BEVOR center_offset() und die
+		# _map_cells-Eintraege weiter unten das Ergebnis benutzen.
+		if data.footprint_cells != cell.footprint:
+			cell.footprint = data.footprint_cells
+			var fallback_covered: Array[Vector2i] = [grid_pos]
+			cell.covered_cells = fallback_covered
+
 		# PHASE 3.1: Ein Multi-Zellen-Raum sitzt in der MITTE seiner Flaeche,
 		# nicht auf der Ankerzelle. center_offset() liefert die Verschiebung
 		# in Rasterzellen — bei (2,1) also (0.5, 0), der Raum rueckt um eine
@@ -14958,7 +15053,7 @@ func _instantiate_layout(layout: Dictionary) -> void:
 
 		var table: Array[EnemySpawnEntry] = _table_for_type(cell.room_type)
 		var budget: int = _budget_for_type(cell.room_type)
-		room.prepare_enemies(table, budget, current_stage)
+		room.prepare_enemies(table, budget, current_stage, cell.room_type == RoomData.RoomType.BOSS)
 
 		room.debug_doors = debug_doors
 		room.enemy_health_multiplier = get_enemy_health_multiplier()
@@ -15149,6 +15244,21 @@ func _spawn_victory_trophy(room: RoomInstance) -> void:
 	if trophy == null:
 		push_warning("[LevelGenerator] '%s' hat keinen Node3D-Root." % victory_trophy_scene_path)
 		return
+
+	# Farbe je Modus: GOLD nur auf der Etage, die den Run tatsaechlich beendet
+	# (Speedrun hat final_stage = 1, ist also immer "die letzte"; im Normal-
+	# Modus ist das erst Etage final_stage). Alle anderen Etagen bekommen eine
+	# SCHWARZE Trophaee, die per Stages.advance_stage() in die naechste Etage
+	# fuehrt statt den Run zu beenden (siehe victory_trophy.gd:_collect()).
+	# Vor _ready() gesetzt (instantiate() ruft _ready() noch NICHT auf -
+	# das passiert erst bei add_child() weiter unten), also baut
+	# _build_visuals() das Mesh gleich mit der richtigen Farbe.
+	var stages: Node = get_node_or_null("/root/Stages")
+	var is_final_stage: bool = true
+	if stages != null:
+		var final_stage: int = int(stages.get("final_stage"))
+		is_final_stage = final_stage > 0 and current_stage >= final_stage
+	trophy.set("trophy_color", Color(1.0, 0.82, 0.22) if is_final_stage else Color(0.08, 0.08, 0.09))
 
 	var parent: Node = get_tree().current_scene
 	if parent == null:
@@ -15735,9 +15845,12 @@ class RoomCell:
 
 @export var boss_min_distance: int = 2
 
-## Chance, dass der Tresorraum als Sackgasse DIREKT am Startraum (0,0)
+## Chance, dass ein Tresorraum als Sackgasse DIREKT am Startraum (0,0)
 ## platziert wird, statt wie sonst am weitesten entfernten passenden Punkt.
 @export_range(0.0, 1.0) var treasure_start_adjacent_chance: float = 0.35
+
+## Wie viele Tresorraeume pro Etage reserviert werden.
+@export var treasure_room_count: int = 2
 
 ## --- PHASE 3.1: Multi-Zellen-Raeume ------------------------------------
 ## Wahrscheinlichkeit, dass ein geeigneter Kampfraum auf mehrere Zellen
@@ -15981,17 +16094,37 @@ func _place_special_rooms(cells: Dictionary) -> void:
 
 	# 35 %-Regel: bevorzugt eine Sackgasse DIREKT am Start, bevor auf die
 	# alte "immer am weitesten entfernten Punkt"-Suche zurueckgefallen wird.
-	var treasure_pos: Vector2i = INVALID_POS
-	if _rng.randf() < treasure_start_adjacent_chance:
-		treasure_pos = _reserve_dead_end_near_start(cells, [boss_pos], forbidden_anchors)
+	#
+	# MEHRERE TRESORRAEUME: jede bereits vergebene Position UND deren
+	# Vorraum werden fuer die naechste Runde ausgeschlossen (exclude bzw.
+	# forbidden_anchors), damit zwei Tresorraeume nicht dieselbe Zelle oder
+	# denselben Vorraum wie der Boss oder ein bereits platzierter Tresor
+	# teilen - gleicher Grund wie bei forbidden_anchors oben.
+	var treasure_exclude: Array = [boss_pos]
+	var placed_treasures: int = 0
+	for i in range(treasure_room_count):
+		var treasure_pos: Vector2i = INVALID_POS
+		if _rng.randf() < treasure_start_adjacent_chance:
+			treasure_pos = _reserve_dead_end_near_start(cells, treasure_exclude, forbidden_anchors)
 
-	if treasure_pos == INVALID_POS:
-		treasure_pos = _reserve_dead_end(cells, 1, [boss_pos], forbidden_anchors)
-	if treasure_pos == INVALID_POS and not forbidden_anchors.is_empty():
-		# Lieber ein Tresor am Bossvorraum als gar keiner.
-		treasure_pos = _reserve_dead_end(cells, 1, [boss_pos], [])
-	if treasure_pos != INVALID_POS:
+		if treasure_pos == INVALID_POS:
+			treasure_pos = _reserve_dead_end(cells, 1, treasure_exclude, forbidden_anchors)
+		if treasure_pos == INVALID_POS and not forbidden_anchors.is_empty():
+			# Lieber ein Tresor am Bossvorraum als gar keiner.
+			treasure_pos = _reserve_dead_end(cells, 1, treasure_exclude, [])
+		if treasure_pos == INVALID_POS:
+			break  # Keine weitere passende Sackgasse mehr uebrig.
+
 		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
+		placed_treasures += 1
+		treasure_exclude.append(treasure_pos)
+
+		var treasure_anchor: Vector2i = _connected_neighbor(cells, treasure_pos)
+		if treasure_anchor != INVALID_POS:
+			forbidden_anchors.append(treasure_anchor)
+
+	if placed_treasures < treasure_room_count:
+		push_warning("RoomGridGenerator: Nur %d von %d Tresorraeumen platziert - keine weitere passende Sackgasse gefunden." % [placed_treasures, treasure_room_count])
 
 
 ## Der EINZIGE Nachbar einer Sackgasse.
@@ -16581,6 +16714,9 @@ var _spawn_seed_set: bool = false
 var _pending_entries: Array[EnemySpawnEntry] = []
 var _pending_budget: int = 0
 var _pending_stage: int = 1
+## Boss-HP-Leisten (boss_health_bar.gd) suchen zuerst nach der Gruppe "boss" -
+## gesetzt von prepare_enemies(), wenn dieser Raum ein Bossraum ist.
+var _pending_is_boss_room: bool = false
 var _spawned_enemies: Array[Node3D] = []
 
 ## Alle Tueren nach Richtung, AUCH die vom Layout wieder entfernten -
@@ -17572,7 +17708,8 @@ func set_spawn_seed(seed_value: int) -> void:
 	_spawn_seed_set = true
 
 
-func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage: int) -> void:
+func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage: int, is_boss_room: bool = false) -> void:
+	_pending_is_boss_room = is_boss_room
 	if not _spawn_seed_set:
 		# Ohne gesetzten Seed (z.B. Raum von Hand in ein Testlevel
 		# gesetzt) faellt der Raum auf echten Zufall zurueck - nur dann
@@ -17703,6 +17840,13 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	if parent == null:
 		parent = get_tree().get_root()
 	parent.add_child(enemy)
+
+	# BUGFIX "Boss-HP-Leiste bleibt leer": boss_health_bar.gd sucht zuerst die
+	# Gruppe "boss" - ohne diese Markierung faellt sie auf eine unzuverlaessige
+	# Staerkste-im-Raum-Heuristik zurueck. Hier markieren wir jeden Gegner, der
+	# ueber boss_table (statt enemy_table) in einen Bossraum gespawnt wurde.
+	if _pending_is_boss_room:
+		enemy.add_to_group("boss")
 
 	var spawn_pos: Vector3 = point.global_position
 	spawn_pos.y += 0.1
@@ -18303,20 +18447,27 @@ func on_player_entered() -> void:
 [ext_resource type="Texture2D" uid="uid://b66s3j5jjf1yw" path="res://assets/textures/ui/image-removebg-preview (11).png" id="32_u4jxp"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="33_w24rf"]
 [ext_resource type="Script" uid="uid://5ccb87ohsjij" path="res://scripts/dungeon_atmosphere.gd" id="34_bqido"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_07.tres" id="35_c7"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_08.tres" id="36_c8"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_09.tres" id="37_c9"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_10.tres" id="38_c10"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_11.tres" id="39_c11"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_12.tres" id="40_c12"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_wide_01.tres" id="41_cwide"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_tall_01.tres" id="42_ctall"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_arena_01.tres" id="43_carena"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_03.tres" id="44_cor3"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_02.tres" id="45_treasure2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_03.tres" id="46_treasure3"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_abyss_01.tres" id="47_abyss1"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_abyss_02.tres" id="48_abyss2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_abyss_03.tres" id="49_abyss3"]
 
 [sub_resource type="Environment" id="Environment_gen"]
 background_mode = 1
 background_color = Color(0.05, 0.05, 0.08, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.55, 0.55, 0.65, 1)
-# BUGFIX/REWORK "raumbasierte Beleuchtung": von 0.5 auf 0.05 gesenkt. Das
-# globale DirectionalLight3D weiter unten ist komplett entfernt - jeder Raum
-# beleuchtet sich jetzt selbst (siehe room_instance.gd, _build_room_lights).
-# Ein hoher Ambient-Wert haette das unterlaufen: Abgruende und Korridor-Enden
-# waeren trotz fehlender Lichtquelle nie wirklich dunkel geworden. Der
-# verbleibende winzige Rest verhindert nur reines, kontrastloses Schwarz
-# ausserhalb jeder Lichtquelle.
-ambient_light_energy = 0.05
 tonemap_mode = 2
 glow_enabled = true
 glow_intensity = 0.5
@@ -18367,7 +18518,7 @@ script = ExtResource("2_grid")
 
 [node name="LevelGenerator" type="Node" parent="." unique_id=864998062 node_paths=PackedStringArray("grid_generator", "navigation_region")]
 script = ExtResource("1_lg")
-room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2")])
+room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("35_c7"), ExtResource("36_c8"), ExtResource("37_c9"), ExtResource("38_c10"), ExtResource("39_c11"), ExtResource("40_c12"), ExtResource("41_cwide"), ExtResource("42_ctall"), ExtResource("43_carena"), ExtResource("44_cor3"), ExtResource("45_treasure2"), ExtResource("46_treasure3"), ExtResource("47_abyss1"), ExtResource("48_abyss2"), ExtResource("49_abyss3")])
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")
@@ -18583,6 +18734,8 @@ pulse_amount = 0.0
 
 [node name="DungeonAtmosphere" type="Node" parent="." unique_id=1358924922]
 script = ExtResource("34_bqido")
+fog_end = 65.0
+fog_density = 1.0
 
 
 ===== FILE: scenes\main_menu.tscn =====
@@ -19252,6 +19405,7 @@ script = ExtResource("5_qlg0r")
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -19381,6 +19535,22 @@ surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
 shape = SubResource("bs3")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5.5, -21.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5.5, 21.0)
+script = ExtResource("torch_script")
+
+[node name="Torch3" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.0, 5.5, 0.0)
+script = ExtResource("torch_script")
+
+[node name="Torch4" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.0, 5.5, 0.0)
+script = ExtResource("torch_script")
 
 [node name="Doors" type="Node3D" parent="."]
 
@@ -19545,6 +19715,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.5, 12.0)
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/hazards/cannon.gd" id="cannon_script"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -19583,6 +19755,10 @@ room_height = 14.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+extra_void_pits = Array[Vector4]([Vector4(21.0, 21.0, 4.0, 4.0)])
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -19670,6 +19846,10 @@ surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
 shape = SubResource("bs3")
+
+[node name="Cannon" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.0, 0.0, -20.0)
+script = ExtResource("cannon_script")
 
 [node name="Doors" type="Node3D" parent="."]
 
@@ -19787,6 +19967,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 0.5, -8.0)
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+[ext_resource type="Script" path="res://scripts/hazards/cannon.gd" id="cannon_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -19835,6 +20016,7 @@ script = ExtResource("pit_floor")
 floor_size = Vector2(48.0, 48.0)
 floor_thickness = 1.0
 pit_depth = 6.0
+extra_void_pits = Array[Vector4]([Vector4(0.0, -14.0, 8.0, 6.0)])
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -20010,6 +20192,10 @@ surface_material_override/0 = ExtResource("mat")
 shape = SubResource("bs6")
 
 [node name="Hazards" type="Node3D" parent="."]
+
+[node name="Cannon" type="StaticBody3D" parent="Hazards"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.0, 0.0, -9.0)
+script = ExtResource("cannon_script")
 
 [node name="Lava1" parent="Hazards" instance=ExtResource("lava")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.0, -0.15, 0.0)
@@ -21576,6 +21762,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.0, 0.5, -6.0)
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -21620,6 +21808,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+extra_void_pits = Array[Vector4]([Vector4(20.0, -20.0, 4.0, 4.0)])
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -21748,6 +21940,14 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar4"]
 shape = SubResource("bs4")
 
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 3.5, 18.0)
+script = ExtResource("torch_script")
+
 [node name="Doors" type="Node3D" parent="."]
 
 [node name="DoorNorth" type="StaticBody3D" parent="Doors"]
@@ -21870,6 +22070,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -22011,6 +22212,14 @@ surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Platform1"]
 shape = SubResource("bs4")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.0, 3.5, 20.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.0, 3.5, -20.0)
+script = ExtResource("torch_script")
 
 [node name="Doors" type="Node3D" parent="."]
 
@@ -24289,6 +24498,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/hazards/cannon.gd" id="cannon_script"]
 
 [sub_resource type="BoxMesh" id="floor_mesh"]
 size = Vector3(20.0, 1, 48.0)
@@ -24389,6 +24599,10 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest"]
 shape = SubResource("wall_ew_full_shape")
 
+[node name="Cannon" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.0, -16.0)
+script = ExtResource("cannon_script")
+
 [node name="Doors" type="Node3D" parent="."]
 
 [node name="DoorNorth" type="StaticBody3D" parent="Doors"]
@@ -24449,6 +24663,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 0.5, -8.0)
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 
 [sub_resource type="BoxMesh" id="floor_mesh"]
 size = Vector3(48.0, 1, 20.0)
@@ -24548,6 +24763,14 @@ surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest_B"]
 shape = SubResource("wall_ew_shape")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.0, 3.5, 0.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.0, 3.5, 0.0)
+script = ExtResource("torch_script")
 
 [node name="Doors" type="Node3D" parent="."]
 
@@ -24792,6 +25015,501 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 5)
 
 
 
+===== FILE: scenes\rooms\corridor\room_corridor_abyss_01.tscn =====
+
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(20.0, 1, 48.0)
+
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(20.0, 1, 48.0)
+
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(5, 14.0, 1)
+
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(5, 14.0, 1)
+
+[sub_resource type="BoxMesh" id="wall_ew_full_mesh"]
+size = Vector3(1, 14.0, 48.0)
+
+[sub_resource type="BoxShape3D" id="wall_ew_full_shape"]
+size = Vector3(1, 14.0, 48.0)
+
+[sub_resource type="BoxMesh" id="door_ns_mesh"]
+size = Vector3(10, 10, 0.8)
+
+[sub_resource type="BoxShape3D" id="door_ns_shape"]
+size = Vector3(10, 10, 0.8)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+room_footprint = Vector2(20.0, 48.0)
+room_height = 14.0
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(20.0, 48.0)
+floor_thickness = 1.0
+auto_pits_from_lava = false
+build_basin = false
+extra_void_pits = Array[Vector4]([Vector4(0.0, -11.5, 20.0, 5.0), Vector4(0.0, 6.5, 20.0, 5.0)])
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 7, -24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7, -24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 7, 24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7, 24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 7, 0.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast"]
+mesh = SubResource("wall_ew_full_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast"]
+shape = SubResource("wall_ew_full_shape")
+
+[node name="WallWest" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 7, 0.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest"]
+mesh = SubResource("wall_ew_full_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest"]
+shape = SubResource("wall_ew_full_shape")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 3.5, -19.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 3.5, 16.0)
+script = ExtResource("torch_script")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5, -24)
+script = ExtResource("door_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_ns_shape")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5, 24)
+script = ExtResource("door_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_ns_shape")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, -24)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 24)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -19.0)
+
+[node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -2.0)
+
+[node name="Enemy3" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 16.0)
+
+
+===== FILE: scenes\rooms\corridor\room_corridor_abyss_02.tscn =====
+
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(20.0, 1, 48.0)
+
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(20.0, 1, 48.0)
+
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(5, 14.0, 1)
+
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(5, 14.0, 1)
+
+[sub_resource type="BoxMesh" id="wall_ew_full_mesh"]
+size = Vector3(1, 14.0, 48.0)
+
+[sub_resource type="BoxShape3D" id="wall_ew_full_shape"]
+size = Vector3(1, 14.0, 48.0)
+
+[sub_resource type="BoxMesh" id="door_ns_mesh"]
+size = Vector3(10, 10, 0.8)
+
+[sub_resource type="BoxShape3D" id="door_ns_shape"]
+size = Vector3(10, 10, 0.8)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+room_footprint = Vector2(20.0, 48.0)
+room_height = 14.0
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(20.0, 48.0)
+floor_thickness = 1.0
+auto_pits_from_lava = false
+build_basin = false
+extra_void_pits = Array[Vector4]([Vector4(0.0, -13.0, 20.0, 6.0), Vector4(-6.0, -0.5, 8.0, 7.0), Vector4(6.0, -0.5, 8.0, 7.0), Vector4(0.0, 13.0, 20.0, 6.0)])
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 7, -24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7, -24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 7, 24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7, 24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 7, 0.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast"]
+mesh = SubResource("wall_ew_full_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast"]
+shape = SubResource("wall_ew_full_shape")
+
+[node name="WallWest" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 7, 0.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest"]
+mesh = SubResource("wall_ew_full_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest"]
+shape = SubResource("wall_ew_full_shape")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 3.5, -20.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 3.5, 20.0)
+script = ExtResource("torch_script")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5, -24)
+script = ExtResource("door_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_ns_shape")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5, 24)
+script = ExtResource("door_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_ns_shape")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, -24)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 24)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -20.0)
+
+[node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 20.0)
+
+
+===== FILE: scenes\rooms\corridor\room_corridor_abyss_03.tscn =====
+
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
+[ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
+[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
+
+[sub_resource type="BoxMesh" id="floor_mesh"]
+size = Vector3(20.0, 1, 48.0)
+
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(20.0, 1, 48.0)
+
+[sub_resource type="BoxMesh" id="wall_ns_mesh"]
+size = Vector3(5, 14.0, 1)
+
+[sub_resource type="BoxShape3D" id="wall_ns_shape"]
+size = Vector3(5, 14.0, 1)
+
+[sub_resource type="BoxMesh" id="wall_ew_full_mesh"]
+size = Vector3(1, 14.0, 48.0)
+
+[sub_resource type="BoxShape3D" id="wall_ew_full_shape"]
+size = Vector3(1, 14.0, 48.0)
+
+[sub_resource type="BoxMesh" id="door_ns_mesh"]
+size = Vector3(10, 10, 0.8)
+
+[sub_resource type="BoxShape3D" id="door_ns_shape"]
+size = Vector3(10, 10, 0.8)
+
+[node name="RoomRoot" type="Node3D"]
+script = ExtResource("room_script")
+room_footprint = Vector2(20.0, 48.0)
+room_height = 14.0
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(20.0, 48.0)
+floor_thickness = 1.0
+auto_pits_from_lava = false
+build_basin = false
+extra_void_pits = Array[Vector4]([Vector4(0.0, -13.5, 20.0, 7.0), Vector4(0.0, -1.0, 20.0, 8.0), Vector4(0.0, 11.5, 20.0, 7.0)])
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("floor_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="WallNorth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 7, -24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallNorth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7, -24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 7, 24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_A"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_A"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallSouth_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7, 24)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth_B"]
+mesh = SubResource("wall_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouth_B"]
+shape = SubResource("wall_ns_shape")
+
+[node name="WallEast" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 7, 0.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast"]
+mesh = SubResource("wall_ew_full_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast"]
+shape = SubResource("wall_ew_full_shape")
+
+[node name="WallWest" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 7, 0.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest"]
+mesh = SubResource("wall_ew_full_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest"]
+shape = SubResource("wall_ew_full_shape")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 3.5, -20.5)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 3.5, 19.0)
+script = ExtResource("torch_script")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="DoorNorth" type="StaticBody3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5, -24)
+script = ExtResource("door_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorNorth"]
+mesh = SubResource("door_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorNorth"]
+shape = SubResource("door_ns_shape")
+
+[node name="DoorSouth" type="StaticBody3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 5, 24)
+script = ExtResource("door_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/DoorSouth"]
+mesh = SubResource("door_ns_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorSouth"]
+shape = SubResource("door_ns_shape")
+
+[node name="ExitPoints" type="Node3D" parent="."]
+
+[node name="North" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, -24)
+
+[node name="South" type="Marker3D" parent="ExitPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 24)
+
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="Enemy1" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -20.5)
+
+[node name="Enemy2" type="Marker3D" parent="EnemySpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 19.5)
+
+
 ===== FILE: scenes\rooms\room_start_01.tscn =====
 
 [gd_scene format=3 uid="uid://clkpkvxk2ioi5"]
@@ -24802,6 +25520,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 5)
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="Script" uid="uid://0am35ym4bq0" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" uid="uid://bgngov2w0v4yo" path="res://scripts/player_spawn_point.gd" id="spawn_script"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -24979,6 +25698,14 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar4" unique_id=708170495]
 shape = SubResource("bs4")
 
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
+
 [node name="Doors" type="Node3D" parent="." unique_id=984201878]
 
 [node name="DoorNorth" type="StaticBody3D" parent="Doors" unique_id=492049426]
@@ -25051,6 +25778,8 @@ script = ExtResource("spawn_script")
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48.0, 1.0, 48.0)
@@ -25131,6 +25860,10 @@ room_height = 14.0
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.5, 0.0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+extra_void_pits = Array[Vector4]([Vector4(0.0, -20.0, 8.0, 4.0)])
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -25349,6 +26082,14 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Step13"]
 shape = SubResource("bs10")
 
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.5, 18.0)
+script = ExtResource("torch_script")
+
 [node name="Doors" type="Node3D" parent="."]
 
 [node name="DoorNorth" type="StaticBody3D" parent="Doors"]
@@ -25431,6 +26172,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 2.1, 4.0)
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -25487,6 +26230,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+extra_void_pits = Array[Vector4]([Vector4(0.0, 20.0, 8.0, 4.0)])
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -25614,6 +26361,14 @@ surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar2"]
 shape = SubResource("bs6")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
 
 [node name="Doors" type="Node3D" parent="."]
 
@@ -29782,14 +30537,14 @@ script = ExtResource("12_lowhp")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bleed"]
 shading_mode = 0
 transparency = 1
-billboard_mode = 3
+billboard_mode = 1
 albedo_color = Color(0.5, 0.0, 0.0, 1)
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_bleed"]
 direction = Vector3(0, -1, 0)
-spread = 15.0
-initial_velocity_min = 0.5
-initial_velocity_max = 1.5
+spread = 55.0
+initial_velocity_min = 1.5
+initial_velocity_max = 4.0
 gravity = Vector3(0, -6.0, 0)
 scale_min = 0.5
 scale_max = 1.0
@@ -29802,7 +30557,7 @@ size = Vector2(0.12, 0.12)
 [node name="BleedVFX" type="GPUParticles3D"]
 script = ExtResource("1")
 emitting = false
-amount = 6
+amount = 13
 lifetime = 0.6
 randomness = 0.3
 fixed_fps = 30
@@ -30144,14 +30899,14 @@ draw_pass_1 = SubResource("QuadMesh_sy")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bleed"]
 shading_mode = 0
 transparency = 1
-billboard_mode = 3
+billboard_mode = 1
 albedo_color = Color(0.5, 0.0, 0.0, 1)
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_bleed"]
 direction = Vector3(0, -1, 0)
-spread = 15.0
-initial_velocity_min = 0.5
-initial_velocity_max = 1.5
+spread = 55.0
+initial_velocity_min = 1.5
+initial_velocity_max = 4.0
 gravity = Vector3(0, -6.0, 0)
 scale_min = 0.5
 scale_max = 1.0
@@ -30164,7 +30919,7 @@ size = Vector2(0.06, 0.06)
 [node name="BleedVFX" type="GPUParticles3D"]
 script = ExtResource("1")
 emitting = false
-amount = 6
+amount = 13
 lifetime = 0.6
 randomness = 0.3
 fixed_fps = 30
@@ -33339,6 +34094,12 @@ func _build_main_menu_button() -> void:
 	var button := Button.new()
 	button.text = "Hauptmenue"
 	button.custom_minimum_size = button_size if fix_layout_in_code else Vector2(0, 40)
+	# BUGFIX "Hauptmenue-Button zu gross": _fix_content_layout() setzt
+	# SIZE_SHRINK_CENTER nur auf restart_button/quit_button (die schon in der
+	# .tscn stehen), weil dieser Button hier erst DANACH erzeugt wird. Ohne
+	# den Flag behaelt er Godots Default SIZE_FILL und zieht sich ueber die
+	# volle VBoxContainer-Breite statt auf dieselbe Box wie die anderen beiden.
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.pressed.connect(_on_main_menu_pressed)
 	column.add_child(button)
 	column.move_child(button, quit_button.get_index())
@@ -33743,9 +34504,15 @@ class_name DungeonAtmosphere
 ## Farbe des Nebels. Sehr dunkel, leicht gruenstichig passend zur Limonade.
 @export var fog_color: Color = Color(0.02, 0.03, 0.02)
 ## Ab hier beginnt das Abdunkeln (Meter vor der Kamera).
-@export var fog_begin: float = 20.0
+##
+## BUGFIX "Character wirkt schwarz/im Schatten, obwohl der Raum hell ist":
+## bei 20 griff der Nebel schon recht nah an der Kamera - kombiniert mit dem
+## niedrigen ambient_energy weiter unten sackte alles ausserhalb der
+## unmittelbaren Naehe sichtbar ab. Weiter nach hinten geschoben, damit mehr
+## vom Raum in der eigentlichen Beleuchtung bleibt.
+@export var fog_begin: float = 30.0
 ## Ab hier ist praktisch alles schwarz.
-@export var fog_end: float = 80.0
+@export var fog_end: float = 85.0
 ## Wie schnell der Nebel zwischen begin und end zumacht (>1 = spaeter,
 ## dafuer haerter; das fuehlt sich weniger nach Milchglas an).
 @export var fog_curve: float = 2.2
@@ -33753,9 +34520,13 @@ class_name DungeonAtmosphere
 @export_range(0.0, 1.0) var fog_density: float = 0.95
 
 ## Ambient-Licht runterziehen - ohne das leuchten die Waende trotz Nebel.
+## BUGFIX "Character wirkt schwarz": 0.35 war zu knapp, um Charaktermodelle
+## (echtes Shading, nicht die eher flachen Wand/Boden-Flaechen) lesbar zu
+## halten, solange keine Fackel (torch.gd) direkt danebensteht - siehe auch
+## fog_begin oben.
 @export var override_ambient: bool = true
 @export var ambient_color: Color = Color(0.105, 0.12, 0.105, 1.0)
-@export var ambient_energy: float = 0.35
+@export var ambient_energy: float = 0.55
 
 ## Himmel/Hintergrund ebenfalls auf Nebelfarbe ziehen, damit ueber der
 ## Nebelgrenze keine helle Kante steht.
@@ -36872,6 +37643,213 @@ func _key_name(events: Array) -> String:
 		if e is InputEventMouseButton:
 			return "MAUS %d" % (e as InputEventMouseButton).button_index
 	return "F"
+
+
+===== FILE: scripts\hazards\cannon.gd =====
+
+extends StaticBody3D
+class_name Cannon
+
+# ============================================================================
+# Cannon — stationaerer, auf den Spieler ausgerichteter Geschuetz-Hazard.
+# ============================================================================
+# Anders als Turret (turret.gd, feste Schussmuster ohne Zielverfolgung)
+# verfolgt der Cannon den Spieler aktiv: der Lauf dreht sich zu ihm, und
+# erst wenn der Lauf naeherungsweise ausgerichtet ist UND (optional) freie
+# Sichtlinie besteht, feuert er - ein schwereres, langsameres Geschoss als
+# TurretProjectile normalerweise verschiesst, dafuer klar telegraphiert
+# (Muendungsblitz kurz vor dem Schuss, gleiches Prinzip wie turret.gd).
+#
+# Baut sich komplett per Code auf, gleiches Prinzip wie turret.gd/lemonade.gd
+# - kein Asset-Import noetig, ein neuer Cannon ist ein Funktionsaufruf bzw.
+# eine per Hand in eine Raum-.tscn gesetzte Instanz.
+
+@export var detect_range: float = 18.0
+@export var fire_interval: float = 3.2
+@export var aim_turn_speed_deg: float = 140.0
+## Maximale Winkelabweichung (Grad) zwischen Lauf und Spieler, bei der noch
+## gefeuert wird - verhindert einen Schuss "quer" waehrend der Lauf noch
+## nachdreht.
+@export var fire_angle_tolerance_deg: float = 20.0
+@export var projectile_speed: float = 9.0
+@export var projectile_damage: float = 18.0
+## Leichtes Nachziehen des Geschosses, damit ein bereits abgefeuerter Schuss
+## nicht durch einen scharfen Seitenschritt trivial zu umgehen ist - deutlich
+## schwaecher als Turret.AmmoKind.HOMING (0.3), siehe turret_projectile.gd.
+@export var projectile_homing_strength: float = 0.12
+@export var require_line_of_sight: bool = true
+@export var line_of_sight_mask: int = 1
+
+@export var base_size: float = 2.0
+@export var base_height: float = 1.4
+@export var barrel_length: float = 2.4
+@export var barrel_radius: float = 0.35
+
+@export var muzzle_color: Color = Color(0.95, 0.35, 0.1)
+@export var debug_logging: bool = false
+
+var _timer: float = 0.0
+var _barrel_pivot: Node3D = null
+var _muzzle_light: OmniLight3D = null
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("Cannon DEBUG [%s]: %s" % [name, msg])
+
+
+func _ready() -> void:
+	add_to_group("cannons")
+	# Gleicher Grund wie in turret.gd: Godots Default-Layer (1) behalten,
+	# NICHT auf die Gegner-Ebene umstellen - der Cannon soll ein physisches
+	# Hindernis bleiben, kein unsichtbar durchlaufbares Deko-Objekt.
+	_timer = fire_interval * randf_range(0.4, 1.0)
+	_build_collision()
+	_build_visual()
+
+
+func _build_collision() -> void:
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(base_size, base_height, base_size)
+	shape.shape = box
+	shape.position = Vector3(0.0, base_height * 0.5, 0.0)
+	add_child(shape)
+
+
+func _build_visual() -> void:
+	var base_mesh := BoxMesh.new()
+	base_mesh.size = Vector3(base_size, base_height, base_size)
+
+	var base_mat := StandardMaterial3D.new()
+	base_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	base_mat.albedo_color = Color(0.14, 0.13, 0.15)
+	base_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+
+	var base_visual := MeshInstance3D.new()
+	base_visual.name = "Base"
+	base_visual.mesh = base_mesh
+	base_visual.material_override = base_mat
+	base_visual.position = Vector3(0.0, base_height * 0.5, 0.0)
+	add_child(base_visual)
+
+	_barrel_pivot = Node3D.new()
+	_barrel_pivot.name = "BarrelPivot"
+	_barrel_pivot.position = Vector3(0.0, base_height, 0.0)
+	add_child(_barrel_pivot)
+
+	var barrel_mesh := CylinderMesh.new()
+	barrel_mesh.top_radius = barrel_radius
+	barrel_mesh.bottom_radius = barrel_radius
+	barrel_mesh.height = barrel_length
+
+	var barrel_mat := StandardMaterial3D.new()
+	barrel_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	barrel_mat.albedo_color = Color(0.2, 0.19, 0.21)
+	barrel_mat.emission_enabled = true
+	barrel_mat.emission = muzzle_color
+	barrel_mat.emission_energy_multiplier = 0.35
+	barrel_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+
+	var barrel := MeshInstance3D.new()
+	barrel.name = "Barrel"
+	barrel.mesh = barrel_mesh
+	barrel.material_override = barrel_mat
+	# CylinderMesh liegt per Default entlang der lokalen Y-Achse. Um 90 Grad
+	# um X gekippt zeigt er stattdessen entlang -Z (Feuerrichtung des
+	# Pivots), und um die halbe Laenge nach vorn verschoben sitzt seine
+	# Basis am Pivot statt seine Mitte.
+	barrel.rotation.x = deg_to_rad(90.0)
+	barrel.position = Vector3(0.0, 0.0, -barrel_length * 0.5)
+	_barrel_pivot.add_child(barrel)
+
+	_muzzle_light = OmniLight3D.new()
+	_muzzle_light.light_color = muzzle_color
+	_muzzle_light.light_energy = 0.0
+	_muzzle_light.omni_range = 5.0
+	_muzzle_light.shadow_enabled = false
+	_muzzle_light.position = Vector3(0.0, 0.0, -barrel_length)
+	_barrel_pivot.add_child(_muzzle_light)
+
+
+func _physics_process(delta: float) -> void:
+	if _barrel_pivot == null:
+		return
+
+	var player: Node3D = _find_player()
+	if player == null:
+		return
+
+	var to_player: Vector3 = player.global_position - _barrel_pivot.global_position
+	to_player.y = 0.0
+	var distance: float = to_player.length()
+	if distance > detect_range or distance < 0.01:
+		return
+	var wanted_dir: Vector3 = to_player.normalized()
+
+	var current_dir: Vector3 = -_barrel_pivot.global_transform.basis.z
+	current_dir.y = 0.0
+	if current_dir.length_squared() < 0.0001:
+		current_dir = Vector3.FORWARD
+	current_dir = current_dir.normalized()
+
+	var angle: float = current_dir.signed_angle_to(wanted_dir, Vector3.UP)
+	var max_turn: float = deg_to_rad(aim_turn_speed_deg) * delta
+	_barrel_pivot.rotate_y(clampf(angle, -max_turn, max_turn))
+
+	_timer -= delta
+	if _timer > 0.0:
+		return
+
+	# BUGFIX "Kanone schiesst nie": vorher wurde _timer HIER SCHON auf den
+	# vollen fire_interval zurueckgesetzt, bevor ueberhaupt geprueft wurde,
+	# ob Winkel/Sichtlinie passen. Kreist der Spieler nah genug um die
+	# Kanone, dass ihre Winkelgeschwindigkeit die Nachdreh-Geschwindigkeit
+	# des Laufs (aim_turn_speed_deg) uebersteigt, war der Lauf beim naechsten
+	# Tick NIE ausgerichtet - jeder Tick verstrich ergebnislos, und die
+	# Kanone wartete danach erneut die vollen fire_interval Sekunden, ohne
+	# es zwischendurch nochmal zu versuchen. Fix: der Cooldown wird nur nach
+	# einem TATSAECHLICHEN Schuss zurueckgesetzt; bis dahin wird JEDEN Frame
+	# neu geprueft.
+	if absf(angle) > deg_to_rad(fire_angle_tolerance_deg):
+		return
+	if require_line_of_sight and not _has_line_of_sight(player):
+		_debug("Kein freies Schussfeld - Schuss ausgelassen.")
+		return
+
+	_timer = maxf(fire_interval, 0.5)
+	_fire(wanted_dir)
+
+
+func _fire(direction: Vector3) -> void:
+	_flash_muzzle()
+	var origin: Vector3 = _barrel_pivot.global_position + (-_barrel_pivot.global_transform.basis.z) * barrel_length
+	TurretProjectile.spawn(self, origin, direction, projectile_speed, projectile_damage, projectile_homing_strength, self)
+
+
+func _flash_muzzle() -> void:
+	if _muzzle_light == null:
+		return
+	var tween: Tween = create_tween()
+	tween.tween_property(_muzzle_light, "light_energy", 3.0, 0.05)
+	tween.tween_property(_muzzle_light, "light_energy", 0.0, 0.3)
+
+
+func _has_line_of_sight(player: Node3D) -> bool:
+	var space_state := get_world_3d().direct_space_state
+	var from: Vector3 = _barrel_pivot.global_position
+	var to: Vector3 = player.global_position + Vector3.UP * 1.0
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	query.collision_mask = line_of_sight_mask
+	query.exclude = [self]
+	return space_state.intersect_ray(query).is_empty()
+
+
+func _find_player() -> Node3D:
+	for node: Node in get_tree().get_nodes_in_group("player"):
+		if node is Node3D and is_instance_valid(node):
+			return node as Node3D
+	return null
 
 
 ===== FILE: scripts\hazards\lemonade.gd =====
@@ -41406,6 +42384,7 @@ func _use_spicy_ramen(player: CharacterBody3D) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(damage, player)
+			_spawn_item_damage_number(enemy, damage)
 		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, player)
 		# Interrupt: bricht einen laufenden Telegraph sofort ab.
 		if enemy.has_method("interrupt_attack"):
@@ -46314,7 +47293,11 @@ class_name StageTheme
 ## WorldEnvironment gelegt, falls eine vorhanden ist.
 @export var fog_color: Color = Color(0.05, 0.05, 0.07)
 @export var fog_density: float = 0.012
-@export var ambient_energy: float = 0.35
+## BUGFIX "Character wirkt schwarz/im Schatten": siehe dungeon_atmosphere.gd
+## - dieselbe Anhebung, damit sie nach einem Etagenwechsel (stage_manager.gd
+## _apply_environment() ueberschreibt ambient_light_energy pro Etage mit
+## diesem Wert) nicht wieder zurueckfaellt.
+@export var ambient_energy: float = 0.55
 
 ## Farbe der Lava-/Limonaden-Hazards dieser Etage. Rein kosmetisch —
 ## der Schaden bleibt gleich.
@@ -46359,7 +47342,7 @@ static func build_all() -> Array[StageTheme]:
 	dungeon.door_color = Color(0.70, 0.60, 0.42)
 	dungeon.fog_color = Color(0.05, 0.05, 0.06)
 	dungeon.fog_density = 0.012
-	dungeon.ambient_energy = 0.35
+	dungeon.ambient_energy = 0.55
 	dungeon.hazard_color = Color(0.88, 0.95, 0.22)
 	themes.append(dungeon)
 
@@ -46371,7 +47354,7 @@ static func build_all() -> Array[StageTheme]:
 	ice.door_color = Color(0.85, 0.93, 1.0)
 	ice.fog_color = Color(0.10, 0.16, 0.24)
 	ice.fog_density = 0.020
-	ice.ambient_energy = 0.55
+	ice.ambient_energy = 0.70
 	ice.hazard_color = Color(0.55, 0.90, 1.0)
 	themes.append(ice)
 
@@ -46383,7 +47366,7 @@ static func build_all() -> Array[StageTheme]:
 	desert.door_color = Color(0.55, 0.40, 0.24)
 	desert.fog_color = Color(0.26, 0.20, 0.12)
 	desert.fog_density = 0.008
-	desert.ambient_energy = 0.70
+	desert.ambient_energy = 0.85
 	desert.hazard_color = Color(0.95, 0.65, 0.15)
 	themes.append(desert)
 
@@ -46395,7 +47378,7 @@ static func build_all() -> Array[StageTheme]:
 	flesh.door_color = Color(0.80, 0.45, 0.40)
 	flesh.fog_color = Color(0.16, 0.05, 0.06)
 	flesh.fog_density = 0.018
-	flesh.ambient_energy = 0.40
+	flesh.ambient_energy = 0.60
 	flesh.hazard_color = Color(0.95, 0.25, 0.25)
 	themes.append(flesh)
 
@@ -46407,7 +47390,7 @@ static func build_all() -> Array[StageTheme]:
 	neon.door_color = Color(0.85, 0.35, 0.95)
 	neon.fog_color = Color(0.10, 0.04, 0.18)
 	neon.fog_density = 0.022
-	neon.ambient_energy = 0.45
+	neon.ambient_energy = 0.65
 	neon.hazard_color = Color(0.40, 1.0, 0.85)
 	themes.append(neon)
 
@@ -50241,12 +51224,40 @@ class_name PitFloor
 		extra_pits = value
 		_request_rebuild()
 
+## Bodenlose Abgruende MIT Instant-Kill, UNABHAENGIG von build_basin. Anders
+## als extra_pits (die build_basin fuer den ganzen Raum mitbenutzen, also
+## KEINE Wanne bekommen koennen, solange irgendwo im selben Raum eine
+## Lava-Wanne noetig ist) sind das hier immer echte Abgruende: keine Wanne,
+## dafuer eine Instant-Kill-Zone tief unten plus eine dunkle Rueckwand
+## darunter, damit man die Falltiefe nicht abschaetzen kann. Gleiches
+## Eintragsformat wie extra_pits: (center_x, center_z, size_x, size_z).
+@export var extra_void_pits: Array[Vector4] = []:
+	set(value):
+		extra_void_pits = value
+		_request_rebuild()
+
+## Wie tief unter der Bodenoberkante die Instant-Kill-Zone eines
+## extra_void_pits-Eintrags sitzt. Tief genug, dass der Sturz sichtbar Zeit
+## braucht, bevor er endet.
+@export var void_kill_depth: float = 24.0
+
+## Zusaetzliche Tiefe der schwarzen Rueckwand UNTER der Kill-Zone - rein
+## optisch, verhindert, dass beim Reinfallen kurz der Boden der Kill-Zone
+## aufblitzt, bevor der Treffer ausgewertet wird.
+@export var void_backdrop_extra_depth: float = 10.0
+
 ## Wie hoch die Grube mit Limonade gefuellt wird (Anteil von pit_depth).
 @export_range(0.1, 1.0) var lava_fill_ratio: float = 0.8
 
 ## Wie weit die Limonaden-Oberflaeche unter der Bodenoberkante liegt.
-## Der sichtbare Absatz ist genau das, was das "Reinfallen" verkauft.
-@export var lava_surface_drop: float = 1.2
+##
+## BUGFIX "Lava-Flaechen stehen ueber den Rand / sind zu niedrig": vorher
+## 1.2 - je nach pit_depth/lava_fill_ratio-Kombination eines Raumes wirkte
+## dieser feste Absatz mal wie ein zu tief abgesackter, mal (durch die neu
+## berechnete Fuellhoehe) wie ein ueber den Rand ragender Pool. Knapp ueber
+## 0 haelt die Oberflaeche stattdessen IMMER auf Bodenhoehe - "ground
+## level", wie gefordert - unabhaengig von pit_depth/lava_fill_ratio.
+@export var lava_surface_drop: float = 0.08
 
 ## Erzeugt die Wanne (Seitenwaende + Grubenboden). Ausschalten, wenn du
 ## ein echtes bodenloses Loch willst (Sturz aus dem Level).
@@ -50280,12 +51291,20 @@ func _build() -> void:
 	_clear_generated()
 
 	var pits: Array[Rect2] = _collect_pits()
+	var void_pits: Array[Rect2] = _collect_void_pits()
 
-	_build_floor_segments(pits)
+	# Der Boden-Sweep muss BEIDE Gruben-Arten kennen, sonst liesse er ueber
+	# einem extra_void_pits-Eintrag den alten durchgehenden Slab stehen.
+	var all_pits: Array[Rect2] = pits.duplicate()
+	all_pits.append_array(void_pits)
+	_build_floor_segments(all_pits)
 
 	if build_basin:
 		for pit in pits:
 			_build_basin(pit)
+
+	for i in range(void_pits.size()):
+		_build_void_pit(void_pits[i], i)
 
 	_disable_template_nodes()
 
@@ -50357,6 +51376,21 @@ func _collect_pits() -> Array[Rect2]:
 			entry.z, entry.w
 		))
 
+	return pits
+
+
+## Gleiches Eintragsformat wie _collect_pits(), aber fuer extra_void_pits -
+## bewusst getrennt gehalten, weil diese Gruben IMMER die
+## Instant-Kill-Behandlung bekommen, unabhaengig von build_basin (siehe
+## Kopfkommentar bei extra_void_pits).
+func _collect_void_pits() -> Array[Rect2]:
+	var pits: Array[Rect2] = []
+	for entry in extra_void_pits:
+		pits.append(Rect2(
+			entry.x - entry.z * 0.5,
+			entry.y - entry.w * 0.5,
+			entry.z, entry.w
+		))
 	return pits
 
 
@@ -50503,6 +51537,130 @@ func _emit_box(tag: String, center: Vector3, box_size: Vector3) -> void:
 	if Engine.is_editor_hint():
 		mesh_instance.owner = get_tree().edited_scene_root
 		collision.owner = get_tree().edited_scene_root
+
+
+## Bodenloser Abgrund: KEINE Wanne (siehe extra_void_pits-Kommentar) - dafuer
+## ein tiefer, rein schwarzer SCHACHT (vier Waende + Boden, alle unbeleuchtet
+## nahe Schwarz) statt eines offenen Lochs. Ohne Waende sieht man beim
+## Reinschauen aus einem flachen Winkel an der duennen Kill-Zone/Rueckwand
+## vorbei ins Nichts (Skybox, Nachbarraum) - der Schacht garantiert, dass in
+## JEDE Blickrichtung nur Dunkelheit zu sehen ist. Die Instant-Kill-Zone
+## sitzt weit genug oben im Schacht, dass man sie nie erreicht.
+func _build_void_pit(pit: Rect2, index: int) -> void:
+	var top: float = floor_thickness * 0.5
+	var center_x: float = pit.position.x + pit.size.x * 0.5
+	var center_z: float = pit.position.y + pit.size.y * 0.5
+	var shaft_depth: float = void_kill_depth + void_backdrop_extra_depth
+
+	_build_void_shaft("%sVoidShaft%d" % [GEN_PREFIX, index], pit, top, shaft_depth)
+
+	var kill_y: float = top - void_kill_depth
+	_build_void_kill_zone(
+		"%sVoidKill%d" % [GEN_PREFIX, index],
+		Vector3(center_x, kill_y, center_z),
+		Vector3(pit.size.x, 2.0, pit.size.y)
+	)
+
+
+## Vier Waende (dicker als bei _build_basin, damit man selbst aus flachem
+## Blickwinkel keine Luecke am Uebergang zum Boden-Slab sieht) plus ein
+## Boden-Cap ganz unten - alles in derselben nahe-schwarzen Unlit-Farbe wie
+## vorher die reine Rueckwand.
+func _build_void_shaft(prefix: String, pit: Rect2, top: float, shaft_depth: float) -> void:
+	var center_x: float = pit.position.x + pit.size.x * 0.5
+	var center_z: float = pit.position.y + pit.size.y * 0.5
+	var bottom: float = top - shaft_depth
+	var wall: float = 1.0
+	var wall_center_y: float = top - shaft_depth * 0.5
+
+	_emit_dark_box("%sWallN" % prefix,
+		Vector3(center_x, wall_center_y, pit.position.y - wall * 0.5),
+		Vector3(pit.size.x + wall * 2.0, shaft_depth, wall))
+	_emit_dark_box("%sWallS" % prefix,
+		Vector3(center_x, wall_center_y, pit.end.y + wall * 0.5),
+		Vector3(pit.size.x + wall * 2.0, shaft_depth, wall))
+	_emit_dark_box("%sWallW" % prefix,
+		Vector3(pit.position.x - wall * 0.5, wall_center_y, center_z),
+		Vector3(wall, shaft_depth, pit.size.y))
+	_emit_dark_box("%sWallE" % prefix,
+		Vector3(pit.end.x + wall * 0.5, wall_center_y, center_z),
+		Vector3(wall, shaft_depth, pit.size.y))
+	_emit_dark_box("%sBottom" % prefix,
+		Vector3(center_x, bottom - wall * 0.5, center_z),
+		Vector3(pit.size.x + wall * 2.0, wall, pit.size.y + wall * 2.0))
+
+
+## Gleiche Bauweise wie _emit_box(), aber mit fester, unbeleuchteter
+## Nahe-Schwarz-Farbe statt des Boden-Materials - fuer alles, was als reine
+## Dunkelheit wirken soll, nicht als sichtbare Grubenwand.
+func _emit_dark_box(tag: String, center: Vector3, box_size: Vector3) -> void:
+	var box_mesh := BoxMesh.new()
+	box_mesh.size = box_size
+
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(0.01, 0.01, 0.012)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "%s%s_Mesh" % [GEN_PREFIX, tag]
+	mesh_instance.mesh = box_mesh
+	mesh_instance.material_override = mat
+	mesh_instance.position = center
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mesh_instance)
+
+	var box_shape := BoxShape3D.new()
+	box_shape.size = box_size
+	var collision := CollisionShape3D.new()
+	collision.name = "%s%s_Shape" % [GEN_PREFIX, tag]
+	collision.shape = box_shape
+	collision.position = center
+	add_child(collision)
+
+	if Engine.is_editor_hint():
+		mesh_instance.owner = get_tree().edited_scene_root
+		collision.owner = get_tree().edited_scene_root
+
+
+## monitoring-only Area3D (collision_layer = 0, blockiert selbst nichts) -
+## collision_mask = 5 (Layer 1 Spieler + Layer 4 Gegner, siehe lemonade.gd/
+## LemonadeTrigger fuer denselben, bereits bewaehrten Maskenwert) - damit
+## sterben auch Gegner sofort, die in den Abgrund fallen, nicht nur der
+## Spieler.
+func _build_void_kill_zone(node_name: String, center: Vector3, size: Vector3) -> void:
+	var area := Area3D.new()
+	area.name = node_name
+	area.collision_layer = 0
+	area.collision_mask = 5
+	area.monitorable = false
+	area.position = center
+	add_child(area)
+
+	var box := BoxShape3D.new()
+	box.size = size
+	var shape := CollisionShape3D.new()
+	shape.shape = box
+	area.add_child(shape)
+
+	area.body_entered.connect(_on_void_kill_body_entered)
+
+	if Engine.is_editor_hint():
+		area.owner = get_tree().edited_scene_root
+		shape.owner = get_tree().edited_scene_root
+
+
+## Toetet JEDEN Body mit einer Health-Komponente - Spieler UND Gegner sollen
+## beim Reinfallen sofort sterben, keine Sonderbehandlung noetig.
+func _on_void_kill_body_entered(body: Node3D) -> void:
+	var health: Node = body.get_node_or_null("Health")
+	if health == null or not health.has_method("take_damage"):
+		return
+	if health.has_method("is_alive") and not health.is_alive():
+		return
+	var max_hp: float = float(health.get("max_health"))
+	if max_hp <= 0.0:
+		max_hp = 9999.0
+	health.take_damage(max_hp * 999.0, self)
 
 
 ## Setzt die vorhandenen Lemonade-Instanzen in die frisch gebaute Grube:
@@ -50979,6 +52137,14 @@ func _spawn_ragdoll_corpse() -> void:
 	shape.height = 1.8
 	collision.shape = shape
 	corpse.add_child(collision)
+
+	# BUGFIX "Leiche blockiert Kamera und Spieler": ohne diese Zeilen behaelt
+	# die Leiche Godots Default-Layer (1) - dieselbe Ebene wie Weltgeometrie.
+	# Die Kamera-SpringArm3D haelt sie dann faelschlich fuer eine Wand und
+	# zieht die Kamera heran, und sie bleibt ein echtes Physik-Hindernis.
+	# Gleiches Muster wie beim Gegner-Tod (siehe enemy_ai.gd _on_died()).
+	corpse.collision_layer = 0
+	corpse.collision_mask = 0
 
 	mesh.get_parent().remove_child(mesh)
 	corpse.add_child(mesh)
@@ -54286,15 +55452,15 @@ enum Placement {
 
 @export var debug_logging: bool = false
 
-## --- Interaktion: Vergroessern zum Lesen ------------------------------
+## --- Interaktion: Vollbild zum Lesen -----------------------------------
 ## Analog zum Minimap-Zoom (minimap.gd: TAB/M oeffnet eine groessere,
 ## besser lesbare Ansicht derselben Karte) - dieselbe Idee hier: [interact]
-## in der Naehe skaliert das Schild groesser, ein zweites Mal (oder
-## Weggehen) skaliert zurueck.
+## in der Naehe zeigt tutorial_texture gross als 2D-Bild auf dem Bildschirm
+## (siehe _build_view_overlay()), ein zweites Mal (oder Weggehen) schliesst
+## es wieder.
 @export var interact_zoom_enabled: bool = true
 ## Abstand in LOKALEN Einheiten, ab dem der Interaktions-Hinweis erscheint.
 @export var interact_range: float = 4.0
-@export var interact_zoom_scale: float = 1.7
 @export var interact_zoom_duration: float = 0.3
 
 const PLAYER_GROUP: String = "player"
@@ -54315,8 +55481,20 @@ var _rebuild_queued: bool = false
 ## --- Interaktions-Zustand ----------------------------------------------
 var _interact_prompt: Label3D = null
 var _zoomed: bool = false
-var _zoom_tween: Tween = null
 var _player_in_interact_range: bool = false
+
+## --- Vollbild-Ansicht ---------------------------------------------------
+## BUGFIX "Interagieren vergroessert nur das 3D-Schild": ein 1.7x skaliertes
+## Sprite3D im Raum ist bei einem textlastigen Tutorial-Bild immer noch kaum
+## lesbar. Statt das Objekt zu skalieren, zeigt [interact] jetzt dasselbe
+## tutorial_texture gross als 2D-Bild auf dem Bildschirm - ein eigener,
+## code-gebauter CanvasLayer ueber allem anderen (gleiche Bauweise wie
+## victory_trophy.gd/turret.gd: kein Szenen-Asset noetig).
+var _view_layer: CanvasLayer = null
+var _view_backdrop: ColorRect = null
+var _view_image: TextureRect = null
+var _view_hint: Label = null
+var _view_tween: Tween = null
 
 
 func _debug(msg: String) -> void:
@@ -54392,6 +55570,7 @@ func _build() -> void:
 	_build_board()
 	_build_projector()
 	_build_interact_prompt()
+	_build_view_overlay()
 
 	_base_y = _pivot.position.y
 	_zoomed = false
@@ -54413,9 +55592,13 @@ func _clear() -> void:
 	_projector = null
 	_projector_material = null
 	_interact_prompt = null
-	if _zoom_tween != null and _zoom_tween.is_valid():
-		_zoom_tween.kill()
-	_zoom_tween = null
+	if _view_tween != null and _view_tween.is_valid():
+		_view_tween.kill()
+	_view_tween = null
+	_view_layer = null
+	_view_backdrop = null
+	_view_image = null
+	_view_hint = null
 
 
 func _build_board() -> void:
@@ -54799,9 +55982,8 @@ func _apply_alpha() -> void:
 		_projector.visible = alpha > 0.01
 
 
-## Interaktion: [F] in der Naehe vergroessert das Schild (analog zum
-## Minimap-Zoom - dieselbe Grundidee, dieselbe Karte/dasselbe Bild groesser
-## fuer bessere Lesbarkeit statt eines separaten Ansicht-Modus).
+## Interaktion: [F] in der Naehe oeffnet den Vollbild-Viewer (siehe
+## _build_view_overlay()/_show_view_overlay()).
 func _update_interact(_delta: float) -> void:
 	if not interact_zoom_enabled:
 		return
@@ -54826,7 +56008,7 @@ func _update_interact(_delta: float) -> void:
 		return
 
 	if _interact_prompt != null and is_instance_valid(_interact_prompt):
-		_interact_prompt.text = "[F] Verkleinern" if _zoomed else "[F] Vergroessern"
+		_interact_prompt.text = "[F] Schliessen" if _zoomed else "[F] Ansehen"
 
 	if Input.is_action_just_pressed("interact"):
 		_set_zoomed(not _zoomed)
@@ -54834,15 +56016,85 @@ func _update_interact(_delta: float) -> void:
 
 func _set_zoomed(value: bool) -> void:
 	_zoomed = value
-	if _pivot == null or not is_instance_valid(_pivot):
-		return
-	if _zoom_tween != null and _zoom_tween.is_valid():
-		_zoom_tween.kill()
+	_show_view_overlay(value)
 
-	var target_scale: Vector3 = Vector3.ONE * (interact_zoom_scale if value else 1.0)
-	_zoom_tween = create_tween()
-	_zoom_tween.tween_property(_pivot, "scale", target_scale, interact_zoom_duration)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+## Baut den Vollbild-Viewer EINMAL beim Aufbau des Schilds, standardmaessig
+## unsichtbar. layer = 90: ueber HUD/Minimap, aber unter einem etwaigen
+## Pause-Menue (das faengt typischerweise erst bei 100+ an - siehe
+## pause_menu.gd), damit man das Bild im Notfall trotzdem noch pausieren kann.
+func _build_view_overlay() -> void:
+	if tutorial_texture == null:
+		return
+
+	_view_layer = CanvasLayer.new()
+	_view_layer.name = "HologramViewLayer"
+	_view_layer.layer = 90
+	_view_layer.visible = false
+	add_child(_view_layer)
+
+	_view_backdrop = ColorRect.new()
+	_view_backdrop.name = "Backdrop"
+	_view_backdrop.color = Color(0.0, 0.0, 0.0, 0.0)
+	_view_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_view_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_view_layer.add_child(_view_backdrop)
+
+	_view_image = TextureRect.new()
+	_view_image.name = "Image"
+	_view_image.texture = tutorial_texture
+	_view_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_view_image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_view_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_view_image.offset_left = 80.0
+	_view_image.offset_top = 60.0
+	_view_image.offset_right = -80.0
+	_view_image.offset_bottom = -60.0
+	_view_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_view_image.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_view_layer.add_child(_view_image)
+
+	_view_hint = Label.new()
+	_view_hint.name = "Hint"
+	_view_hint.text = "[F] Schliessen"
+	_view_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_view_hint.add_theme_font_size_override("font_size", 18)
+	_view_hint.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0, 0.9))
+	_view_hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	_view_hint.add_theme_constant_override("outline_size", 4)
+	_view_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_view_hint.offset_top = -40.0
+	_view_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_view_hint.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_view_layer.add_child(_view_hint)
+
+
+## Ein-/Ausblenden statt sofortigem Sichtbarkeitswechsel - ein hart
+## erscheinendes Vollbild wirkt wie ein Rendering-Fehler, kein UI-Element.
+func _show_view_overlay(value: bool) -> void:
+	if _view_layer == null or not is_instance_valid(_view_layer):
+		return
+	if _view_tween != null and _view_tween.is_valid():
+		_view_tween.kill()
+
+	if value:
+		_view_layer.visible = true
+		_view_tween = create_tween()
+		_view_tween.set_parallel(true)
+		_view_tween.tween_property(_view_backdrop, "color:a", 0.88, interact_zoom_duration)
+		_view_tween.tween_property(_view_image, "modulate:a", 1.0, interact_zoom_duration)
+		_view_tween.tween_property(_view_hint, "modulate:a", 1.0, interact_zoom_duration)
+		return
+
+	_view_tween = create_tween()
+	_view_tween.set_parallel(true)
+	_view_tween.tween_property(_view_backdrop, "color:a", 0.0, interact_zoom_duration)
+	_view_tween.tween_property(_view_image, "modulate:a", 0.0, interact_zoom_duration)
+	_view_tween.tween_property(_view_hint, "modulate:a", 0.0, interact_zoom_duration)
+	_view_tween.chain().tween_callback(func() -> void:
+		if is_instance_valid(_view_layer):
+			_view_layer.visible = false
+	)
 
 
 ## Ueber die Gruppe statt find_child("Player"): der PartyManager tauscht die
@@ -58287,10 +59539,13 @@ class_name LowHpVignette
 ## Ab welchem Lebens-Anteil die Vignette einblendet.
 const HEALTH_THRESHOLD: float = 0.20
 
-@export var vignette_color: Color = Color(0.55, 0.02, 0.02, 1.0)
-@export_range(0.0, 1.0) var max_opacity: float = 0.55
+## BUGFIX "Vignette zu blass": vorher (0.55, 0.02, 0.02) bei max_opacity 0.55
+## und pulse_strength 0.35 konnte bis auf ~32% der ohnehin schon gedeckelten
+## Deckkraft abfallen - das las sich als schwaches Rosa statt als Rot.
+@export var vignette_color: Color = Color(0.75, 0.01, 0.01, 1.0)
+@export_range(0.0, 1.0) var max_opacity: float = 0.78
 @export var pulse_speed: float = 2.6
-@export_range(0.0, 1.0) var pulse_strength: float = 0.35
+@export_range(0.0, 1.0) var pulse_strength: float = 0.2
 @export var fade_time: float = 0.35
 
 ## Wie weit der transparente Kern in die Vignette hineinreicht (Anteil des
@@ -58319,10 +59574,22 @@ func _ready() -> void:
 ## Rahmen. GradientTexture2D per Code statt einer .png, damit kein
 ## Asset-Import noetig ist.
 func _build_overlay() -> void:
+	# BUGFIX "Vignette hat einen weissen Rand": add_point() fuegt einen Punkt
+	# SORTIERT nach offset ein - bei clear_center_radius < 1.0 landete der neu
+	# eingefuegte Punkt als INDEX 1, und schob den urspruenglichen Punkt bei
+	# offset 1.0 auf Index 2. Das anschliessende set_color(1, ...) hat damit
+	# faelschlich den NEUEN Mittelpunkt (statt des aeusseren Rands) auf volle
+	# Deckkraft gesetzt, waehrend Index 2 (der eigentliche Rand) auf Godots
+	# Gradient-Standardfarbe Weiss stehen blieb. Fix: offsets/colors direkt
+	# als zusammengehoeriges Array setzen statt ueber Indizes zu tricksen.
 	var gradient := Gradient.new()
-	gradient.set_color(0, Color(vignette_color.r, vignette_color.g, vignette_color.b, 0.0))
-	gradient.add_point(clampf(clear_center_radius, 0.0, 0.95), Color(vignette_color.r, vignette_color.g, vignette_color.b, 0.0))
-	gradient.set_color(1, Color(vignette_color.r, vignette_color.g, vignette_color.b, 1.0))
+	var center: float = clampf(clear_center_radius, 0.0, 0.95)
+	gradient.offsets = PackedFloat32Array([0.0, center, 1.0])
+	gradient.colors = PackedColorArray([
+		Color(vignette_color.r, vignette_color.g, vignette_color.b, 0.0),
+		Color(vignette_color.r, vignette_color.g, vignette_color.b, 0.0),
+		Color(vignette_color.r, vignette_color.g, vignette_color.b, 1.0),
+	])
 
 	var texture := GradientTexture2D.new()
 	texture.gradient = gradient
@@ -58704,6 +59971,104 @@ func _dissipate() -> void:
 		tween.tween_property(_light, "light_energy", 0.0, 0.25)
 	tween.set_parallel(false)
 	tween.tween_callback(queue_free)
+
+
+===== FILE: scripts\vfx\torch.gd =====
+
+extends Node3D
+class_name Torch
+
+# ============================================================================
+# Torch — flackernde Wandfackel/Brazier fuer Raum-Atmosphaere.
+# ============================================================================
+# Baut sich komplett per Code auf (gleiches Prinzip wie turret.gd/lemonade.gd):
+# ein OmniLight3D mit Flacker-Animation - zwei ueberlagerte Sinuskurven mit
+# unpassenden Frequenzen, dieselbe Technik wie
+# spawn_tutorial_hologram.gd:_apply_alpha() und aus demselben Grund: eine
+# einzelne Welle liest sich als gleichmaessiges Pulsieren, nicht als
+# instabile Flamme - plus eine kleine Dauerflamme aus GPUParticles3D.
+#
+# Additiv zum globalen Nebel/Ambient aus dungeon_atmosphere.gd - ersetzt es
+# nicht, es gibt sonst keine einzelne platzierte Lichtquelle im Projekt.
+
+@export var light_color: Color = Color(1.0, 0.55, 0.15)
+@export var light_energy: float = 1.4
+@export var light_range: float = 9.0
+@export_range(0.0, 1.0) var flicker_amount: float = 0.35
+@export var flicker_speed: float = 11.0
+@export var flame_height: float = 0.9
+
+var _light: OmniLight3D = null
+var _flame: GPUParticles3D = null
+var _time: float = 0.0
+
+
+func _ready() -> void:
+	# Zufaelliger Phasenversatz, damit mehrere Fackeln im selben Raum nicht
+	# synchron flackern.
+	_time = randf() * 100.0
+	_build_light()
+	_build_flame()
+
+
+func _build_light() -> void:
+	_light = OmniLight3D.new()
+	_light.name = "Light"
+	_light.light_color = light_color
+	_light.light_energy = light_energy
+	_light.omni_range = light_range
+	_light.shadow_enabled = false
+	_light.position = Vector3(0.0, flame_height, 0.0)
+	add_child(_light)
+
+
+func _build_flame() -> void:
+	var process_mat := ParticleProcessMaterial.new()
+	process_mat.direction = Vector3(0.0, 1.0, 0.0)
+	process_mat.spread = 12.0
+	process_mat.initial_velocity_min = 0.4
+	process_mat.initial_velocity_max = 0.9
+	process_mat.gravity = Vector3(0.0, 1.2, 0.0)
+	process_mat.scale_min = 0.35
+	process_mat.scale_max = 0.7
+	process_mat.color = light_color
+
+	var quad_mat := StandardMaterial3D.new()
+	quad_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	quad_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	# BILLBOARD_ENABLED statt _PARTICLES: eine Flamme soll immer zur Kamera
+	# zeigen, nicht sich an ihrer eigenen Flugrichtung ausrichten - gleicher
+	# Grund/Fix wie bei bleed_vfx.tscn.
+	quad_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	quad_mat.albedo_color = light_color
+	quad_mat.emission_enabled = true
+	quad_mat.emission = light_color
+	quad_mat.emission_energy_multiplier = 2.0
+
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.28, 0.28)
+	quad.material = quad_mat
+
+	_flame = GPUParticles3D.new()
+	_flame.name = "Flame"
+	_flame.emitting = true
+	_flame.amount = 8
+	_flame.lifetime = 0.5
+	_flame.randomness = 0.4
+	_flame.fixed_fps = 30
+	_flame.process_material = process_mat
+	_flame.draw_pass_1 = quad
+	_flame.position = Vector3(0.0, flame_height * 0.4, 0.0)
+	add_child(_flame)
+
+
+func _process(delta: float) -> void:
+	_time += delta
+	if _light == null:
+		return
+	var noise: float = sin(_time * flicker_speed) * 0.6 + sin(_time * flicker_speed * 2.7) * 0.4
+	var factor: float = 1.0 - flicker_amount * (noise * 0.5 + 0.5)
+	_light.light_energy = light_energy * factor
 
 
 ===== FILE: scripts\vfx_manager.gd =====
@@ -59096,6 +60461,21 @@ func _collect() -> void:
 		tween.tween_property(_mesh, "position:y", _mesh.position.y + 3.0, 0.25)\
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		await tween.finished
+
+	# BUGFIX "Normal-Modus geht nach der Trophaee nicht weiter": vorher wurde
+	# hier IMMER _show_win_screen() gerufen. Gleiches Muster wie
+	# goal_zone.gd:_on_body_entered() - erst versuchen, in die naechste Etage
+	# zu wechseln; der WinScreen kommt nur, wenn es keine naechste Etage mehr
+	# gibt (Stages.advance_stage() gibt dann false zurueck, z.B. bei
+	# final_stage = 1 im Speedrun-Modus oder auf der letzten Etage im Normal-
+	# Modus).
+	var stages: Node = get_node_or_null("/root/Stages")
+	if stages != null and stages.has_method("advance_stage"):
+		if stages.advance_stage():
+			queue_free()
+			return
+	else:
+		push_warning("VictoryTrophy: Autoload 'Stages' nicht gefunden — es geht direkt zum WinScreen.")
 
 	_show_win_screen()
 	queue_free()

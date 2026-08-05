@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -47,6 +49,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48.0, 48.0)
+floor_thickness = 1.0
+extra_void_pits = Array[Vector4]([Vector4(20.0, -20.0, 4.0, 4.0)])
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -174,6 +180,14 @@ surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar4"]
 shape = SubResource("bs4")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 3.5, 18.0)
+script = ExtResource("torch_script")
 
 [node name="Doors" type="Node3D" parent="."]
 

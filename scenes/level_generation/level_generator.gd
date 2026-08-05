@@ -409,6 +409,19 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		if data == null:
 			continue
 
+		# BUGFIX "1x2-Raum zeigt sich als 1x1 auf Minimap/ingame":
+		# _pick_room() faellt auf eine kleinere Vorlage zurueck, wenn der Pool
+		# keine passende Groesse hat (siehe dortiger Kommentar). cell.footprint
+		# blieb dabei bisher auf der urspruenglich reservierten, groesseren
+		# Flaeche stehen - Minimap UND _map_cells haetten dann eine Flaeche
+		# gemeldet, die der tatsaechlich instanzierte 1x1-Raum gar nicht
+		# einnimmt. Deshalb hier korrigieren, BEVOR center_offset() und die
+		# _map_cells-Eintraege weiter unten das Ergebnis benutzen.
+		if data.footprint_cells != cell.footprint:
+			cell.footprint = data.footprint_cells
+			var fallback_covered: Array[Vector2i] = [grid_pos]
+			cell.covered_cells = fallback_covered
+
 		# PHASE 3.1: Ein Multi-Zellen-Raum sitzt in der MITTE seiner Flaeche,
 		# nicht auf der Ankerzelle. center_offset() liefert die Verschiebung
 		# in Rasterzellen — bei (2,1) also (0.5, 0), der Raum rueckt um eine
@@ -466,7 +479,7 @@ func _instantiate_layout(layout: Dictionary) -> void:
 
 		var table: Array[EnemySpawnEntry] = _table_for_type(cell.room_type)
 		var budget: int = _budget_for_type(cell.room_type)
-		room.prepare_enemies(table, budget, current_stage)
+		room.prepare_enemies(table, budget, current_stage, cell.room_type == RoomData.RoomType.BOSS)
 
 		room.debug_doors = debug_doors
 		room.enemy_health_multiplier = get_enemy_health_multiplier()
@@ -657,6 +670,21 @@ func _spawn_victory_trophy(room: RoomInstance) -> void:
 	if trophy == null:
 		push_warning("[LevelGenerator] '%s' hat keinen Node3D-Root." % victory_trophy_scene_path)
 		return
+
+	# Farbe je Modus: GOLD nur auf der Etage, die den Run tatsaechlich beendet
+	# (Speedrun hat final_stage = 1, ist also immer "die letzte"; im Normal-
+	# Modus ist das erst Etage final_stage). Alle anderen Etagen bekommen eine
+	# SCHWARZE Trophaee, die per Stages.advance_stage() in die naechste Etage
+	# fuehrt statt den Run zu beenden (siehe victory_trophy.gd:_collect()).
+	# Vor _ready() gesetzt (instantiate() ruft _ready() noch NICHT auf -
+	# das passiert erst bei add_child() weiter unten), also baut
+	# _build_visuals() das Mesh gleich mit der richtigen Farbe.
+	var stages: Node = get_node_or_null("/root/Stages")
+	var is_final_stage: bool = true
+	if stages != null:
+		var final_stage: int = int(stages.get("final_stage"))
+		is_final_stage = final_stage > 0 and current_stage >= final_stage
+	trophy.set("trophy_color", Color(1.0, 0.82, 0.22) if is_final_stage else Color(0.08, 0.08, 0.09))
 
 	var parent: Node = get_tree().current_scene
 	if parent == null:

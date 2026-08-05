@@ -6,6 +6,7 @@
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="Script" uid="uid://0am35ym4bq0" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" uid="uid://bgngov2w0v4yo" path="res://scripts/player_spawn_point.gd" id="spawn_script"]
+[ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -182,6 +183,14 @@ surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar4" unique_id=708170495]
 shape = SubResource("bs4")
+
+[node name="Torch1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
+
+[node name="Torch2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.5, -18.0)
+script = ExtResource("torch_script")
 
 [node name="Doors" type="Node3D" parent="." unique_id=984201878]
 

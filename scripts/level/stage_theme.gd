@@ -34,7 +34,11 @@ class_name StageTheme
 ## WorldEnvironment gelegt, falls eine vorhanden ist.
 @export var fog_color: Color = Color(0.05, 0.05, 0.07)
 @export var fog_density: float = 0.012
-@export var ambient_energy: float = 0.35
+## BUGFIX "Character wirkt schwarz/im Schatten": siehe dungeon_atmosphere.gd
+## - dieselbe Anhebung, damit sie nach einem Etagenwechsel (stage_manager.gd
+## _apply_environment() ueberschreibt ambient_light_energy pro Etage mit
+## diesem Wert) nicht wieder zurueckfaellt.
+@export var ambient_energy: float = 0.55
 
 ## Farbe der Lava-/Limonaden-Hazards dieser Etage. Rein kosmetisch —
 ## der Schaden bleibt gleich.
@@ -79,7 +83,7 @@ static func build_all() -> Array[StageTheme]:
 	dungeon.door_color = Color(0.70, 0.60, 0.42)
 	dungeon.fog_color = Color(0.05, 0.05, 0.06)
 	dungeon.fog_density = 0.012
-	dungeon.ambient_energy = 0.35
+	dungeon.ambient_energy = 0.55
 	dungeon.hazard_color = Color(0.88, 0.95, 0.22)
 	themes.append(dungeon)
 
@@ -91,7 +95,7 @@ static func build_all() -> Array[StageTheme]:
 	ice.door_color = Color(0.85, 0.93, 1.0)
 	ice.fog_color = Color(0.10, 0.16, 0.24)
 	ice.fog_density = 0.020
-	ice.ambient_energy = 0.55
+	ice.ambient_energy = 0.70
 	ice.hazard_color = Color(0.55, 0.90, 1.0)
 	themes.append(ice)
 
@@ -103,7 +107,7 @@ static func build_all() -> Array[StageTheme]:
 	desert.door_color = Color(0.55, 0.40, 0.24)
 	desert.fog_color = Color(0.26, 0.20, 0.12)
 	desert.fog_density = 0.008
-	desert.ambient_energy = 0.70
+	desert.ambient_energy = 0.85
 	desert.hazard_color = Color(0.95, 0.65, 0.15)
 	themes.append(desert)
 
@@ -115,7 +119,7 @@ static func build_all() -> Array[StageTheme]:
 	flesh.door_color = Color(0.80, 0.45, 0.40)
 	flesh.fog_color = Color(0.16, 0.05, 0.06)
 	flesh.fog_density = 0.018
-	flesh.ambient_energy = 0.40
+	flesh.ambient_energy = 0.60
 	flesh.hazard_color = Color(0.95, 0.25, 0.25)
 	themes.append(flesh)
 
@@ -127,7 +131,7 @@ static func build_all() -> Array[StageTheme]:
 	neon.door_color = Color(0.85, 0.35, 0.95)
 	neon.fog_color = Color(0.10, 0.04, 0.18)
 	neon.fog_density = 0.022
-	neon.ambient_energy = 0.45
+	neon.ambient_energy = 0.65
 	neon.hazard_color = Color(0.40, 1.0, 0.85)
 	themes.append(neon)
 
