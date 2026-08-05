@@ -19,10 +19,13 @@ class_name LowHpVignette
 ## Ab welchem Lebens-Anteil die Vignette einblendet.
 const HEALTH_THRESHOLD: float = 0.20
 
-@export var vignette_color: Color = Color(0.55, 0.02, 0.02, 1.0)
-@export_range(0.0, 1.0) var max_opacity: float = 0.55
+## BUGFIX "Vignette zu blass": vorher (0.55, 0.02, 0.02) bei max_opacity 0.55
+## und pulse_strength 0.35 konnte bis auf ~32% der ohnehin schon gedeckelten
+## Deckkraft abfallen - das las sich als schwaches Rosa statt als Rot.
+@export var vignette_color: Color = Color(0.75, 0.01, 0.01, 1.0)
+@export_range(0.0, 1.0) var max_opacity: float = 0.78
 @export var pulse_speed: float = 2.6
-@export_range(0.0, 1.0) var pulse_strength: float = 0.35
+@export_range(0.0, 1.0) var pulse_strength: float = 0.2
 @export var fade_time: float = 0.35
 
 ## Wie weit der transparente Kern in die Vignette hineinreicht (Anteil des
@@ -51,10 +54,22 @@ func _ready() -> void:
 ## Rahmen. GradientTexture2D per Code statt einer .png, damit kein
 ## Asset-Import noetig ist.
 func _build_overlay() -> void:
+	# BUGFIX "Vignette hat einen weissen Rand": add_point() fuegt einen Punkt
+	# SORTIERT nach offset ein - bei clear_center_radius < 1.0 landete der neu
+	# eingefuegte Punkt als INDEX 1, und schob den urspruenglichen Punkt bei
+	# offset 1.0 auf Index 2. Das anschliessende set_color(1, ...) hat damit
+	# faelschlich den NEUEN Mittelpunkt (statt des aeusseren Rands) auf volle
+	# Deckkraft gesetzt, waehrend Index 2 (der eigentliche Rand) auf Godots
+	# Gradient-Standardfarbe Weiss stehen blieb. Fix: offsets/colors direkt
+	# als zusammengehoeriges Array setzen statt ueber Indizes zu tricksen.
 	var gradient := Gradient.new()
-	gradient.set_color(0, Color(vignette_color.r, vignette_color.g, vignette_color.b, 0.0))
-	gradient.add_point(clampf(clear_center_radius, 0.0, 0.95), Color(vignette_color.r, vignette_color.g, vignette_color.b, 0.0))
-	gradient.set_color(1, Color(vignette_color.r, vignette_color.g, vignette_color.b, 1.0))
+	var center: float = clampf(clear_center_radius, 0.0, 0.95)
+	gradient.offsets = PackedFloat32Array([0.0, center, 1.0])
+	gradient.colors = PackedColorArray([
+		Color(vignette_color.r, vignette_color.g, vignette_color.b, 0.0),
+		Color(vignette_color.r, vignette_color.g, vignette_color.b, 0.0),
+		Color(vignette_color.r, vignette_color.g, vignette_color.b, 1.0),
+	])
 
 	var texture := GradientTexture2D.new()
 	texture.gradient = gradient

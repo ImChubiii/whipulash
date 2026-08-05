@@ -64,12 +64,40 @@ class_name PitFloor
 		extra_pits = value
 		_request_rebuild()
 
+## Bodenlose Abgruende MIT Instant-Kill, UNABHAENGIG von build_basin. Anders
+## als extra_pits (die build_basin fuer den ganzen Raum mitbenutzen, also
+## KEINE Wanne bekommen koennen, solange irgendwo im selben Raum eine
+## Lava-Wanne noetig ist) sind das hier immer echte Abgruende: keine Wanne,
+## dafuer eine Instant-Kill-Zone tief unten plus eine dunkle Rueckwand
+## darunter, damit man die Falltiefe nicht abschaetzen kann. Gleiches
+## Eintragsformat wie extra_pits: (center_x, center_z, size_x, size_z).
+@export var extra_void_pits: Array[Vector4] = []:
+	set(value):
+		extra_void_pits = value
+		_request_rebuild()
+
+## Wie tief unter der Bodenoberkante die Instant-Kill-Zone eines
+## extra_void_pits-Eintrags sitzt. Tief genug, dass der Sturz sichtbar Zeit
+## braucht, bevor er endet.
+@export var void_kill_depth: float = 24.0
+
+## Zusaetzliche Tiefe der schwarzen Rueckwand UNTER der Kill-Zone - rein
+## optisch, verhindert, dass beim Reinfallen kurz der Boden der Kill-Zone
+## aufblitzt, bevor der Treffer ausgewertet wird.
+@export var void_backdrop_extra_depth: float = 10.0
+
 ## Wie hoch die Grube mit Limonade gefuellt wird (Anteil von pit_depth).
 @export_range(0.1, 1.0) var lava_fill_ratio: float = 0.8
 
 ## Wie weit die Limonaden-Oberflaeche unter der Bodenoberkante liegt.
-## Der sichtbare Absatz ist genau das, was das "Reinfallen" verkauft.
-@export var lava_surface_drop: float = 1.2
+##
+## BUGFIX "Lava-Flaechen stehen ueber den Rand / sind zu niedrig": vorher
+## 1.2 - je nach pit_depth/lava_fill_ratio-Kombination eines Raumes wirkte
+## dieser feste Absatz mal wie ein zu tief abgesackter, mal (durch die neu
+## berechnete Fuellhoehe) wie ein ueber den Rand ragender Pool. Knapp ueber
+## 0 haelt die Oberflaeche stattdessen IMMER auf Bodenhoehe - "ground
+## level", wie gefordert - unabhaengig von pit_depth/lava_fill_ratio.
+@export var lava_surface_drop: float = 0.08
 
 ## Erzeugt die Wanne (Seitenwaende + Grubenboden). Ausschalten, wenn du
 ## ein echtes bodenloses Loch willst (Sturz aus dem Level).
@@ -103,12 +131,20 @@ func _build() -> void:
 	_clear_generated()
 
 	var pits: Array[Rect2] = _collect_pits()
+	var void_pits: Array[Rect2] = _collect_void_pits()
 
-	_build_floor_segments(pits)
+	# Der Boden-Sweep muss BEIDE Gruben-Arten kennen, sonst liesse er ueber
+	# einem extra_void_pits-Eintrag den alten durchgehenden Slab stehen.
+	var all_pits: Array[Rect2] = pits.duplicate()
+	all_pits.append_array(void_pits)
+	_build_floor_segments(all_pits)
 
 	if build_basin:
 		for pit in pits:
 			_build_basin(pit)
+
+	for i in range(void_pits.size()):
+		_build_void_pit(void_pits[i], i)
 
 	_disable_template_nodes()
 
@@ -180,6 +216,21 @@ func _collect_pits() -> Array[Rect2]:
 			entry.z, entry.w
 		))
 
+	return pits
+
+
+## Gleiches Eintragsformat wie _collect_pits(), aber fuer extra_void_pits -
+## bewusst getrennt gehalten, weil diese Gruben IMMER die
+## Instant-Kill-Behandlung bekommen, unabhaengig von build_basin (siehe
+## Kopfkommentar bei extra_void_pits).
+func _collect_void_pits() -> Array[Rect2]:
+	var pits: Array[Rect2] = []
+	for entry in extra_void_pits:
+		pits.append(Rect2(
+			entry.x - entry.z * 0.5,
+			entry.y - entry.w * 0.5,
+			entry.z, entry.w
+		))
 	return pits
 
 
@@ -326,6 +377,130 @@ func _emit_box(tag: String, center: Vector3, box_size: Vector3) -> void:
 	if Engine.is_editor_hint():
 		mesh_instance.owner = get_tree().edited_scene_root
 		collision.owner = get_tree().edited_scene_root
+
+
+## Bodenloser Abgrund: KEINE Wanne (siehe extra_void_pits-Kommentar) - dafuer
+## ein tiefer, rein schwarzer SCHACHT (vier Waende + Boden, alle unbeleuchtet
+## nahe Schwarz) statt eines offenen Lochs. Ohne Waende sieht man beim
+## Reinschauen aus einem flachen Winkel an der duennen Kill-Zone/Rueckwand
+## vorbei ins Nichts (Skybox, Nachbarraum) - der Schacht garantiert, dass in
+## JEDE Blickrichtung nur Dunkelheit zu sehen ist. Die Instant-Kill-Zone
+## sitzt weit genug oben im Schacht, dass man sie nie erreicht.
+func _build_void_pit(pit: Rect2, index: int) -> void:
+	var top: float = floor_thickness * 0.5
+	var center_x: float = pit.position.x + pit.size.x * 0.5
+	var center_z: float = pit.position.y + pit.size.y * 0.5
+	var shaft_depth: float = void_kill_depth + void_backdrop_extra_depth
+
+	_build_void_shaft("%sVoidShaft%d" % [GEN_PREFIX, index], pit, top, shaft_depth)
+
+	var kill_y: float = top - void_kill_depth
+	_build_void_kill_zone(
+		"%sVoidKill%d" % [GEN_PREFIX, index],
+		Vector3(center_x, kill_y, center_z),
+		Vector3(pit.size.x, 2.0, pit.size.y)
+	)
+
+
+## Vier Waende (dicker als bei _build_basin, damit man selbst aus flachem
+## Blickwinkel keine Luecke am Uebergang zum Boden-Slab sieht) plus ein
+## Boden-Cap ganz unten - alles in derselben nahe-schwarzen Unlit-Farbe wie
+## vorher die reine Rueckwand.
+func _build_void_shaft(prefix: String, pit: Rect2, top: float, shaft_depth: float) -> void:
+	var center_x: float = pit.position.x + pit.size.x * 0.5
+	var center_z: float = pit.position.y + pit.size.y * 0.5
+	var bottom: float = top - shaft_depth
+	var wall: float = 1.0
+	var wall_center_y: float = top - shaft_depth * 0.5
+
+	_emit_dark_box("%sWallN" % prefix,
+		Vector3(center_x, wall_center_y, pit.position.y - wall * 0.5),
+		Vector3(pit.size.x + wall * 2.0, shaft_depth, wall))
+	_emit_dark_box("%sWallS" % prefix,
+		Vector3(center_x, wall_center_y, pit.end.y + wall * 0.5),
+		Vector3(pit.size.x + wall * 2.0, shaft_depth, wall))
+	_emit_dark_box("%sWallW" % prefix,
+		Vector3(pit.position.x - wall * 0.5, wall_center_y, center_z),
+		Vector3(wall, shaft_depth, pit.size.y))
+	_emit_dark_box("%sWallE" % prefix,
+		Vector3(pit.end.x + wall * 0.5, wall_center_y, center_z),
+		Vector3(wall, shaft_depth, pit.size.y))
+	_emit_dark_box("%sBottom" % prefix,
+		Vector3(center_x, bottom - wall * 0.5, center_z),
+		Vector3(pit.size.x + wall * 2.0, wall, pit.size.y + wall * 2.0))
+
+
+## Gleiche Bauweise wie _emit_box(), aber mit fester, unbeleuchteter
+## Nahe-Schwarz-Farbe statt des Boden-Materials - fuer alles, was als reine
+## Dunkelheit wirken soll, nicht als sichtbare Grubenwand.
+func _emit_dark_box(tag: String, center: Vector3, box_size: Vector3) -> void:
+	var box_mesh := BoxMesh.new()
+	box_mesh.size = box_size
+
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(0.01, 0.01, 0.012)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "%s%s_Mesh" % [GEN_PREFIX, tag]
+	mesh_instance.mesh = box_mesh
+	mesh_instance.material_override = mat
+	mesh_instance.position = center
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mesh_instance)
+
+	var box_shape := BoxShape3D.new()
+	box_shape.size = box_size
+	var collision := CollisionShape3D.new()
+	collision.name = "%s%s_Shape" % [GEN_PREFIX, tag]
+	collision.shape = box_shape
+	collision.position = center
+	add_child(collision)
+
+	if Engine.is_editor_hint():
+		mesh_instance.owner = get_tree().edited_scene_root
+		collision.owner = get_tree().edited_scene_root
+
+
+## monitoring-only Area3D (collision_layer = 0, blockiert selbst nichts) -
+## collision_mask = 5 (Layer 1 Spieler + Layer 4 Gegner, siehe lemonade.gd/
+## LemonadeTrigger fuer denselben, bereits bewaehrten Maskenwert) - damit
+## sterben auch Gegner sofort, die in den Abgrund fallen, nicht nur der
+## Spieler.
+func _build_void_kill_zone(node_name: String, center: Vector3, size: Vector3) -> void:
+	var area := Area3D.new()
+	area.name = node_name
+	area.collision_layer = 0
+	area.collision_mask = 5
+	area.monitorable = false
+	area.position = center
+	add_child(area)
+
+	var box := BoxShape3D.new()
+	box.size = size
+	var shape := CollisionShape3D.new()
+	shape.shape = box
+	area.add_child(shape)
+
+	area.body_entered.connect(_on_void_kill_body_entered)
+
+	if Engine.is_editor_hint():
+		area.owner = get_tree().edited_scene_root
+		shape.owner = get_tree().edited_scene_root
+
+
+## Toetet JEDEN Body mit einer Health-Komponente - Spieler UND Gegner sollen
+## beim Reinfallen sofort sterben, keine Sonderbehandlung noetig.
+func _on_void_kill_body_entered(body: Node3D) -> void:
+	var health: Node = body.get_node_or_null("Health")
+	if health == null or not health.has_method("take_damage"):
+		return
+	if health.has_method("is_alive") and not health.is_alive():
+		return
+	var max_hp: float = float(health.get("max_health"))
+	if max_hp <= 0.0:
+		max_hp = 9999.0
+	health.take_damage(max_hp * 999.0, self)
 
 
 ## Setzt die vorhandenen Lemonade-Instanzen in die frisch gebaute Grube:

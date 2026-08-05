@@ -381,6 +381,9 @@ var _spawn_seed_set: bool = false
 var _pending_entries: Array[EnemySpawnEntry] = []
 var _pending_budget: int = 0
 var _pending_stage: int = 1
+## Boss-HP-Leisten (boss_health_bar.gd) suchen zuerst nach der Gruppe "boss" -
+## gesetzt von prepare_enemies(), wenn dieser Raum ein Bossraum ist.
+var _pending_is_boss_room: bool = false
 var _spawned_enemies: Array[Node3D] = []
 
 ## Alle Tueren nach Richtung, AUCH die vom Layout wieder entfernten -
@@ -1372,7 +1375,8 @@ func set_spawn_seed(seed_value: int) -> void:
 	_spawn_seed_set = true
 
 
-func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage: int) -> void:
+func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage: int, is_boss_room: bool = false) -> void:
+	_pending_is_boss_room = is_boss_room
 	if not _spawn_seed_set:
 		# Ohne gesetzten Seed (z.B. Raum von Hand in ein Testlevel
 		# gesetzt) faellt der Raum auf echten Zufall zurueck - nur dann
@@ -1503,6 +1507,13 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	if parent == null:
 		parent = get_tree().get_root()
 	parent.add_child(enemy)
+
+	# BUGFIX "Boss-HP-Leiste bleibt leer": boss_health_bar.gd sucht zuerst die
+	# Gruppe "boss" - ohne diese Markierung faellt sie auf eine unzuverlaessige
+	# Staerkste-im-Raum-Heuristik zurueck. Hier markieren wir jeden Gegner, der
+	# ueber boss_table (statt enemy_table) in einen Bossraum gespawnt wurde.
+	if _pending_is_boss_room:
+		enemy.add_to_group("boss")
 
 	var spawn_pos: Vector3 = point.global_position
 	spawn_pos.y += 0.1

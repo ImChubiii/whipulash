@@ -119,9 +119,12 @@ class RoomCell:
 
 @export var boss_min_distance: int = 2
 
-## Chance, dass der Tresorraum als Sackgasse DIREKT am Startraum (0,0)
+## Chance, dass ein Tresorraum als Sackgasse DIREKT am Startraum (0,0)
 ## platziert wird, statt wie sonst am weitesten entfernten passenden Punkt.
 @export_range(0.0, 1.0) var treasure_start_adjacent_chance: float = 0.35
+
+## Wie viele Tresorraeume pro Etage reserviert werden.
+@export var treasure_room_count: int = 2
 
 ## --- PHASE 3.1: Multi-Zellen-Raeume ------------------------------------
 ## Wahrscheinlichkeit, dass ein geeigneter Kampfraum auf mehrere Zellen
@@ -365,17 +368,37 @@ func _place_special_rooms(cells: Dictionary) -> void:
 
 	# 35 %-Regel: bevorzugt eine Sackgasse DIREKT am Start, bevor auf die
 	# alte "immer am weitesten entfernten Punkt"-Suche zurueckgefallen wird.
-	var treasure_pos: Vector2i = INVALID_POS
-	if _rng.randf() < treasure_start_adjacent_chance:
-		treasure_pos = _reserve_dead_end_near_start(cells, [boss_pos], forbidden_anchors)
+	#
+	# MEHRERE TRESORRAEUME: jede bereits vergebene Position UND deren
+	# Vorraum werden fuer die naechste Runde ausgeschlossen (exclude bzw.
+	# forbidden_anchors), damit zwei Tresorraeume nicht dieselbe Zelle oder
+	# denselben Vorraum wie der Boss oder ein bereits platzierter Tresor
+	# teilen - gleicher Grund wie bei forbidden_anchors oben.
+	var treasure_exclude: Array = [boss_pos]
+	var placed_treasures: int = 0
+	for i in range(treasure_room_count):
+		var treasure_pos: Vector2i = INVALID_POS
+		if _rng.randf() < treasure_start_adjacent_chance:
+			treasure_pos = _reserve_dead_end_near_start(cells, treasure_exclude, forbidden_anchors)
 
-	if treasure_pos == INVALID_POS:
-		treasure_pos = _reserve_dead_end(cells, 1, [boss_pos], forbidden_anchors)
-	if treasure_pos == INVALID_POS and not forbidden_anchors.is_empty():
-		# Lieber ein Tresor am Bossvorraum als gar keiner.
-		treasure_pos = _reserve_dead_end(cells, 1, [boss_pos], [])
-	if treasure_pos != INVALID_POS:
+		if treasure_pos == INVALID_POS:
+			treasure_pos = _reserve_dead_end(cells, 1, treasure_exclude, forbidden_anchors)
+		if treasure_pos == INVALID_POS and not forbidden_anchors.is_empty():
+			# Lieber ein Tresor am Bossvorraum als gar keiner.
+			treasure_pos = _reserve_dead_end(cells, 1, treasure_exclude, [])
+		if treasure_pos == INVALID_POS:
+			break  # Keine weitere passende Sackgasse mehr uebrig.
+
 		cells[treasure_pos].room_type = RoomData.RoomType.TREASURE
+		placed_treasures += 1
+		treasure_exclude.append(treasure_pos)
+
+		var treasure_anchor: Vector2i = _connected_neighbor(cells, treasure_pos)
+		if treasure_anchor != INVALID_POS:
+			forbidden_anchors.append(treasure_anchor)
+
+	if placed_treasures < treasure_room_count:
+		push_warning("RoomGridGenerator: Nur %d von %d Tresorraeumen platziert - keine weitere passende Sackgasse gefunden." % [placed_treasures, treasure_room_count])
 
 
 ## Der EINZIGE Nachbar einer Sackgasse.

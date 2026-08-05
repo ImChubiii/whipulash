@@ -292,6 +292,21 @@ func _collect() -> void:
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		await tween.finished
 
+	# BUGFIX "Normal-Modus geht nach der Trophaee nicht weiter": vorher wurde
+	# hier IMMER _show_win_screen() gerufen. Gleiches Muster wie
+	# goal_zone.gd:_on_body_entered() - erst versuchen, in die naechste Etage
+	# zu wechseln; der WinScreen kommt nur, wenn es keine naechste Etage mehr
+	# gibt (Stages.advance_stage() gibt dann false zurueck, z.B. bei
+	# final_stage = 1 im Speedrun-Modus oder auf der letzten Etage im Normal-
+	# Modus).
+	var stages: Node = get_node_or_null("/root/Stages")
+	if stages != null and stages.has_method("advance_stage"):
+		if stages.advance_stage():
+			queue_free()
+			return
+	else:
+		push_warning("VictoryTrophy: Autoload 'Stages' nicht gefunden — es geht direkt zum WinScreen.")
+
 	_show_win_screen()
 	queue_free()
 
