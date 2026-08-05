@@ -218,15 +218,15 @@ enum Placement {
 
 @export var debug_logging: bool = false
 
-## --- Interaktion: Vergroessern zum Lesen ------------------------------
+## --- Interaktion: Vollbild zum Lesen -----------------------------------
 ## Analog zum Minimap-Zoom (minimap.gd: TAB/M oeffnet eine groessere,
 ## besser lesbare Ansicht derselben Karte) - dieselbe Idee hier: [interact]
-## in der Naehe skaliert das Schild groesser, ein zweites Mal (oder
-## Weggehen) skaliert zurueck.
+## in der Naehe zeigt tutorial_texture gross als 2D-Bild auf dem Bildschirm
+## (siehe _build_view_overlay()), ein zweites Mal (oder Weggehen) schliesst
+## es wieder.
 @export var interact_zoom_enabled: bool = true
 ## Abstand in LOKALEN Einheiten, ab dem der Interaktions-Hinweis erscheint.
 @export var interact_range: float = 4.0
-@export var interact_zoom_scale: float = 1.7
 @export var interact_zoom_duration: float = 0.3
 
 const PLAYER_GROUP: String = "player"
@@ -247,8 +247,20 @@ var _rebuild_queued: bool = false
 ## --- Interaktions-Zustand ----------------------------------------------
 var _interact_prompt: Label3D = null
 var _zoomed: bool = false
-var _zoom_tween: Tween = null
 var _player_in_interact_range: bool = false
+
+## --- Vollbild-Ansicht ---------------------------------------------------
+## BUGFIX "Interagieren vergroessert nur das 3D-Schild": ein 1.7x skaliertes
+## Sprite3D im Raum ist bei einem textlastigen Tutorial-Bild immer noch kaum
+## lesbar. Statt das Objekt zu skalieren, zeigt [interact] jetzt dasselbe
+## tutorial_texture gross als 2D-Bild auf dem Bildschirm - ein eigener,
+## code-gebauter CanvasLayer ueber allem anderen (gleiche Bauweise wie
+## victory_trophy.gd/turret.gd: kein Szenen-Asset noetig).
+var _view_layer: CanvasLayer = null
+var _view_backdrop: ColorRect = null
+var _view_image: TextureRect = null
+var _view_hint: Label = null
+var _view_tween: Tween = null
 
 
 func _debug(msg: String) -> void:
@@ -324,6 +336,7 @@ func _build() -> void:
 	_build_board()
 	_build_projector()
 	_build_interact_prompt()
+	_build_view_overlay()
 
 	_base_y = _pivot.position.y
 	_zoomed = false
@@ -345,9 +358,13 @@ func _clear() -> void:
 	_projector = null
 	_projector_material = null
 	_interact_prompt = null
-	if _zoom_tween != null and _zoom_tween.is_valid():
-		_zoom_tween.kill()
-	_zoom_tween = null
+	if _view_tween != null and _view_tween.is_valid():
+		_view_tween.kill()
+	_view_tween = null
+	_view_layer = null
+	_view_backdrop = null
+	_view_image = null
+	_view_hint = null
 
 
 func _build_board() -> void:
@@ -731,9 +748,8 @@ func _apply_alpha() -> void:
 		_projector.visible = alpha > 0.01
 
 
-## Interaktion: [F] in der Naehe vergroessert das Schild (analog zum
-## Minimap-Zoom - dieselbe Grundidee, dieselbe Karte/dasselbe Bild groesser
-## fuer bessere Lesbarkeit statt eines separaten Ansicht-Modus).
+## Interaktion: [F] in der Naehe oeffnet den Vollbild-Viewer (siehe
+## _build_view_overlay()/_show_view_overlay()).
 func _update_interact(_delta: float) -> void:
 	if not interact_zoom_enabled:
 		return
@@ -758,7 +774,7 @@ func _update_interact(_delta: float) -> void:
 		return
 
 	if _interact_prompt != null and is_instance_valid(_interact_prompt):
-		_interact_prompt.text = "[F] Verkleinern" if _zoomed else "[F] Vergroessern"
+		_interact_prompt.text = "[F] Schliessen" if _zoomed else "[F] Ansehen"
 
 	if Input.is_action_just_pressed("interact"):
 		_set_zoomed(not _zoomed)
@@ -766,15 +782,85 @@ func _update_interact(_delta: float) -> void:
 
 func _set_zoomed(value: bool) -> void:
 	_zoomed = value
-	if _pivot == null or not is_instance_valid(_pivot):
-		return
-	if _zoom_tween != null and _zoom_tween.is_valid():
-		_zoom_tween.kill()
+	_show_view_overlay(value)
 
-	var target_scale: Vector3 = Vector3.ONE * (interact_zoom_scale if value else 1.0)
-	_zoom_tween = create_tween()
-	_zoom_tween.tween_property(_pivot, "scale", target_scale, interact_zoom_duration)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+## Baut den Vollbild-Viewer EINMAL beim Aufbau des Schilds, standardmaessig
+## unsichtbar. layer = 90: ueber HUD/Minimap, aber unter einem etwaigen
+## Pause-Menue (das faengt typischerweise erst bei 100+ an - siehe
+## pause_menu.gd), damit man das Bild im Notfall trotzdem noch pausieren kann.
+func _build_view_overlay() -> void:
+	if tutorial_texture == null:
+		return
+
+	_view_layer = CanvasLayer.new()
+	_view_layer.name = "HologramViewLayer"
+	_view_layer.layer = 90
+	_view_layer.visible = false
+	add_child(_view_layer)
+
+	_view_backdrop = ColorRect.new()
+	_view_backdrop.name = "Backdrop"
+	_view_backdrop.color = Color(0.0, 0.0, 0.0, 0.0)
+	_view_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_view_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_view_layer.add_child(_view_backdrop)
+
+	_view_image = TextureRect.new()
+	_view_image.name = "Image"
+	_view_image.texture = tutorial_texture
+	_view_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_view_image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_view_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_view_image.offset_left = 80.0
+	_view_image.offset_top = 60.0
+	_view_image.offset_right = -80.0
+	_view_image.offset_bottom = -60.0
+	_view_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_view_image.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_view_layer.add_child(_view_image)
+
+	_view_hint = Label.new()
+	_view_hint.name = "Hint"
+	_view_hint.text = "[F] Schliessen"
+	_view_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_view_hint.add_theme_font_size_override("font_size", 18)
+	_view_hint.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0, 0.9))
+	_view_hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	_view_hint.add_theme_constant_override("outline_size", 4)
+	_view_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_view_hint.offset_top = -40.0
+	_view_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_view_hint.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_view_layer.add_child(_view_hint)
+
+
+## Ein-/Ausblenden statt sofortigem Sichtbarkeitswechsel - ein hart
+## erscheinendes Vollbild wirkt wie ein Rendering-Fehler, kein UI-Element.
+func _show_view_overlay(value: bool) -> void:
+	if _view_layer == null or not is_instance_valid(_view_layer):
+		return
+	if _view_tween != null and _view_tween.is_valid():
+		_view_tween.kill()
+
+	if value:
+		_view_layer.visible = true
+		_view_tween = create_tween()
+		_view_tween.set_parallel(true)
+		_view_tween.tween_property(_view_backdrop, "color:a", 0.88, interact_zoom_duration)
+		_view_tween.tween_property(_view_image, "modulate:a", 1.0, interact_zoom_duration)
+		_view_tween.tween_property(_view_hint, "modulate:a", 1.0, interact_zoom_duration)
+		return
+
+	_view_tween = create_tween()
+	_view_tween.set_parallel(true)
+	_view_tween.tween_property(_view_backdrop, "color:a", 0.0, interact_zoom_duration)
+	_view_tween.tween_property(_view_image, "modulate:a", 0.0, interact_zoom_duration)
+	_view_tween.tween_property(_view_hint, "modulate:a", 0.0, interact_zoom_duration)
+	_view_tween.chain().tween_callback(func() -> void:
+		if is_instance_valid(_view_layer):
+			_view_layer.visible = false
+	)
 
 
 ## Ueber die Gruppe statt find_child("Player"): der PartyManager tauscht die

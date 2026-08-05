@@ -2807,6 +2807,7 @@ func _use_spicy_ramen(player: CharacterBody3D) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(damage, player)
+			_spawn_item_damage_number(enemy, damage)
 		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, player)
 		# Interrupt: bricht einen laufenden Telegraph sofort ab.
 		if enemy.has_method("interrupt_attack"):
