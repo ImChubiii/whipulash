@@ -117,11 +117,7 @@ script = ExtResource("2_grid")
 
 [node name="LevelGenerator" type="Node" parent="." unique_id=864998062 node_paths=PackedStringArray("grid_generator", "navigation_region")]
 script = ExtResource("1_lg")
-<<<<<<< Updated upstream
 room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("35_c7"), ExtResource("36_c8"), ExtResource("37_c9"), ExtResource("38_c10"), ExtResource("39_c11"), ExtResource("40_c12"), ExtResource("41_cwide"), ExtResource("42_ctall"), ExtResource("43_carena"), ExtResource("44_cor3"), ExtResource("45_treasure2"), ExtResource("46_treasure3"), ExtResource("47_abyss1"), ExtResource("48_abyss2"), ExtResource("49_abyss3")])
-=======
-room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("22_boss"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("24_rhypk"), ExtResource("25_d7wii"), ExtResource("26_bdxf7"), ExtResource("27_c7ki5"), ExtResource("28_gk7nh"), ExtResource("29_ihjgr"), ExtResource("21_voeuj"), ExtResource("22_sfryd"), ExtResource("23_g4he2"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("28_sfryd"), ExtResource("14_start"), ExtResource("21_treasure"), ExtResource("30_76447"), ExtResource("31_28nlm")])
->>>>>>> Stashed changes
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")

@@ -476,6 +476,88 @@ func _on_status_effect_applied(id: String, _duration: float, _magnitude: float, 
 		# Erzwingt eine frische Zielwahl statt eines evtl. laengst toten
 		# Ziels aus einer vorherigen Verzauberung.
 		_charm_target = null
+	if id == "shield":
+		_apply_shield_visual()
+
+
+## Bisher hatte KEIN Effekt einen Ablauf-Reaktion noetig (Bewegungssperren
+## etc. lesen einfach staendig has_effect() ab). "shield" ist der erste, der
+## beim Ablaufen aktiv etwas zuruecksetzen muss (Groesse, Maximal-HP) - siehe
+## Kopfkommentar von scripts/status_effects/shield.gd.
+func _on_status_effect_expired(id: String) -> void:
+	if id == "shield":
+		_remove_shield_visual()
+
+
+# ============================================================================
+# Schild-Buff (Schild-Drohne) — +25 % Maximal-HP, leicht groesseres Modell,
+# blau schwankende Aura. Siehe scripts/status_effects/shield.gd fuer die
+# Werte und scripts/enemies/shield_drone.gd fuer den Auftraggeber.
+# ============================================================================
+var _shield_active: bool = false
+var _shield_pre_max_health: float = 0.0
+var _shield_aura: MeshInstance3D = null
+
+func _apply_shield_visual() -> void:
+	if _shield_active or _is_dead:
+		return
+	_shield_active = true
+
+	if health != null:
+		_shield_pre_max_health = health.max_health
+		health.set_max_health(_shield_pre_max_health * (1.0 + StatusShield.MAX_HEALTH_BONUS_FACTOR), true)
+
+	if _visual_root != null and is_instance_valid(_visual_root):
+		_visual_root.scale = _visual_root.scale * (1.0 + StatusShield.VISUAL_SCALE_BONUS)
+
+	_shield_aura = MeshInstance3D.new()
+	_shield_aura.name = "ShieldAura"
+	var sphere := SphereMesh.new()
+	# is_large_enemy ist bereits die im Projekt etablierte Unterscheidung
+	# "Colossus-Groessenordnung vs. Rest" (siehe auch player_base.gd,
+	# Kamera-Auszoom) - billiger und robuster als eine eigene Vermessung
+	# des Kollisionskoerpers.
+	var aura_radius: float = 2.8 if is_large_enemy else 1.6
+	sphere.radius = aura_radius
+	sphere.height = aura_radius * 2.0
+	_shield_aura.mesh = sphere
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.albedo_color = Color(StatusShield.TINT_COLOR.r, StatusShield.TINT_COLOR.g, StatusShield.TINT_COLOR.b, 0.22)
+	mat.emission_enabled = true
+	mat.emission = StatusShield.TINT_COLOR
+	mat.emission_energy_multiplier = 1.2
+	_shield_aura.material_override = mat
+	_shield_aura.position = Vector3.UP * aura_radius * 0.7
+	add_child(_shield_aura)
+
+	# Ueber _shield_aura.create_tween() statt create_tween(): der Tween haengt
+	# damit lebensdauer-technisch an der Aura selbst und wird von Godot
+	# automatisch gekillt, sobald _shield_aura.queue_free() greift - sonst
+	# liefe diese Endlosschleife (set_loops()) an einem verwaisten Material
+	# weiter, bis der GANZE Gegner stirbt.
+	var tween: Tween = _shield_aura.create_tween()
+	tween.set_loops()
+	tween.tween_property(mat, "albedo_color:a", 0.42, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(mat, "albedo_color:a", 0.18, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _remove_shield_visual() -> void:
+	if not _shield_active:
+		return
+	_shield_active = false
+
+	if health != null and _shield_pre_max_health > 0.0:
+		health.set_max_health(_shield_pre_max_health, false)
+
+	if _visual_root != null and is_instance_valid(_visual_root) and StatusShield.VISUAL_SCALE_BONUS > -1.0:
+		_visual_root.scale = _visual_root.scale / (1.0 + StatusShield.VISUAL_SCALE_BONUS)
+
+	if _shield_aura != null and is_instance_valid(_shield_aura):
+		_shield_aura.queue_free()
+	_shield_aura = null
 
 
 ## PHASE 4. Haengt die dauerhafte Effekt-Einfaerbung an.
@@ -857,6 +939,9 @@ func _ready() -> void:
 	# PHASE 4: Stun/Silence muessen einen laufenden Telegraph abbrechen
 	# koennen — sonst kommt der angekuendigte Schlag trotzdem an.
 	status_effects.effect_applied.connect(_on_status_effect_applied)
+	# Schild-Drohne: Ablauf des "shield"-Effekts muss die Groessen-/HP-
+	# Anhebung sauber zurueckdrehen (siehe _on_status_effect_expired()).
+	status_effects.effect_expired.connect(_on_status_effect_expired)
 	# PHASE 4: dauerhafte Einfaerbung nach Effekt. Muss NACH _setup_visuals()
 	# eingehaengt werden (die Materialien entstehen erst dort) - deshalb
 	# call_deferred statt eines direkten Aufrufs.

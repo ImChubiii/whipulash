@@ -164,8 +164,16 @@ func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, so
 func has_status_effect(id: String) -> bool:
 	return status_effects.has_effect(id)
 
+## BUGFIX: nur "poison" richtete Tick-Schaden an - "bleed"/"acid"/"burn"
+## liefen zwar sichtbar (VFX/Tint/Dauer laufen zentral im
+## StatusEffectManager), tickten aber ins Leere, weil hier niemand auf sie
+## reagierte. enemy_ai.gd macht es fuer Gegner bereits richtig (siehe dort,
+## DOT_EFFECT_IDS) - der Spieler bekommt hier dieselbe Liste, sonst haben
+## Saeure/Brand/Blutung am Spieler nie funktioniert.
+const DOT_EFFECT_IDS: PackedStringArray = ["poison", "bleed", "burn", "acid"]
+
 func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> void:
-	if id == "poison" and health:
+	if health and id in DOT_EFFECT_IDS:
 		health.take_damage(magnitude, source)
 
 # --- Node-Referenzen ---
