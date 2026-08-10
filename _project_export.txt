@@ -2,6 +2,7 @@
 TEIL 1: GIT COMMITS UND HISTORY
 ==================================================
 
+<<<<<<< Updated upstream
 commit 11da57c571c5e63c3507ca25d6d48cd79edc9997
 Author: ImChubiii <chucki2005@gmail.com>
 Date:   Wed Aug 5 03:26:17 2026 +0200
@@ -177,6 +178,8 @@ Date:   Tue Aug 4 22:17:48 2026 +0200
     
     Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 
+=======
+>>>>>>> Stashed changes
 commit ec5e45720b2a9399f1006dc89a9a27710badfc69
 Author: ImChubiii <chucki2005@gmail.com>
 Date:   Tue Aug 4 11:26:48 2026 +0200
@@ -1722,9 +1725,61 @@ Date:   Fri Jul 24 11:17:51 2026 +0200
 
     feat: Minimap-Kalibrierung, HUD-Overlay-Fixes, Knockback-Rework, Settings-Erweiterungen
 
+<<<<<<< Updated upstream
 ==================================================
 TEIL 2: DATEIUEBERSICHT UND STRUKTUR
 Gesamtanzahl Dateien: 869
+=======
+commit 93054986282da7e0de6bb91e28e78c9702339a6b
+Author: ImChubiii <chucki2005@gmail.com>
+Date:   Thu Jul 23 23:48:40 2026 +0200
+
+    fix: reassign Area3D script to correct parent node
+
+commit 0887d72e86919fd7d5269f4356062bc700b1fac4
+Author: ImChubiii <chucki2005@gmail.com>
+Date:   Thu Jul 23 23:45:10 2026 +0200
+
+    feat(hud): add full party HUD with abilities, minimap and character switching
+    
+    - Add AbilitySet resource for per-character icons, cooldowns, and stats
+    - Add PartyManager autoload: 4-member party, HP mirroring for inactive
+      members, character switching via input actions 1-4
+    - Extend Combat with Q/E ability slots (cooldowns, signals, generic
+      get_cooldown_percent/remaining API for slot 0-4)
+    - Add PartySlot UI: portrait + HP bar with color gradient, active
+      character scales up and reveals name
+    - Add AbilitySlot UI: radial cooldown overlay, countdown label,
+      ready-flash animation
+    - Add Minimap: top-down orthographic SubViewport camera following
+      player, zone name via Area3D "zone" group, live X/Y coordinates
+    - Consolidate hud.tscn into a single reusable scene, replacing
+      duplicated HUD nodes across 5 level scenes
+    - Fix: rename PartySlot.get_index() to get_party_index() to avoid
+      signature clash with inherited Node.get_index(bool)
+    
+    New files: scripts/{ability_set,party_manager,ability_slot,party_slot,
+    minimap,zone_marker,party_setup}.gd, scenes/{hud,party_slot,
+    ability_slot}.tscn, resources/char_1-4.tres
+    
+    Modified: scripts/combat.gd, scripts/hud.gd
+
+commit b0d96b3fbe5d1de1ec676f5497ccebc26467f27a
+Author: ImChubiii <chucki2005@gmail.com>
+Date:   Thu Jul 23 16:16:25 2026 +0200
+
+    add map
+
+commit de06b3dc7df3698be8443184962afeaa04aa7ee2
+Author: ImChubiii <chucki2005@gmail.com>
+Date:   Thu Jul 23 14:16:26 2026 +0200
+
+    updated export
+
+==================================================
+TEIL 2: DATEIUEBERSICHT UND STRUKTUR
+Gesamtanzahl Dateien: 819
+>>>>>>> Stashed changes
 ==================================================
 
 • .claude\settings.local.json
@@ -2274,9 +2329,12 @@ Gesamtanzahl Dateien: 869
 • resources\rooms\rd_corridor_01.tres
 • resources\rooms\rd_corridor_02.tres
 • resources\rooms\rd_corridor_03.tres
+<<<<<<< Updated upstream
 • resources\rooms\rd_corridor_abyss_01.tres
 • resources\rooms\rd_corridor_abyss_02.tres
 • resources\rooms\rd_corridor_abyss_03.tres
+=======
+>>>>>>> Stashed changes
 • resources\rooms\rd_start_01.tres
 • resources\rooms\rd_treasure_01.tres
 • resources\rooms\rd_treasure_02.tres
@@ -2352,9 +2410,12 @@ Gesamtanzahl Dateien: 869
 • scenes\rooms\corridor\room_corridor_01.tscn
 • scenes\rooms\corridor\room_corridor_02.tscn
 • scenes\rooms\corridor\room_corridor_03.tscn
+<<<<<<< Updated upstream
 • scenes\rooms\corridor\room_corridor_abyss_01.tscn
 • scenes\rooms\corridor\room_corridor_abyss_02.tscn
 • scenes\rooms\corridor\room_corridor_abyss_03.tscn
+=======
+>>>>>>> Stashed changes
 • scenes\rooms\room_start_01.tscn
 • scenes\rooms\treasure\room_treasure_01.tscn
 • scenes\rooms\treasure\room_treasure_02.tscn
@@ -2532,8 +2593,11 @@ Gesamtanzahl Dateien: 869
 • scripts\status_effects\acid.gd.uid
 • scripts\status_effects\burn.gd
 • scripts\status_effects\burn.gd.uid
+<<<<<<< Updated upstream
 • scripts\status_effects\charm.gd
 • scripts\status_effects\charm.gd.uid
+=======
+>>>>>>> Stashed changes
 • scripts\status_effects\confused.gd
 • scripts\status_effects\confused.gd.uid
 • scripts\status_effects\rooted.gd
@@ -2598,7 +2662,11 @@ Gesamtanzahl Dateien: 869
 • textures\sidewalk-texture.jpg.import
 
 ==================================================
+<<<<<<< Updated upstream
 TEIL 3: VOLLSTAENDIGER PROJEKT-CODE (416 DATEIEN)
+=======
+TEIL 3: VOLLSTAENDIGER PROJEKT-CODE (394 DATEIEN)
+>>>>>>> Stashed changes
 ==================================================
 
 ===== FILE: assets\blossom_the_powerpuff_girls.glb.import =====
@@ -10123,8 +10191,11 @@ EnemyDensity="*uid://bxxty8yqhh1d"
 HudExtra="*uid://bys4sieyin6ky"
 Teleporter="*uid://dxfotrd7xhn1p"
 Stages="*uid://buqywesge6fy4"
+<<<<<<< Updated upstream
 GameStats="*res://scripts/game_stats.gd"
 ItemTestRoom="*res://scripts/item_test_room.gd"
+=======
+>>>>>>> Stashed changes
 
 [display]
 
@@ -10702,6 +10773,7 @@ unique_per_run = false
 footprint_cells = Vector2i(1, 1)
 
 
+<<<<<<< Updated upstream
 ===== FILE: resources\rooms\rd_corridor_abyss_01.tres =====
 
 [gd_resource type="Resource" script_class="RoomData" load_steps=3 format=3]
@@ -10753,6 +10825,8 @@ min_stage = 0
 unique_per_run = false
 
 
+=======
+>>>>>>> Stashed changes
 ===== FILE: resources\rooms\rd_start_01.tres =====
 
 [gd_resource type="Resource" script_class="RoomData" load_steps=3 format=3]
@@ -15045,6 +15119,7 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		if data == null:
 			continue
 
+<<<<<<< Updated upstream
 		# BUGFIX "1x2-Raum zeigt sich als 1x1 auf Minimap/ingame":
 		# _pick_room() faellt auf eine kleinere Vorlage zurueck, wenn der Pool
 		# keine passende Groesse hat (siehe dortiger Kommentar). cell.footprint
@@ -15058,6 +15133,8 @@ func _instantiate_layout(layout: Dictionary) -> void:
 			var fallback_covered: Array[Vector2i] = [grid_pos]
 			cell.covered_cells = fallback_covered
 
+=======
+>>>>>>> Stashed changes
 		# PHASE 3.1: Ein Multi-Zellen-Raum sitzt in der MITTE seiner Flaeche,
 		# nicht auf der Ankerzelle. center_offset() liefert die Verschiebung
 		# in Rasterzellen — bei (2,1) also (0.5, 0), der Raum rueckt um eine
@@ -15907,6 +15984,7 @@ class RoomCell:
 
 @export var boss_min_distance: int = 2
 
+<<<<<<< Updated upstream
 ## Chance, dass ein Tresorraum als Sackgasse DIREKT am Startraum (0,0)
 ## platziert wird, statt wie sonst am weitesten entfernten passenden Punkt.
 @export_range(0.0, 1.0) var treasure_start_adjacent_chance: float = 0.35
@@ -15914,6 +15992,8 @@ class RoomCell:
 ## Wie viele Tresorraeume pro Etage reserviert werden.
 @export var treasure_room_count: int = 2
 
+=======
+>>>>>>> Stashed changes
 ## --- PHASE 3.1: Multi-Zellen-Raeume ------------------------------------
 ## Wahrscheinlichkeit, dass ein geeigneter Kampfraum auf mehrere Zellen
 ## aufgeblasen wird.
@@ -18387,6 +18467,7 @@ func apply_theme(theme: StageTheme) -> void:
 
 func _apply_theme_recursive(node: Node, theme: StageTheme) -> void:
 	var mesh := node as MeshInstance3D
+<<<<<<< Updated upstream
 	# BUGFIX "Abyss-Loch ist weiss/untexturiert": pit_floor.gd erzeugt fuer
 	# extra_void_pits einen absichtlich unbeleuchteten NAHE-SCHWARZ-Schacht
 	# (_emit_dark_box, Name enthaelt "VoidShaft") - er soll die Falltiefe
@@ -18398,6 +18479,9 @@ func _apply_theme_recursive(node: Node, theme: StageTheme) -> void:
 	# Abgrund dann aus wie eine flache, unbelichtete Flaeche statt wie ein
 	# dunkles Loch.
 	if mesh != null and not mesh.name.to_lower().contains("voidshaft"):
+=======
+	if mesh != null:
+>>>>>>> Stashed changes
 		var tint: Color = theme.tint_for_node_name(mesh.get_parent().name if mesh.get_parent() else mesh.name)
 		# material_override hat Vorrang vor surface_material_override.
 		if mesh.material_override != null:
@@ -18506,15 +18590,26 @@ func on_player_entered() -> void:
 [ext_resource type="Resource" path="res://resources/rooms/rd_combat_05.tres" id="19_c5"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_combat_06.tres" id="20_c6"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_treasure_01.tres" id="21_treasure"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_arena_01.tres" id="21_voeuj"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_boss_01.tres" id="22_boss"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_tall_01.tres" id="22_sfryd"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_corridor_01.tres" id="23_cor1"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_wide_01.tres" id="23_g4he2"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_corridor_02.tres" id="24_cor2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_07.tres" id="24_rhypk"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="25_0k6p3"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_08.tres" id="25_d7wii"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_09.tres" id="26_bdxf7"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="26_w0ny2"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="27_bfk81"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_10.tres" id="27_c7ki5"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_11.tres" id="28_gk7nh"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="28_pd8jf"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_12.tres" id="29_ihjgr"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="29_o54k0"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_02.tres" id="30_76447"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="30_u4jxp"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_03.tres" id="31_28nlm"]
 [ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/ui/hud.tscn" id="31_w24rf"]
 [ext_resource type="Texture2D" uid="uid://b66s3j5jjf1yw" path="res://assets/textures/ui/image-removebg-preview (11).png" id="32_u4jxp"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="33_w24rf"]
@@ -18590,7 +18685,11 @@ script = ExtResource("2_grid")
 
 [node name="LevelGenerator" type="Node" parent="." unique_id=864998062 node_paths=PackedStringArray("grid_generator", "navigation_region")]
 script = ExtResource("1_lg")
+<<<<<<< Updated upstream
 room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("35_c7"), ExtResource("36_c8"), ExtResource("37_c9"), ExtResource("38_c10"), ExtResource("39_c11"), ExtResource("40_c12"), ExtResource("41_cwide"), ExtResource("42_ctall"), ExtResource("43_carena"), ExtResource("44_cor3"), ExtResource("45_treasure2"), ExtResource("46_treasure3"), ExtResource("47_abyss1"), ExtResource("48_abyss2"), ExtResource("49_abyss3")])
+=======
+room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("21_voeuj"), ExtResource("22_sfryd"), ExtResource("23_g4he2"), ExtResource("24_rhypk"), ExtResource("25_d7wii"), ExtResource("26_bdxf7"), ExtResource("27_c7ki5"), ExtResource("28_gk7nh"), ExtResource("29_ihjgr"), ExtResource("30_76447"), ExtResource("31_28nlm")])
+>>>>>>> Stashed changes
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")
@@ -21834,8 +21933,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.0, 0.5, -6.0)
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+<<<<<<< Updated upstream
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 [ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
+=======
+>>>>>>> Stashed changes
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -21880,10 +21982,13 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+<<<<<<< Updated upstream
 script = ExtResource("pit_floor")
 floor_size = Vector2(48.0, 48.0)
 floor_thickness = 1.0
 extra_void_pits = Array[Vector4]([Vector4(20.0, -20.0, 4.0, 4.0)])
+=======
+>>>>>>> Stashed changes
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -22012,6 +22117,7 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar4"]
 shape = SubResource("bs4")
 
+<<<<<<< Updated upstream
 [node name="Torch1" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.5, -18.0)
 script = ExtResource("torch_script")
@@ -22020,6 +22126,8 @@ script = ExtResource("torch_script")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 3.5, 18.0)
 script = ExtResource("torch_script")
 
+=======
+>>>>>>> Stashed changes
 [node name="Doors" type="Node3D" parent="."]
 
 [node name="DoorNorth" type="StaticBody3D" parent="Doors"]
@@ -22142,8 +22250,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+<<<<<<< Updated upstream
 [ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+=======
+>>>>>>> Stashed changes
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -22188,10 +22299,13 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+<<<<<<< Updated upstream
 script = ExtResource("pit_floor")
 floor_size = Vector2(48, 48)
 floor_thickness = 1.0
 pit_depth = 6.0
+=======
+>>>>>>> Stashed changes
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -22290,6 +22404,7 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Platform1"]
 shape = SubResource("bs4")
 
+<<<<<<< Updated upstream
 [node name="Torch1" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.0, 3.5, 20.0)
 script = ExtResource("torch_script")
@@ -22298,6 +22413,8 @@ script = ExtResource("torch_script")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.0, 3.5, -20.0)
 script = ExtResource("torch_script")
 
+=======
+>>>>>>> Stashed changes
 [node name="Doors" type="Node3D" parent="."]
 
 [node name="DoorNorth" type="StaticBody3D" parent="Doors"]
@@ -22981,7 +23098,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 18)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+<<<<<<< Updated upstream
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+=======
+>>>>>>> Stashed changes
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -23026,10 +23146,13 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+<<<<<<< Updated upstream
 script = ExtResource("pit_floor")
 floor_size = Vector2(48, 48)
 floor_thickness = 1.0
 pit_depth = 6.0
+=======
+>>>>>>> Stashed changes
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -23553,7 +23676,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+<<<<<<< Updated upstream
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+=======
+>>>>>>> Stashed changes
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(96, 1, 96)
@@ -23616,10 +23742,13 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+<<<<<<< Updated upstream
 script = ExtResource("pit_floor")
 floor_size = Vector2(96, 96)
 floor_thickness = 1.0
 pit_depth = 6.0
+=======
+>>>>>>> Stashed changes
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -23909,7 +24038,10 @@ size = Vector3(40, 1, 10)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+<<<<<<< Updated upstream
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+=======
+>>>>>>> Stashed changes
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 96)
@@ -23966,10 +24098,13 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+<<<<<<< Updated upstream
 script = ExtResource("pit_floor")
 floor_size = Vector2(48, 96)
 floor_thickness = 1.0
 pit_depth = 6.0
+=======
+>>>>>>> Stashed changes
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -25107,6 +25242,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 5)
 
 
 
+<<<<<<< Updated upstream
 ===== FILE: scenes\rooms\corridor\room_corridor_abyss_01.tscn =====
 
 [gd_scene load_steps=13 format=3]
@@ -25602,6 +25738,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, -20.5)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 19.5)
 
 
+=======
+>>>>>>> Stashed changes
 ===== FILE: scenes\rooms\room_start_01.tscn =====
 
 [gd_scene format=3 uid="uid://clkpkvxk2ioi5"]
@@ -26264,8 +26402,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 2.1, 4.0)
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+<<<<<<< Updated upstream
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 [ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
+=======
+>>>>>>> Stashed changes
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -26322,10 +26463,13 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+<<<<<<< Updated upstream
 script = ExtResource("pit_floor")
 floor_size = Vector2(48.0, 48.0)
 floor_thickness = 1.0
 extra_void_pits = Array[Vector4]([Vector4(0.0, 20.0, 8.0, 4.0)])
+=======
+>>>>>>> Stashed changes
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -26454,6 +26598,7 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar2"]
 shape = SubResource("bs6")
 
+<<<<<<< Updated upstream
 [node name="Torch1" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.0, 3.5, -18.0)
 script = ExtResource("torch_script")
@@ -26462,6 +26607,8 @@ script = ExtResource("torch_script")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.0, 3.5, -18.0)
 script = ExtResource("torch_script")
 
+=======
+>>>>>>> Stashed changes
 [node name="Doors" type="Node3D" parent="."]
 
 [node name="DoorNorth" type="StaticBody3D" parent="Doors"]
@@ -26543,7 +26690,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.5, 6)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+<<<<<<< Updated upstream
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
+=======
+>>>>>>> Stashed changes
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -26594,10 +26744,13 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+<<<<<<< Updated upstream
 script = ExtResource("pit_floor")
 floor_size = Vector2(48, 48)
 floor_thickness = 1.0
 pit_depth = 6.0
+=======
+>>>>>>> Stashed changes
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -35331,6 +35484,7 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 func _on_status_effect_applied(id: String, _duration: float, _magnitude: float, _source: Node) -> void:
 	if id == "stun" or id == "silenced":
 		interrupt_attack()
+<<<<<<< Updated upstream
 	if id == "charm":
 		# Ein laufender Telegraph zielt noch auf den Spieler - abbrechen,
 		# statt ihn zuende zu spielen und erst DANACH umzuschwenken.
@@ -35338,6 +35492,8 @@ func _on_status_effect_applied(id: String, _duration: float, _magnitude: float, 
 		# Erzwingt eine frische Zielwahl statt eines evtl. laengst toten
 		# Ziels aus einer vorherigen Verzauberung.
 		_charm_target = null
+=======
+>>>>>>> Stashed changes
 
 
 ## PHASE 4. Haengt die dauerhafte Effekt-Einfaerbung an.
@@ -40380,6 +40536,7 @@ const CARD_COINS_PER_STEP: int = 10
 const CARD_BONUS_PER_STEP: float = 0.02
 const CARD_MAX_BONUS: float = 0.50
 
+<<<<<<< Updated upstream
 # --- Papp-Wahrsagerbrett (Rachegeist) ---
 const OUIJA_CHANCE: float = 0.20
 ## Umkreis, in dem nach einem gueltigen Rachegeist-Ziel gesucht wird.
@@ -40614,6 +40771,8 @@ const LOCKDOWN_RADIUS: float = 28.5
 const LOCKDOWN_STUN_DURATION: float = 3.1
 const LOCKDOWN_SILENCE_DURATION: float = 4.4
 
+=======
+>>>>>>> Stashed changes
 # --- P20. Mamas Stoeckelschuhe ---
 const HEELS_MIN_SPEED: float = 6.0
 const HEELS_SPAWN_INTERVAL: float = 0.45
@@ -40630,6 +40789,7 @@ const HEELS_SHOCKWAVE_STUN: float = 0.4
 # ============================================================================
 # PHASE 4 — AKTIVE ITEMS
 # ============================================================================
+<<<<<<< Updated upstream
 
 # --- A1. Sturmfeuerzeug ---
 # Gleicher Balance-Pass wie bei den Nr.51-83-Items (siehe dortiger Kommentar):
@@ -40679,6 +40839,53 @@ const CREAM_LIFETIME: float = 7.5
 const CREAM_KNOCKDOWN_DURATION: float = 1.9
 ## Schaden, wenn die Sahne einen brennenden Gegner loescht.
 const CREAM_EXTINGUISH_DAMAGE: float = 79.0
+=======
+
+# --- A1. Sturmfeuerzeug ---
+const LIGHTER_RANGE: float = 8.0
+## Halber Oeffnungswinkel in Grad. 45 = 90-Grad-Bogen.
+const LIGHTER_HALF_ANGLE_DEG: float = 45.0
+const LIGHTER_DAMAGE_MULTIPLIER: float = 3.0
+const LIGHTER_BASE_DAMAGE: float = 15.0
+
+# --- A2. Schulbibliotheks-Buch ---
+const BOOK_EXECUTE_THRESHOLD: float = 0.20
+
+# --- A3. Verfluchter Glueckswuerfel ---
+const CURSED_RADIUS: float = 30.0
+
+# --- A4. Alter Handstaubsauger ---
+const VACUUM_DURATION: float = 2.5
+const VACUUM_RANGE: float = 12.0
+const VACUUM_HALF_ANGLE_DEG: float = 35.0
+const VACUUM_PULL_SPEED: float = 9.0
+## Saeureschaden des Rueckstrahls pro getroffenem Gegner.
+const VACUUM_ACID_DAMAGE: float = 6.0
+const VACUUM_ACID_DURATION: float = 4.0
+
+# --- A5. Omas Pfeffermuehle ---
+const PEPPER_RADIUS: float = 9.0
+const PEPPER_SILENCE_DURATION: float = 2.0
+const PEPPER_DOT_EXTENSION: float = 3.0
+
+# --- A6. Walkman (kaputt) ---
+const WALKMAN_RADIUS: float = 12.0
+const WALKMAN_KNOCKBACK: float = 26.0
+const WALKMAN_CONFUSE_DURATION: float = 4.0
+const WALKMAN_SHAKE: float = 2.0
+
+# --- A7. Megafon aus der Schule ---
+const MEGAPHONE_RANGE: float = 11.0
+const MEGAPHONE_HALF_ANGLE_DEG: float = 30.0
+const MEGAPHONE_DAMAGE: float = 26.0
+
+# --- A8. Spruehsahne-Dose ---
+const CREAM_RADIUS: float = 6.0
+const CREAM_LIFETIME: float = 6.0
+const CREAM_KNOCKDOWN_DURATION: float = 1.5
+## Schaden, wenn die Sahne einen brennenden Gegner loescht.
+const CREAM_EXTINGUISH_DAMAGE: float = 45.0
+>>>>>>> Stashed changes
 
 var _items: Node = null
 
@@ -40689,9 +40896,12 @@ var _modem_hit_count: int = 0
 var _spray_hit_count: int = 0
 var _horns_cooldowns: Dictionary = {}
 var _pants_cooldowns: Dictionary = {}
+<<<<<<< Updated upstream
 ## Letzte horizontale Bewegungsrichtung, fuer die Richtungswechsel-Erkennung
 ## (siehe PANTS_TURN_ANGLE_DEG).
 var _pants_prev_dir: Vector2 = Vector2.ZERO
+=======
+>>>>>>> Stashed changes
 var _oil_timer: float = 0.0
 var _heels_timer: float = 0.0
 ## Zaehlt Pfuetzen-Spawns seit dem letzten Schockwellen-Ausloeser.
@@ -40706,6 +40916,7 @@ var _devil_active: bool = false
 ## Dash-Flankenerkennung (siehe Kopfkommentar, "dash_started").
 var _was_dashing: bool = false
 
+<<<<<<< Updated upstream
 ## --- Ausgelaufene Flachbatterie: Flanken-Erkennung "steht jetzt im Hazard" ---
 var _battery_was_in_hazard: bool = false
 
@@ -40733,6 +40944,11 @@ var _rice_shield: float = 0.0
 ## Absorption in _on_player_damaged() technisch bereits griff.
 var _rice_aura: MeshInstance3D = null
 var _rice_aura_material: StandardMaterial3D = null
+=======
+## --- Milchreis-Schild ---
+var _rice_charge: float = 0.0
+var _rice_shield: float = 0.0
+>>>>>>> Stashed changes
 
 ## --- Laser-Pointer ---
 var _laser_target: Node3D = null
@@ -40927,6 +41143,7 @@ func _collect_shader_materials(node: Node, out: Array[ShaderMaterial]) -> void:
 		_collect_shader_materials(child, out)
 
 
+<<<<<<< Updated upstream
 const DAMAGE_NUMBER_SCENE_PATH: String = "res://scenes/ui/damage_number.tscn"
 var _cached_damage_number_scene: PackedScene = null
 
@@ -40956,6 +41173,8 @@ func _spawn_item_damage_number(target: Node3D, amount: float) -> void:
 		number.show_damage(amount)
 
 
+=======
+>>>>>>> Stashed changes
 ## Ein einfacher, ungeshadeter Farbwuerfel/-zylinder als Wegwerf-Mesh.
 ## Wird von Laser, Tennisball, Schallwellen und Sahneteppich benutzt.
 func _make_glow_material(color: Color, alpha: float = 1.0) -> StandardMaterial3D:
@@ -41026,6 +41245,7 @@ func _on_player_ready(player: CharacterBody3D) -> void:
 	_laser_beam = null
 	_laser_target = null
 
+<<<<<<< Updated upstream
 	# Milchreis-Schild NICHT mit ueber den Charakterwechsel retten: er ist
 	# als Anteil der ALTEN max_health berechnet (RICE_SHIELD_FRACTION) und
 	# waere auf dem neuen Charakter falsch dimensioniert. Die Aura-Instanz
@@ -41038,6 +41258,8 @@ func _on_player_ready(player: CharacterBody3D) -> void:
 	_rice_aura = null
 	_rice_aura_material = null
 
+=======
+>>>>>>> Stashed changes
 	_apply_protein_shake_hitbox()
 	_refresh_credit_card_bonus()
 	_refresh_devil_outfit()
@@ -41230,6 +41452,7 @@ func _on_player_hit_enemy(target: Node3D, hitbox: Hitbox) -> void:
 		# NAECHSTEN Schlag gewirkt. Der Nachschlag hier trifft dagegen genau
 		# den markierten Gegner, genau jetzt.
 		if health != null and health.is_alive():
+<<<<<<< Updated upstream
 			var laser_bonus: float = base_damage * LASER_DAMAGE_BONUS
 			health.take_damage(laser_bonus, _player())
 			_spawn_item_damage_number(target, laser_bonus)
@@ -41245,12 +41468,16 @@ func _on_player_hit_enemy(target: Node3D, hitbox: Hitbox) -> void:
 		var vuln_bonus: float = base_damage * StatusEffectBase.magnitude_of(target, "vulnerable")
 		health.take_damage(vuln_bonus, _player())
 		_spawn_item_damage_number(target, vuln_bonus)
+=======
+			health.take_damage(base_damage * LASER_DAMAGE_BONUS, _player())
+>>>>>>> Stashed changes
 
 	if was_kill:
 		if _has(ItemCatalog.ID_PLASTIC_HALO):
 			_apply_plastic_halo(target)
 		if _has(ItemCatalog.ID_DISCO_BALL):
 			_apply_disco_ball(target)
+<<<<<<< Updated upstream
 		if _has(ItemCatalog.ID_MOSQUITO_SPRAY) and target_had_dot:
 			_apply_mosquito_spray()
 		if _has(ItemCatalog.ID_VAMPIRE_TEETH) and target_had_any_status:
@@ -41263,6 +41490,8 @@ func _on_player_hit_enemy(target: Node3D, hitbox: Hitbox) -> void:
 			_apply_devour(_player())
 		if _has(ItemCatalog.ID_EMPRESS) and _empress_buff_timer > 0.0:
 			_apply_empress()
+=======
+>>>>>>> Stashed changes
 
 	# --- Game Juice -----------------------------------------------------
 	# Der Hit-Stop haengt an der Wucht des Angriffs, nicht am Item: die
@@ -41335,7 +41564,10 @@ func _apply_static_sock(hitbox: Hitbox) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(wave_damage, player)
+<<<<<<< Updated upstream
 			_spawn_item_damage_number(enemy, wave_damage)
+=======
+>>>>>>> Stashed changes
 		if enemy.has_method("apply_knockback"):
 			var push: Vector3 = (enemy.global_position - origin)
 			push.y = 0.0
@@ -41355,6 +41587,7 @@ func _apply_roof_nail(target: Node3D) -> void:
 	if randf() > NAIL_CHANCE:
 		return
 	if StatusRooted.apply(target, StatusRooted.DEFAULT_DURATION, _player()):
+<<<<<<< Updated upstream
 		# ITEM-REWORK: bricht einen laufenden Angriffs-Telegraph SOFORT ab -
 		# ohne das haette sich der schon angekuendigte Schlag trotz Festnageln
 		# noch entladen. Knockback wird separat in EnemyAI.apply_knockback()
@@ -41413,6 +41646,9 @@ func _find_ouija_target(player: CharacterBody3D) -> Node3D:
 			best = enemy
 
 	return best
+=======
+		_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.0)
+>>>>>>> Stashed changes
 
 
 # ----------------------------------------------------------------------------
@@ -41476,9 +41712,13 @@ func _apply_modem(target: Node3D) -> void:
 	if StatusStun.active(target):
 		var health: Health = _health_of(target)
 		if health != null and health.is_alive():
+<<<<<<< Updated upstream
 			var modem_bonus: float = health.max_health * 0.05 * StatusStun.MODEM_CRIT_MULTIPLIER
 			health.take_damage(modem_bonus, _player())
 			_spawn_item_damage_number(target, modem_bonus)
+=======
+			health.take_damage(health.max_health * 0.05 * StatusStun.MODEM_CRIT_MULTIPLIER, _player())
+>>>>>>> Stashed changes
 			_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.2)
 
 	_modem_hit_count += 1
@@ -41532,6 +41772,7 @@ func _apply_knitting_needles(target: Node3D, base_damage: float) -> void:
 	health.incoming_damage_multiplier = 1.0
 	health.take_damage(bonus, _player())
 	health.incoming_damage_multiplier = saved
+<<<<<<< Updated upstream
 	_spawn_item_damage_number(target, bonus)
 
 	_flash_player(FLASH_WHITE)
@@ -41636,27 +41877,53 @@ func _spawn_glue_spot(world_pos: Vector3) -> void:
 	_fade_and_free(area, GLUE_LIFETIME, mesh_node)
 
 
+=======
+
+	_flash_player(FLASH_WHITE)
+	_spawn_vfx(HIT_SPARK_SCENE, target.global_position + Vector3.UP * 1.3)
+
+
+# ----------------------------------------------------------------------------
+# P13. Disco-Kugel-Anhaenger — Lichtreflexe bei Kill
+# ----------------------------------------------------------------------------
+func _apply_disco_ball(target: Node3D) -> void:
+	_spawn_vfx(SPARK_YELLOW_SCENE, target.global_position + Vector3.UP * 1.4)
+	if randf() > DISCO_CHANCE:
+		return
+	for enemy: Node3D in _enemies_near(target.global_position, DISCO_RADIUS, target):
+		StatusConfused.apply(enemy, DISCO_CONFUSE_DURATION, StatusConfused.DEFAULT_MAX_ANGLE_DEG, _player())
+
+
+>>>>>>> Stashed changes
 # ============================================================================
 # Schaden am Spieler
 # ============================================================================
 func _on_player_damaged(amount: float, source: Node3D) -> void:
 	# --- P11. Ueberkochter Milchreis: Schild faengt zuerst ab ------------
+<<<<<<< Updated upstream
 	# Guard auf _has(ID_RICE_PUDDING): _rice_shield ist ein rohes
 	# Laufzeit-Feld und darf keinen Schaden mehr abfangen, wenn das Item
 	# nicht (mehr) im Inventar steckt.
 	if _rice_shield > 0.0 and _player_health != null and _has(ItemCatalog.ID_RICE_PUDDING):
+=======
+	if _rice_shield > 0.0 and _player_health != null:
+>>>>>>> Stashed changes
 		var absorbed: float = minf(_rice_shield, amount)
 		_rice_shield -= absorbed
 		_player_health.current_health = minf(_player_health.current_health + absorbed, _player_health.max_health)
 		_player_health.health_changed.emit(_player_health.current_health, _player_health.max_health)
 		_flash_player(FLASH_WHITE)
+<<<<<<< Updated upstream
 		_update_rice_aura()
+=======
+>>>>>>> Stashed changes
 		if _rice_shield <= 0.0:
 			_rice_charge = 0.0
 
 	# --- P18. Handball-Schulterpolster: Todesschutz ----------------------
 	# MUSS VOR allem anderen laufen, was den Frame beenden koennte: der
 	# died-Check in Health.take_damage kommt direkt nach diesem Signal.
+<<<<<<< Updated upstream
 	# --- Nr. 55. Run It Back: Todesschutz an die Anker-Marke -------------
 	# MUSS ebenfalls vor dem died()-Check in Health.take_damage laufen
 	# (gleiche Begruendung wie beim Handball-Polster direkt darunter).
@@ -41672,6 +41939,8 @@ func _on_player_damaged(amount: float, source: Node3D) -> void:
 			_flash_player(FLASH_WHITE)
 			_spawn_ring_wave(_run_it_back_anchor, 3.0, Color(0.4, 1.0, 0.9), 0.5)
 
+=======
+>>>>>>> Stashed changes
 	if _has(ItemCatalog.ID_HANDBALL_PADS) and not _pads_used_this_room and _player_health != null:
 		if _player_health.current_health <= 0.0:
 			_pads_used_this_room = true
@@ -41691,6 +41960,7 @@ func _on_player_damaged(amount: float, source: Node3D) -> void:
 		_toaster_cooldown = TOASTER_COOLDOWN
 		_apply_broken_toaster()
 
+<<<<<<< Updated upstream
 	# --- P46. Alarmanlage vom Parkplatz: raumweite Stummschaltung -------
 	if _has(ItemCatalog.ID_CAR_ALARM):
 		_apply_car_alarm()
@@ -41699,6 +41969,8 @@ func _on_player_damaged(amount: float, source: Node3D) -> void:
 	if _has(ItemCatalog.ID_BUBBLE_GUM) and _bubble_charge > 0.0:
 		_pop_bubble_gum()
 
+=======
+>>>>>>> Stashed changes
 	_refresh_devil_outfit()
 
 
@@ -41720,7 +41992,10 @@ func _apply_broken_toaster() -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(TOASTER_DAMAGE, player)
+<<<<<<< Updated upstream
 			_spawn_item_damage_number(enemy, TOASTER_DAMAGE)
+=======
+>>>>>>> Stashed changes
 		if enemy.has_method("apply_knockback"):
 			var push: Vector3 = enemy.global_position - origin
 			push.y = 0.0
@@ -41735,6 +42010,7 @@ func _apply_broken_toaster() -> void:
 
 
 # ----------------------------------------------------------------------------
+<<<<<<< Updated upstream
 # P46. Alarmanlage vom Parkplatz — raumweite Stummschaltung bei Schaden
 # ----------------------------------------------------------------------------
 func _apply_car_alarm() -> void:
@@ -41773,6 +42049,20 @@ func _spawn_shield_pulse() -> void:
 # ----------------------------------------------------------------------------
 # Wiederverwendbare Schallwelle / Ring
 # ----------------------------------------------------------------------------
+=======
+# P18. Handball-Schulterpolster — sichtbarer Schild-Impuls
+# ----------------------------------------------------------------------------
+func _spawn_shield_pulse() -> void:
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return
+	_spawn_ring_wave(player.global_position, 3.5, Color(1.0, 1.0, 1.0), 0.4)
+
+
+# ----------------------------------------------------------------------------
+# Wiederverwendbare Schallwelle / Ring
+# ----------------------------------------------------------------------------
+>>>>>>> Stashed changes
 # Wird von Socke, Modem, Walkman, Handball-Polster und Milchreis benutzt.
 # TorusMesh statt GPUParticles3D: ein Ring, der von 0 auf radius waechst, ist
 # als Mesh billiger UND liest sich klarer als Reichweiten-Anzeige.
@@ -41835,12 +42125,15 @@ func _physics_process(delta: float) -> void:
 	# --- Dauerzustaende ---------------------------------------------------
 	if _has(ItemCatalog.ID_RICE_PUDDING):
 		_tick_rice_pudding(delta, player, speed)
+<<<<<<< Updated upstream
 	if _has(ItemCatalog.ID_BUBBLE_GUM):
 		_tick_bubble_gum(delta, player, speed)
 	if _has(ItemCatalog.ID_BATTERY_PACK):
 		_tick_battery_pack(player)
 	if _empress_buff_timer > 0.0:
 		_tick_empress(delta)
+=======
+>>>>>>> Stashed changes
 	if _has(ItemCatalog.ID_LASER_POINTER):
 		_tick_laser_pointer(delta, player)
 	elif is_instance_valid(_laser_beam):
@@ -41870,10 +42163,13 @@ func _on_dash_started(player: CharacterBody3D) -> void:
 		_spawn_gum_trail(player)
 	if _has(ItemCatalog.ID_TENNIS_BALL):
 		_fire_tennis_ball(player)
+<<<<<<< Updated upstream
 	if _has(ItemCatalog.ID_ROLLER_SKATES):
 		_apply_roller_skates(player)
 	if _has(ItemCatalog.ID_COPPER_WIRE):
 		_apply_copper_wire(player)
+=======
+>>>>>>> Stashed changes
 
 
 ## Raumwechsel erkennen — setzt das Handball-Polster zurueck.
@@ -41933,6 +42229,7 @@ func _tick_stiletto_heels(delta: float, player: CharacterBody3D, speed: float) -
 	)
 	_spawn_vfx(DUST_RING_SCENE, player.global_position + Vector3.UP * 0.05)
 
+<<<<<<< Updated upstream
 	# ITEM-REWORK: jeder dritte "Schritt" loest zusaetzlich eine haptische
 	# Bodenschockwelle aus.
 	_heels_step_count += 1
@@ -41951,6 +42248,8 @@ func _trigger_heels_shockwave(player: CharacterBody3D) -> void:
 	_spawn_ring_wave(player.global_position, HEELS_SHOCKWAVE_RADIUS, Color(0.85, 0.55, 1.0), 0.3)
 	Juice.shake(0.6)
 
+=======
+>>>>>>> Stashed changes
 
 ## Gemeinsamer Bauplan fuer Oel-, Saeure- und Klebe-Pfuetzen.
 ##
@@ -42108,7 +42407,10 @@ func _fire_tennis_ball(player: CharacterBody3D) -> void:
 				var health: Health = _health_of(enemy)
 				if health != null:
 					health.take_damage(TENNIS_DAMAGE, player)
+<<<<<<< Updated upstream
 					_spawn_item_damage_number(enemy, TENNIS_DAMAGE)
+=======
+>>>>>>> Stashed changes
 				if enemy.has_method("apply_knockback"):
 					enemy.apply_knockback(forward * TENNIS_KNOCKBACK)
 				# Frischt eine laufende Blutung komplett auf.
@@ -42122,6 +42424,7 @@ func _fire_tennis_ball(player: CharacterBody3D) -> void:
 		if is_instance_valid(ball):
 			ball.queue_free()
 	)
+<<<<<<< Updated upstream
 
 
 # ----------------------------------------------------------------------------
@@ -42151,6 +42454,8 @@ func _apply_copper_wire(player: CharacterBody3D) -> void:
 		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, player)
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
 		_flash_player(Color(1.0, 0.35, 0.15))
+=======
+>>>>>>> Stashed changes
 
 
 # ----------------------------------------------------------------------------
@@ -42170,7 +42475,10 @@ func _tick_brimstone_horns(delta: float, player: CharacterBody3D, speed: float) 
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(HORNS_DAMAGE, player)
+<<<<<<< Updated upstream
 			_spawn_item_damage_number(enemy, HORNS_DAMAGE)
+=======
+>>>>>>> Stashed changes
 		if enemy.has_method("apply_knockback"):
 			var push: Vector3 = enemy.global_position - player.global_position
 			push.y = 0.0
@@ -42185,6 +42493,7 @@ func _tick_brimstone_horns(delta: float, player: CharacterBody3D, speed: float) 
 # ----------------------------------------------------------------------------
 func _tick_tight_pants(delta: float, player: CharacterBody3D, speed: float) -> void:
 	_tick_cooldown_map(_pants_cooldowns, delta)
+<<<<<<< Updated upstream
 
 	# ITEM-REWORK: zweiter Ausloeser neben "schnell an einem Gegner vorbei"
 	# (Body-Check) - ein abrupter Richtungswechsel (Juke) zaehlt jetzt
@@ -42198,6 +42507,9 @@ func _tick_tight_pants(delta: float, player: CharacterBody3D, speed: float) -> v
 		_pants_prev_dir = current_dir
 
 	if speed < PANTS_MIN_SPEED and not abrupt_turn:
+=======
+	if speed < PANTS_MIN_SPEED:
+>>>>>>> Stashed changes
 		return
 
 	var stats: PlayerStats = _stats()
@@ -42212,6 +42524,7 @@ func _tick_tight_pants(delta: float, player: CharacterBody3D, speed: float) -> v
 		var health: Health = _health_of(enemy)
 		var pants_damage: float = base * PANTS_DAMAGE_FACTOR
 		if health != null:
+<<<<<<< Updated upstream
 			health.take_damage(pants_damage, player)
 			# Item-Damage-Number in Spezialfarbe - siehe damage_number.gd,
 			# Kind.ITEM.
@@ -42223,6 +42536,9 @@ func _tick_tight_pants(delta: float, player: CharacterBody3D, speed: float) -> v
 			push.y = 0.0
 			if push.length_squared() > 0.0001:
 				enemy.apply_knockback(push.normalized() * PANTS_KNOCKBACK)
+=======
+			health.take_damage(base * PANTS_DAMAGE_FACTOR, player)
+>>>>>>> Stashed changes
 		_spawn_vfx(DUST_RING_SCENE, enemy.global_position + Vector3.UP * 0.1)
 	# Windlinien an den Fuessen des Spielers.
 	if not _pants_cooldowns.is_empty():
@@ -42264,7 +42580,10 @@ func _tick_rice_pudding(delta: float, player: CharacterBody3D, speed: float) -> 
 		if _rice_shield <= 0.0 and wanted > 0.0:
 			_spawn_ring_wave(player.global_position, 2.5, Color(1.0, 1.0, 1.0), 0.5)
 		_rice_shield = wanted
+<<<<<<< Updated upstream
 		_update_rice_aura()
+=======
+>>>>>>> Stashed changes
 
 	# Saeure-Immunitaet, solange der Schild steht.
 	var stats: PlayerStats = _stats()
@@ -42277,6 +42596,7 @@ func _tick_rice_pudding(delta: float, player: CharacterBody3D, speed: float) -> 
 	elif stats.has_source("item:rice_shield"):
 		stats.remove_source("item:rice_shield")
 		stats.apply()
+<<<<<<< Updated upstream
 
 
 # ----------------------------------------------------------------------------
@@ -42406,6 +42726,62 @@ func _update_laser_beam(from: Vector3, to: Vector3) -> void:
 		_laser_beam.set_surface_override_material(0, _make_glow_material(LASER_COLOR, 0.85))
 		_attach_to_world(_laser_beam, from)
 
+=======
+
+
+# ----------------------------------------------------------------------------
+# P10. Laser-Pointer aus dem Kiosk
+# ----------------------------------------------------------------------------
+# Markiert dauerhaft den Gegner mit den MEISTEN Lebenspunkten und zieht einen
+# Strahl dorthin. Der Schadensbonus haengt in _on_player_hit_enemy(); hier
+# laeuft nur Zielsuche, Strahl-Darstellung und die DoT-Verteilung.
+func _tick_laser_pointer(delta: float, player: CharacterBody3D) -> void:
+	_laser_retarget_timer -= delta
+	if _laser_retarget_timer <= 0.0:
+		_laser_retarget_timer = LASER_RETARGET_INTERVAL
+		_laser_target = _find_strongest_enemy(player.global_position)
+		_rebind_laser_dot_relay()
+
+	if _laser_target == null or not is_instance_valid(_laser_target):
+		if is_instance_valid(_laser_beam):
+			_laser_beam.visible = false
+		return
+
+	_update_laser_beam(player.global_position + Vector3.UP * 1.5,
+		_laser_target.global_position + Vector3.UP * 1.2)
+
+
+## Gegner mit den HOECHSTEN absoluten Lebenspunkten in Reichweite.
+func _find_strongest_enemy(origin: Vector3) -> Node3D:
+	var best: Node3D = null
+	var best_hp: float = -1.0
+	for enemy: Node3D in _enemies_near(origin, LASER_RANGE):
+		var health: Health = _health_of(enemy)
+		if health == null:
+			continue
+		if health.current_health > best_hp:
+			best_hp = health.current_health
+			best = enemy
+	return best
+
+
+## Baut den Strahl beim ersten Aufruf und richtet ihn danach nur noch aus.
+##
+## SKALIERUNG STATT NEUBAU: ein Zylinder mit Hoehe 1.0, der auf die Distanz
+## gestreckt wird, kostet pro Frame eine Zuweisung. Ein neues Mesh pro Frame
+## waere Speichermuell im Sekundentakt.
+func _update_laser_beam(from: Vector3, to: Vector3) -> void:
+	if not is_instance_valid(_laser_beam):
+		_laser_beam = MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = LASER_BEAM_THICKNESS
+		cyl.bottom_radius = LASER_BEAM_THICKNESS
+		cyl.height = 1.0
+		_laser_beam.mesh = cyl
+		_laser_beam.set_surface_override_material(0, _make_glow_material(LASER_COLOR, 0.85))
+		_attach_to_world(_laser_beam, from)
+
+>>>>>>> Stashed changes
 	_laser_beam.visible = true
 	var distance: float = from.distance_to(to)
 	if distance < 0.05:
@@ -42521,7 +42897,10 @@ func _ignite_hairspray_cloud(world_pos: Vector3) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(SPRAY_IGNITE_DAMAGE, _player())
+<<<<<<< Updated upstream
 			_spawn_item_damage_number(enemy, SPRAY_IGNITE_DAMAGE)
+=======
+>>>>>>> Stashed changes
 		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, _player())
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
 	_spawn_ring_wave(world_pos, SPRAY_IGNITE_RADIUS, Color(1.0, 0.55, 0.10), 0.35)
@@ -42557,6 +42936,7 @@ func _on_active_item_used(item: ItemData, _slot: int) -> void:
 			_use_megaphone(player)
 		ItemCatalog.ID_WHIPPED_CREAM:
 			_use_whipped_cream(player)
+<<<<<<< Updated upstream
 		ItemCatalog.ID_BOOMBOX:
 			_use_boombox(player)
 		ItemCatalog.ID_SPICY_RAMEN:
@@ -42629,6 +43009,8 @@ func _on_active_item_used(item: ItemData, _slot: int) -> void:
 			_use_lockdown(player)
 		ItemCatalog.ID_EMPRESS:
 			_use_empress(player)
+=======
+>>>>>>> Stashed changes
 
 
 # --- 6. Papas Starthilfekabel ------------------------------------------------
@@ -42645,8 +43027,13 @@ func _tick_jumper_cables(delta: float, player: CharacterBody3D) -> void:
 	# Der Spieler wird aktiv geschoben — dash_speed des Charakters ist hier
 	# bewusst NICHT die Referenz: das Kabel soll immer gleich weit tragen,
 	# unabhaengig davon, wer gerade gespielt wird.
+<<<<<<< Updated upstream
 	player.velocity.x = forward.x * 42.0
 	player.velocity.z = forward.z * 42.0
+=======
+	player.velocity.x = forward.x * 30.0
+	player.velocity.z = forward.z * 30.0
+>>>>>>> Stashed changes
 
 	for enemy: Node3D in _enemies_near(player.global_position, CABLES_HIT_RADIUS):
 		var id: int = enemy.get_instance_id()
@@ -42656,7 +43043,10 @@ func _tick_jumper_cables(delta: float, player: CharacterBody3D) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(CABLES_DAMAGE, player)
+<<<<<<< Updated upstream
 			_spawn_item_damage_number(enemy, CABLES_DAMAGE)
+=======
+>>>>>>> Stashed changes
 		StatusStun.apply(enemy, CABLES_STUN, player)
 		_spawn_vfx(HIT_SPARK_SCENE, enemy.global_position + Vector3.UP)
 
@@ -42673,7 +43063,10 @@ func _use_storm_lighter(player: CharacterBody3D) -> void:
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(damage, player)
+<<<<<<< Updated upstream
 			_spawn_item_damage_number(enemy, damage)
+=======
+>>>>>>> Stashed changes
 		StatusBurn.apply(enemy, StatusBurn.DEFAULT_DURATION, StatusBurn.DEFAULT_DAMAGE_PER_TICK, player)
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
 
@@ -42697,9 +43090,13 @@ func _use_library_book(player: CharacterBody3D) -> void:
 			continue
 		if health.get_health_percent() > BOOK_EXECUTE_THRESHOLD:
 			continue
+<<<<<<< Updated upstream
 		var execute_amount: float = health.current_health + 1.0
 		health.take_damage(execute_amount, player)
 		_spawn_item_damage_number(enemy, execute_amount)
+=======
+		health.take_damage(health.current_health + 1.0, player)
+>>>>>>> Stashed changes
 		_spawn_vfx(FLASH_WHITE_SCENE, enemy.global_position + Vector3.UP)
 
 	_spawn_vfx(FLASH_WHITE_SCENE, player.global_position + Vector3.UP)
@@ -42774,6 +43171,7 @@ func _tick_hand_vacuum(delta: float, player: CharacterBody3D) -> void:
 		_fire_acid_beam(player)
 
 
+<<<<<<< Updated upstream
 ## BUGFIX: pruefte bisher die Gruppe "hazard" - LavaHazard (lemonade.gd)
 ## registriert sich aber unter "lava_hazards". Da nirgends im Projekt etwas
 ## der Gruppe "hazard" beitritt, lieferte diese Funktion IMMER false - die
@@ -42783,6 +43181,13 @@ func _player_stands_in_hazard(player: CharacterBody3D, range_m: float = 4.0) -> 
 		var hazard := node as Node3D
 		if hazard != null and is_instance_valid(hazard):
 			if hazard.global_position.distance_to(player.global_position) < range_m:
+=======
+func _player_stands_in_hazard(player: CharacterBody3D) -> bool:
+	for node: Node in get_tree().get_nodes_in_group("hazard"):
+		var hazard := node as Node3D
+		if hazard != null and is_instance_valid(hazard):
+			if hazard.global_position.distance_to(player.global_position) < 4.0:
+>>>>>>> Stashed changes
 				return true
 	return false
 
@@ -42862,6 +43267,7 @@ func _use_megaphone(player: CharacterBody3D) -> void:
 		# Die confused-Synergie steckt in StatusStun.damage_multiplier_against.
 		var factor: float = StatusStun.damage_multiplier_against(enemy, StatusStun.MEGAPHONE_DAMAGE_MULTIPLIER)
 		var health: Health = _health_of(enemy)
+<<<<<<< Updated upstream
 		var megaphone_damage: float = base * factor
 		if health != null:
 			health.take_damage(megaphone_damage, player)
@@ -42870,6 +43276,14 @@ func _use_megaphone(player: CharacterBody3D) -> void:
 		if enemy.has_method("interrupt_attack"):
 			enemy.interrupt_attack()
 		StatusSilenced.apply(enemy, 1.0, player)
+=======
+		if health != null:
+			health.take_damage(base * factor, player)
+		# Interrupt: laufende Telegraphs abbrechen.
+		if enemy.has_method("interrupt_attack"):
+			enemy.interrupt_attack()
+		StatusSilenced.apply(enemy, 0.8, player)
+>>>>>>> Stashed changes
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
 
 	_spawn_cone_flash(player, forward, MEGAPHONE_RANGE, MEGAPHONE_HALF_ANGLE_DEG, Color(1.0, 0.60, 0.15))
@@ -42924,13 +43338,17 @@ func _use_whipped_cream(player: CharacterBody3D) -> void:
 				var health: Health = _health_of(body)
 				if health != null and health.is_alive():
 					health.take_damage(CREAM_EXTINGUISH_DAMAGE, _player())
+<<<<<<< Updated upstream
 					_spawn_item_damage_number(body, CREAM_EXTINGUISH_DAMAGE)
+=======
+>>>>>>> Stashed changes
 				_spawn_vfx(HIT_SPARK_SCENE, body.global_position + Vector3.UP)
 	)
 
 	_fade_and_free(area, CREAM_LIFETIME, mesh_node)
 
 
+<<<<<<< Updated upstream
 # --- A9. Alte Ghettoblaster-Box ----------------------------------------------
 func _use_boombox(player: CharacterBody3D) -> void:
 	var origin: Vector3 = player.global_position
@@ -43023,6 +43441,8 @@ func _use_graffiti_can(player: CharacterBody3D) -> void:
 	Juice.shake(0.7)
 
 
+=======
+>>>>>>> Stashed changes
 ## Kegelfoermiger Aufblitzer fuer Feuerzeug, Sauger und Megafon.
 ##
 ## Ein ConeMesh mit Spitze am Spieler, das kurz aufgeht und ausblendet.
@@ -43049,6 +43469,7 @@ func _spawn_cone_flash(player: CharacterBody3D, forward: Vector3, range_m: float
 		if is_instance_valid(cone):
 			cone.queue_free()
 	)
+<<<<<<< Updated upstream
 
 
 # ============================================================================
@@ -43907,6 +44328,8 @@ func _use_lockdown(player: CharacterBody3D) -> void:
 		if is_instance_valid(telegraph):
 			telegraph.queue_free()
 	)
+=======
+>>>>>>> Stashed changes
 
 
 ===== FILE: scripts\items\item_catalog.gd =====
@@ -43995,6 +44418,7 @@ const ID_HANDBALL_PADS: String = "handball_pads"
 const ID_GOLDEN_CREDIT_CARD: String = "golden_credit_card"
 const ID_STILETTO_HEELS: String = "stiletto_heels"
 
+<<<<<<< Updated upstream
 # --- Tabellen-Nr. 41-50 (2.28-2.37): urspruenglich fehlende Passiv-Items ----
 const ID_MOSQUITO_SPRAY: String = "mosquito_spray"
 const ID_VAMPIRE_TEETH: String = "vampire_teeth"
@@ -44010,6 +44434,8 @@ const ID_COPPER_WIRE: String = "copper_wire"
 # --- Neuzugang: Papp-Wahrsagerbrett ------------------------------------------
 const ID_OUIJA_BOARD: String = "ouija_board"
 
+=======
+>>>>>>> Stashed changes
 # --- Phase 4: 8 aktive Items ------------------------------------------------
 const ID_STORM_LIGHTER: String = "storm_lighter"
 const ID_LIBRARY_BOOK: String = "library_book"
@@ -44019,6 +44445,7 @@ const ID_PEPPER_MILL: String = "pepper_mill"
 const ID_WALKMAN: String = "walkman"
 const ID_MEGAPHONE: String = "megaphone"
 const ID_WHIPPED_CREAM: String = "whipped_cream"
+<<<<<<< Updated upstream
 
 # --- Tabellen-Nr. 10-13 (1.10-1.13): urspruenglich fehlende Aktiv-Items ----
 const ID_BOOMBOX: String = "boombox"
@@ -44060,6 +44487,8 @@ const ID_PARANOIA: String = "paranoia"
 const ID_NANOSWARM: String = "nanoswarm"
 const ID_ALARMBOT: String = "alarmbot"
 const ID_LOCKDOWN: String = "lockdown"
+=======
+>>>>>>> Stashed changes
 
 
 ## Liefert alle Items als Array. Reihenfolge = Reihenfolge im Design-Dokument.
@@ -44075,8 +44504,12 @@ static func build_all() -> Array[ItemData]:
 		"Mamas Kochloeffel",
 		"Schlag die Hitze zurueck",
 		"Ein Treffer auf einen Gegner gibt 0,75 s lang 1,5x Tempo und Unverwundbarkeit.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.UNCOMMON,
 		14, "2.1"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.UNCOMMON
+>>>>>>> Stashed changes
 	)
 	items.append(spoon)
 
@@ -44085,8 +44518,12 @@ static func build_all() -> Array[ItemData]:
 		"Rostiges Beil",
 		"Schwere Hiebe",
 		"30 % Chance, Bluten zuzufuegen: 4 s lang jede Sekunde Schaden.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.COMMON,
 		15, "2.2"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.COMMON
+>>>>>>> Stashed changes
 	)
 	cleaver.stat_modifiers = { PlayerStats.STAT_DAMAGE: {"mul": 1.05} }
 	items.append(cleaver)
@@ -44096,8 +44533,12 @@ static func build_all() -> Array[ItemData]:
 		"Statische Socke",
 		"Ladung baut sich auf",
 		"Jeder 6. Treffer entlaedt eine Schockwelle: doppelter Schaden im Umkreis, Gegner werden zurueckgestossen.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE,
 		16, "2.3"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(sock)
 
@@ -44106,8 +44547,12 @@ static func build_all() -> Array[ItemData]:
 		"Hoellenfeuer-Hoerner",
 		"Ramm sie!",
 		"Wer mit hohem Tempo in einen Gegner laeuft, loest eine Ramm-Attacke aus: hoher Kontaktschaden und Rueckstoss.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.RARE,
 		17, "2.4"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	horns.stat_modifiers = { PlayerStats.STAT_MOVE_SPEED: {"add": 1.0} }
 	items.append(horns)
@@ -44117,8 +44562,12 @@ static func build_all() -> Array[ItemData]:
 		"Heiliges Oel",
 		"Hinterlasse eine Spur",
 		"Hinterlaesst beim Laufen eine Pfuetze. Gegner darin erleiden Schaden und werden 25 % verlangsamt.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.EPIC,
 		18, "2.5"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	items.append(oil)
 
@@ -44127,8 +44576,12 @@ static func build_all() -> Array[ItemData]:
 		"Papas Starthilfekabel",
 		"Zisch & Zap",
 		"Sofortiger Dash nach vorne. Durchquerte Gegner nehmen hohen Schaden und werden 2 s betaeubt.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.EPIC,
 		1, "1.1"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	cables.charge_rooms = 2
 	items.append(cables)
@@ -44138,8 +44591,12 @@ static func build_all() -> Array[ItemData]:
 		"Magnetischer Kompass",
 		"Alles kommt zu dir",
 		"Zieht Muenzen, Herzen und abgelegte Bomben im Umkreis von 6 m automatisch an.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.UNCOMMON,
 		19, "2.6"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.UNCOMMON
+>>>>>>> Stashed changes
 	)
 	# 6 m absolut: der Basiswert liegt bei 2.2, also +3.8 additiv.
 	compass.stat_modifiers = { PlayerStats.STAT_PICKUP_RANGE: {"add": 3.8} }
@@ -44150,8 +44607,12 @@ static func build_all() -> Array[ItemData]:
 		"Saeurefeste Stiefel",
 		"Die Limonade beisst nicht mehr",
 		"75 % weniger Schaden durch saure Limonade und keine Verlangsamung mehr beim Durchwaten.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.LEGENDARY,
 		20, "2.7"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.LEGENDARY
+>>>>>>> Stashed changes
 	)
 	boots.stat_modifiers = { PlayerStats.STAT_HAZARD_RESIST: {"mul": 0.25} }
 	items.append(boots)
@@ -44168,8 +44629,12 @@ static func build_all() -> Array[ItemData]:
 		"Proteinshake aus den 90ern",
 		"Abgelaufen, aber wirksam",
 		"+25 % Schaden. Deine Angriffs-Reichweite schrumpft dafuer um 15 %.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.UNCOMMON,
 		21, "2.8"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.UNCOMMON
+>>>>>>> Stashed changes
 	)
 	shake.stat_modifiers = { PlayerStats.STAT_DAMAGE: {"mul": 1.25} }
 	items.append(shake)
@@ -44179,9 +44644,14 @@ static func build_all() -> Array[ItemData]:
 		ID_TIGHT_PANTS,
 		"Omas Enge Hosen",
 		"Sitzt wie angegossen. Zu gut.",
+<<<<<<< Updated upstream
 		"+20 % Tempo. Vorbeirennen oder ein abrupter Richtungswechsel loesen einen Tritt aus: halber Schaden und starker Rueckstoss (~4 m).",
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.UNCOMMON,
 		22, "2.9"
+=======
+		"+20 % Tempo. Wer im Vorbeirennen einen Gegner streift, tritt automatisch zu (halber Schaden).",
+		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.UNCOMMON
+>>>>>>> Stashed changes
 	)
 	pants.stat_modifiers = { PlayerStats.STAT_MOVE_SPEED: {"mul": 1.20} }
 	items.append(pants)
@@ -44192,8 +44662,12 @@ static func build_all() -> Array[ItemData]:
 		"Plastik-Heiligenschein",
 		"Aus dem Karnevalsbedarf",
 		"+1 maximales Leben. Jeder Kill hat 10 % Chance, 0,5 Leben zu heilen.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.UNCOMMON,
 		23, "2.10"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.UNCOMMON
+>>>>>>> Stashed changes
 	)
 	halo.stat_modifiers = { PlayerStats.STAT_MAX_HEALTH: {"add": 1.0} }
 	items.append(halo)
@@ -44204,8 +44678,12 @@ static func build_all() -> Array[ItemData]:
 		"Das Blutpakt",
 		"Unterschrieben, nicht gelesen",
 		"+40 % Schaden. Jeder 5. Treffer kostet dich selbst 0,5 Leben.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE,
 		24, "2.11"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	pact.stat_modifiers = { PlayerStats.STAT_DAMAGE: {"mul": 1.40} }
 	items.append(pact)
@@ -44215,9 +44693,14 @@ static func build_all() -> Array[ItemData]:
 		ID_ROOF_NAIL,
 		"Rostiger Dachnagel",
 		"Festgenagelt",
+<<<<<<< Updated upstream
 		"25 % Chance, einen getroffenen Gegner 1,5 s lang festzunageln: er kann sich nicht mehr bewegen, sein Angriff wird sofort unterbrochen, und er ist gegen Rueckstoss immun.",
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE,
 		25, "2.12"
+=======
+		"25 % Chance, einen getroffenen Gegner 1,5 s lang festzunageln. Er kann sich nicht mehr bewegen.",
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(nail)
 
@@ -44227,8 +44710,12 @@ static func build_all() -> Array[ItemData]:
 		"Kaugummi unter dem Schuh",
 		"Da war doch was am Absatz",
 		"Jeder Dash hinterlaesst eine klebrige Spur: Gegner darin werden 1,5 s verlangsamt. Steht ein Gegner in Saeure, haelt die Saeure 50 % laenger.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.RARE,
 		26, "2.13"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(gum)
 
@@ -44238,8 +44725,12 @@ static func build_all() -> Array[ItemData]:
 		"Kaputter Toaster",
 		"Bitte nicht mit der Gabel",
 		"Wenn du getroffen wirst, stossen Funken alle Nahkampf-Gegner zurueck. Brennende Gegner nehmen dabei sofort doppelten Feuerschaden.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.RARE,
 		27, "2.14"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(toaster)
 
@@ -44249,8 +44740,12 @@ static func build_all() -> Array[ItemData]:
 		"Mutters Haarspray",
 		"FCKW-frei, angeblich",
 		"Schlaege erzeugen eine Spruehwolke: Gegner darin brauchen 0,5 s laenger fuer ihre Angriffe. Trifft die Wolke Feuer, explodiert sie.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.RARE,
 		28, "2.15"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(spray)
 
@@ -44260,8 +44755,12 @@ static func build_all() -> Array[ItemData]:
 		"Altes Modulations-Modem",
 		"Kshhh-pshhh-diiing",
 		"Jeder 10. Schlag sendet eine Einwahl-Welle: Gegner koennen 1 s lang keine Spezialangriffe starten. Betaeubte Gegner nehmen kritischen Zusatzschaden.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.EPIC,
 		29, "2.16"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	items.append(modem)
 
@@ -44271,8 +44770,12 @@ static func build_all() -> Array[ItemData]:
 		"Laser-Pointer aus dem Kiosk",
 		"Die Katze ist woanders",
 		"Markiert dauerhaft den Gegner mit den meisten Lebenspunkten: +15 % Schaden gegen ihn. Erleidet er Schaden ueber Zeit, springt die Haelfte davon auf umstehende Gegner ueber.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC,
 		30, "2.17"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	items.append(laser)
 
@@ -44282,8 +44785,12 @@ static func build_all() -> Array[ItemData]:
 		"Ueberkochter Milchreis",
 		"Steht seit Dienstag auf dem Herd",
 		"Stehen bleiben baut einen Schild auf (bis 15 % deiner Maximal-HP). Solange der Schild haelt, bist du komplett immun gegen Saeure und Boden-Hazards.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.EPIC,
 		31, "2.18"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	items.append(rice)
 
@@ -44293,8 +44800,12 @@ static func build_all() -> Array[ItemData]:
 		"Tennisball an der Schnur",
 		"Kommt immer zurueck",
 		"Jeder Dash feuert einen Tennisball nach vorn, der Gegner auf Distanz zurueckstoesst. Blutende Getroffene bluten wieder von vorn.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.RARE,
 		32, "2.19"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(tennis)
 
@@ -44304,8 +44815,12 @@ static func build_all() -> Array[ItemData]:
 		"Disco-Kugel-Anhaenger",
 		"Samstagnacht, jede Nacht",
 		"Kills werfen Lichtreflexe durch den Raum. 10 % Chance, umstehende Gegner 2 s zu verwirren. Verwirrte Gegner nehmen 25 % mehr Schaden, wenn sie betaeubt sind.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.RARE,
 		33, "2.20"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(disco)
 
@@ -44315,8 +44830,12 @@ static func build_all() -> Array[ItemData]:
 		"Gefrierbeutel voll Eis",
 		"Fuer die Schwellung",
 		"15 % Chance, einen Gegner 2 s lang um 40 % zu verlangsamen. Trifft es einen brennenden Gegner, entlaedt der Thermoschock den gesamten Restbrand auf einen Schlag.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE,
 		34, "2.21"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(ice)
 
@@ -44326,8 +44845,12 @@ static func build_all() -> Array[ItemData]:
 		"Omas Stricknadeln",
 		"Zwei rechts, eine durch",
 		"+10 % Angriffsgeschwindigkeit, kritische Treffer ignorieren Ruestung. Die Blutungs-Chance im Nahkampf steigt von 30 % auf 50 %.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE,
 		35, "2.22"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	# STAT_COOLDOWN wirkt als Teiler auf die Angriffszeit (siehe
 	# PlayerStats.get_attack_speed) — 0.909 entspricht +10 % Tempo.
@@ -44340,8 +44863,12 @@ static func build_all() -> Array[ItemData]:
 		"Teufelchen-Outfit",
 		"Rote Augen, schlechte Laune",
 		"Unter 50 % Leben: +50 % Schaden. Dein Modell gluent dabei dauerhaft rot.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE,
 		36, "2.23"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(devil)
 
@@ -44351,8 +44878,12 @@ static func build_all() -> Array[ItemData]:
 		"Nonnen-Kutte",
 		"Leiden hat seinen Lohn",
 		"Wenn du Schaden nimmst: 25 % Chance, dass ein aktives Item sofort wieder aufgeladen ist.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.RARE,
 		37, "2.24"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	items.append(nun)
 
@@ -44362,8 +44893,12 @@ static func build_all() -> Array[ItemData]:
 		"Handball-Schulterpolster",
 		"Kreislaeufer-Ausruestung",
 		"Einmal pro Raum: toedlicher Schaden laesst dich stattdessen mit 1 Leben stehen.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.EPIC,
 		38, "2.25"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	items.append(pads)
 
@@ -44373,8 +44908,12 @@ static func build_all() -> Array[ItemData]:
 		"Goldene Kreditkarte",
 		"Limit? Welches Limit?",
 		"+2 % Schaden je 10 Muenzen im Beutel, bis maximal +50 %.",
+<<<<<<< Updated upstream
 		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.UNCOMMON,
 		39, "2.26"
+=======
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.UNCOMMON
+>>>>>>> Stashed changes
 	)
 	items.append(card)
 
@@ -44383,6 +44922,7 @@ static func build_all() -> Array[ItemData]:
 		ID_STILETTO_HEELS,
 		"Mamas Stoeckelschuhe",
 		"Klack. Klack. Zisch.",
+<<<<<<< Updated upstream
 		"Beim Rennen bleiben 2 s lange Saeure-Lachen zurueck. Gegner darin nehmen Saeureschaden und werden langsamer. Jeder 3. Schritt loest eine Schockwelle aus, die nahe Gegner kurz straucheln laesst.",
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.EPIC,
 		40, "2.27"
@@ -44511,6 +45051,13 @@ static func build_all() -> Array[ItemData]:
 	)
 	items.append(ouija)
 
+=======
+		"Beim Rennen bleiben 2 s lange Saeure-Lachen zurueck. Gegner darin nehmen Saeureschaden und werden langsamer.",
+		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.EPIC
+	)
+	items.append(heels)
+
+>>>>>>> Stashed changes
 	# ======================================================================
 	# PHASE 4 — 8 AKTIVE ITEMS
 	# ======================================================================
@@ -44521,8 +45068,12 @@ static func build_all() -> Array[ItemData]:
 		"Sturmfeuerzeug",
 		"Haelt jedem Wind stand",
 		"Spuckt einen 90-Grad-Feuerbogen nach vorn: dreifacher Schaden, Gegner brennen 3 s lang nach.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.MELEE, ItemData.Rarity.EPIC,
 		2, "1.2"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.MELEE, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	lighter.cooldown_seconds = 3.0
 	items.append(lighter)
@@ -44536,8 +45087,12 @@ static func build_all() -> Array[ItemData]:
 		"Schulbibliotheks-Buch",
 		"Ueberfaellig seit 1997",
 		"Toetet sofort alle Gegner im Raum unter 20 % Leben. Nur einmal pro Etage.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.LEGENDARY,
 		3, "1.3"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.LEGENDARY
+>>>>>>> Stashed changes
 	)
 	book.charge_rooms = 0
 	items.append(book)
@@ -44548,8 +45103,12 @@ static func build_all() -> Array[ItemData]:
 		"Verfluchter Glueckswuerfel",
 		"Neu wuerfeln kostet dich etwas",
 		"Wandelt alle herumliegenden Drops im Raum in zufaellige andere Drops um.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.RARE,
 		4, "1.4"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.RARE
+>>>>>>> Stashed changes
 	)
 	cursed.cooldown_seconds = 10.0
 	items.append(cursed)
@@ -44560,8 +45119,12 @@ static func build_all() -> Array[ItemData]:
 		"Alter Handstaubsauger",
 		"Beutel seit Jahren nicht gewechselt",
 		"Saugt 2,5 s lang Gegner im Kegel zu dir heran. Saugt dabei Saeure vom Boden auf und feuert sie als Strahl zurueck.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC,
 		5, "1.5"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	vacuum.cooldown_seconds = 6.0
 	items.append(vacuum)
@@ -44572,8 +45135,12 @@ static func build_all() -> Array[ItemData]:
 		"Omas Pfeffermuehle",
 		"Immer zu viel",
 		"Erzeugt eine Pfefferwolke: Gegner niesen und koennen 2 s nicht angreifen. Alle laufenden Schaden-ueber-Zeit-Effekte halten 3 s laenger.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC,
 		6, "1.6"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	pepper.cooldown_seconds = 8.0
 	items.append(pepper)
@@ -44584,8 +45151,12 @@ static func build_all() -> Array[ItemData]:
 		"Walkman (kaputt)",
 		"Band verheddert, Bass intakt",
 		"Eine Schockwelle zerstoert alle Projektile und stoesst Gegner zurueck. Getroffene sind 4 s lang voellig orientierungslos.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.DEFENSE, ItemData.Rarity.LEGENDARY,
 		7, "1.7"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.DEFENSE, ItemData.Rarity.LEGENDARY
+>>>>>>> Stashed changes
 	)
 	walkman.cooldown_seconds = 12.0
 	items.append(walkman)
@@ -44596,8 +45167,12 @@ static func build_all() -> Array[ItemData]:
 		"Megafon aus der Schule",
 		"RUHE JETZT",
 		"Ein Schrei nach vorn unterbricht Gegner und verursacht Schaden. Gegen bereits betaeubte Gegner dreifacher Schaden.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.MELEE, ItemData.Rarity.EPIC,
 		8, "1.8"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.MELEE, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	megaphone.cooldown_seconds = 5.0
 	items.append(megaphone)
@@ -44608,12 +45183,17 @@ static func build_all() -> Array[ItemData]:
 		"Spruehsahne-Dose",
 		"Direkt aus der Dose",
 		"Legt einen Sahneteppich aus: Gegner rutschen aus und liegen 1,5 s am Boden. Loescht brennende Gegner und richtet dabei massiven Schaden an.",
+<<<<<<< Updated upstream
 		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC,
 		9, "1.9"
+=======
+		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC
+>>>>>>> Stashed changes
 	)
 	cream.cooldown_seconds = 7.0
 	items.append(cream)
 
+<<<<<<< Updated upstream
 	# --- A9. Alte Ghettoblaster-Box (9 s) ---------------------------------
 	var boombox := ItemData.create(
 		ID_BOOMBOX,
@@ -44966,6 +45546,8 @@ static func build_all() -> Array[ItemData]:
 	lockdown.cooldown_seconds = 26.0
 	items.append(lockdown)
 
+=======
+>>>>>>> Stashed changes
 	return items
 
 
@@ -47937,22 +48519,30 @@ class_name StageTheme
 @export var wall_color: Color = Color(0.48, 0.47, 0.44)
 ## Decke und Wandkappen (die Minimap-Deckel).
 @export var ceiling_color: Color = Color(0.035, 0.04, 0.035)
+<<<<<<< Updated upstream
 ## Tueren heben sich bewusst leicht ab, damit sie lesbar bleiben - ABER im
 ## selben Hue wie die Wand (siehe _door_shade()), nur heller/dunkler. Vorher
 ## stand hier pro Theme ein frei erfundener Farbton, der teils in eine ganz
 ## andere Farbfamilie kippte (z.B. Neon-Theme: lila Wand, aber magenta Tuer)
 ## und dadurch wie ein Stilbruch statt wie eine Lesbarkeits-Hilfe wirkte.
+=======
+## Tueren heben sich bewusst leicht ab, damit sie lesbar bleiben.
+>>>>>>> Stashed changes
 @export var door_color: Color = Color(0.70, 0.62, 0.45)
 
 ## Nebelfarbe/Umgebungslicht der Etage. Wird von stage_manager.gd auf die
 ## WorldEnvironment gelegt, falls eine vorhanden ist.
 @export var fog_color: Color = Color(0.05, 0.05, 0.07)
 @export var fog_density: float = 0.012
+<<<<<<< Updated upstream
 ## BUGFIX "Character wirkt schwarz/im Schatten": siehe dungeon_atmosphere.gd
 ## - dieselbe Anhebung, damit sie nach einem Etagenwechsel (stage_manager.gd
 ## _apply_environment() ueberschreibt ambient_light_energy pro Etage mit
 ## diesem Wert) nicht wieder zurueckfaellt.
 @export var ambient_energy: float = 0.55
+=======
+@export var ambient_energy: float = 0.35
+>>>>>>> Stashed changes
 
 ## Farbe der Lava-/Limonaden-Hazards dieser Etage. Rein kosmetisch —
 ## der Schaden bleibt gleich.
@@ -47980,6 +48570,7 @@ func tint_for_node_name(node_name: String) -> Color:
 	return wall_color
 
 
+<<<<<<< Updated upstream
 ## Leitet den Tuerton AUS dem Wandton ab: gleicher Hue/gleiche Saettigung,
 ## nur heller — statt eines frei erfundenen Tons pro Theme (der frueher teils
 ## in eine andere Farbfamilie kippte, siehe door_color-Kommentar). So bleibt
@@ -47989,6 +48580,8 @@ static func _door_shade(wall: Color) -> Color:
 	return Color.from_hsv(wall.h, wall.s * 0.85, clampf(wall.v * 1.4 + 0.12, 0.0, 1.0))
 
 
+=======
+>>>>>>> Stashed changes
 ## Die eingebauten Themen. Bewusst im Code und nicht als .tres-Dateien —
 ## dieselbe Begruendung wie beim ItemCatalog: ein neues Theme ist ein
 ## Funktionsaufruf, und Balancing-Aenderungen bleiben im Git-Diff lesbar.
@@ -48003,10 +48596,17 @@ static func build_all() -> Array[StageTheme]:
 	dungeon.floor_color = Color(0.58, 0.55, 0.50)
 	dungeon.wall_color = Color(0.44, 0.43, 0.40)
 	dungeon.ceiling_color = Color(0.035, 0.040, 0.035)
+<<<<<<< Updated upstream
 	dungeon.door_color = _door_shade(dungeon.wall_color)
 	dungeon.fog_color = Color(0.05, 0.05, 0.06)
 	dungeon.fog_density = 0.012
 	dungeon.ambient_energy = 0.55
+=======
+	dungeon.door_color = Color(0.70, 0.60, 0.42)
+	dungeon.fog_color = Color(0.05, 0.05, 0.06)
+	dungeon.fog_density = 0.012
+	dungeon.ambient_energy = 0.35
+>>>>>>> Stashed changes
 	dungeon.hazard_color = Color(0.88, 0.95, 0.22)
 	themes.append(dungeon)
 
@@ -48015,10 +48615,17 @@ static func build_all() -> Array[StageTheme]:
 	ice.floor_color = Color(0.72, 0.84, 0.95)
 	ice.wall_color = Color(0.52, 0.68, 0.86)
 	ice.ceiling_color = Color(0.06, 0.09, 0.14)
+<<<<<<< Updated upstream
 	ice.door_color = _door_shade(ice.wall_color)
 	ice.fog_color = Color(0.10, 0.16, 0.24)
 	ice.fog_density = 0.020
 	ice.ambient_energy = 0.70
+=======
+	ice.door_color = Color(0.85, 0.93, 1.0)
+	ice.fog_color = Color(0.10, 0.16, 0.24)
+	ice.fog_density = 0.020
+	ice.ambient_energy = 0.55
+>>>>>>> Stashed changes
 	ice.hazard_color = Color(0.55, 0.90, 1.0)
 	themes.append(ice)
 
@@ -48027,10 +48634,17 @@ static func build_all() -> Array[StageTheme]:
 	desert.floor_color = Color(0.88, 0.76, 0.48)
 	desert.wall_color = Color(0.70, 0.56, 0.34)
 	desert.ceiling_color = Color(0.12, 0.09, 0.05)
+<<<<<<< Updated upstream
 	desert.door_color = _door_shade(desert.wall_color)
 	desert.fog_color = Color(0.26, 0.20, 0.12)
 	desert.fog_density = 0.008
 	desert.ambient_energy = 0.85
+=======
+	desert.door_color = Color(0.55, 0.40, 0.24)
+	desert.fog_color = Color(0.26, 0.20, 0.12)
+	desert.fog_density = 0.008
+	desert.ambient_energy = 0.70
+>>>>>>> Stashed changes
 	desert.hazard_color = Color(0.95, 0.65, 0.15)
 	themes.append(desert)
 
@@ -48039,10 +48653,17 @@ static func build_all() -> Array[StageTheme]:
 	flesh.floor_color = Color(0.62, 0.30, 0.30)
 	flesh.wall_color = Color(0.45, 0.20, 0.22)
 	flesh.ceiling_color = Color(0.10, 0.03, 0.04)
+<<<<<<< Updated upstream
 	flesh.door_color = _door_shade(flesh.wall_color)
 	flesh.fog_color = Color(0.16, 0.05, 0.06)
 	flesh.fog_density = 0.018
 	flesh.ambient_energy = 0.60
+=======
+	flesh.door_color = Color(0.80, 0.45, 0.40)
+	flesh.fog_color = Color(0.16, 0.05, 0.06)
+	flesh.fog_density = 0.018
+	flesh.ambient_energy = 0.40
+>>>>>>> Stashed changes
 	flesh.hazard_color = Color(0.95, 0.25, 0.25)
 	themes.append(flesh)
 
@@ -48051,10 +48672,17 @@ static func build_all() -> Array[StageTheme]:
 	neon.floor_color = Color(0.30, 0.28, 0.45)
 	neon.wall_color = Color(0.22, 0.20, 0.38)
 	neon.ceiling_color = Color(0.04, 0.03, 0.09)
+<<<<<<< Updated upstream
 	neon.door_color = _door_shade(neon.wall_color)
 	neon.fog_color = Color(0.10, 0.04, 0.18)
 	neon.fog_density = 0.022
 	neon.ambient_energy = 0.65
+=======
+	neon.door_color = Color(0.85, 0.35, 0.95)
+	neon.fog_color = Color(0.10, 0.04, 0.18)
+	neon.fog_density = 0.022
+	neon.ambient_energy = 0.45
+>>>>>>> Stashed changes
 	neon.hazard_color = Color(0.40, 1.0, 0.85)
 	themes.append(neon)
 
@@ -58255,6 +58883,7 @@ static func thermal_shock(target: Node, source: Node = null) -> float:
 	return burst
 
 
+<<<<<<< Updated upstream
 ===== FILE: scripts\status_effects\charm.gd =====
 
 # res://scripts/status_effects/charm.gd
@@ -58305,6 +58934,8 @@ static func clear(target: Node) -> void:
 	remove(target, ID)
 
 
+=======
+>>>>>>> Stashed changes
 ===== FILE: scripts\status_effects\confused.gd =====
 
 # res://scripts/status_effects/confused.gd
@@ -58966,7 +59597,11 @@ class_name StatusEffectVisuals
 ## Ein betaeubter, brennender Gegner zeigt Stun, weil das die Information
 ## ist, auf die der Spieler reagieren muss.
 const PRIORITY: PackedStringArray = [
+<<<<<<< Updated upstream
 	"stun", "rooted", "charm", "confused", "silenced", "burn", "acid", "bleed", "poison", "slow"
+=======
+	"stun", "rooted", "confused", "silenced", "burn", "acid", "bleed", "poison", "slow"
+>>>>>>> Stashed changes
 ]
 
 ## Wie stark die Grundfarbe pulsiert (0 = konstant).
@@ -59069,8 +59704,11 @@ func _color_for(id: String) -> Color:
 			return StatusStun.TINT_COLOR
 		StatusRooted.ID:
 			return StatusRooted.TINT_COLOR
+<<<<<<< Updated upstream
 		StatusCharm.ID:
 			return StatusCharm.TINT_COLOR
+=======
+>>>>>>> Stashed changes
 		StatusSilenced.ID:
 			return StatusSilenced.TINT_COLOR
 		StatusBurn.ID:
@@ -59095,8 +59733,11 @@ func _strength_for(id: String) -> float:
 			return StatusStun.TINT_STRENGTH
 		StatusRooted.ID:
 			return StatusRooted.TINT_STRENGTH
+<<<<<<< Updated upstream
 		StatusCharm.ID:
 			return StatusCharm.TINT_STRENGTH
+=======
+>>>>>>> Stashed changes
 		StatusSilenced.ID:
 			return StatusSilenced.TINT_STRENGTH
 		StatusBurn.ID:

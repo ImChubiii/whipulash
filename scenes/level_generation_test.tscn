@@ -21,15 +21,27 @@
 [ext_resource type="Resource" path="res://resources/rooms/rd_combat_05.tres" id="19_c5"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_combat_06.tres" id="20_c6"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_treasure_01.tres" id="21_treasure"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_arena_01.tres" id="21_voeuj"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_boss_01.tres" id="22_boss"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_tall_01.tres" id="22_sfryd"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_corridor_01.tres" id="23_cor1"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_wide_01.tres" id="23_g4he2"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_corridor_02.tres" id="24_cor2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_07.tres" id="24_rhypk"]
 [ext_resource type="PackedScene" uid="uid://by0b1jhagnufc" path="res://scenes/settings_menu.tscn" id="25_0k6p3"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_08.tres" id="25_d7wii"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_09.tres" id="26_bdxf7"]
 [ext_resource type="Script" uid="uid://dwt0yaa3wpd88" path="res://scripts/pause_menu.gd" id="26_w0ny2"]
 [ext_resource type="Script" uid="uid://dxyv5a1sw55fi" path="res://scripts/death_screen.gd" id="27_bfk81"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_10.tres" id="27_c7ki5"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_11.tres" id="28_gk7nh"]
 [ext_resource type="Script" uid="uid://db5uecd4skkkf" path="res://scenes/win_screen.gd" id="28_pd8jf"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_03.tres" id="28_sfryd"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_12.tres" id="29_ihjgr"]
 [ext_resource type="Shader" uid="uid://x7lpwspvu1ps" path="res://shaders/crt_effect.gdshader" id="29_o54k0"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_02.tres" id="30_76447"]
 [ext_resource type="Script" uid="uid://cuwskgjnb7lk5" path="res://scenes/submersion_overlay.gd" id="30_u4jxp"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_treasure_03.tres" id="31_28nlm"]
 [ext_resource type="PackedScene" uid="uid://bhudmain001" path="res://scenes/ui/hud.tscn" id="31_w24rf"]
 [ext_resource type="Texture2D" uid="uid://b66s3j5jjf1yw" path="res://assets/textures/ui/image-removebg-preview (11).png" id="32_u4jxp"]
 [ext_resource type="Script" uid="uid://bc1r7nx0s4xr0" path="res://scenes/target_reticle.gd" id="33_w24rf"]
@@ -105,7 +117,11 @@ script = ExtResource("2_grid")
 
 [node name="LevelGenerator" type="Node" parent="." unique_id=864998062 node_paths=PackedStringArray("grid_generator", "navigation_region")]
 script = ExtResource("1_lg")
+<<<<<<< Updated upstream
 room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("35_c7"), ExtResource("36_c8"), ExtResource("37_c9"), ExtResource("38_c10"), ExtResource("39_c11"), ExtResource("40_c12"), ExtResource("41_cwide"), ExtResource("42_ctall"), ExtResource("43_carena"), ExtResource("44_cor3"), ExtResource("45_treasure2"), ExtResource("46_treasure3"), ExtResource("47_abyss1"), ExtResource("48_abyss2"), ExtResource("49_abyss3")])
+=======
+room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("22_boss"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("24_rhypk"), ExtResource("25_d7wii"), ExtResource("26_bdxf7"), ExtResource("27_c7ki5"), ExtResource("28_gk7nh"), ExtResource("29_ihjgr"), ExtResource("21_voeuj"), ExtResource("22_sfryd"), ExtResource("23_g4he2"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("28_sfryd"), ExtResource("14_start"), ExtResource("21_treasure"), ExtResource("30_76447"), ExtResource("31_28nlm")])
+>>>>>>> Stashed changes
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")
