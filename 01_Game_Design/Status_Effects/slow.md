@@ -6,7 +6,7 @@ damage_per_tick: 0.0
 is_damage_over_time: false
 heavy_duration: "2.0"
 synergies: ["amount_on"]
-triggered_by_items: ["holy_oil", "chewing_gum", "hairspray", "ice_bag", "stiletto_heels", "bubble_gum", "copper_wire", "pocket_fan", "slow_orb", "nightfall"]
+triggered_by_items: ["holy_oil", "chewing_gum", "hairspray", "ice_bag", "stiletto_heels", "bubble_gum", "pocket_fan", "slow_orb", "nightfall"]
 tags: [status-effect]
 ---
 
@@ -23,6 +23,15 @@ SLOW — prozentuale Verlangsamung.
 | Schaden/Tick | — |
 | Heavy-Variante | 2.0 |
 
+
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `DEFAULT_AMOUNT` | 0.25 |
+| `HEAVY_AMOUNT` | 0.40 |
+| `TINT_STRENGTH` | 0.28 |
+
 ## Synergien
 
 - `amount_on()`
@@ -35,10 +44,13 @@ SLOW — prozentuale Verlangsamung.
 - [[ice_bag]]
 - [[stiletto_heels]]
 - [[bubble_gum]]
-- [[copper_wire]]
 - [[pocket_fan]]
 - [[slow_orb]]
 - [[nightfall]]
+
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+- —
 
 ## Gegner-Interaktion
 

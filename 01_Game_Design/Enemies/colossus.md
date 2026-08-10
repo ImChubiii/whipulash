@@ -14,6 +14,7 @@ zigzag_enabled: false
 weight: 1.0
 max_per_room: 3
 guaranteed_count: 3
+tier: levelgen
 tags: [enemy]
 ---
 
@@ -54,6 +55,14 @@ Zusammensetzung. Siehe [[level_generator]].
 - [[rooted]] — sperrt bewusst NUR die Bewegung, nicht den Angriff (Abgrenzung zu `stun`)
 
 - [[boss_01]] — `min_room_height = 20.0` in `es_colossus.tres` ist laut Kommentar in `enemy_spawn_entry.gd` bewusst auf die 24 Units hohe Boss-Arena zugeschnitten; kein anderer Raumtyp ist hoch genug.
+
+## Verwandt
+
+Basiert auf `enemy_ai.gd` (Chase-Attack-State-Machine, importiertes
+Roboter-Mesh). Seit Phase 5 existiert daneben ein zweiter, unabhaengiger
+Gegner-Unterbau — [[custom_enemy_base]] — fuer stationaere/fliegende
+Spezialtypen ohne Laufanimation. Siehe MOC_Enemies fuer den vollstaendigen
+Ueberblick beider Systeme.
 
 ## Quelle
 

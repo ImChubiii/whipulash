@@ -23,6 +23,7 @@ VULNERABLE — generischer Status ohne eigene Datei. Erhoeht den Schaden, den da
 | Schaden/Tick | — |
 | Heavy-Variante | — |
 
+
 ## Synergien
 
 - —
@@ -31,6 +32,10 @@ VULNERABLE — generischer Status ohne eigene Datei. Erhoeht den Schaden, den da
 
 - [[snake_bite]]
 - [[alarmbot]]
+
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+- —
 
 ## Gegner-Interaktion
 

@@ -60,3 +60,5 @@ Projektile der alten Etage.
 
 - [[stage_theme]] (falls vorhanden) — Farbwelt pro Etage.
 - Alle Notizen unter `01_Game_Design/Rooms/`.
+- [[custom_enemy_base]] / [[enemy_sandbox_room]] — sechs neue Gegnertypen,
+  die noch NICHT in den Threat-Budget-Tabellen dieser Klasse stecken.

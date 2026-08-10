@@ -11,6 +11,8 @@ nr: "40"
 table_ref: "2.27"
 has_stat_modifiers: false
 status_effects: ["acid", "slow", "stun"]
+reacts_to_status: []
+synergizes_with: []
 tags: [item, "item/passive", "rarity/epic"]
 ---
 
@@ -30,6 +32,20 @@ Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
 - [[acid]]
 - [[slow]]
 - [[stun]]
+
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
 
 ## Metadaten
 

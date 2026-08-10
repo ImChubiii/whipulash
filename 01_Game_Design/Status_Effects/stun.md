@@ -6,7 +6,7 @@ damage_per_tick: 0.0
 is_damage_over_time: false
 heavy_duration: ""
 synergies: ["damage_multiplier_against"]
-triggered_by_items: ["jumper_cables", "modem_56k", "stiletto_heels", "battery_pack", "megaphone", "shock_bolt", "rolling_thunder", "fault_line", "lockdown"]
+triggered_by_items: ["jumper_cables", "stiletto_heels", "battery_pack", "shock_bolt", "rolling_thunder", "fault_line", "lockdown"]
 tags: [status-effect]
 ---
 
@@ -23,6 +23,15 @@ STUN — vollstaendige Handlungsunfaehigkeit.
 | Schaden/Tick | — |
 | Heavy-Variante | — |
 
+
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `TINT_STRENGTH` | 0.40 |
+| `MEGAPHONE_DAMAGE_MULTIPLIER` | 3.0 |
+| `MODEM_CRIT_MULTIPLIER` | 1.75 |
+
 ## Synergien
 
 - `damage_multiplier_against()`
@@ -30,14 +39,16 @@ STUN — vollstaendige Handlungsunfaehigkeit.
 ## Ausgeloest von (Items)
 
 - [[jumper_cables]]
-- [[modem_56k]]
 - [[stiletto_heels]]
 - [[battery_pack]]
-- [[megaphone]]
 - [[shock_bolt]]
 - [[rolling_thunder]]
 - [[fault_line]]
 - [[lockdown]]
+
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+- —
 
 ## Gegner-Interaktion
 

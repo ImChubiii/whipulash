@@ -11,6 +11,8 @@ nr: "36"
 table_ref: "2.23"
 has_stat_modifiers: false
 status_effects: []
+reacts_to_status: []
+synergizes_with: []
 tags: [item, "item/passive", "rarity/rare"]
 ---
 
@@ -26,6 +28,20 @@ Unter 50 % Leben: +50 % Schaden. Dein Modell gluent dabei dauerhaft rot.
 
 Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
 `StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
+
+- —
+
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
 
 - —
 

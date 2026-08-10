@@ -44,4 +44,6 @@ Lookup/Apply/VFX-Block sonst wortgleich dupliziert haetten.
 ## Verwandt
 
 - [[player_base]] — Spieler-seitige Anbindung.
+- [[custom_enemy_base]] — zweite Anbindungsstelle fuer die sechs neuen
+  Sandbox-Prototyp-Gegner (`enemy_ai.gd` deckt nur Fighter/Stinger/Colossus ab).
 - Alle Notizen unter `01_Game_Design/Status_Effects/`.

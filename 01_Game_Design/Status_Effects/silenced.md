@@ -23,6 +23,13 @@ SILENCED — keine Spezialangriffe, keine Telegraphs.
 | Schaden/Tick | — |
 | Heavy-Variante | — |
 
+
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `TINT_STRENGTH` | 0.30 |
+
 ## Synergien
 
 - —
@@ -38,6 +45,10 @@ SILENCED — keine Spezialangriffe, keine Telegraphs.
 - [[nightfall]]
 - [[paranoia]]
 - [[lockdown]]
+
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+- [[boombox]] — Effekt greift nur, wenn dieser Status bereits aktiv ist
 
 ## Gegner-Interaktion
 

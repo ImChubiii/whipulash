@@ -6,7 +6,7 @@ damage_per_tick: 0.0
 is_damage_over_time: false
 heavy_duration: ""
 synergies: ["_play_vfx"]
-triggered_by_items: ["roof_nail", "super_glue", "copper_wire", "whipped_cream", "seize"]
+triggered_by_items: ["roof_nail", "super_glue", "whipped_cream", "seize"]
 tags: [status-effect]
 ---
 
@@ -23,6 +23,15 @@ ROOTED — festgenagelt. Bewegung gesperrt, Angriffe weiterhin erlaubt.
 | Schaden/Tick | — |
 | Heavy-Variante | — |
 
+
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `TINT_STRENGTH` | 0.30 |
+| `DUST_RING_COUNT` | 2 |
+| `DUST_RING_SPREAD` | 0.45 |
+
 ## Synergien
 
 - `_play_vfx()`
@@ -31,9 +40,12 @@ ROOTED — festgenagelt. Bewegung gesperrt, Angriffe weiterhin erlaubt.
 
 - [[roof_nail]]
 - [[super_glue]]
-- [[copper_wire]]
 - [[whipped_cream]]
 - [[seize]]
+
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+- —
 
 ## Gegner-Interaktion
 

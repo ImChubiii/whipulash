@@ -23,6 +23,17 @@ CONFUSED — der Gegner schlaegt in die falsche Richtung.
 | Schaden/Tick | — |
 | Heavy-Variante | 4.0 |
 
+
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `DEFAULT_MAX_ANGLE_DEG` | 75.0 |
+| `HEAVY_MAX_ANGLE_DEG` | 140.0 |
+| `TINT_STRENGTH` | 0.35 |
+| `RAINBOW_SPEED` | 0.9 |
+| `STUN_DAMAGE_BONUS` | 0.25 |
+
 ## Synergien
 
 - `max_angle_rad()`
@@ -36,6 +47,10 @@ CONFUSED — der Gegner schlaegt in die falsche Richtung.
 - [[fakeout]]
 - [[prowler]]
 - [[paranoia]]
+
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+- —
 
 ## Gegner-Interaktion
 

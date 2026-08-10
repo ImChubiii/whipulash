@@ -11,6 +11,8 @@ nr: "66"
 table_ref: "1.28"
 has_stat_modifiers: false
 status_effects: []
+reacts_to_status: []
+synergizes_with: []
 tags: [item, "item/active", "rarity/rare"]
 ---
 
@@ -26,6 +28,20 @@ Feuert eine Energieladung geradeaus, die am ersten Treffer oder maximaler Reichw
 
 Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
 `StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
+
+- —
+
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
 
 - —
 

@@ -23,6 +23,13 @@ CHARM — betroffene Gegner greifen sich gegenseitig an statt den Spieler.
 | Schaden/Tick | — |
 | Heavy-Variante | — |
 
+
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `TINT_STRENGTH` | 0.32 |
+
 ## Synergien
 
 - —
@@ -30,6 +37,10 @@ CHARM — betroffene Gegner greifen sich gegenseitig an statt den Spieler.
 ## Ausgeloest von (Items)
 
 - [[graffiti_can]]
+
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+- —
 
 ## Gegner-Interaktion
 

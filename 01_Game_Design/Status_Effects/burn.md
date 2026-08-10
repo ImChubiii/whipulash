@@ -6,7 +6,7 @@ damage_per_tick: 6.0
 is_damage_over_time: true
 heavy_duration: ""
 synergies: ["detonate", "thermal_shock"]
-triggered_by_items: ["broken_toaster", "hairspray", "ice_bag", "copper_wire", "storm_lighter", "whipped_cream", "spicy_ramen", "incendiary", "blaze", "hot_hands"]
+triggered_by_items: ["hairspray", "copper_wire", "storm_lighter", "spicy_ramen", "incendiary", "blaze", "hot_hands"]
 tags: [status-effect]
 ---
 
@@ -23,6 +23,14 @@ BURN — Feuer-DoT. Der Gegner leuchtet rot/orange, solange er brennt.
 | Schaden/Tick | 6.0 |
 | Heavy-Variante | — |
 
+
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `TINT_STRENGTH` | 0.45 |
+| `DETONATE_MULTIPLIER` | 2.0 |
+
 ## Synergien
 
 - `detonate()`
@@ -30,20 +38,21 @@ BURN — Feuer-DoT. Der Gegner leuchtet rot/orange, solange er brennt.
 
 ## Ausgeloest von (Items)
 
-- [[broken_toaster]]
 - [[hairspray]]
-- [[ice_bag]]
 - [[copper_wire]]
 - [[storm_lighter]]
-- [[whipped_cream]]
 - [[spicy_ramen]]
 - [[incendiary]]
 - [[blaze]]
 - [[hot_hands]]
 
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+- [[chili_oil]] — Effekt greift nur, wenn dieser Status bereits aktiv ist
+
 ## Gegner-Interaktion
 
-- Zaehlt in `enemy_ai.gd` als `DOT_EFFECT_IDS`-Eintrag: tickt automatisch Schaden auf **alle** Gegner ([[fighter]], [[stinger]], [[colossus]]).
+- Zaehlt in `enemy_ai.gd` als `DOT_EFFECT_IDS`-Eintrag: tickt automatisch Schaden auf **alle** Gegner ([[fighter]], [[stinger]], [[colossus]], sowie ueber [[custom_enemy_base]] auch die sechs Sandbox-Prototypen).
 
 ## Laufzeit
 

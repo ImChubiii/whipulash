@@ -11,6 +11,8 @@ nr: "15"
 table_ref: "2.2"
 has_stat_modifiers: true
 status_effects: []
+reacts_to_status: []
+synergizes_with: ["knitting_needles"]
 tags: [item, "item/passive", "rarity/common"]
 ---
 
@@ -28,6 +30,20 @@ Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
 `StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
 - —
+
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- [[knitting_needles]] — *Omas Stricknadeln*
 
 ## Metadaten
 

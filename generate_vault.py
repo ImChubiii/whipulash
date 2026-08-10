@@ -280,13 +280,29 @@ def parse_items() -> list[dict]:
     return items
 
 
-def write_item_notes(items: list[dict], item_status_links: dict[str, list[str]]) -> None:
+def write_item_notes(items: list[dict], item_cross_refs: dict[str, dict[str, list[str]]]) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Items"
+    items_by_id = {it["id"]: it for it in items}
     for it in items:
-        linked_effects = item_status_links.get(it["id"], [])
+        refs = item_cross_refs.get(it["id"], {"triggers": [], "reacts_to": [], "synergizes_with": []})
+        linked_effects = refs["triggers"]
+        reacts_to = refs["reacts_to"]
+        synergizes_with = refs["synergizes_with"]
+
         effects_section = (
             "\n".join(f"- [[{eid}]]" for eid in linked_effects) if linked_effects else "- —"
         )
+        reacts_section = (
+            "\n".join(f"- [[{eid}]] — setzt den Effekt voraus, loest ihn aber nicht selbst aus" for eid in reacts_to)
+            if reacts_to else "- —"
+        )
+        synergy_section = (
+            "\n".join(
+                f"- [[{oid}]] — *{items_by_id[oid]['name']}*"
+                for oid in synergizes_with if oid in items_by_id
+            ) if synergizes_with else "- —"
+        )
+
         body = f"""---
 id: {yaml_escape(it['id'])}
 name: {yaml_escape(it['name'])}
@@ -300,6 +316,8 @@ nr: {yaml_escape(it['nr'])}
 table_ref: {yaml_escape(it['table_ref'])}
 has_stat_modifiers: {str(it['has_stat_modifiers']).lower()}
 status_effects: {yaml_list(linked_effects)}
+reacts_to_status: {yaml_list(reacts_to)}
+synergizes_with: {yaml_list(synergizes_with)}
 tags: [item, "item/{it['kind'].lower()}", "rarity/{it['rarity'].lower()}"]
 ---
 
@@ -317,6 +335,20 @@ Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
 `StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
 {effects_section}
+
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+{reacts_section}
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+{synergy_section}
 
 ## Metadaten
 
@@ -346,28 +378,15 @@ Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
 # in einem Codeblock steht, der nachweislich zu diesem Item gehoert.
 
 KNOWN_STATUS_IDS = {
-    "acid", "burn", "charm", "confused", "rooted", "silenced", "slow", "stun", "vulnerable",
+    "acid", "burn", "charm", "confused", "rooted", "shield", "silenced", "slow", "stun", "vulnerable",
 }
 
 FUNC_BODY_RE = re.compile(r'^func\s+(\w+)\s*\([^)]*\)[^:]*:\n(.*?)(?=^func\s|\Z)', re.DOTALL | re.MULTILINE)
-STATUS_CLASS_CALL_RE = re.compile(
-    r'Status(Acid|Burn|Charm|Confused|Rooted|Silenced|Slow|Stun)\.\w+\('
-)
 APPLY_RAW_LITERAL_RE = re.compile(r'apply_raw\(\s*\w+\s*,\s*"(\w+)"')
 DISPATCH_RE = re.compile(r'ItemCatalog\.(ID_\w+):\s*\n\s*(_\w+)\(')
 HAS_ITEM_RE = re.compile(r'_has\(\s*ItemCatalog\.(ID_\w+)\s*\)')
 
 FUZZY_PREFIXES = ("_apply_", "_use_", "_tick_", "_trigger_", "_spawn_")
-
-
-def _status_ids_in_text(text: str) -> set[str]:
-    ids = set()
-    for m in STATUS_CLASS_CALL_RE.finditer(text):
-        ids.add(m.group(1).lower())
-    for m in APPLY_RAW_LITERAL_RE.finditer(text):
-        if m.group(1) in KNOWN_STATUS_IDS:
-            ids.add(m.group(1))
-    return ids
 
 
 def _resolve_call_chain(seed_text: str, func_bodies: dict[str, str], max_depth: int = 4) -> str:
@@ -434,63 +453,136 @@ def _strip_gd_comments(text: str) -> str:
     return "\n".join(out_lines)
 
 
-def parse_item_status_links(items: list[dict]) -> dict[str, list[str]]:
+def _collect_item_aggregate_text(it: dict, src: str, dispatch_map: dict[str, str],
+                                  func_bodies: dict[str, str]) -> str:
+    """Sammelt allen Code, der nachweislich zum Effekt-Pfad EINES Items gehoert
+    (Dispatch-Ziel fuer Aktiv-Items, `_has(ItemCatalog.ID_X)`-Bloecke,
+    Namens-Heuristik-Funktionen), rekursiv durch Funktionsaufrufe aufgeloest.
+    Gemeinsame Grundlage fuer Status-Trigger-, Synergie- und
+    Item<->Item-Verknuepfung, damit alle drei exakt denselben Codeausschnitt
+    ansehen."""
+    const_name = f"ID_{it['id'].upper()}"
+    normalized_id = it["id"].replace("_", "")
+    aggregate_texts = []
+
+    # 1) Aktiv-Items: direkte Dispatch-Tabelle (match item.id: ID_X: _use_x()),
+    #    Funktionsaufrufe darin rekursiv aufgeloest.
+    if const_name in dispatch_map:
+        fn = dispatch_map[const_name]
+        if fn in func_bodies:
+            aggregate_texts.append(_resolve_call_chain(func_bodies[fn], func_bodies))
+
+    # 2) Inline-Bloecke: alles, was direkt unter `if _has(ItemCatalog.ID_X)`
+    #    haengt, inkl. rekursiv aufgeloester Funktionsaufrufe darin (deckt
+    #    Ketten wie _spawn_gum_trail() -> _spawn_gum_blob() -> StatusAcid ab).
+    for block in _extract_has_blocks(src, const_name):
+        aggregate_texts.append(_resolve_call_chain(block, func_bodies))
+
+    # 3) Namens-Heuristik: dedizierte _apply_x/_use_x/_tick_x/... Funktionen,
+    #    deren Namenssuffix eindeutig zur Item-ID passt (inkl. Aufloesung).
+    for fn_name, body in func_bodies.items():
+        if not fn_name.startswith(FUZZY_PREFIXES):
+            continue
+        suffix = fn_name
+        for prefix in FUZZY_PREFIXES:
+            if suffix.startswith(prefix):
+                suffix = suffix[len(prefix):]
+                break
+        normalized_suffix = suffix.replace("_", "")
+        if len(normalized_suffix) < 4:
+            continue
+        if normalized_suffix == normalized_id or (
+            len(normalized_suffix) >= 5
+            and (normalized_suffix in normalized_id or normalized_id in normalized_suffix)
+        ):
+            aggregate_texts.append(_resolve_call_chain(body, func_bodies))
+
+    return "\n".join(aggregate_texts)
+
+
+# Nur die tatsaechlichen Ausloese-Methoden zaehlen als "triggert" - .active()/
+# .is_active() sind reine Abfragen (siehe REACTS_TO_SAME_LINE_RE) und duerfen
+# ein Item NICHT faelschlich als Ausloeser des abgefragten Effekts fuehren.
+STATUS_TRIGGER_CALL_RE = re.compile(
+    r'Status(Acid|Burn|Charm|Confused|Rooted|Shield|Silenced|Slow|Stun)\.(?:apply|apply_heavy)\('
+)
+# Deckt exakt das Muster `if _has(ItemCatalog.ID_X) and StatusY.active(...)`
+# ab: ein Item, dessen Effekt einen BEREITS vorhandenen Status voraussetzt,
+# statt ihn auszuloesen (z.B. Chili-Oel reagiert auf `burn`, loest aber nur
+# `acid` aus - siehe chili_oil.md). Bewusst zeilenbasiert auf den rohen
+# Quelltext statt auf die aufgeloesten Bloecke: die Bedingung steht auf der
+# GUARD-Zeile selbst, nicht im nachfolgend eingerueckten Codeblock.
+REACTS_TO_SAME_LINE_RE = re.compile(
+    r'_has\(\s*ItemCatalog\.(ID_\w+)\s*\)[^\n]*?Status(\w+)\.(?:active|is_active)\('
+)
+
+
+def parse_item_cross_references(items: list[dict]) -> dict[str, dict[str, list[str]]]:
+    """Fuer jedes Item ausschliesslich aus echten Code-Referenzen in
+    `item_behaviours.gd` (nichts geraten):
+    - triggers: Status-Effekte, die das Item per `StatusX.apply()` ausloest
+    - reacts_to: Status-Effekte, die als Voraussetzung ABGEFRAGT werden
+      (`StatusX.active()`), ohne dass das Item sie selbst ausloest
+    - synergizes_with: andere Items, deren `ItemCatalog.ID_Y`-Konstante im
+      aufgeloesten Code-Pfad dieses Items auftaucht (z.B. Rostiges Beil, das
+      bei vorhandenen Stricknadeln eine hoehere Krit-Chance bekommt) -
+      symmetrisch aufgeloest, weil eine im Code einseitig codierte
+      Abhaengigkeit spielerisch trotzdem eine Zwei-Wege-Synergie ist.
+    """
     behaviours_path = PROJECT_ROOT / "scripts/items/item_behaviours.gd"
+    empty = {it["id"]: {"triggers": [], "reacts_to": [], "synergizes_with": []} for it in items}
     if not behaviours_path.exists():
-        return {}
-    src = _strip_gd_comments(behaviours_path.read_text(encoding="utf-8"))
+        return empty
+
+    raw_src = behaviours_path.read_text(encoding="utf-8")
+    src = _strip_gd_comments(raw_src)
 
     func_bodies = {m.group(1): m.group(2) for m in FUNC_BODY_RE.finditer(src)}
-    dispatch_map = dict(DISPATCH_RE.findall(src))  # ID_CONST -> _use_x function name
+    dispatch_map = dict(DISPATCH_RE.findall(src))
+    const_to_id = {f"ID_{it['id'].upper()}": it["id"] for it in items}
 
-    const_to_id = {}
-    for it in items:
-        const_name = f"ID_{it['id'].upper()}"
-        const_to_id[const_name] = it["id"]
-
-    result: dict[str, set[str]] = {it["id"]: set() for it in items}
+    result: dict[str, dict[str, set[str]]] = {
+        it["id"]: {"triggers": set(), "reacts_to": set(), "synergizes_with": set()} for it in items
+    }
 
     for it in items:
         const_name = f"ID_{it['id'].upper()}"
-        normalized_id = it["id"].replace("_", "")
-        aggregate_texts = []
+        combined = _collect_item_aggregate_text(it, src, dispatch_map, func_bodies)
 
-        # 1) Aktiv-Items: direkte Dispatch-Tabelle (match item.id: ID_X: _use_x()),
-        #    Funktionsaufrufe darin rekursiv aufgeloest.
-        if const_name in dispatch_map:
-            fn = dispatch_map[const_name]
-            if fn in func_bodies:
-                aggregate_texts.append(_resolve_call_chain(func_bodies[fn], func_bodies))
+        for m in STATUS_TRIGGER_CALL_RE.finditer(combined):
+            sid = m.group(1).lower()
+            if sid in KNOWN_STATUS_IDS:
+                result[it["id"]]["triggers"].add(sid)
+        for m in APPLY_RAW_LITERAL_RE.finditer(combined):
+            if m.group(1) in KNOWN_STATUS_IDS:
+                result[it["id"]]["triggers"].add(m.group(1))
 
-        # 2) Inline-Bloecke: alles, was direkt unter `if _has(ItemCatalog.ID_X)`
-        #    haengt, inkl. rekursiv aufgeloester Funktionsaufrufe darin (deckt
-        #    Ketten wie _spawn_gum_trail() -> _spawn_gum_blob() -> StatusAcid ab).
-        for block in _extract_has_blocks(src, const_name):
-            aggregate_texts.append(_resolve_call_chain(block, func_bodies))
+        for m in re.finditer(r'ItemCatalog\.(ID_\w+)', combined):
+            other_id = const_to_id.get(m.group(1))
+            if other_id and other_id != it["id"]:
+                result[it["id"]]["synergizes_with"].add(other_id)
 
-        # 3) Namens-Heuristik: dedizierte _apply_x/_use_x/_tick_x/... Funktionen,
-        #    deren Namenssuffix eindeutig zur Item-ID passt (inkl. Aufloesung).
-        for fn_name, body in func_bodies.items():
-            if not fn_name.startswith(FUZZY_PREFIXES):
-                continue
-            suffix = fn_name
-            for prefix in FUZZY_PREFIXES:
-                if suffix.startswith(prefix):
-                    suffix = suffix[len(prefix):]
-                    break
-            normalized_suffix = suffix.replace("_", "")
-            if len(normalized_suffix) < 4:
-                continue
-            if normalized_suffix == normalized_id or (
-                len(normalized_suffix) >= 5
-                and (normalized_suffix in normalized_id or normalized_id in normalized_suffix)
-            ):
-                aggregate_texts.append(_resolve_call_chain(body, func_bodies))
+    # reacts_to: zeilenbasiert ueber den GESAMTEN (kommentarbereinigten)
+    # Quelltext, nicht ueber die aufgeloesten Bloecke - siehe REACTS_TO_SAME_LINE_RE.
+    for m in REACTS_TO_SAME_LINE_RE.finditer(src):
+        item_id = const_to_id.get(m.group(1))
+        sid = m.group(2).lower()
+        if item_id and sid in KNOWN_STATUS_IDS:
+            result[item_id]["reacts_to"].add(sid)
 
-        found = _status_ids_in_text("\n".join(aggregate_texts))
-        result[it["id"]] |= found
+    # Synergien symmetrisch machen (siehe Docstring).
+    for item_id, data in list(result.items()):
+        for other_id in list(data["synergizes_with"]):
+            result[other_id]["synergizes_with"].add(item_id)
 
-    return {k: sorted(v) for k, v in result.items() if v}
+    return {
+        item_id: {
+            "triggers": sorted(data["triggers"]),
+            "reacts_to": sorted(data["reacts_to"]),
+            "synergizes_with": sorted(data["synergizes_with"]),
+        }
+        for item_id, data in result.items()
+    }
 
 
 # ============================================================================
@@ -658,6 +750,7 @@ zigzag_enabled: {str(e['zigzag_enabled']).lower()}
 weight: {e['weight']}
 max_per_room: {e['max_per_room']}
 guaranteed_count: {e['guaranteed_count']}
+tier: levelgen
 tags: [enemy]
 ---
 
@@ -697,11 +790,241 @@ Zusammensetzung. Siehe [[level_generator]].
 
 {COLOSSUS_ROOM_NOTE if e['display_name'] == 'Colossus' else ''}
 
+## Verwandt
+
+Basiert auf `enemy_ai.gd` (Chase-Attack-State-Machine, importiertes
+Roboter-Mesh). Seit Phase 5 existiert daneben ein zweiter, unabhaengiger
+Gegner-Unterbau — [[custom_enemy_base]] — fuer stationaere/fliegende
+Spezialtypen ohne Laufanimation. Siehe MOC_Enemies fuer den vollstaendigen
+Ueberblick beider Systeme.
+
 ## Quelle
 
 `{e['scene']}` (Root-Node-Properties), `{ENEMY_SPAWN_ENTRIES.get(e['display_name'], '')}`
 """
         write_md(out_dir / f"{slugify(e['display_name'])}.md", body)
+
+
+# ============================================================================
+# 4b) SANDBOX-PROTOTYP-GEGNER — geparst aus scripts/enemies/*.gd, die auf
+#     CustomEnemyBase aufbauen (reiner Code, KEINE .tres/.tscn-Ressourcen).
+#     Laut Kopfkommentar von custom_enemy_base.gd spawnen alle sechs STAND
+#     JETZT ausschliesslich im EnemySandboxRoom (Debug-Teleporter) - noch
+#     nicht Teil der LevelGenerator-Threat-Budget-Tabellen, siehe [[level_generator]].
+# ============================================================================
+
+CUSTOM_ENEMY_SCRIPTS = [
+    "scripts/enemies/mortar_bot.gd",
+    "scripts/enemies/acid_sprinkler.gd",
+    "scripts/enemies/magnet_core.gd",
+    "scripts/enemies/dive_bomber.gd",
+    "scripts/enemies/shield_drone.gd",
+    "scripts/enemies/plasma_beam_bot.gd",
+]
+
+# Freitext-Zusammenfassung der ausfuehrlichen Kopfkommentare/Inline-Doku
+# jeder Datei (analog ENEMY_MECHANICS oben) - Verhaltensbeschreibung steckt
+# in Prosa-Kommentaren, nicht in einer geparsten Property.
+CUSTOM_ENEMY_MECHANICS = {
+    "MortarBot": (
+        "Bewegt sich nie. Feuert alle `fire_interval` Sekunden eine "
+        "zweiphasige Wurfparabel (Aufstieg dann Fall) auf die AKTUELLE "
+        "Spielerposition zum Schusszeitpunkt, bodenprojiziert. Der rote "
+        "Telegraph-Ring erscheint sofort schwach und wird waehrend der "
+        "gesamten Flugzeit kraeftiger, bleibt aber exakt an der "
+        "urspruenglichen Zielposition stehen - Schaden liest beim Einschlag "
+        "die TELEGRAPH-Position, nicht die aktuelle Spielerposition (gleiche "
+        "Regel wie Orbitalschlag/[[lockdown]], siehe dortiger Bugfix in "
+        "item_behaviours.gd)."
+    ),
+    "AcidSprinkler": (
+        "Bewegt sich nie. Spuckt alle `fire_interval` Sekunden ein "
+        "Saeure-Geschoss auf die aktuelle Spielerposition; am Einschlagsort "
+        "bleibt eine tickende [[acid]]-Pfuetze liegen (gleiches Area3D-Prinzip "
+        "wie die Saeure-/Limonaden-Pfuetzen aus `item_behaviours.gd`). NICHT "
+        "das Geschoss selbst verursacht den Effekt, sondern das Stehen in "
+        "der Pfuetze - mehrere Pfuetzen ueberlappen sich mit der Zeit zu "
+        "einem Bereich, den der Spieler aktiv meiden muss."
+    ),
+    "MagnetCore": (
+        "Bewegt sich nie, schiesst nicht. Zieht den Spieler und freiliegende "
+        "Pickups kontinuierlich per Einzelimpulsen (`PULL_TICK_INTERVAL`, "
+        "bewusst gepulst statt Dauerkraft: player_base.gd baut "
+        "Knockback-Impulse per `knockback_friction` ab, ein Dauer-Impuls pro "
+        "Frame ginge im Reibungs-Rauschen unter) zu sich heran. Kommt der "
+        "Spieler unter `too_close_radius`, feuert der Kern stattdessen eine "
+        "Schockwelle mit massivem Abstossungs-Knockback - bestraft also "
+        "sowohl Abstand halten (Sog) als auch draufhalten (Schockwelle)."
+    ),
+    "DiveBomber": (
+        "Schwebt ausserhalb der Nahkampfreichweite (leichtes Auf/Ab, KEIN "
+        "Kreisen) und stuerzt im festen Rhythmus (`dash_interval`) herab: "
+        "LOCK-Phase mit sichtbarem Lean- und Ring-Telegraph auf die zu "
+        "diesem Zeitpunkt FESTGELEGTE Zielposition, dann senkrechter Sturz. "
+        "Der Einschlag passiert immer (Treffer oder nicht) und hinterlaesst "
+        "liegenbleibende Gesteinstruemmer; der Bomber selbst ist danach "
+        "IMMER `grounded_stun_time` (5s) bewegungsunfaehig, unabhaengig "
+        "davon, ob der Sturz traf."
+    ),
+    "ShieldDrone": (
+        "Greift nie direkt an. Schwebt in einer weichen Lissajous-Bahn und "
+        "verbindet sich per Strahl mit bis zu `MAX_SHIELDED` (3) anderen "
+        "Gegnern aus der Gruppe \"enemies\" (naechste zuerst, bereits "
+        "verbundene werden bevorzugt beibehalten, damit der Strahl nicht bei "
+        "jedem Rescan springt). Jeder Verbundene bekommt per Strahl-Refresh "
+        "alle `SHIELD_REFRESH_INTERVAL` (0.5s) den [[shield]]-Status erneuert. "
+        "Reiner Support-Typ - muss fuer den Raum-Clear NICHT sterben (siehe "
+        "`_despawn_if_room_clear()`); verschwindet von selbst, sobald nur "
+        "noch fliegende Support-Typen (sich selbst eingeschlossen) uebrig sind."
+    ),
+    "PlasmaBeamBot": (
+        "Driftet langsam ueber dem Schlachtfeld, laedt sichtbar auf "
+        "(`charge_time`) und zieht danach einen [[burn]]-Laser als "
+        "wandernde Linie ueber den Boden (`beam_duration`), zentriert auf "
+        "die Spielerposition beim Feuern - wer nicht seitlich ausweicht, "
+        "sammelt mehrere Burn-Ticks. Wie [[schild-drohne]] kein Pflicht-Kill "
+        "fuer den Raum-Clear und despawnt von selbst, sobald der Raum sonst "
+        "leer ist."
+    ),
+}
+
+CUSTOM_ENEMY_ROLE = {
+    "MortarBot": "Stationaer · Fernkampf (Wurfparabel, Flaechenschaden)",
+    "AcidSprinkler": "Stationaer · Fernkampf (Gebiets-DoT ueber Pfuetzen)",
+    "MagnetCore": "Stationaer · Kontrolle (Sog + Abstossungs-Schockwelle)",
+    "DiveBomber": "Flieger · Nahkampf-Sturzangriff (Rhythmus-Timing)",
+    "ShieldDrone": "Flieger · Support, kein Pflicht-Kill (Schild-Buff)",
+    "PlasmaBeamBot": "Flieger · Fernkampf (Flaechenlaser), kein Pflicht-Kill",
+}
+
+CLASS_NAME_RE = re.compile(r'class_name\s+(\w+)')
+CONFIGURE_BODY_RE = re.compile(r'func\s+_configure\s*\(\)\s*->\s*void:\n(.*?)(?=\nfunc\s|\Z)', re.DOTALL)
+TOP_LEVEL_VAR_RE = re.compile(r'^var\s+(\w+)\s*:\s*(float|int)\s*=\s*(-?[\d.]+)', re.MULTILINE)
+STATUS_APPLY_STRING_RE = re.compile(r'apply_status_effect\([^,]+,\s*"(\w+)"')
+STATUS_CLASS_APPLY_RE = re.compile(r'Status(\w+)\.apply\(')
+
+
+def parse_custom_enemies() -> list[dict]:
+    enemies = []
+    for rel_path in CUSTOM_ENEMY_SCRIPTS:
+        path = PROJECT_ROOT / rel_path
+        if not path.exists():
+            continue
+        src = path.read_text(encoding="utf-8")
+
+        class_m = CLASS_NAME_RE.search(src)
+        class_name = class_m.group(1) if class_m else path.stem
+
+        configure_m = CONFIGURE_BODY_RE.search(src)
+        configure_body = configure_m.group(1) if configure_m else ""
+        name_m = re.search(r'display_name\s*=\s*"([^"]+)"', configure_body)
+        display_name = name_m.group(1) if name_m else class_name
+        hp_m = re.search(r'max_health\s*=\s*([\d.]+)', configure_body)
+        max_health = float(hp_m.group(1)) if hp_m else 0.0
+
+        # Nur oeffentliche, unindentierte (Modul-Scope) float/int-Vars sind
+        # echte Balancing-Knoepfe - "_"-praefigierte sind Laufzeitzustand
+        # (Timer, aktueller State), keine Design-Werte.
+        stats = [
+            (m.group(1), m.group(2), float(m.group(3)))
+            for m in TOP_LEVEL_VAR_RE.finditer(src)
+            if not m.group(1).startswith("_")
+        ]
+
+        status_ids = set()
+        for m in STATUS_APPLY_STRING_RE.finditer(src):
+            if m.group(1) in KNOWN_STATUS_IDS:
+                status_ids.add(m.group(1))
+        for m in STATUS_CLASS_APPLY_RE.finditer(src):
+            sid = m.group(1).lower()
+            if sid in KNOWN_STATUS_IDS:
+                status_ids.add(sid)
+
+        enemies.append({
+            "id": slugify(display_name),
+            "class_name": class_name,
+            "display_name": display_name,
+            "max_health": max_health,
+            "stats": stats,
+            "status_effects": sorted(status_ids),
+            "script": rel_path,
+            "role": CUSTOM_ENEMY_ROLE.get(class_name, "—"),
+            "mechanics": CUSTOM_ENEMY_MECHANICS.get(class_name, "-"),
+        })
+    return enemies
+
+
+STAT_LABELS = {
+    "fire_interval": "Feuerintervall (s)", "flight_time": "Flugzeit Geschoss (s)",
+    "arc_height": "Wurfhoehe (Bogen)", "blast_radius": "Explosionsradius",
+    "damage": "Schaden", "detect_range": "Erkennungsreichweite",
+    "puddle_radius": "Pfuetzenradius", "puddle_lifetime": "Pfuetzen-Lebensdauer (s)",
+    "pull_radius": "Sog-Reichweite", "too_close_radius": "Schockwellen-Ausloeseradius",
+    "shockwave_force": "Schockwellen-Kraft", "shockwave_cooldown_time": "Schockwellen-Cooldown (s)",
+    "pickup_pull_speed": "Pickup-Sog-Geschwindigkeit", "hover_height": "Schwebehoehe",
+    "hover_recenter_speed": "Rezentrier-Geschwindigkeit", "dash_interval": "Sturz-Rhythmus (s)",
+    "lock_time": "Lock-Telegraph-Dauer (s)", "dive_speed": "Sturzgeschwindigkeit",
+    "hit_radius": "Trefferradius", "grounded_stun_time": "Selbst-Stun nach Einschlag (s)",
+    "recover_speed": "Aufstiegsgeschwindigkeit", "hover_radius": "Schwebe-Bahnradius",
+    "hover_speed": "Schwebe-Winkelgeschwindigkeit", "link_range": "Strahl-Verbindungsreichweite",
+    "drift_speed": "Anflug-Geschwindigkeit", "charge_time": "Aufladezeit (s)",
+    "beam_duration": "Strahl-Dauer (s)", "beam_width": "Strahlbreite",
+    "sweep_length": "Strahl-Sweep-Laenge", "cooldown_time": "Cooldown nach Schuss (s)",
+}
+
+
+def write_custom_enemy_notes(enemies: list[dict]) -> None:
+    out_dir = PROJECT_ROOT / "01_Game_Design/Enemies"
+    for e in enemies:
+        stats_rows = "\n".join(
+            f"| {STAT_LABELS.get(name, name)} | {value:g} |"
+            for name, _typ, value in e["stats"]
+        )
+        status_section = (
+            "\n".join(f"- [[{sid}]]" for sid in e["status_effects"])
+            if e["status_effects"] else "- — (reiner Schaden/Knockback, kein Status-Effekt)"
+        )
+        body = f"""---
+id: {yaml_escape(e['id'])}
+display_name: {yaml_escape(e['display_name'])}
+class_name: {yaml_escape(e['class_name'])}
+tier: sandbox
+role: {yaml_escape(e['role'])}
+base_hp: {e['max_health']}
+status_effects: {yaml_list(e['status_effects'])}
+tags: [enemy, "enemy/sandbox"]
+---
+
+# {e['display_name']}
+
+> {e['role']}
+
+**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
+[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
+[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
+Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
+[[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
+
+## Mechanik
+
+{e['mechanics']}
+
+## Balancing (roh aus `{e['script']}`)
+
+| Wert | Betrag |
+|---|---|
+| Basis-HP | {e['max_health']:g} |
+{stats_rows}
+
+## Status-Effekte (ausgeloest)
+
+{status_section}
+
+## Quelle
+
+`{e['script']}` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+"""
+        write_md(out_dir / f"{e['id']}.md", body)
 
 
 # ============================================================================
@@ -802,11 +1125,23 @@ tags: [room, "room/{r['room_type'].lower()}"]
 # ============================================================================
 
 STATUS_EFFECT_FILES = [
-    "acid", "burn", "charm", "confused", "rooted", "silenced", "slow", "stun",
+    "acid", "burn", "charm", "confused", "rooted", "shield", "silenced", "slow", "stun",
 ]
 
+# Felder, die bereits als eigene Frontmatter-/Tabellenspalten abgedeckt sind -
+# alles andere aus den const-Deklarationen einer Statuseffekt-Datei landet
+# generisch in der "Zusatzwerte"-Tabelle (z.B. shield.gd::MAX_HEALTH_BONUS_FACTOR/
+# VISUAL_SCALE_BONUS/TINT_STRENGTH, die kein anderer Effekt hat).
+STANDARD_STATUS_CONST_KEYS = {
+    "ID", "DEFAULT_DURATION", "DEFAULT_TICK_INTERVAL", "DEFAULT_DAMAGE_PER_TICK",
+    "HEAVY_DURATION",
+}
+
+# Erlaubt EIN ODER MEHRERE Textzeilen zwischen den beiden "==="-Trennlinien
+# (shield.gd ist die erste Datei mit einer zweizeiligen Banner-Beschreibung -
+# eine rein einzeilige Regex haette hier synopsis="" geliefert).
 BANNER_RE = re.compile(
-    r'#\s*={20,}\s*\n#\s*([^\n]+?)\s*\n#\s*={20,}',
+    r'#\s*={20,}\s*\n((?:#[^\n]*\n)+?)#\s*={20,}',
 )
 CONST_LINE_RE = re.compile(r'const\s+(\w+)\s*:\s*\w+\s*=\s*([^\n]+)')
 
@@ -818,7 +1153,10 @@ def parse_status_effects() -> list[dict]:
         text = path.read_text(encoding="utf-8")
 
         banner_m = BANNER_RE.search(text)
-        synopsis = banner_m.group(1).strip() if banner_m else ""
+        synopsis = ""
+        if banner_m:
+            banner_lines = [l.lstrip("#").strip() for l in banner_m.group(1).splitlines()]
+            synopsis = " ".join(l for l in banner_lines if l)
 
         consts = {k: v.strip() for k, v in CONST_LINE_RE.findall(text)}
 
@@ -836,6 +1174,11 @@ def parse_status_effects() -> list[dict]:
             if fn not in ("apply", "apply_heavy", "active", "clear")
         ]
 
+        extra_consts = {
+            k: v for k, v in consts.items()
+            if k not in STANDARD_STATUS_CONST_KEYS and re.match(r'^-?[\d.]+$', v)
+        }
+
         effects.append({
             "id": name,
             "synopsis": synopsis,
@@ -845,6 +1188,7 @@ def parse_status_effects() -> list[dict]:
             "heavy_duration": consts.get("HEAVY_DURATION", ""),
             "synergy_fns": synergy_fns,
             "is_dot": "DEFAULT_DAMAGE_PER_TICK" in consts,
+            "extra_consts": extra_consts,
         })
 
     # "vulnerable" ist bewusst KEIN eigenes status_effects/*.gd — es laeuft
@@ -864,14 +1208,17 @@ def parse_status_effects() -> list[dict]:
         "heavy_duration": "",
         "synergy_fns": [],
         "is_dot": False,
+        "extra_consts": {},
         "generic": True,
     })
     return effects
 
 
 def write_status_effect_notes(effects: list[dict], status_item_links: dict[str, list[str]],
-                               enemy_dot_ids: set[str], enemy_lock_ids: set[str]) -> None:
+                               enemy_dot_ids: set[str], enemy_lock_ids: set[str],
+                               status_reacted_by: dict[str, list[str]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Status_Effects"
+    status_reacted_by = status_reacted_by or {}
     for fx in effects:
         is_generic = fx.get("generic", False)
         source_line = (
@@ -885,11 +1232,18 @@ def write_status_effect_notes(effects: list[dict], status_item_links: dict[str, 
             "\n".join(f"- [[{iid}]]" for iid in triggering_items) if triggering_items else "- —"
         )
 
+        reacting_items = status_reacted_by.get(fx["id"], [])
+        reacting_section = (
+            "\n".join(f"- [[{iid}]] — Effekt greift nur, wenn dieser Status bereits aktiv ist" for iid in reacting_items)
+            if reacting_items else "- —"
+        )
+
         enemy_notes = []
         if fx["id"] in enemy_dot_ids:
             enemy_notes.append(
                 "- Zaehlt in `enemy_ai.gd` als `DOT_EFFECT_IDS`-Eintrag: tickt automatisch "
-                "Schaden auf **alle** Gegner ([[fighter]], [[stinger]], [[colossus]])."
+                "Schaden auf **alle** Gegner ([[fighter]], [[stinger]], [[colossus]], "
+                "sowie ueber [[custom_enemy_base]] auch die sechs Sandbox-Prototypen)."
             )
         if fx["id"] in enemy_lock_ids:
             enemy_notes.append(
@@ -901,7 +1255,28 @@ def write_status_effect_notes(effects: list[dict], status_item_links: dict[str, 
                 "- Bewusst NICHT in `is_attack_locked()`: `rooted` sperrt nur die Bewegung, "
                 "nicht den Angriff — Abgrenzung zu `stun`."
             )
+        if fx["id"] == "shield":
+            enemy_notes.append(
+                "- Ausgeloest von [[schild-drohne]] auf bis zu drei verbundene Gegner "
+                "gleichzeitig (`MAX_SHIELDED = 3`), per Strahl-Refresh alle "
+                "`SHIELD_REFRESH_INTERVAL` (0.5s) — bricht die Drohne die Verbindung ab, "
+                "laeuft der Schild von selbst aus."
+            )
+            enemy_notes.append(
+                "- Wirkung ist **doppelt implementiert**, einmal pro Basisklasse: "
+                "`enemy_ai.gd::_apply_shield_visual()` fuer [[fighter]]/[[stinger]]/"
+                "[[colossus]], `custom_enemy_base.gd::_apply_shield_visual()` fuer die "
+                "sechs Sandbox-Prototypen ueber [[custom_enemy_base]]. Beide lesen "
+                "dieselben `StatusShield`-Konstanten, damit +25 % HP / Aura-Farbe an "
+                "einer Stelle gepflegt werden."
+            )
         enemies_section = "\n".join(enemy_notes) if enemy_notes else "- —"
+
+        extra_consts = fx.get("extra_consts") or {}
+        extra_section = (
+            "\n\n## Zusatzwerte\n\n| Konstante | Wert |\n|---|---|\n" +
+            "\n".join(f"| `{k}` | {v} |" for k, v in extra_consts.items())
+        ) if extra_consts else ""
 
         body = f"""---
 id: {yaml_escape(fx['id'])}
@@ -927,6 +1302,7 @@ tags: [status-effect]
 | Tick-Intervall | {(str(fx['tick_interval']) + ' s') if fx['tick_interval'] else '—'} |
 | Schaden/Tick | {fx['damage_per_tick'] or '—'} |
 | Heavy-Variante | {fx['heavy_duration'] or '—'} |
+{extra_section}
 
 ## Synergien
 
@@ -935,6 +1311,10 @@ tags: [status-effect]
 ## Ausgeloest von (Items)
 
 {items_section}
+
+## Wird abgefragt von (Items, ohne es auszuloesen)
+
+{reacting_section}
 
 ## Gegner-Interaktion
 
@@ -1080,6 +1460,8 @@ Projektile der alten Etage.
 
 - [[stage_theme]] (falls vorhanden) — Farbwelt pro Etage.
 - Alle Notizen unter `01_Game_Design/Rooms/`.
+- [[custom_enemy_base]] / [[enemy_sandbox_room]] — sechs neue Gegnertypen,
+  die noch NICHT in den Threat-Budget-Tabellen dieser Klasse stecken.
 """,
     "player_base": """---
 script_path: scripts/player_base.gd
@@ -1174,7 +1556,118 @@ Lookup/Apply/VFX-Block sonst wortgleich dupliziert haetten.
 ## Verwandt
 
 - [[player_base]] — Spieler-seitige Anbindung.
+- [[custom_enemy_base]] — zweite Anbindungsstelle fuer die sechs neuen
+  Sandbox-Prototyp-Gegner (`enemy_ai.gd` deckt nur Fighter/Stinger/Colossus ab).
 - Alle Notizen unter `01_Game_Design/Status_Effects/`.
+""",
+    "custom_enemy_base": """---
+script_path: scripts/enemies/custom_enemy_base.gd
+tags: [architecture, enemy]
+---
+
+# custom_enemy_base.gd
+
+Zweiter, unabhaengiger Gegner-Unterbau neben `enemy_ai.gd`. Bewusst NICHT von
+`EnemyAI` geerbt: `EnemyAI` ist fest auf das Chase-Attack-State-Machine-Muster
+mit importiertem Roboter-Mesh zugeschnitten (siehe dessen Kopfkommentar) — die
+sechs neuen Typen ([[moerser-bot]], [[saeure-sprinkler]], [[magnet-kern]],
+[[divebomber]], [[schild-drohne]], [[plasmastrahl-bot]]) brauchen davon
+nichts: sie stehen fest (Turret-Typen) oder fliegen eigene Muster, haben
+keine Laufanimation und bauen sich komplett aus Primitiv-Meshes auf — im
+selben Stil wie die Hazards `cannon.gd`/`turret.gd`.
+
+## Was trotzdem geteilt werden MUSS
+
+Damit diese Gegner mit dem Rest des Spiels kompatibel sind:
+
+- Gruppe `"enemies"` — Items (`_enemies_near`), Bomben-Explosionen und
+  Homing-Bolts finden ihre Ziele ausschliesslich darueber.
+- `collision_layer = 4` — exakt die Ebene, die `PrimaryHitbox.collision_mask`
+  abhorcht; ohne sie liefe der Spieler-Nahkampf durch diese Gegner hindurch.
+- Ein Kind-Node namens `"Health"` vom Typ `Health` — `primary_hitbox.gd` und
+  `TurretProjectile` suchen ausschliesslich per `find_child("Health", ...)`.
+
+## Lebenszyklus
+
+`_ready()` ruft der Reihe nach `_configure()` (Subklasse setzt `display_name`/
+`max_health`), `_build_health()`, `_build_status_effects()` (verdrahtet
+[[status_effect_manager]] — ohne ihn liefe JEDER Status-Effekt lautlos ins
+Leere, siehe `StatusEffectBase.apply_raw()`) und `_build()` (Subklasse baut
+Mesh/Collision/Timer).
+
+Tod laeuft ueber `_on_died()` -> `_teardown(true)` (mit Treffer-VFX);
+Verschwinden ohne Kampf (Support-Typen wie [[schild-drohne]]/
+[[plasmastrahl-bot]], siehe deren `_despawn_if_room_clear()`) ueber
+`despawn()` -> `_teardown(false)`. Beide raeumen Kollision, Statuseffekte und
+Subklassen-Sondereffekte auf (`_cleanup_effects()` — WICHTIG: wird auch von
+aussen ueber `enemy_sandbox_room.gd::_clear_enemies()` als Zwangsentfernung
+aufgerufen, bei der `Health.died` NICHT feuert; ohne den expliziten Aufruf
+blieben Beams/Telegraphs bis zu ihrem eigenen Timeout einsam in der Luft
+haengen).
+
+## Schild-Buff (`shield`-Status)
+
+`_on_status_effect_applied()`/`_on_status_effect_expired()` reagieren generisch
+auf `id == "shield"`: +25 % Maximal-HP, groesseres Modell, blau schwankende
+Aura. Identische Werte/Logik wie in `enemy_ai.gd` fuer Fighter/Stinger/
+Colossus — beide lesen dieselben `StatusShield`-Konstanten. Siehe [[shield]].
+
+## Geteilte Bau-Helfer
+
+`_make_unshaded_material()`, `_add_box_collision()`, `_project_to_ground()`
+(Raycast senkrecht nach unten — Einschlaege/Pfuetzen sollen auf dem Boden
+liegen, nicht auf roher Spieler-Y-Hoehe bei einem Sprung) sowie
+`_create_beam_visual()`/`_update_beam_visual()`/`_free_beam_visual()` fuer
+lesbare Energiestrahlen (Kern + Glow + laufender Puls) — genutzt von
+[[schild-drohne]] und [[plasmastrahl-bot]].
+
+## Verwandt
+
+- [[enemy_sandbox_room]] — einziger aktueller Spawn-Ort aller sechs Typen.
+- [[level_generator]] — Threat-Budget-Tabellen, in denen diese sechs Typen
+  noch NICHT eingetragen sind.
+- [[status_effect_manager]], [[shield]].
+""",
+    "enemy_sandbox_room": """---
+script_path: scripts/enemy_sandbox_room.gd
+autoload_name: EnemySandboxRoom
+tags: [architecture, debug-tool]
+---
+
+# enemy_sandbox_room.gd
+
+Admin/Debug-Autoload: ein isolierter Raum, in dem jeder Gegnertyp — die drei
+Level-Generator-Gegner ([[fighter]]/[[stinger]]/[[colossus]], per
+`scene.instantiate()`) UND die sechs [[custom_enemy_base]]-Prototypen (per
+`ClassName.new()`, da sie keine `.tscn` haben) — frei und beliebig oft ueber
+Interact-Bodenplatten gespawnt werden kann. Kein Teil des normalen Spiels;
+Zugang ausschliesslich ueber das vierte Teleport-Pad in `debug_teleporter.gd`.
+
+**Das ist Stand jetzt der EINZIGE Ort, an dem die sechs neuen Gegnertypen
+ueberhaupt spawnen** — sie stecken in keiner `resources/enemies/es_*.tres`-
+Spawn-Tabelle und sind damit nicht Teil des [[level_generator]]-Threat-Budgets.
+
+## Baumuster
+
+Lazy-Bau beim ersten Betreten, Stilllegung (`PROCESS_MODE_DISABLED`) bei
+Abwesenheit, Rueckweg-Pad — identisch zu `item_test_room.gd`. Zwei Reihen
+Spawn-Pads: Reihe 0 die drei normalen Level-Gegner, Reihe 1 (weiter hinten,
+damit ein kreisender Divebomber/Plasmastrahl-Bot nicht sofort ueber der
+vorderen Reihe haengt) die sechs neuen Typen.
+
+Gespawnte Gegner haengen direkt unter der aktuellen Szene (wie normale
+Level-Gegner in `room_instance.gd`), nicht unter der Sandbox-Root — ihre
+`_physics_process()`-Ketten laufen dadurch nur, waehrend sie existieren.
+Die "GEGNER LOESCHEN"-Plattform und das Verlassen des Raums entfernen alle
+noch lebenden Sandbox-Gegner per Zwangsentfernung (ruft explizit
+`_cleanup_effects()` auf, siehe [[custom_enemy_base]] — `Health.died` feuert
+bei `queue_free()` NICHT).
+
+## Verwandt
+
+- [[custom_enemy_base]] — Basisklasse aller sechs neuen Typen.
+- [[level_generator]] — die "richtige" Spawn-Instanz, in die diese Typen
+  noch integriert werden muessen.
 """,
 }
 
@@ -1249,11 +1742,148 @@ tags: [devlog]
 
 
 # ============================================================================
+# 8b) GRUPPIERUNGS-SEITEN (MOCs) — statische, wikilink-basierte Uebersichten
+#     je Kategorie/Rarity/Tier/Rolle/Raumtyp/Effekt-Klasse. Bewusst KEINE
+#     Dataview-Codebloecke (anders als das Dashboard): MOCs sollen auch ohne
+#     das Dataview-Plugin lesbar sein und sind reine Wikilink-Verzeichnisse.
+# ============================================================================
+
+STATUS_EFFECT_GROUPS: list[tuple[str, list[str]]] = [
+    ("Damage over Time", ["acid", "burn"]),
+    ("Crowd Control (Bewegung/Aktion vollstaendig gesperrt)", ["stun", "silenced", "rooted", "confused"]),
+    ("Bewegung eingeschraenkt (nicht vollstaendig gesperrt)", ["slow"]),
+    ("Buff (auf Gegner, von Support-Gegnern ausgeloest)", ["shield"]),
+    ("Debuff (generisch/Schadensverstaerkung)", ["vulnerable", "charm"]),
+]
+
+
+def _group_block(title: str, entries: list[tuple[str, str]]) -> str:
+    """entries: Liste aus (wikilink_id, anzeige_text). Alias-Pipe nur, wenn
+    Anzeigetext vom Datei-Namen abweicht (bei Status-Effekten ist id==name)."""
+    if not entries:
+        return f"### {title}\n\n*(keine)*\n"
+    lines = "\n".join(
+        f"- [[{wid}]]" if wid == label else f"- [[{wid}|{label}]]"
+        for wid, label in entries
+    )
+    return f"### {title} ({len(entries)})\n\n{lines}\n"
+
+
+def write_moc_pages(items: list[dict], enemies: list[dict], custom_enemies: list[dict],
+                     rooms: list[dict], effects: list[dict]) -> None:
+    # --- Items: nach Kategorie, Rarity, Kind -------------------------------
+    by_category: dict[str, list[tuple[str, str]]] = {}
+    by_rarity: dict[str, list[tuple[str, str]]] = {}
+    by_kind: dict[str, list[tuple[str, str]]] = {}
+    for it in sorted(items, key=lambda x: x["name"]):
+        entry = (it["id"], it["name"])
+        by_category.setdefault(it["category"], []).append(entry)
+        by_rarity.setdefault(it["rarity"], []).append(entry)
+        by_kind.setdefault(it["kind"], []).append(entry)
+
+    rarity_order = ["LEGENDARY", "EPIC", "RARE", "UNCOMMON", "COMMON"]
+    category_order = sorted(by_category.keys())
+
+    items_content = f"""---
+tags: [moc, items]
+---
+
+# MOC — Items nach Gruppierung
+
+{len(items)} Items insgesamt. Siehe auch [[00_Master_Wiki|Dashboard]] fuer die
+sortierbare Gesamttabelle.
+
+## Nach Kategorie
+
+{chr(10).join(_group_block(cat, by_category.get(cat, [])) for cat in category_order)}
+
+## Nach Rarity
+
+{chr(10).join(_group_block(r, by_rarity.get(r, [])) for r in rarity_order if r in by_rarity)}
+
+## Nach Kind (Aktiv/Passiv)
+
+{chr(10).join(_group_block(k, by_kind.get(k, [])) for k in sorted(by_kind.keys()))}
+"""
+    write_md(PROJECT_ROOT / "01_Game_Design/Items/_MOC_Items.md", items_content)
+
+    # --- Enemies: nach Tier (Threat-Budget vs. Sandbox) und Rolle ----------
+    levelgen_entries = [(slugify(e["display_name"]), e["display_name"]) for e in enemies]
+    sandbox_entries = [(e["id"], e["display_name"]) for e in custom_enemies]
+
+    by_role: dict[str, list[tuple[str, str]]] = {}
+    for e in custom_enemies:
+        by_role.setdefault(e["role"], []).append((e["id"], e["display_name"]))
+
+    enemies_content = f"""---
+tags: [moc, enemies]
+---
+
+# MOC — Gegner nach Gruppierung
+
+Zwei unabhaengige Gegner-Systeme im Projekt, siehe [[level_generator]] und
+[[custom_enemy_base]]/[[enemy_sandbox_room]] fuer die architektonische
+Begruendung der Trennung.
+
+Threat-Budget = in LevelGenerator-Tabellen, zaehlt zum Raum-Clear. Sandbox =
+nur ueber [[enemy_sandbox_room]] spawnbar, noch nicht integriert.
+
+{_group_block("Threat-Budget", levelgen_entries)}
+
+{_group_block("Sandbox-Prototypen", sandbox_entries)}
+
+## Sandbox-Prototypen nach Rolle
+
+{chr(10).join(_group_block(role, by_role.get(role, [])) for role in sorted(by_role.keys()))}
+"""
+    write_md(PROJECT_ROOT / "01_Game_Design/Enemies/_MOC_Enemies.md", enemies_content)
+
+    # --- Rooms: nach Typ -----------------------------------------------------
+    by_type: dict[str, list[tuple[str, str]]] = {}
+    for r in sorted(rooms, key=lambda x: x["id"]):
+        by_type.setdefault(r["room_type"], []).append((r["id"], r["id"]))
+
+    rooms_content = f"""---
+tags: [moc, rooms]
+---
+
+# MOC — Raeume nach Typ
+
+{len(rooms)} Raum-Templates insgesamt.
+
+{chr(10).join(_group_block(t, by_type.get(t, [])) for t in sorted(by_type.keys()))}
+"""
+    write_md(PROJECT_ROOT / "01_Game_Design/Rooms/_MOC_Rooms.md", rooms_content)
+
+    # --- Status Effects: nach Klasse -----------------------------------------
+    effect_ids = {fx["id"] for fx in effects}
+    grouped_ids: set[str] = set()
+    group_blocks = []
+    for title, ids in STATUS_EFFECT_GROUPS:
+        entries = [(sid, sid) for sid in ids if sid in effect_ids]
+        grouped_ids |= set(ids)
+        group_blocks.append(_group_block(title, entries))
+    leftover = sorted(effect_ids - grouped_ids)
+    if leftover:
+        group_blocks.append(_group_block("Sonstige", [(sid, sid) for sid in leftover]))
+
+    effects_content = f"""---
+tags: [moc, status-effects]
+---
+
+# MOC — Status-Effekte nach Klasse
+
+{chr(10).join(group_blocks)}
+"""
+    write_md(PROJECT_ROOT / "01_Game_Design/Status_Effects/_MOC_Status_Effects.md", effects_content)
+
+
+# ============================================================================
 # 9) MASTER-DASHBOARD (00_Dashboard)
 # ============================================================================
 
-def write_dashboard(items: list[dict], enemies: list[dict], rooms: list[dict],
-                     effects: list[dict], commits: list[dict]) -> None:
+def write_dashboard(items: list[dict], enemies: list[dict], custom_enemies: list[dict],
+                     rooms: list[dict], effects: list[dict], commits: list[dict]) -> None:
     content = f"""---
 tags: [moc, dashboard]
 ---
@@ -1269,15 +1899,18 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
 
 - [[00_Master_Wiki|Dashboard]] (diese Seite)
 - Game Design
-  - Items ({len(items)})
-  - Enemies ({len(enemies)})
-  - Rooms ({len(rooms)})
-  - Status Effects ({len(effects)})
+  - Items ({len(items)}) — [[_MOC_Items|nach Kategorie/Rarity/Kind]]
+  - Enemies ({len(enemies)} Threat-Budget + {len(custom_enemies)} Sandbox-Prototypen)
+    — [[_MOC_Enemies|nach Tier/Rolle]]
+  - Rooms ({len(rooms)}) — [[_MOC_Rooms|nach Typ]]
+  - Status Effects ({len(effects)}) — [[_MOC_Status_Effects|nach Klasse]]
 - Tech Architecture
   - [[party_manager]]
   - [[level_generator]]
   - [[player_base]]
   - [[status_effect_manager]]
+  - [[custom_enemy_base]] — Unterbau der sechs Sandbox-Prototypen
+  - [[enemy_sandbox_room]] — Debug-Spawnraum fuer alle Gegnertypen
 - DevLogs ({len(commits)} Commits)
 - Templates: [[tpl_Item]] · [[tpl_Enemy]] · [[tpl_Room]] · [[tpl_StatusEffect]]
 
@@ -1286,6 +1919,7 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
 ```dataview
 TABLE kind AS "Kind", category AS "Kategorie", rarity AS "Rarity", cooldown_seconds AS "Cooldown (s)", charge_rooms AS "Charge (Raeume)"
 FROM "01_Game_Design/Items"
+WHERE file.name != "_MOC_Items"
 SORT rarity DESC, name ASC
 ```
 
@@ -1294,23 +1928,42 @@ SORT rarity DESC, name ASC
 ```dataview
 TABLE length(rows) AS "Anzahl"
 FROM "01_Game_Design/Items"
+WHERE file.name != "_MOC_Items"
 GROUP BY rarity
 SORT rarity DESC
 ```
 
+Siehe auch [[_MOC_Items]] fuer feste Wikilink-Verzeichnisse nach Kategorie/
+Rarity/Kind (funktioniert auch ohne Dataview-Plugin).
+
 ## Enemies
+
+### Threat-Budget (Level-Generator, `enemy_ai.gd`)
 
 ```dataview
 TABLE threat_cost AS "Threat-Cost", base_hp AS "HP", move_speed AS "Speed", speed_variance AS "Speed-Varianz"
 FROM "01_Game_Design/Enemies"
+WHERE tier = "levelgen" OR !tier
 SORT threat_cost ASC
 ```
+
+### Sandbox-Prototypen (`custom_enemy_base.gd`, noch nicht im Threat-Budget)
+
+```dataview
+TABLE role AS "Rolle", base_hp AS "HP"
+FROM "01_Game_Design/Enemies"
+WHERE tier = "sandbox"
+SORT display_name ASC
+```
+
+Siehe auch [[_MOC_Enemies]] fuer die vollstaendige Rollen-Gruppierung.
 
 ## Rooms
 
 ```dataview
 TABLE room_type AS "Typ", footprint_cells AS "Footprint", spawn_weight AS "Gewicht", min_stage AS "Min. Etage"
 FROM "01_Game_Design/Rooms"
+WHERE file.name != "_MOC_Rooms"
 SORT room_type ASC, id ASC
 ```
 
@@ -1319,16 +1972,23 @@ SORT room_type ASC, id ASC
 ```dataview
 TABLE length(rows) AS "Anzahl"
 FROM "01_Game_Design/Rooms"
+WHERE file.name != "_MOC_Rooms"
 GROUP BY room_type
 ```
+
+Siehe auch [[_MOC_Rooms]].
 
 ## Status Effects
 
 ```dataview
 TABLE duration AS "Dauer (s)", tick_interval AS "Tick (s)", damage_per_tick AS "Schaden/Tick", is_damage_over_time AS "DoT?"
 FROM "01_Game_Design/Status_Effects"
+WHERE file.name != "_MOC_Status_Effects"
 SORT id ASC
 ```
+
+Siehe auch [[_MOC_Status_Effects]] fuer die Gruppierung nach DoT/Crowd-Control/
+Buff/generisches Debuff.
 
 ## DevLogs (jüngste zuerst)
 
@@ -1531,14 +2191,21 @@ def main() -> None:
     print("[2/6] Dataview-Templates geschrieben (99_Templates)")
 
     items = parse_items()
-    item_status_links = parse_item_status_links(items)
-    write_item_notes(items, item_status_links)
+    item_cross_refs = parse_item_cross_references(items)
+    write_item_notes(items, item_cross_refs)
+    n_triggers = sum(len(v["triggers"]) for v in item_cross_refs.values())
+    n_reacts = sum(len(v["reacts_to"]) for v in item_cross_refs.values())
+    n_synergy = sum(len(v["synergizes_with"]) for v in item_cross_refs.values())
     print(f"[3/6] {len(items)} Item-Notizen geschrieben (01_Game_Design/Items)")
-    print(f"      -> {sum(len(v) for v in item_status_links.values())} Item<->Status-Effekt-Verknuepfungen gefunden")
+    print(f"      -> {n_triggers} Item->Status-Ausloese-, {n_reacts} Item->Status-Reagiert-auf-, "
+          f"{n_synergy} Item<->Item-Synergie-Verknuepfungen gefunden")
 
     enemies = parse_enemies()
     write_enemy_notes(enemies)
-    print(f"[3/6] {len(enemies)} Enemy-Notizen geschrieben (01_Game_Design/Enemies)")
+    custom_enemies = parse_custom_enemies()
+    write_custom_enemy_notes(custom_enemies)
+    print(f"[3/6] {len(enemies)} Enemy-Notizen (Threat-Budget) + {len(custom_enemies)} "
+          f"Sandbox-Prototyp-Notizen geschrieben (01_Game_Design/Enemies)")
 
     rooms = parse_rooms()
     write_room_notes(rooms)
@@ -1546,20 +2213,27 @@ def main() -> None:
 
     effects = parse_status_effects()
     status_item_links: dict[str, list[str]] = {}
-    for item_id, status_ids in item_status_links.items():
-        for sid in status_ids:
+    status_reacted_by: dict[str, list[str]] = {}
+    for item_id, refs in item_cross_refs.items():
+        for sid in refs["triggers"]:
             status_item_links.setdefault(sid, []).append(item_id)
-    write_status_effect_notes(effects, status_item_links, ENEMY_DOT_STATUS_IDS, ENEMY_ATTACK_LOCK_STATUS_IDS)
+        for sid in refs["reacts_to"]:
+            status_reacted_by.setdefault(sid, []).append(item_id)
+    write_status_effect_notes(effects, status_item_links, ENEMY_DOT_STATUS_IDS,
+                               ENEMY_ATTACK_LOCK_STATUS_IDS, status_reacted_by)
     print(f"[3/6] {len(effects)} Status-Effekt-Notizen geschrieben (01_Game_Design/Status_Effects)")
 
     write_architecture_notes()
     print("[4/6] Architektur-Notizen geschrieben (02_Tech_Architecture)")
 
+    write_moc_pages(items, enemies, custom_enemies, rooms, effects)
+    print("[4/6] Gruppierungs-Seiten (MOCs) geschrieben")
+
     commits = parse_git_log()
     write_devlogs(commits)
     print(f"[5/6] {len(commits)} DevLog-Notizen geschrieben (03_DevLogs)")
 
-    write_dashboard(items, enemies, rooms, effects, commits)
+    write_dashboard(items, enemies, custom_enemies, rooms, effects, commits)
     print("[6/6] Master-Dashboard geschrieben (00_Dashboard)")
 
     write_wiki_sync()
