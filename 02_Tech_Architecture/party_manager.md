@@ -56,3 +56,7 @@ bewusst auf (aufgerufen aus `run_restart.gd`, dem einzigen Neustart-Pfad).
   Last-Stand-Wechsel.
 - [[player_base]] — `apply_stun`, Kamera- und Stun-Immunitaets-Logik der
   aktiven Instanz.
+
+## Erwaehnt in DevLogs
+
+- —

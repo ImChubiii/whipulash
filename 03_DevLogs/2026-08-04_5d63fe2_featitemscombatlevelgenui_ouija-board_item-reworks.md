@@ -51,6 +51,16 @@ Bugfixes:
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Items:** [[cursed_die]], [[ouija_board]], [[roof_nail]], [[stiletto_heels]], [[tight_pants]]
+
+**Status-Effekte:** [[rooted]]
+
 ## Metadaten
 
 | Feld | Wert |

@@ -11,6 +11,14 @@ tags: [devlog]
 
 Implement NavigationAgent3D-based pathfinding for enemies with intelligent ledge-drop behavior. Fix player buoyancy launch bug by capping submersion depth and adding bobbing animation. Restructure levels to use NavigationRegion3D for proper NavMesh baking. Improve collision shape detection for accurate enemy foot positioning. Add lateral raycast sampling for more reliable ledge detection. Refactor gravity/jump velocity setters to recalculate on inspector changes.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

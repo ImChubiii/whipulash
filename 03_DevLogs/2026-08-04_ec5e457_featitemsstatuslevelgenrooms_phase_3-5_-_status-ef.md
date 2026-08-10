@@ -237,6 +237,16 @@ force_unlock_door(), das Tuer-Protokoll im LevelGenerator und
 minimap_rooms._draw_passage(). Bewusst als eigener Durchgang
 zurueckgestellt.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Items:** [[leer]], [[library_book]], [[nun_habit]], [[storm_lighter]], [[walkman]]
+
+**Status-Effekte:** [[acid]], [[burn]], [[confused]], [[rooted]], [[silenced]], [[slow]], [[stun]]
+
 ## Metadaten
 
 | Feld | Wert |

@@ -65,3 +65,7 @@ lesbare Energiestrahlen (Kern + Glow + laufender Puls) — genutzt von
 - [[level_generator]] — Threat-Budget-Tabellen, in denen diese sechs Typen
   noch NICHT eingetragen sind.
 - [[status_effect_manager]], [[shield]].
+
+## Erwaehnt in DevLogs
+
+- —

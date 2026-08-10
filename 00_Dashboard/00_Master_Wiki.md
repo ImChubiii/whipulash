@@ -25,8 +25,14 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
   - [[status_effect_manager]]
   - [[custom_enemy_base]] — Unterbau der sechs Sandbox-Prototypen
   - [[enemy_sandbox_room]] — Debug-Spawnraum fuer alle Gegnertypen
-- DevLogs (73 Commits)
+- DevLogs (74 Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
 - Templates: [[tpl_Item]] · [[tpl_Enemy]] · [[tpl_Room]] · [[tpl_StatusEffect]]
+
+Jede Item-/Gegner-/Raum-/Status-Effekt-/Architektur-Notiz hat unten einen
+Abschnitt **"Erwaehnt in DevLogs"** — per Freitext-Abgleich aus den
+Commit-Nachrichten erkannt (siehe `build_entity_index()` in
+`generate_vault.py`). Jede DevLog-Notiz hat umgekehrt einen Abschnitt
+**"Erwaehnte Entitaeten"**.
 
 ## Items
 
@@ -109,6 +115,10 @@ Buff/generisches Debuff.
 ```dataview
 TABLE subject AS "Commit", author AS "Autor"
 FROM "03_DevLogs"
+WHERE file.name != "_MOC_DevLogs"
 SORT date DESC
 LIMIT 20
 ```
+
+Nur die juengsten 20 — [[_MOC_DevLogs]] listet wirklich **alle** 74
+Commits, nach Monat gruppiert.

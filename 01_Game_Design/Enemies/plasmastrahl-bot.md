@@ -41,6 +41,10 @@ Driftet langsam ueber dem Schlachtfeld, laedt sichtbar auf (`charge_time`) und z
 
 - — (reiner Schaden/Knockback, kein Status-Effekt)
 
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+
 ## Quelle
 
 `scripts/enemies/plasma_beam_bot.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)

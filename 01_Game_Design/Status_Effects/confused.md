@@ -56,6 +56,10 @@ CONFUSED — der Gegner schlaegt in die falsche Richtung.
 
 - —
 
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+
 ## Laufzeit
 
 Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).

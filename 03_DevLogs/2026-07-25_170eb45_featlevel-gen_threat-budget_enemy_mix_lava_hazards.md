@@ -42,6 +42,14 @@ BREAKING: LevelGenerator.enemy_pool/boss_pool replaced by
 enemy_table/boss_table (Array[EnemySpawnEntry]); old
 combat_enemy_min/max etc. replaced by *_threat_budget.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Gegner:** [[fighter]]
+
 ## Metadaten
 
 | Feld | Wert |

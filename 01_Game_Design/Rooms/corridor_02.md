@@ -25,6 +25,10 @@ tags: [room, "room/corridor"]
 
 
 
+## Erwaehnt in DevLogs
+
+- —
+
 ## Quelle
 
 `resources/rooms/rd_corridor_02.tres` → `scenes/rooms/corridor/room_corridor_02.tscn`

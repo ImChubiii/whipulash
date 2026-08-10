@@ -50,6 +50,14 @@ Rampen (room_instance.gd, enemy_ai.gd)
 - EnemyAI: floor_snap_length 0.6, floor_max_angle 55 Grad gegen das
   Abreissen beim Bergablaufen.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

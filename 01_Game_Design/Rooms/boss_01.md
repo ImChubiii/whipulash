@@ -25,6 +25,10 @@ tags: [room, "room/boss"]
 
 
 
+## Erwaehnt in DevLogs
+
+- —
+
 ## Quelle
 
 `resources/rooms/rd_boss_01.tres` → `scenes/rooms/boss/room_boss_01.tscn`

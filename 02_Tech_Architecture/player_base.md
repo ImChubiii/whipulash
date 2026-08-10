@@ -44,3 +44,7 @@ Fall in tiefe Abgruende, statt endlos zu fallen.
 
 - [[party_manager]] — Switch-Invulnerabilitaet beim Last-Stand-Wechsel.
 - [[status_effect_manager]] — zentrale Tick-/Verlaengerungs-Logik.
+
+## Erwaehnt in DevLogs
+
+- —

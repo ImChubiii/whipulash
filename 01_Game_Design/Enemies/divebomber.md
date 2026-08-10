@@ -43,6 +43,10 @@ Schwebt ausserhalb der Nahkampfreichweite (leichtes Auf/Ab, KEIN Kreisen) und st
 
 - — (reiner Schaden/Knockback, kein Status-Effekt)
 
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+
 ## Quelle
 
 `scripts/enemies/dive_bomber.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)

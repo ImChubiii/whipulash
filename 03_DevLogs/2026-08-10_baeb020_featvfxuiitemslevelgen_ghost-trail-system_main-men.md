@@ -38,6 +38,14 @@ Sonstiges
 - scripts/player_base.gd, scripts/vfx/blood_decal.gd — kleinere Anpassungen (nicht Teil der oben genannten Session-Arbeiten, vermutlich Nebenwirkungen/Vorarbeiten)
 - _project_export.txt — automatisch von Godot aktualisierte Exportdatei
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

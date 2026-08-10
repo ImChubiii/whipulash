@@ -25,6 +25,10 @@ tags: [room, "room/combat"]
 
 Multi-Zellen-Raum: hat nur die Ausgaenge seiner Ankerzelle (RoomInstance._doors_by_dir bleibt unveraendert). Grundflaeche in Welt-Einheiten = footprint_cells * 48.
 
+## Erwaehnt in DevLogs
+
+- —
+
 ## Quelle
 
 `resources/rooms/rd_combat_arena_01.tres` → `scenes/rooms/combat/room_combat_arena_01.tscn`

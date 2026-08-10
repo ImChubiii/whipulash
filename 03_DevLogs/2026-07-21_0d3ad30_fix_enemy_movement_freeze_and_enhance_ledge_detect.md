@@ -15,6 +15,14 @@ Added dynamic ledge detection that scales with body radius and uses lateral samp
 
 Refactored collision shape detection into reusable helper functions and removed verbose German comments for readability. Adjusted Fighter spawn point in level_01 to match new coordinates.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Gegner:** [[fighter]]
+
 ## Metadaten
 
 | Feld | Wert |

@@ -25,6 +25,10 @@ tags: [room, "room/start"]
 
 
 
+## Erwaehnt in DevLogs
+
+- —
+
 ## Quelle
 
 `resources/rooms/rd_start_01.tres` → `scenes/rooms/room_start_01.tscn`

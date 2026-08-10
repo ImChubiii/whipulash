@@ -20,6 +20,14 @@ tags: [devlog]
 - Improved keybind UI with better event handling and ui_accept special case
 - Removed legacy FOV, damage numbers, and minimap opacity settings
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

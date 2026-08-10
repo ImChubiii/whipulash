@@ -61,8 +61,19 @@ Zusammensetzung. Siehe [[level_generator]].
 Basiert auf `enemy_ai.gd` (Chase-Attack-State-Machine, importiertes
 Roboter-Mesh). Seit Phase 5 existiert daneben ein zweiter, unabhaengiger
 Gegner-Unterbau — [[custom_enemy_base]] — fuer stationaere/fliegende
-Spezialtypen ohne Laufanimation. Siehe MOC_Enemies fuer den vollstaendigen
+Spezialtypen ohne Laufanimation. Siehe [[_MOC_Enemies]] fuer den vollstaendigen
 Ueberblick beider Systeme.
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+- [[2026-07-27_0c0e515_feat_treasure_room_items_hud_overhaul_balancing_mu|2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes]]
+- [[2026-07-26_61765de_feat_combat-tuning_hud-overhaul_anti-baiting_sieg-|2026-07-26 — feat: Combat-Tuning, HUD-Overhaul, Anti-Baiting, Sieg-Trophäe, Menü-Fixes, Türsystem-Debugging]]
+- [[2026-07-25_905d144_feat_level-generation-polish_minimap-overhaul_haza|2026-07-25 — feat: Level-Generation-Polish, Minimap-Overhaul, Hazard/Door-Fixes, Atmosphäre]]
+- [[2026-07-25_170eb45_featlevel-gen_threat-budget_enemy_mix_lava_hazards|2026-07-25 — feat(level-gen): threat-budget enemy mix, lava hazards, elevation, minimap overlay]]
+- [[2026-07-21_0d3ad30_fix_enemy_movement_freeze_and_enhance_ledge_detect|2026-07-21 — Fix enemy movement freeze and enhance ledge detection]]
+- [[2026-07-25_66b3f05_featlevel-gen_threat-budget_enemy_mix_lava_hazards|2026-07-25 — feat(level-gen): threat-budget enemy mix, lava hazards, elevation, minimap overlay]]
+- [[2026-07-21_2135fc5_fix_enemy_movement_freeze_and_enhance_ledge_detect|2026-07-21 — Fix enemy movement freeze and enhance ledge detection]]
 
 ## Quelle
 

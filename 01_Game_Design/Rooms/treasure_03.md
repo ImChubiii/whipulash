@@ -25,6 +25,10 @@ tags: [room, "room/treasure"]
 
 
 
+## Erwaehnt in DevLogs
+
+- —
+
 ## Quelle
 
 `resources/rooms/rd_treasure_03.tres` → `scenes/rooms/treasure/room_treasure_03.tscn`

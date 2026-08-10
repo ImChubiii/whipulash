@@ -25,6 +25,10 @@ tags: [room, "room/combat"]
 
 
 
+## Erwaehnt in DevLogs
+
+- —
+
 ## Quelle
 
 `resources/rooms/rd_combat_12.tres` → `scenes/rooms/combat/room_combat_12.tscn`

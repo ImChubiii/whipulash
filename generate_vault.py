@@ -280,7 +280,8 @@ def parse_items() -> list[dict]:
     return items
 
 
-def write_item_notes(items: list[dict], item_cross_refs: dict[str, dict[str, list[str]]]) -> None:
+def write_item_notes(items: list[dict], item_cross_refs: dict[str, dict[str, list[str]]],
+                      entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Items"
     items_by_id = {it["id"]: it for it in items}
     for it in items:
@@ -349,6 +350,10 @@ Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
 dieses Items ODER umgekehrt):
 
 {synergy_section}
+
+## Erwaehnt in DevLogs
+
+{devlog_backlink_section(entity_mentions, "item", it['id'])}
 
 ## Metadaten
 
@@ -731,7 +736,8 @@ def parse_enemies() -> list[dict]:
     return enemies
 
 
-def write_enemy_notes(enemies: list[dict]) -> None:
+def write_enemy_notes(enemies: list[dict],
+                       entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Enemies"
     for e in enemies:
         body = f"""---
@@ -795,8 +801,12 @@ Zusammensetzung. Siehe [[level_generator]].
 Basiert auf `enemy_ai.gd` (Chase-Attack-State-Machine, importiertes
 Roboter-Mesh). Seit Phase 5 existiert daneben ein zweiter, unabhaengiger
 Gegner-Unterbau — [[custom_enemy_base]] — fuer stationaere/fliegende
-Spezialtypen ohne Laufanimation. Siehe MOC_Enemies fuer den vollstaendigen
+Spezialtypen ohne Laufanimation. Siehe [[_MOC_Enemies]] fuer den vollstaendigen
 Ueberblick beider Systeme.
+
+## Erwaehnt in DevLogs
+
+{devlog_backlink_section(entity_mentions, "enemy", slugify(e['display_name']))}
 
 ## Quelle
 
@@ -973,7 +983,8 @@ STAT_LABELS = {
 }
 
 
-def write_custom_enemy_notes(enemies: list[dict]) -> None:
+def write_custom_enemy_notes(enemies: list[dict],
+                              entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Enemies"
     for e in enemies:
         stats_rows = "\n".join(
@@ -1019,6 +1030,10 @@ Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
 ## Status-Effekte (ausgeloest)
 
 {status_section}
+
+## Erwaehnt in DevLogs
+
+{devlog_backlink_section(entity_mentions, "enemy", e['id'])}
 
 ## Quelle
 
@@ -1083,7 +1098,8 @@ def parse_rooms() -> list[dict]:
     return rooms
 
 
-def write_room_notes(rooms: list[dict]) -> None:
+def write_room_notes(rooms: list[dict],
+                      entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Rooms"
     for r in rooms:
         body = f"""---
@@ -1112,6 +1128,10 @@ tags: [room, "room/{r['room_type'].lower()}"]
 | Einmalig pro Run | {'Ja' if r['unique_per_run'] else 'Nein'} |
 
 {"Multi-Zellen-Raum: hat nur die Ausgaenge seiner Ankerzelle (RoomInstance._doors_by_dir bleibt unveraendert). Grundflaeche in Welt-Einheiten = footprint_cells * 48." if r['footprint_cells'] != '1x1' else ''}
+
+## Erwaehnt in DevLogs
+
+{devlog_backlink_section(entity_mentions, "room", r['id'])}
 
 ## Quelle
 
@@ -1216,7 +1236,8 @@ def parse_status_effects() -> list[dict]:
 
 def write_status_effect_notes(effects: list[dict], status_item_links: dict[str, list[str]],
                                enemy_dot_ids: set[str], enemy_lock_ids: set[str],
-                               status_reacted_by: dict[str, list[str]] | None = None) -> None:
+                               status_reacted_by: dict[str, list[str]] | None = None,
+                               entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Status_Effects"
     status_reacted_by = status_reacted_by or {}
     for fx in effects:
@@ -1319,6 +1340,10 @@ tags: [status-effect]
 ## Gegner-Interaktion
 
 {enemies_section}
+
+## Erwaehnt in DevLogs
+
+{devlog_backlink_section(entity_mentions, "status-effect", fx['id'])}
 
 ## Laufzeit
 
@@ -1672,9 +1697,11 @@ bei `queue_free()` NICHT).
 }
 
 
-def write_architecture_notes() -> None:
+def write_architecture_notes(entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "02_Tech_Architecture"
     for name, content in ARCH_NOTES.items():
+        backlinks = devlog_backlink_section(entity_mentions, "architecture", name)
+        content = content.rstrip() + f"\n\n## Erwaehnt in DevLogs\n\n{backlinks}\n"
         write_md(out_dir / f"{name}.md", content)
 
 
@@ -1712,11 +1739,122 @@ def parse_git_log() -> list[dict]:
     return commits
 
 
-def write_devlogs(commits: list[dict]) -> None:
-    out_dir = PROJECT_ROOT / "03_DevLogs"
+def _devlog_filename(c: dict) -> str:
+    return f"{c['date']}_{c['short_hash']}_{slugify(c['subject'])[:50]}.md"
+
+
+# ============================================================================
+# 8a) DEVLOG <-> SPIELINHALT-VERKNUEPFUNG — Freitext-Erkennung von Item-/
+#     Gegner-/Raum-/Statuseffekt-/Architektur-Namen in Commit-Nachrichten.
+#     Wortgrenzen-sicherer Teilstring-Abgleich, laengste Kandidaten zuerst
+#     eingetragen. Commit-Historie enthaelt keine strukturierten Referenzen
+#     auf Spielinhalte - Freitext-Abgleich ist hier das einzig Praktikable,
+#     und codeverifizierte Praezision (wie bei den Item<->Status-Links oben)
+#     ist schlicht nicht moeglich. Vereinzelte Fehltreffer sind der
+#     akzeptierte Preis fuer eine sonst gar nicht vorhandene Verbindung
+#     zwischen DevLogs und dem Rest des Vaults.
+# ============================================================================
+
+ENTITY_MENTION_MIN_LEN = 4
+ENTITY_KIND_LABELS = {
+    "item": "Items", "enemy": "Gegner", "room": "Raeume",
+    "status-effect": "Status-Effekte", "architecture": "Architektur",
+}
+
+
+def build_entity_index(items: list[dict], enemies: list[dict], custom_enemies: list[dict],
+                        rooms: list[dict], effects: list[dict]
+                        ) -> list[tuple[int, "re.Pattern[str]", str, str]]:
+    """Gibt (Laenge, Regex, Notiz-Dateiname, Kind) zurueck, absteigend nach
+    Laenge sortiert (spezifischste/laengste Namen zuerst geprueft)."""
+    candidates: list[tuple[int, "re.Pattern[str]", str, str]] = []
+    seen: set[str] = set()
+
+    def add(note_filename: str, kind: str, *names: str) -> None:
+        for n in names:
+            n = n.strip()
+            if len(n) < ENTITY_MENTION_MIN_LEN or n.lower() in seen:
+                continue
+            seen.add(n.lower())
+            pattern = re.compile(r'(?<![\w-])' + re.escape(n) + r'(?![\w-])', re.IGNORECASE)
+            candidates.append((len(n), pattern, note_filename, kind))
+
+    for it in items:
+        add(it["id"], "item", it["name"], it["id"].replace("_", " ").title(), it["id"].replace("_", "-"))
+    for e in enemies:
+        add(slugify(e["display_name"]), "enemy", e["display_name"])
+    for e in custom_enemies:
+        add(e["id"], "enemy", e["display_name"], e["class_name"])
+    for r in rooms:
+        add(r["id"], "room", r["id"].replace("_", " ").title(), r["id"])
+    for fx in effects:
+        add(fx["id"], "status-effect", fx["id"])
+    for arch_id in ARCH_NOTES.keys():
+        add(arch_id, "architecture", arch_id.replace("_", " ").title())
+
+    candidates.sort(key=lambda c: -c[0])
+    return candidates
+
+
+def compute_devlog_mentions(
+    commits: list[dict], entity_index: list[tuple[int, "re.Pattern[str]", str, str]],
+) -> tuple[dict[str, list[tuple[str, str]]], dict[tuple[str, str], list[dict]]]:
+    """commit_mentions: commit-hash -> [(kind, notiz_dateiname), ...]
+    entity_mentions: (kind, notiz_dateiname) -> [commit-dict, ...] (Commit-Reihenfolge = neueste zuerst, wie `git log`)."""
+    commit_mentions: dict[str, list[tuple[str, str]]] = {}
+    entity_mentions: dict[tuple[str, str], list[dict]] = {}
+
     for c in commits:
-        fname = f"{c['date']}_{c['short_hash']}_{slugify(c['subject'])[:50]}.md"
+        text = f"{c['subject']}\n{c['body']}"
+        found: list[tuple[str, str]] = []
+        found_keys: set[tuple[str, str]] = set()
+        for _length, pattern, note_filename, kind in entity_index:
+            key = (kind, note_filename)
+            if key in found_keys or not pattern.search(text):
+                continue
+            found.append(key)
+            found_keys.add(key)
+        commit_mentions[c["hash"]] = found
+        for key in found:
+            entity_mentions.setdefault(key, []).append(c)
+
+    return commit_mentions, entity_mentions
+
+
+def devlog_backlink_section(entity_mentions: dict[tuple[str, str], list[dict]] | None,
+                             kind: str, note_filename: str, cap: int = 15) -> str:
+    """Fuer Item-/Gegner-/Raum-/Status-Effekt-/Architektur-Notizen: Liste der
+    DevLogs, die dieses Element per Freitext-Abgleich erwaehnen."""
+    mentions = (entity_mentions or {}).get((kind, note_filename), [])
+    if not mentions:
+        return "- —"
+    lines = [f"- [[{_devlog_filename(c)[:-3]}|{c['date']} — {c['subject']}]]" for c in mentions[:cap]]
+    if len(mentions) > cap:
+        lines.append(f"- *(+{len(mentions) - cap} weitere — siehe [[_MOC_DevLogs]])*")
+    return "\n".join(lines)
+
+
+def write_devlogs(commits: list[dict],
+                   commit_mentions: dict[str, list[tuple[str, str]]] | None = None) -> None:
+    out_dir = PROJECT_ROOT / "03_DevLogs"
+    commit_mentions = commit_mentions or {}
+    for c in commits:
+        fname = _devlog_filename(c)
         body_md = c["body"] if c["body"] else "*(kein erweiterter Commit-Body)*"
+
+        by_kind: dict[str, list[str]] = {}
+        for kind, note_filename in commit_mentions.get(c["hash"], []):
+            by_kind.setdefault(kind, []).append(note_filename)
+        if by_kind:
+            mention_lines = [
+                f"**{ENTITY_KIND_LABELS[kind]}:** " + ", ".join(f"[[{n}]]" for n in sorted(by_kind[kind]))
+                for kind in ("item", "enemy", "room", "status-effect", "architecture")
+                if kind in by_kind
+            ]
+            mentions_section = "\n\n".join(mention_lines)
+        else:
+            mentions_section = "*(keine automatisch erkannten Erwaehnungen)*"
+
         note = f"""---
 commit: {yaml_escape(c['hash'])}
 short_hash: {yaml_escape(c['short_hash'])}
@@ -1730,6 +1868,14 @@ tags: [devlog]
 
 {body_md}
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+{mentions_section}
+
 ## Metadaten
 
 | Feld | Wert |
@@ -1739,6 +1885,39 @@ tags: [devlog]
 | Datum | {c['date']} |
 """
         write_md(out_dir / fname, note)
+
+
+def write_devlogs_moc(commits: list[dict]) -> None:
+    """Vollstaendige, chronologische Liste WIRKLICH ALLER Commits in main's
+    Historie (nicht nur die juengsten 20 wie im Dashboard) - nach Monat
+    gruppiert, damit die Seite bei inzwischen 70+ Commits navigierbar bleibt."""
+    by_month: dict[str, list[dict]] = {}
+    for c in commits:
+        month = c["date"][:7]  # YYYY-MM
+        by_month.setdefault(month, []).append(c)
+
+    blocks = []
+    for month in sorted(by_month.keys(), reverse=True):
+        month_commits = by_month[month]
+        lines = "\n".join(
+            f"- [[{_devlog_filename(c)[:-3]}|{c['date']} — {c['subject']}]]"
+            for c in month_commits
+        )
+        blocks.append(f"### {month} ({len(month_commits)})\n\n{lines}\n")
+
+    content = f"""---
+tags: [moc, devlogs]
+---
+
+# MOC — Alle DevLogs ({len(commits)} Commits)
+
+Jeder Commit in der `main`-Historie dieses Repos, chronologisch nach Monat
+gruppiert (neuester Monat zuerst). Das Dashboard zeigt nur die juengsten 20 —
+diese Seite ist die vollstaendige Liste.
+
+{chr(10).join(blocks)}
+"""
+    write_md(PROJECT_ROOT / "03_DevLogs/_MOC_DevLogs.md", content)
 
 
 # ============================================================================
@@ -1911,8 +2090,14 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
   - [[status_effect_manager]]
   - [[custom_enemy_base]] — Unterbau der sechs Sandbox-Prototypen
   - [[enemy_sandbox_room]] — Debug-Spawnraum fuer alle Gegnertypen
-- DevLogs ({len(commits)} Commits)
+- DevLogs ({len(commits)} Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
 - Templates: [[tpl_Item]] · [[tpl_Enemy]] · [[tpl_Room]] · [[tpl_StatusEffect]]
+
+Jede Item-/Gegner-/Raum-/Status-Effekt-/Architektur-Notiz hat unten einen
+Abschnitt **"Erwaehnt in DevLogs"** — per Freitext-Abgleich aus den
+Commit-Nachrichten erkannt (siehe `build_entity_index()` in
+`generate_vault.py`). Jede DevLog-Notiz hat umgekehrt einen Abschnitt
+**"Erwaehnte Entitaeten"**.
 
 ## Items
 
@@ -1995,9 +2180,13 @@ Buff/generisches Debuff.
 ```dataview
 TABLE subject AS "Commit", author AS "Autor"
 FROM "03_DevLogs"
+WHERE file.name != "_MOC_DevLogs"
 SORT date DESC
 LIMIT 20
 ```
+
+Nur die juengsten 20 — [[_MOC_DevLogs]] listet wirklich **alle** {len(commits)}
+Commits, nach Monat gruppiert.
 """
     write_md(PROJECT_ROOT / "00_Dashboard/00_Master_Wiki.md", content)
 
@@ -2185,33 +2374,48 @@ def main() -> None:
     print("=" * 60)
 
     ensure_folders()
-    print("[1/6] Ordnerstruktur angelegt")
+    print("[1/7] Ordnerstruktur angelegt")
 
     write_templates()
-    print("[2/6] Dataview-Templates geschrieben (99_Templates)")
+    print("[2/7] Dataview-Templates geschrieben (99_Templates)")
 
+    # --- Parse-Phase: ALLE Datenquellen zuerst einlesen, bevor irgendeine
+    # Notiz geschrieben wird. Grund: die DevLog<->Spielinhalt-Verknuepfung
+    # (build_entity_index/compute_devlog_mentions) braucht items/enemies/
+    # rooms/effects UND commits gleichzeitig, um die "Erwaehnt in DevLogs"-
+    # Rueckverweise in JEDE Notiz einzubauen - nicht nur in die DevLogs selbst.
     items = parse_items()
     item_cross_refs = parse_item_cross_references(items)
-    write_item_notes(items, item_cross_refs)
+    enemies = parse_enemies()
+    custom_enemies = parse_custom_enemies()
+    rooms = parse_rooms()
+    effects = parse_status_effects()
+    commits = parse_git_log()
+    print(f"[3/7] Rohdaten eingelesen: {len(items)} Items, {len(enemies)}+{len(custom_enemies)} Gegner, "
+          f"{len(rooms)} Raeume, {len(effects)} Status-Effekte, {len(commits)} Commits")
+
+    entity_index = build_entity_index(items, enemies, custom_enemies, rooms, effects)
+    commit_mentions, entity_mentions = compute_devlog_mentions(commits, entity_index)
+    n_mentions = sum(len(v) for v in commit_mentions.values())
+    print(f"      -> {n_mentions} DevLog<->Spielinhalt-Erwaehnungen per Freitext-Abgleich gefunden")
+
+    # --- Write-Phase --------------------------------------------------------
+    write_item_notes(items, item_cross_refs, entity_mentions)
     n_triggers = sum(len(v["triggers"]) for v in item_cross_refs.values())
     n_reacts = sum(len(v["reacts_to"]) for v in item_cross_refs.values())
     n_synergy = sum(len(v["synergizes_with"]) for v in item_cross_refs.values())
-    print(f"[3/6] {len(items)} Item-Notizen geschrieben (01_Game_Design/Items)")
+    print(f"[4/7] {len(items)} Item-Notizen geschrieben (01_Game_Design/Items)")
     print(f"      -> {n_triggers} Item->Status-Ausloese-, {n_reacts} Item->Status-Reagiert-auf-, "
           f"{n_synergy} Item<->Item-Synergie-Verknuepfungen gefunden")
 
-    enemies = parse_enemies()
-    write_enemy_notes(enemies)
-    custom_enemies = parse_custom_enemies()
-    write_custom_enemy_notes(custom_enemies)
-    print(f"[3/6] {len(enemies)} Enemy-Notizen (Threat-Budget) + {len(custom_enemies)} "
+    write_enemy_notes(enemies, entity_mentions)
+    write_custom_enemy_notes(custom_enemies, entity_mentions)
+    print(f"[4/7] {len(enemies)} Enemy-Notizen (Threat-Budget) + {len(custom_enemies)} "
           f"Sandbox-Prototyp-Notizen geschrieben (01_Game_Design/Enemies)")
 
-    rooms = parse_rooms()
-    write_room_notes(rooms)
-    print(f"[3/6] {len(rooms)} Room-Notizen geschrieben (01_Game_Design/Rooms)")
+    write_room_notes(rooms, entity_mentions)
+    print(f"[4/7] {len(rooms)} Room-Notizen geschrieben (01_Game_Design/Rooms)")
 
-    effects = parse_status_effects()
     status_item_links: dict[str, list[str]] = {}
     status_reacted_by: dict[str, list[str]] = {}
     for item_id, refs in item_cross_refs.items():
@@ -2220,21 +2424,21 @@ def main() -> None:
         for sid in refs["reacts_to"]:
             status_reacted_by.setdefault(sid, []).append(item_id)
     write_status_effect_notes(effects, status_item_links, ENEMY_DOT_STATUS_IDS,
-                               ENEMY_ATTACK_LOCK_STATUS_IDS, status_reacted_by)
-    print(f"[3/6] {len(effects)} Status-Effekt-Notizen geschrieben (01_Game_Design/Status_Effects)")
+                               ENEMY_ATTACK_LOCK_STATUS_IDS, status_reacted_by, entity_mentions)
+    print(f"[4/7] {len(effects)} Status-Effekt-Notizen geschrieben (01_Game_Design/Status_Effects)")
 
-    write_architecture_notes()
-    print("[4/6] Architektur-Notizen geschrieben (02_Tech_Architecture)")
+    write_architecture_notes(entity_mentions)
+    print("[5/7] Architektur-Notizen geschrieben (02_Tech_Architecture)")
 
     write_moc_pages(items, enemies, custom_enemies, rooms, effects)
-    print("[4/6] Gruppierungs-Seiten (MOCs) geschrieben")
+    print("[5/7] Gruppierungs-Seiten (MOCs) geschrieben")
 
-    commits = parse_git_log()
-    write_devlogs(commits)
-    print(f"[5/6] {len(commits)} DevLog-Notizen geschrieben (03_DevLogs)")
+    write_devlogs(commits, commit_mentions)
+    write_devlogs_moc(commits)
+    print(f"[6/7] {len(commits)} DevLog-Notizen + Gesamtliste geschrieben (03_DevLogs)")
 
     write_dashboard(items, enemies, custom_enemies, rooms, effects, commits)
-    print("[6/6] Master-Dashboard geschrieben (00_Dashboard)")
+    print("[7/7] Master-Dashboard geschrieben (00_Dashboard)")
 
     write_wiki_sync()
     print("      wiki_sync.py-Vorlage geschrieben (98_Scripts)")

@@ -54,6 +54,11 @@ BURN — Feuer-DoT. Der Gegner leuchtet rot/orange, solange er brennt.
 
 - Zaehlt in `enemy_ai.gd` als `DOT_EFFECT_IDS`-Eintrag: tickt automatisch Schaden auf **alle** Gegner ([[fighter]], [[stinger]], [[colossus]], sowie ueber [[custom_enemy_base]] auch die sechs Sandbox-Prototypen).
 
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+- [[2026-08-04_678339b_featdebug_ui_combat_teleporter-system_boss-hp-mult|2026-08-04 — feat(debug, ui, combat): Teleporter-System, Boss-HP-Multi-Targeting, Popup-Positionierung und Despawn-Fixes]]
+
 ## Laufzeit
 
 Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).

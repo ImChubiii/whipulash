@@ -13,6 +13,14 @@ Dash-Drill-Kameraroll auf ursprüngliche Werte zurückgesetzt (9°, keine Oversh
 Motion-Blur-Feature komplett entfernt (Canvas-Shader und 3D-Quad-Ansatz scheiterten beide an fehlender Screen-Textur unter Forward Mobile; Speed-Lines-Alternative auf Wunsch verworfen)
 player_base.gd bereinigt, keine Motion-Blur-Reste mehr enthalten
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

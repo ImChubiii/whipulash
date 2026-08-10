@@ -77,6 +77,16 @@ Primary damage increased from 9 -> 14. Secondary damage (previously using the sc
 Known Open Issues (Not Part of This Commit)
 Visible effect/VFX feedback is still missing for several passive items (Wooden Spoon, Hatchet, Sock, Hellfire Horns) — the underlying game logic functions correctly (see item_behaviours.gd), but there is no custom visual feedback beyond the generic hit-stop. Planned as a separate task block.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Items:** [[wooden_spoon]]
+
+**Gegner:** [[fighter]]
+
 ## Metadaten
 
 | Feld | Wert |

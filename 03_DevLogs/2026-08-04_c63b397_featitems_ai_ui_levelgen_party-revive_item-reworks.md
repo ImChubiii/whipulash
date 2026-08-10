@@ -58,6 +58,16 @@ UI & HUD
 * Tutorial Hologramm: Kann durch Drücken von [F] in der Nähe vergrößert
   werden. Veraltete Prompts (pre-Q/E) aufgeräumt.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Items:** [[cursed_die]], [[ouija_board]], [[rice_pudding]], [[roof_nail]], [[stiletto_heels]]
+
+**Status-Effekte:** [[shield]]
+
 ## Metadaten
 
 | Feld | Wert |

@@ -41,6 +41,10 @@ VULNERABLE — generischer Status ohne eigene Datei. Erhoeht den Schaden, den da
 
 - —
 
+## Erwaehnt in DevLogs
+
+- [[2026-08-05_603fc49_feat_massive_gameplay-erweiterung_47_neue_items_ma|2026-08-05 — feat: Massive Gameplay-Erweiterung, 47 neue Items & Main Menu Rework]]
+
 ## Laufzeit
 
 Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).

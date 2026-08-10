@@ -30,6 +30,14 @@ tags: [devlog]
   - `lemonade.gd`: `ignore_group`-Export hinzugefügt.
   - `room_combat_06.tscn`: Spawn-Marker von `Enemy7` aus dem Lava-Pool nach (11, 0.5, -19) verschoben.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Status-Effekte:** [[burn]], [[rooted]]
+
 ## Metadaten
 
 | Feld | Wert |

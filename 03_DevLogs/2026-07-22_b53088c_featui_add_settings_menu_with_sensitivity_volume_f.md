@@ -31,6 +31,14 @@ Known follow-up: level scenes other than level_01.tscn still need the
 same SettingsMenu instance + PauseMenu wiring; "interact " input action
 has a trailing-space typo in project.godot that should be cleaned up.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

@@ -11,6 +11,14 @@ tags: [devlog]
 
 Add _Commit_Exportieren.bat — a Windows batch that switches the console to UTF-8 and runs `git -c core.quotepath=false log` to produce a UTF-8 commits.txt in the repository root (with simple success/error feedback). Also add the generated commits.txt containing the repository's commit history. This prevents charset issues when exporting git logs on Windows.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

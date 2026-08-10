@@ -62,3 +62,7 @@ Projektile der alten Etage.
 - Alle Notizen unter `01_Game_Design/Rooms/`.
 - [[custom_enemy_base]] / [[enemy_sandbox_room]] — sechs neue Gegnertypen,
   die noch NICHT in den Threat-Budget-Tabellen dieser Klasse stecken.
+
+## Erwaehnt in DevLogs
+
+- —

@@ -99,6 +99,16 @@ scripts/victory_trophy.gd · scenes/victory_trophy.tscn ·
 scripts/minimap_rooms.gd · scripts/hud.gd · scenes/hud.tscn ·
 scripts/run_timer.gd · scripts/ability_slot.gd
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Gegner:** [[colossus]], [[fighter]], [[stinger]]
+
+**Status-Effekte:** [[stun]]
+
 ## Metadaten
 
 | Feld | Wert |

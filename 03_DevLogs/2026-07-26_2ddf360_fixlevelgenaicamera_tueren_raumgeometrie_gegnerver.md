@@ -97,6 +97,14 @@ KAMERA / UI
 - seed_button.gd: Run-Seed anzeigen und per Klick in die Zwischenablage
   kopieren.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Gegner:** [[stinger]]
+
 ## Metadaten
 
 | Feld | Wert |

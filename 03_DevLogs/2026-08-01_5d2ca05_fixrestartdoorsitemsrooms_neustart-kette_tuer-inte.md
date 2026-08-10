@@ -169,6 +169,14 @@ ItemBehaviours._player freed-instance-Fehler, drei Shadowing-
 Warnungen (speed/basis/is_visible), lemonade.tscn UID-Verweis
 invalide, _get_or_create_shared_blur() add_child-Timing-Fehler
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

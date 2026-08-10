@@ -45,6 +45,10 @@ dieses Items ODER umgekehrt):
 
 - [[rusty_cleaver]] — *Rostiges Beil*
 
+## Erwaehnt in DevLogs
+
+- —
+
 ## Metadaten
 
 | Feld | Wert |

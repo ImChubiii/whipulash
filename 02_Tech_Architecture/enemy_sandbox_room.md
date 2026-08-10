@@ -38,3 +38,7 @@ bei `queue_free()` NICHT).
 - [[custom_enemy_base]] — Basisklasse aller sechs neuen Typen.
 - [[level_generator]] — die "richtige" Spawn-Instanz, in die diese Typen
   noch integriert werden muessen.
+
+## Erwaehnt in DevLogs
+
+- —

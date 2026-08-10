@@ -108,6 +108,14 @@ HUD (hud_extra.gd, stats_panel.gd, item_description_hud.gd, reset_overlay.gd)
 - Stats-Panel und Item-HUD sitzen unten links in einer gemeinsamen Spalte.
   Stats stehen unten (feste Hoehe, wandern nie), das Item-HUD
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+*(keine automatisch erkannten Erwaehnungen)*
+
 ## Metadaten
 
 | Feld | Wert |

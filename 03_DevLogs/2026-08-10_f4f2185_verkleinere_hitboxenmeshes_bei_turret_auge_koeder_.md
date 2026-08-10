@@ -16,6 +16,14 @@ Lockdown schlug bisher am aktuellen Spielerstandort zu statt am
 sichtbaren Telegraph-Ring - gleiches Muster wie bei Orbitalschlag,
 Koeder und Nachbeben.
 
+## Erwaehnte Entitaeten
+
+Automatisch per Freitext-Abgleich mit Item-/Gegner-/Raum-/Status-Effekt-/
+Architektur-Namen erkannt — kann vereinzelt falsch-positiv sein, siehe
+Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
+
+**Items:** [[aftershock]], [[fakeout]], [[lockdown]], [[nanoswarm]], [[orbital_strike]], [[turret]]
+
 ## Metadaten
 
 | Feld | Wert |
