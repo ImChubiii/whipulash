@@ -1,0 +1,24 @@
+---
+commit: "2135fc59c5e84c5885db5bf355e8491fa9f3da52"
+short_hash: "2135fc5"
+date: 2026-07-21
+author: "ImChubiii"
+subject: "Fix enemy movement freeze and enhance ledge detection"
+tags: [devlog]
+---
+
+# 2026-07-21 — Fix enemy movement freeze and enhance ledge detection
+
+Critical fix to _get_feet_y() calculation that was double-counting capsule radius, causing continuous false "ledge ahead" detections and enemy freeze. Now correctly calculates feet position: half_height = shape.height * 0.5 instead of (radius + height * 0.5).
+
+Added dynamic ledge detection that scales with body radius and uses lateral samples for reliability. Implemented proper standing-on-player detection with height verification to prevent false positives from side collisions. Added property setters for gravity and jump_height to recalculate jump_velocity at runtime.
+
+Refactored collision shape detection into reusable helper functions and removed verbose German comments for readability. Adjusted Fighter spawn point in level_01 to match new coordinates.
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| Commit | `2135fc5` |
+| Autor | ImChubiii |
+| Datum | 2026-07-21 |

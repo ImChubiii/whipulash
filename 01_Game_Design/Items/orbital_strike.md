@@ -1,0 +1,46 @@
+---
+id: "orbital_strike"
+name: "Orbitalschlag"
+subtitle: "Einschlag in 3... 2... 1..."
+kind: ACTIVE
+category: UTILITY
+rarity: LEGENDARY
+cooldown_seconds: 22.0
+charge_rooms: 0
+nr: "74"
+table_ref: "1.36"
+has_stat_modifiers: false
+status_effects: []
+tags: [item, "item/active", "rarity/legendary"]
+---
+
+# Orbitalschlag
+
+> *Einschlag in 3... 2... 1...*
+
+## Effekt
+
+Markiert die Stelle vor dir - nach kurzer Verzoegerung schlaegt ein gewaltiger Strahl ein und verwuestet den Bereich.
+
+## Status-Effekte
+
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `orbital_strike` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | LEGENDARY |
+| Cooldown | 22.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.36 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_ORBITAL_STRIKE`, Variable `orbital_strike`)
