@@ -8,5 +8,7 @@ script = ExtResource("1_data")
 character_id = &"ningning"
 character_name = "Ningning"
 player_scene = ExtResource("2_scene")
+attack_color = Color(0.25, 0.55, 1.0, 1.0)
+attack_color_secondary = Color(1.0, 1.0, 1.0, 1.0)
 name_ability_q = "Zest Burst"
 name_ability_e = "Sour Storm"

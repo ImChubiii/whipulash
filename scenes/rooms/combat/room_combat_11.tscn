@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -48,6 +49,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48, 48)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")

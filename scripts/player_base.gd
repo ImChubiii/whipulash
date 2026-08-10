@@ -176,6 +176,15 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 @onready var combat: CombatBase = $Combat
 @onready var health: Health = $Health
 @onready var own_collision: CollisionShape3D = $CollisionShape3D
+## Optional - direktes Kind "GhostTrail" (siehe scripts/vfx/ghost_trail.gd).
+## get_node_or_null(): fehlt der Node in einer Charakter-Szene, bleibt die
+## normale Bewegung einfach ohne Trail, statt einen Fehler zu werfen.
+@onready var ghost_trail: GhostTrail = get_node_or_null("GhostTrail")
+
+## Ab welcher horizontalen Geschwindigkeit (Einheiten/Sekunde) der
+## Dauer-Lauf-Trail einsetzt - verhindert, dass er schon beim Anlaufen/
+## Abbremsen oder bei kleinem Knockback-Restschwung flackert.
+@export var ghost_trail_speed_threshold: float = 10.0
 
 @export var own_damage_shake_strength: float = 0.6
 var _last_known_health: float = -1.0
@@ -815,6 +824,17 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			velocity.z = 0.0
 			break
+
+	# --- Lauf-Trail (Ghost-Nachbilder) -------------------------------------
+	# NACH dem Heavy-Enemy-Wall-Reset ausgewertet, damit ein dort gerade auf 0
+	# gesetztes velocity.x/z den Trail sofort mit abschaltet. Waehrend des
+	# Dashs macht combat_base.gd bereits den kraeftigeren Burst - hier
+	# deshalb explizit ausgenommen, siehe ghost_trail.gd-Kopfkommentar dazu,
+	# warum der Burst ohnehin Vorrang haette.
+	if ghost_trail:
+		var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+		var fast_enough: bool = horizontal_speed >= ghost_trail_speed_threshold
+		ghost_trail.set_running(fast_enough and not combat.is_dashing() and not _is_dead)
 
 	# NACH move_and_slide(): is_on_floor() ist erst jetzt fuer diesen Frame
 	# aktuell.

@@ -37,6 +37,7 @@ HudExtra="*uid://bys4sieyin6ky"
 Teleporter="*uid://dxfotrd7xhn1p"
 Stages="*uid://buqywesge6fy4"
 GameStats="*res://scripts/game_stats.gd"
+ItemTestRoom="*res://scripts/item_test_room.gd"
 
 [display]
 

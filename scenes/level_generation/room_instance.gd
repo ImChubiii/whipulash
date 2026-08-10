@@ -1992,7 +1992,17 @@ func apply_theme(theme: StageTheme) -> void:
 
 func _apply_theme_recursive(node: Node, theme: StageTheme) -> void:
 	var mesh := node as MeshInstance3D
-	if mesh != null:
+	# BUGFIX "Abyss-Loch ist weiss/untexturiert": pit_floor.gd erzeugt fuer
+	# extra_void_pits einen absichtlich unbeleuchteten NAHE-SCHWARZ-Schacht
+	# (_emit_dark_box, Name enthaelt "VoidShaft") - er soll die Falltiefe
+	# verschleiern (siehe Kommentar dort), egal welches Etagen-Theme aktiv
+	# ist. Diese generierten Kinder haengen direkt unter dem "Floor"-Node,
+	# tint_for_node_name() liest aber den PARENT-Namen und haette sie sonst
+	# wie normale Bodenflaechen mit floor_color eingefaerbt - je nach Theme
+	# (z.B. Tiefkuehlhaus: Color(0.72, 0.84, 0.95), fast weiss) sieht der
+	# Abgrund dann aus wie eine flache, unbelichtete Flaeche statt wie ein
+	# dunkles Loch.
+	if mesh != null and not mesh.name.to_lower().contains("voidshaft"):
 		var tint: Color = theme.tint_for_node_name(mesh.get_parent().name if mesh.get_parent() else mesh.name)
 		# material_override hat Vorrang vor surface_material_override.
 		if mesh.material_override != null:

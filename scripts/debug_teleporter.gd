@@ -5,16 +5,25 @@ extends Node
 ## für direkten Transfer zum Tresor- oder Bossraum.
 @export var pad_offset_left: Vector3 = Vector3(-5.0, -2.2, 0.0)
 @export var pad_offset_right: Vector3 = Vector3(5.0, -2.2, 0.0)
+## Drittes Pad, Admin-only: teleportiert in den Item-Testraum (siehe
+## scripts/item_test_room.gd) - dort liegt JEDES Item aus dem Katalog
+## nacheinander auf einem eigenen Sockel, plus eine Loesch-Plattform fuers
+## Inventar. Bewusst auf der +Z-Achse statt links/rechts, damit es sich
+## nicht mit den Tresor-/Boss-Pads ueberlappt.
+@export var pad_offset_item_test: Vector3 = Vector3(0.0, -2.2, 6.0)
 @export var interact_action: StringName = &"interact"
 @export var only_in_debug_build: bool = false # Auf false, damit es garantiert im Editor & Build erscheint
 
 var _boss_pad: Area3D
 var _treasure_pad: Area3D
+var _item_test_pad: Area3D
 var _boss_label: Label3D
 var _treasure_label: Label3D
+var _item_test_label: Label3D
 
 var _player_in_boss: bool = false
 var _player_in_treasure: bool = false
+var _player_in_item_test: bool = false
 var _boss_grid: Vector2i = Vector2i(-999, -999)
 var _treasure_grid: Vector2i = Vector2i(-999, -999)
 
@@ -103,6 +112,12 @@ func _setup_pads() -> void:
 	_boss_pad.body_exited.connect(func(b): if _is_player(b): _player_in_boss = false; _update_labels())
 	start_room.add_child(_boss_pad)
 
+	_item_test_pad = _create_pad("ItemTestTeleportPad", Color(0.55, 0.25, 0.95, 0.6), base_pos + pad_offset_item_test)
+	_item_test_label = _create_label(_item_test_pad, "[ ITEM-TESTRAUM ]")
+	_item_test_pad.body_entered.connect(func(b): if _is_player(b): _player_in_item_test = true; _update_labels())
+	_item_test_pad.body_exited.connect(func(b): if _is_player(b): _player_in_item_test = false; _update_labels())
+	start_room.add_child(_item_test_pad)
+
 	print("[Teleporter] Pads erfolgreich im Startraum platziert!")
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -116,6 +131,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_teleport_player_to_grid(_treasure_grid)
 	elif _player_in_boss and _boss_grid != Vector2i(-999, -999):
 		_teleport_player_to_grid(_boss_grid)
+	elif _player_in_item_test:
+		ItemTestRoom.teleport_player_in()
 
 func _teleport_player_to_grid(target_grid: Vector2i) -> void:
 	var level_gen := get_tree().get_first_node_in_group("level_generator") as LevelGenerator
@@ -185,9 +202,13 @@ func _update_labels() -> void:
 		else:
 			_boss_label.text = "[ BOSS ]" if _boss_grid != Vector2i(-999, -999) else "[ kein Boss ]"
 
+	if _item_test_label:
+		_item_test_label.text = "[F / E] ITEM-TESTRAUM" if _player_in_item_test else "[ ITEM-TESTRAUM ]"
+
 func _is_player(body: Node) -> bool:
 	return body.is_in_group(PartyManager.PLAYER_GROUP)
 
 func _cleanup() -> void:
 	if is_instance_valid(_boss_pad): _boss_pad.queue_free()
 	if is_instance_valid(_treasure_pad): _treasure_pad.queue_free()
+	if is_instance_valid(_item_test_pad): _item_test_pad.queue_free()

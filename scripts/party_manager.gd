@@ -75,6 +75,18 @@ const SWITCH_COOLDOWN_DURATION: float = 10.0
 ## _on_player_health_died()) - nicht nur die des Nachrueckers.
 const LAST_STAND_HP_FRACTION: float = 0.20
 
+## Der Nachruecker bei einer Last-Stand-Uebernahme bekommt kurz Schonzeit:
+## ohne das kann derselbe Hitbox-Treffer, der gerade den vorigen Charakter
+## umgebracht hat, im selben Atemzug auch noch den frisch eingewechselten
+## erwischen - der Spieler haette keine Chance, zu reagieren.
+const SWITCH_INVULN_DURATION: float = 2.0
+## Dauer eines vollen Blink-Zyklus (hell -> dunkel). Kleiner = schnelleres
+## Flackern. Muss SWITCH_INVULN_DURATION nicht restlos teilen - der letzte
+## Zyklus wird beim Ablauf der Unverwundbarkeit einfach sauber beendet.
+const SWITCH_BLINK_INTERVAL: float = 0.12
+const SWITCH_BLINK_COLOR: Color = Color(1.0, 1.0, 1.0)
+const SWITCH_BLINK_STRENGTH: float = 0.85
+
 var party: Array[CharacterData] = []
 
 var _current_health: Array[float] = []
@@ -346,6 +358,11 @@ func _force_switch_to_survivor(index: int) -> void:
 		if new_spring_arm:
 			new_spring_arm.rotation.x = carried_camera_pitch
 
+	# Schonzeit fuer den Nachruecker - siehe SWITCH_INVULN_DURATION-Kommentar.
+	if _player_health != null and is_instance_valid(_player_health):
+		_player_health.set_invulnerable(SWITCH_INVULN_DURATION)
+	_play_switch_invuln_blink(SWITCH_INVULN_DURATION)
+
 	active_character_changed.emit(index)
 
 
@@ -489,3 +506,72 @@ func _unhandled_input(event: InputEvent) -> void:
 		if InputMap.has_action(action) and event.is_action_pressed(action):
 			switch_to(i)
 			return
+
+
+# ============================================================================
+# Weisses Blinken waehrend der Last-Stand-Schonzeit
+# ============================================================================
+## Faerbt das Modell des Nachrueckers im selben psx.gdshader-Kanal wie die
+## Item-Effekte (siehe item_behaviours.gd _flash_player) weiss ein und lässt
+## flash_strength ueber die komplette Schonzeit zwischen 0 und
+## SWITCH_BLINK_STRENGTH pulsieren, statt nur einmal aufzublitzen - das macht
+## "ich bin gerade unverwundbar" sichtbar, nicht nur "ich wurde getroffen".
+func _play_switch_invuln_blink(duration: float) -> void:
+	if not has_player() or duration <= 0.0:
+		return
+
+	var materials: Array[ShaderMaterial] = []
+	_collect_shader_materials(player, materials)
+	if materials.is_empty():
+		return
+
+	for material: ShaderMaterial in materials:
+		material.set_shader_parameter("flash_color", SWITCH_BLINK_COLOR)
+
+	var half_cycle: float = SWITCH_BLINK_INTERVAL * 0.5
+	var cycles: int = maxi(int(ceil(duration / SWITCH_BLINK_INTERVAL)), 1)
+
+	# Auf PartyManager (Autoload) statt auf "player" erzeugt: player wird bei
+	# einem weiteren schnellen Wechsel/Tod noch WAEHREND der Schonzeit
+	# queue_free()'t, und ein an ihn gebundener Tween stuerbe mit ihm ab,
+	# noch bevor flash_strength zurueckgesetzt ist.
+	var tween: Tween = create_tween()
+	tween.set_loops(cycles)
+	tween.tween_method(
+		func(value: float) -> void:
+			for material: ShaderMaterial in materials:
+				if is_instance_valid(material):
+					material.set_shader_parameter("flash_strength", value),
+		0.0, SWITCH_BLINK_STRENGTH, half_cycle
+	)
+	tween.tween_method(
+		func(value: float) -> void:
+			for material: ShaderMaterial in materials:
+				if is_instance_valid(material):
+					material.set_shader_parameter("flash_strength", value),
+		SWITCH_BLINK_STRENGTH, 0.0, half_cycle
+	)
+	tween.finished.connect(
+		func() -> void:
+			for material: ShaderMaterial in materials:
+				if is_instance_valid(material):
+					material.set_shader_parameter("flash_strength", 0.0)
+	)
+
+
+## Gleiche Logik wie item_behaviours.gd _collect_shader_materials() - bewusst
+## dupliziert statt geteilt, weil ItemBehaviours ein eigenstaendiges, an den
+## jeweiligen Charakter gebundenes Node ist und PartyManager (Autoload) keine
+## fixe Referenz darauf haelt.
+func _collect_shader_materials(node: Node, out: Array[ShaderMaterial]) -> void:
+	var mesh := node as MeshInstance3D
+	if mesh != null:
+		if mesh.material_override is ShaderMaterial:
+			out.append(mesh.material_override as ShaderMaterial)
+		else:
+			for i: int in range(mesh.get_surface_override_material_count()):
+				var surface: Material = mesh.get_surface_override_material(i)
+				if surface is ShaderMaterial:
+					out.append(surface as ShaderMaterial)
+	for child: Node in node.get_children():
+		_collect_shader_materials(child, out)

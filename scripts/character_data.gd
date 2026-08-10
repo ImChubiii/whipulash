@@ -26,6 +26,18 @@ class_name CharacterData
 # z.B. res://scenes/characters/char_ningning.tscn
 @export var player_scene: PackedScene = null
 
+@export_group("Combat Visuals")
+## Zwei Akzentfarben pro Charakter - faerben sowohl den Primärangriff-
+## Trefferfunken (siehe primary_hitbox.gd _resolve_attacker_colors() /
+## vfx_manager.gd spawn_dual_tinted()) als auch den Ghost-/Motion-Blur-Trail
+## (siehe combat_base.gd setup() / ghost_trail.gd set_colors()) ein. Beide
+## Effekte alternieren bzw. mischen zwischen attack_color und
+## attack_color_secondary statt nur EINEN Ton zu zeigen - macht Treffer UND
+## Bewegung optisch dem aktiven Charakter zuordenbar, obwohl alle vier
+## dieselben Hitbox-/VFX-Szenen teilen.
+@export var attack_color: Color = Color(1.0, 1.0, 1.0, 1.0)
+@export var attack_color_secondary: Color = Color(1.0, 1.0, 1.0, 1.0)
+
 @export_group("Icons")
 @export var icon_primary: Texture2D = null
 @export var icon_secondary: Texture2D = null

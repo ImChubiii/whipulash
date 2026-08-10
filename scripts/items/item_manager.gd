@@ -343,6 +343,24 @@ func reset_run() -> void:
 	bombs_changed.emit(bombs)
 
 
+## Admin/Debug: entfernt ALLE Items aus dem Inventar (inkl. Stat-Boni und
+## aktiver Slots), OHNE Muenzen/Bomben anzufassen - anders als reset_run(),
+## das fuer einen kompletten Rundenneustart gedacht ist. Gedacht fuer die
+## Loesch-Plattform im Item-Testraum (siehe scripts/item_test_room.gd):
+## Items durchtesten, dann per Knopfdruck wieder bei null anfangen, ohne
+## gleich den ganzen Run neu zu starten.
+func clear_inventory() -> void:
+	inventory.clear()
+	active_items = [null, null]
+	_active_charges.clear()
+	_active_cooldowns.clear()
+	if stats:
+		stats.clear_all()
+		stats.apply()
+	inventory_changed.emit()
+	active_slots_changed.emit()
+
+
 # ============================================================================
 # Waehrungen
 # ============================================================================

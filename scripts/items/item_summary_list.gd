@@ -201,7 +201,7 @@ func _build() -> void:
 	# TOP_LEFT: Position wird ueber .position gesetzt (siehe
 	# _position_detail_panel), nicht ueber Anker relativ zu einem Container.
 	_detail_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	# Die Breite setzt jetzt _apply_detail_width() pro Item. Hier nur die
+	# Groesse und Position setzt jetzt _apply_detail_size() pro Item. Hier nur die
 	# Untergrenze, damit ein einzeiliger Name nicht zu einem Streifen
 	# zusammenfaellt.
 	_detail_panel.custom_minimum_size = Vector2(detail_min_width, 0.0)
@@ -367,8 +367,13 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Contro
 	if panel_style is StyleBoxFlat:
 		(panel_style as StyleBoxFlat).border_color = Color(color.r, color.g, color.b, 0.85)
 
-	_apply_detail_width(text, item.display_name)
-
+	# Breite UND Hoehe werden komplett selbst berechnet (siehe
+	# _apply_detail_size()) - beides steht damit VOR dem Sichtbarmachen
+	# bereits fest, in diesem einen synchronen Aufruf. Kein Warten auf
+	# Godots eigenen (deferred laufenden) Container-Layout-Durchgang mehr
+	# noetig, und damit auch kein Frame, in dem die alte/falsche Groesse
+	# sichtbar waere.
+	_apply_detail_size(text, item.display_name)
 	_detail_panel.visible = true
 	_position_detail_panel(row)
 
@@ -413,9 +418,32 @@ func _format_active_status(item: ItemData) -> String:
 ## aller Zeichen waere ein Vielfaches der tatsaechlich noetigen Breite.
 ##
 ## get_string_size() liefert das Ergebnis SOFORT, ohne auf einen
-## Layout-Durchlauf zu warten - genauso wie get_combined_minimum_size()
+## Layout-Durchlauf zu warten - genauso wie get_multiline_string_size()
 ## weiter unten.
-func _apply_detail_width(body: String, title: String) -> void:
+##
+## ##########################################################################
+## BUGFIX "kurz sichtbar riesige, unpassende Karte beim Hovern"
+## ##########################################################################
+## Vorher wurde nur die BREITE hier gemessen; die Hoehe kam ueber
+## _detail_panel.size = Vector2(width, 0.0), was Godot zwingt, sich auf seine
+## "combined minimum size" hochzuklemmen. Diese Groesse haengt am autowrap-
+## Label darunter - und DESSEN Umbruch kennt Godot erst NACH dem naechsten
+## Container-Layout-Durchgang, der deferred laeuft. Im selben Frame lieferte
+## die Messung also noch die Zeilenzahl bei der ALTEN Breite - bei einem
+## langen Text auf der vorher schmaleren Karte (oder umgekehrt) kam dabei
+## eine viel zu grosse oder zu kleine Hoehe heraus, sichtbar fuer den
+## Bruchteil einer Sekunde, bis sich die Karte auf die richtige Groesse
+## korrigierte. Ein call_deferred() um EINEN Frame zu verschieben hat das
+## NICHT zuverlaessig behoben: die eigene deferred-Aufrufkette lief teils vor,
+## teils nach dem internen Container-Sort - keine garantierte Reihenfolge.
+##
+## LOESUNG: Die Hoehe wird jetzt genauso wie die Breite direkt aus den
+## Font-Metriken berechnet (get_multiline_string_size() kennt den Umbruch bei
+## einer BELIEBIGEN, selbst gewaehlten Breite sofort, ganz ohne Node-Baum
+## oder Layout-Durchgang) - Breite und Hoehe stehen damit im selben
+## synchronen Aufruf fest, bevor die Karte ueberhaupt sichtbar wird. Kein
+## Frame Verzoegerung mehr noetig.
+func _apply_detail_size(body: String, title: String) -> void:
 	if _detail_panel == null or _detail_text == null:
 		return
 
@@ -427,23 +455,44 @@ func _apply_detail_width(body: String, title: String) -> void:
 		for line: String in body.split("\n"):
 			widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x)
 
-		var title_font: Font = _detail_name.get_theme_font("font")
-		var title_size: int = _detail_name.get_theme_font_size("font_size")
-		if title_font != null:
-			widest = maxf(widest, title_font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1.0, title_size).x)
+	var title_font: Font = _detail_name.get_theme_font("font")
+	var title_size: int = _detail_name.get_theme_font_size("font_size")
+	if title_font != null:
+		widest = maxf(widest, title_font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1.0, title_size).x)
 
 	# Innenraender der StyleBox draufrechnen - die Messung oben kennt nur
 	# den Text, nicht den Kasten drumherum.
-	var padding: float = 0.0
+	var h_padding: float = 0.0
+	var v_padding: float = 0.0
 	var panel_style: StyleBox = _detail_panel.get_theme_stylebox("panel")
 	if panel_style != null:
-		padding = panel_style.get_margin(SIDE_LEFT) + panel_style.get_margin(SIDE_RIGHT)
+		h_padding = panel_style.get_margin(SIDE_LEFT) + panel_style.get_margin(SIDE_RIGHT)
+		v_padding = panel_style.get_margin(SIDE_TOP) + panel_style.get_margin(SIDE_BOTTOM)
 
-	var width: float = clampf(widest + padding, detail_min_width, detail_max_width)
-	_detail_panel.custom_minimum_size = Vector2(width, 0.0)
-	# size zuruecksetzen: der PanelContainer behaelt sonst die Breite des
-	# zuletzt angezeigten, laengeren Items bei.
-	_detail_panel.size = Vector2(width, 0.0)
+	var width: float = clampf(widest + h_padding, detail_min_width, detail_max_width)
+
+	# Hoehe: Titelzeile (kein autowrap, siehe _build()) + Abstand der
+	# column-VBoxContainer (separation = 2, siehe _build()) + der beim
+	# TATSAECHLICH gewaehlten width umgebrochene Beschreibungstext.
+	var content_width: float = maxf(width - h_padding, 1.0)
+	var title_line_height: float = title_font.get_height(title_size) if title_font != null else 0.0
+	var body_height: float = 0.0
+	if font != null:
+		body_height = font.get_multiline_string_size(
+			body, HORIZONTAL_ALIGNMENT_LEFT, content_width, font_size,
+			-1, TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND
+		).y
+
+	const COLUMN_SEPARATION: float = 2.0
+	var height: float = title_line_height + COLUMN_SEPARATION + body_height + v_padding
+
+	_detail_panel.custom_minimum_size = Vector2(width, height)
+	# size explizit mitziehen: ein PanelContainer ohne Elternteil-Container
+	# passt seine EIGENE Groesse sonst nicht automatisch an eine neue
+	# custom_minimum_size an (das erledigt normalerweise der Elternteil) -
+	# und wuerde bis zum naechsten fremden Trigger die Groesse des zuletzt
+	# gezeigten (moeglicherweise laengeren) Items behalten.
+	_detail_panel.size = Vector2(width, height)
 
 
 ## Bereich, den das Popup NICHT ueberdecken darf.
@@ -540,5 +589,3 @@ static func create(p_title: String = "GESAMMELTE ITEMS", p_currencies: bool = tr
 	list.title_text = p_title
 	list.show_currencies = p_currencies
 	return list
-
-

@@ -38,6 +38,16 @@ class_name CombatBase
 @export var dash_speed: float = 35.0
 @export var dash_duration: float = 0.4
 
+## Kurzer Ghost-Trail-Burst waehrend eines Schlags (siehe _do_primary()/
+## _do_secondary()) - deckt sich mit der Dauer, die die jeweilige Hitbox
+## in der BASIS-Implementierung von _perform_primary()/_perform_secondary()
+## aktiv bleibt (0.15s/0.25s). Ueberschreibt ein Charakter-Script die
+## _perform_*-Methode mit einer eigenen Animation/Dauer, darf es diese Werte
+## ebenfalls ueberschreiben - der Trail muss nicht pixelgenau zur Schlag-
+## dauer passen, "ein bisschen Blur waehrend des Schlags" reicht.
+@export var primary_attack_trail_duration: float = 0.15
+@export var secondary_attack_trail_duration: float = 0.25
+
 # ============================================================================
 # DASH-SCHADEN - nur beim DURCHdashen
 # ============================================================================
@@ -251,12 +261,27 @@ func _items() -> Node:
 ## local_coords = false — sonst zieht der Trail mit statt stehenzubleiben).
 @onready var dash_trail: GPUParticles3D = get_node_or_null("../DashTrail")
 
+## Ghost-/Nachbild-Trail fuer den Dash (siehe scripts/vfx/ghost_trail.gd) -
+## optionales Kind-Node "GhostTrail" am Player-Root. get_node_or_null():
+## fehlt der Node in einer Charakter-Szene (noch nicht eingebaut), bleibt der
+## Dash einfach ohne Ghost-Effekt, statt einen Fehler zu werfen.
+@onready var ghost_trail: GhostTrail = get_node_or_null("../GhostTrail")
+
 func setup(owner_player: CharacterBody3D) -> void:
 	player = owner_player
 	if primary_hitbox:
 		primary_hitbox.hit_landed.connect(_on_hit_landed)
 	if secondary_hitbox:
 		secondary_hitbox.hit_landed.connect(_on_hit_landed)
+
+	# Ghost-Trail in den beiden Akzentfarben des aktiven Charakters einfaerben
+	# (siehe character_data.gd attack_color/attack_color_secondary) - EINMAL
+	# hier gesetzt, gilt fuer beide GhostTrail-Modi (Dash-Burst UND
+	# player_base.gd's Lauf-Trail), da beide denselben Node referenzieren.
+	if ghost_trail:
+		var data: CharacterData = PartyManager.get_active_data()
+		if data != null:
+			ghost_trail.set_colors(data.attack_color, data.attack_color_secondary)
 
 func _on_hit_landed(target: Node) -> void:
 	_hit_lock_timer = hit_lock_duration
@@ -368,6 +393,8 @@ func _do_primary() -> void:
 	_primary_timer = cd
 	primary_used.emit()
 	cooldown_started.emit(Slot.PRIMARY, cd)
+	if ghost_trail:
+		ghost_trail.start_trail(primary_attack_trail_duration)
 	_perform_primary()
 
 # Von Charakter-Subklassen überschreibbar. Standardverhalten: PrimaryHitbox
@@ -394,6 +421,8 @@ func _do_secondary() -> void:
 	_secondary_timer = secondary_cooldown
 	secondary_used.emit()
 	cooldown_started.emit(Slot.SECONDARY, secondary_cooldown)
+	if ghost_trail:
+		ghost_trail.start_trail(secondary_attack_trail_duration)
 	_perform_secondary()
 
 # Von Charakter-Subklassen überschreibbar. Standardverhalten: SecondaryHitbox
@@ -454,6 +483,8 @@ func _perform_utility() -> void:
 		VFX.spawn(dash_vfx, player.global_position, -_dash_direction)
 	if dash_trail:
 		dash_trail.emitting = true
+	if ghost_trail:
+		ghost_trail.start_trail(dash_duration)
 
 # --- Q = aktiver Item-Slot 0 ------------------------------------------
 ## Kein Cooldown-Timer mehr hier: _items().use_active_item() prueft selbst

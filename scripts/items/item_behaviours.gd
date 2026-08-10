@@ -128,10 +128,13 @@ const OIL_SLOW_AMOUNT: float = 0.25
 const OIL_MIN_SPEED: float = 3.0
 
 # --- 6. Papas Starthilfekabel ---
+# BALANCE-PASS "Aktiv-Items sind zu schwach": Schaden x1.75, Reichweite/
+# Hitbox x1.4, Kontrolleffekt-Dauer x1.25 - siehe gleichlautender Kommentar
+# unten bei den A1-A12/Nr.51-83-Bloecken fuer die volle Begruendung.
 const CABLES_DURATION: float = 0.28
-const CABLES_DAMAGE: float = 45.0
-const CABLES_STUN: float = 2.0
-const CABLES_HIT_RADIUS: float = 2.6
+const CABLES_DAMAGE: float = 78.0
+const CABLES_STUN: float = 2.5
+const CABLES_HIT_RADIUS: float = 3.6
 
 # ============================================================================
 # PHASE 4 — PASSIVE ITEMS
@@ -306,111 +309,133 @@ const BUBBLE_SLOW_DURATION: float = 4.0
 const COPPER_RADIUS: float = 2.6
 
 # --- A9. Alte Ghettoblaster-Box ---
-const BOOMBOX_RADIUS: float = 12.0
-const BOOMBOX_SILENCE_DURATION: float = 4.0
+const BOOMBOX_RADIUS: float = 17.0
+const BOOMBOX_SILENCE_DURATION: float = 5.0
 ## Nahkampfschaden-Bonus gegen stummgeschaltete Gegner (Synergie).
-const BOOMBOX_SILENCED_MELEE_BONUS: float = 0.30
+const BOOMBOX_SILENCED_MELEE_BONUS: float = 0.40
 
 # --- A10. Scharfe Instant-Nudeln ---
-const RAMEN_RANGE: float = 7.0
-const RAMEN_HALF_ANGLE_DEG: float = 40.0
-const RAMEN_DAMAGE: float = 20.0
+const RAMEN_RANGE: float = 9.8
+## Cone-Winkel bewusst nicht weiter 1:1 mit x1.7 hochskaliert - ueber ~80
+## Grad Halbwinkel (160 Grad Gesamtkegel) wird ein Vorwaerts-Kegel gegen den
+## eigenen Sinn breit und die Winkel-Mathematik in _enemies_in_cone() naehert
+## sich Randfaellen. 74 ist trotzdem ein deutlicher Sprung von vorher 56.
+const RAMEN_HALF_ANGLE_DEG: float = 56.0
+const RAMEN_DAMAGE: float = 35.0
 
 # --- A11. USB-Mini-Ventilator ---
-const FAN_RANGE: float = 8.0
-const FAN_HALF_ANGLE_DEG: float = 30.0
-const FAN_SLOW_DURATION: float = 3.0
-const FAN_SLOW_AMOUNT: float = 0.35
-const FAN_SPREAD_RADIUS: float = 4.0
+const FAN_RANGE: float = 11.2
+const FAN_HALF_ANGLE_DEG: float = 42.0
+const FAN_SLOW_DURATION: float = 3.75
+const FAN_SLOW_AMOUNT: float = 0.44
+const FAN_SPREAD_RADIUS: float = 5.6
 
 # --- A12. Spruehdose aus dem Tunnel ---
-const GRAFFITI_RADIUS: float = 7.0
-const GRAFFITI_CHARM_DURATION: float = 5.0
+const GRAFFITI_RADIUS: float = 9.8
+const GRAFFITI_CHARM_DURATION: float = 6.3
 
 # --- Nr. 51-83: neue "Ultimate"-Items ---
-const UPDRAFT_IMPULSE: float = 16.0
-const HEALING_ORB_INSTANT_FRACTION: float = 0.25
-const HEALING_ORB_OVER_TIME_FRACTION: float = 0.15
-const HEALING_ORB_TICK_DURATION: float = 4.0
-const SLOW_ORB_RADIUS: float = 4.0
-const SLOW_ORB_SLOW_AMOUNT: float = 0.55
-const SLOW_ORB_SLOW_DURATION: float = 4.0
-const SLOW_ORB_LIFETIME: float = 6.0
-const INCENDIARY_RADIUS: float = 3.5
-const INCENDIARY_LIFETIME: float = 6.0
+# ##########################################################################
+# BALANCE-PASS "Aktiv-Items sind zu schwach"
+# ##########################################################################
+# Nur zwei Aktiv-Item-Slots (Q/E), beide mit Cooldown - der Preis fuer einen
+# Slot ist hoch, also muss die Auszahlung gross sein. NUR aktive Items
+# angefasst, KEIN passives Item veraendert (die sind laut Rueckmeldung schon
+# gut balanciert) und NIRGENDS cooldown_seconds/charge_rooms - nur die
+# eigentliche Wirkstaerke/Groesse:
+#   * Schaden/Heilung: x1.75
+#   * Reichweite/Radius/Winkel/Hitbox-Groesse: x1.4
+#   * Kontrolleffekt-Dauer (Stun/Slow/Root/Silence) und Effekt-Lebenszeit: x1.25
+#   * Prozentuale Debuff-/Buff-Staerke (Verlangsamung, Vulnerable-Bonus etc.): x1.4
+#
+# NACHSCHLAG (Rueckmeldung "Hitbox/Optik wirkt immer noch klein, Schaden
+# passt"): NOCHMAL x1.7 auf ALLE Reichweite/Radius/Winkel/Groesse-Werte
+# oben drauf - Schaden/Heilung/Dauer/Prozentwerte bleiben unangetastet.
+const UPDRAFT_IMPULSE: float = 22.0
+const HEALING_ORB_INSTANT_FRACTION: float = 0.44
+const HEALING_ORB_OVER_TIME_FRACTION: float = 0.26
+const HEALING_ORB_TICK_DURATION: float = 5.0
+const SLOW_ORB_RADIUS: float = 5.6
+const SLOW_ORB_SLOW_AMOUNT: float = 0.77
+const SLOW_ORB_SLOW_DURATION: float = 5.0
+const SLOW_ORB_LIFETIME: float = 7.5
+const INCENDIARY_RADIUS: float = 4.9
+const INCENDIARY_LIFETIME: float = 7.5
 const INCENDIARY_TICK_INTERVAL: float = 0.5
-const INCENDIARY_TICK_DAMAGE: float = 4.0
-const BARRIER_ORB_LIFETIME: float = 5.0
-const BARRIER_ORB_SIZE: Vector3 = Vector3(4.0, 3.0, 0.6)
-const SHOCK_BOLT_RANGE: float = 16.0
-const SHOCK_BOLT_DAMAGE: float = 12.0
-const SHOCK_BOLT_STUN: float = 2.0
-const ROLLING_THUNDER_RADIUS: float = 9.0
-const ROLLING_THUNDER_STUN: float = 1.5
-const ROLLING_THUNDER_KNOCKBACK: float = 14.0
-const FAULT_LINE_RANGE: float = 12.0
-const FAULT_LINE_WIDTH: float = 2.0
-const FAULT_LINE_STUN: float = 1.5
-const STIM_BEACON_RADIUS: float = 6.0
-const STIM_BEACON_LIFETIME: float = 10.0
-const STIM_BEACON_SPEED_MUL: float = 1.25
-const STIM_BEACON_DAMAGE_MUL: float = 1.20
-const SEIZE_RADIUS: float = 3.0
-const SEIZE_LIFETIME: float = 7.0
-const SEIZE_ROOTED_DURATION: float = 2.0
-const SEIZE_ACID_DAMAGE: float = 3.0
+const INCENDIARY_TICK_DAMAGE: float = 7.0
+const BARRIER_ORB_LIFETIME: float = 6.25
+const BARRIER_ORB_SIZE: Vector3 = Vector3(5.6, 4.2, 0.6)
+const SHOCK_BOLT_RANGE: float = 22.4
+const SHOCK_BOLT_DAMAGE: float = 21.0
+const SHOCK_BOLT_STUN: float = 2.5
+const ROLLING_THUNDER_RADIUS: float = 12.6
+const ROLLING_THUNDER_STUN: float = 1.9
+const ROLLING_THUNDER_KNOCKBACK: float = 24.0
+const FAULT_LINE_RANGE: float = 17.0
+const FAULT_LINE_WIDTH: float = 2.8
+const FAULT_LINE_STUN: float = 1.9
+const STIM_BEACON_RADIUS: float = 8.4
+const STIM_BEACON_LIFETIME: float = 12.5
+const STIM_BEACON_SPEED_MUL: float = 1.35
+const STIM_BEACON_DAMAGE_MUL: float = 1.35
+const SEIZE_RADIUS: float = 4.2
+const SEIZE_LIFETIME: float = 8.75
+const SEIZE_ROOTED_DURATION: float = 2.5
+const SEIZE_ACID_DAMAGE: float = 5.0
 const DEVOUR_HEAL_FRACTION: float = 0.04
-const HUNTERS_FURY_RANGE: float = 18.0
-const HUNTERS_FURY_WIDTH: float = 1.6
-const HUNTERS_FURY_DAMAGE: float = 30.0
+const HUNTERS_FURY_RANGE: float = 25.2
+const HUNTERS_FURY_WIDTH: float = 2.2
+const HUNTERS_FURY_DAMAGE: float = 52.0
 const HUNTERS_FURY_BEAM_COUNT: int = 3
-const HUNTERS_FURY_BEAM_SPREAD_DEG: float = 8.0
-const TURRET_ITEM_LIFETIME: float = 20.0
-const TURRET_ITEM_RANGE: float = 10.0
+const HUNTERS_FURY_BEAM_SPREAD_DEG: float = 14.0
+const TURRET_ITEM_LIFETIME: float = 25.0
+const TURRET_ITEM_RANGE: float = 14.0
 const TURRET_ITEM_FIRE_INTERVAL: float = 1.2
-const TURRET_ITEM_DAMAGE: float = 8.0
+const TURRET_ITEM_DAMAGE: float = 14.0
 const ORBITAL_STRIKE_DELAY: float = 1.4
-const ORBITAL_STRIKE_RADIUS: float = 5.0
-const ORBITAL_STRIKE_DAMAGE: float = 55.0
-const ORBITAL_STRIKE_RANGE_AHEAD: float = 9.0
-const SNAKE_BITE_RADIUS: float = 3.0
-const SNAKE_BITE_LIFETIME: float = 6.0
-const SNAKE_BITE_VULNERABLE_DURATION: float = 3.0
-const SNAKE_BITE_VULNERABLE_BONUS: float = 0.35
-const SNAKE_BITE_ACID_DAMAGE: float = 3.0
+const ORBITAL_STRIKE_RADIUS: float = 7.0
+const ORBITAL_STRIKE_DAMAGE: float = 96.0
+const ORBITAL_STRIKE_RANGE_AHEAD: float = 12.6
+const SNAKE_BITE_RADIUS: float = 4.2
+const SNAKE_BITE_LIFETIME: float = 7.5
+const SNAKE_BITE_VULNERABLE_DURATION: float = 3.75
+const SNAKE_BITE_VULNERABLE_BONUS: float = 0.49
+const SNAKE_BITE_ACID_DAMAGE: float = 5.0
 
 # --- Nr. 52-83 (Rest): weitere neue "Ultimate"-Items ---
+# Gleicher Balance-Pass wie oben (Schaden x1.75, Reichweite/Groesse x1.4,
+# Dauer x1.25).
 const BLADE_STORM_COUNT: int = 5
-const BLADE_STORM_SPREAD_DEG: float = 45.0
-const BLADE_STORM_RANGE: float = 10.0
-const BLADE_STORM_DAMAGE: float = 14.0
+const BLADE_STORM_SPREAD_DEG: float = 76.0
+const BLADE_STORM_RANGE: float = 14.0
+const BLADE_STORM_DAMAGE: float = 24.0
 const BLAZE_SEGMENTS: int = 4
-const BLAZE_SEGMENT_SPACING: float = 2.2
-const BLAZE_SEGMENT_RADIUS: float = 1.6
-const BLAZE_LIFETIME: float = 5.0
-const BLAZE_TICK_DAMAGE: float = 5.0
-const HOT_HANDS_RANGE_AHEAD: float = 7.0
-const HOT_HANDS_RADIUS: float = 3.0
-const HOT_HANDS_DAMAGE: float = 22.0
-const RUN_IT_BACK_HEAL_FRACTION: float = 0.5
-const RUN_IT_BACK_LIFETIME: float = 20.0
+const BLAZE_SEGMENT_SPACING: float = 3.1
+const BLAZE_SEGMENT_RADIUS: float = 2.2
+const BLAZE_LIFETIME: float = 6.25
+const BLAZE_TICK_DAMAGE: float = 9.0
+const HOT_HANDS_RANGE_AHEAD: float = 9.8
+const HOT_HANDS_RADIUS: float = 4.2
+const HOT_HANDS_DAMAGE: float = 38.0
+const RUN_IT_BACK_HEAL_FRACTION: float = 0.85
+const RUN_IT_BACK_LIFETIME: float = 25.0
 const BOOM_BOT_SPEED: float = 9.0
-const BOOM_BOT_LIFETIME: float = 5.0
-const BOOM_BOT_RADIUS: float = 3.5
-const BOOM_BOT_DAMAGE: float = 26.0
+const BOOM_BOT_LIFETIME: float = 6.25
+const BOOM_BOT_RADIUS: float = 4.9
+const BOOM_BOT_DAMAGE: float = 45.0
 const PAINT_SHELLS_COUNT: int = 4
-const PAINT_SHELLS_SPREAD: float = 3.0
-const PAINT_SHELLS_RADIUS: float = 2.5
-const PAINT_SHELLS_DAMAGE: float = 14.0
+const PAINT_SHELLS_SPREAD: float = 4.2
+const PAINT_SHELLS_RADIUS: float = 3.5
+const PAINT_SHELLS_DAMAGE: float = 24.0
 const PAINT_SHELLS_FUSE: float = 0.8
-const SHOWSTOPPER_RANGE_AHEAD: float = 10.0
-const SHOWSTOPPER_RADIUS: float = 5.5
-const SHOWSTOPPER_DAMAGE: float = 60.0
-const SHOWSTOPPER_KNOCKBACK: float = 18.0
-const LEER_RADIUS: float = 7.0
-const LEER_LIFETIME: float = 9.0
+const SHOWSTOPPER_RANGE_AHEAD: float = 14.0
+const SHOWSTOPPER_RADIUS: float = 7.7
+const SHOWSTOPPER_DAMAGE: float = 105.0
+const SHOWSTOPPER_KNOCKBACK: float = 31.0
+const LEER_RADIUS: float = 9.8
+const LEER_LIFETIME: float = 11.25
 const LEER_TICK_INTERVAL: float = 2.0
-const LEER_CONFUSE_DURATION: float = 2.5
+const LEER_CONFUSE_DURATION: float = 3.1
 ## Nr. 61 Kaiserin: urspruenglich als PASSIVE mit Kill-Chance kodiert, bevor
 ## der Abgleich mit der echten Tabelle zeigte, dass es ein AKTIV-Item ist
 ## ("Erhoeht drastisch das Tempo. Kills erneuern die Abklingzeiten und machen
@@ -421,39 +446,46 @@ const LEER_CONFUSE_DURATION: float = 2.5
 ## und ungetestet ein zu grosses Risiko. Stellvertretend: kurze
 ## Unverwundbarkeit (gleicher Mechanismus wie P1 Kochloeffel/P18 Schulter-
 ## polster) + sichtbarer Flash, statt echter KI-Blindheit.
-const EMPRESS_BUFF_DURATION: float = 5.0
-const EMPRESS_SPEED_MULTIPLIER: float = 1.6
-const EMPRESS_INVULN_DURATION: float = 0.6
-const FAKEOUT_LIFETIME: float = 3.0
-const FAKEOUT_RADIUS: float = 5.0
-const GATECRASH_LIFETIME: float = 10.0
-const AFTERSHOCK_RANGE: float = 14.0
-const AFTERSHOCK_RADIUS: float = 3.5
-const AFTERSHOCK_DAMAGE: float = 24.0
+const EMPRESS_BUFF_DURATION: float = 6.25
+const EMPRESS_SPEED_MULTIPLIER: float = 1.85
+const EMPRESS_INVULN_DURATION: float = 0.75
+const FAKEOUT_LIFETIME: float = 3.75
+const FAKEOUT_RADIUS: float = 7.0
+## BUGFIX "Portalanker laesst sich nicht mehr benutzen": item_catalog.gd
+## setzt gatecrash.cooldown_seconds = 12.0 - der Anker MUSS also spuerbar
+## LAENGER halten als diese Abklingzeit, sonst ist er schon wieder
+## abgelaufen, bevor der Spieler ueberhaupt ein zweites Mal draufkommen darf
+## (die alte Lebenszeit von 10.0 s war sogar KUERZER als der Cooldown - der
+## Anker war in der Praxis IMMER schon weg). 20.0 s laesst nach Ablauf des
+## Cooldowns ein grosszuegiges ~8-Sekunden-Fenster zum Zurueckteleportieren.
+const GATECRASH_LIFETIME: float = 12.5
+const AFTERSHOCK_RANGE: float = 19.6
+const AFTERSHOCK_RADIUS: float = 4.9
+const AFTERSHOCK_DAMAGE: float = 42.0
 const PROWLER_SPEED: float = 12.0
-const PROWLER_LIFETIME: float = 8.0
-const PROWLER_CONFUSE_DURATION: float = 2.0
-const PROWLER_SILENCE_DURATION: float = 2.0
-const NIGHTFALL_RADIUS: float = 11.0
-const NIGHTFALL_SLOW_AMOUNT: float = 0.4
-const NIGHTFALL_SLOW_DURATION: float = 4.0
-const NIGHTFALL_SILENCE_DURATION: float = 3.0
-const PARANOIA_RADIUS: float = 7.0
-const PARANOIA_CONFUSE_DURATION: float = 2.0
-const PARANOIA_SILENCE_DURATION: float = 2.0
+const PROWLER_LIFETIME: float = 10.0
+const PROWLER_CONFUSE_DURATION: float = 2.5
+const PROWLER_SILENCE_DURATION: float = 2.5
+const NIGHTFALL_RADIUS: float = 15.4
+const NIGHTFALL_SLOW_AMOUNT: float = 0.56
+const NIGHTFALL_SLOW_DURATION: float = 5.0
+const NIGHTFALL_SILENCE_DURATION: float = 3.75
+const PARANOIA_RADIUS: float = 9.8
+const PARANOIA_CONFUSE_DURATION: float = 2.5
+const PARANOIA_SILENCE_DURATION: float = 2.5
 const NANOSWARM_ARM_DELAY: float = 1.2
-const NANOSWARM_TRIGGER_RADIUS: float = 3.0
-const NANOSWARM_BLAST_RADIUS: float = 4.0
-const NANOSWARM_DAMAGE: float = 30.0
-const NANOSWARM_LIFETIME: float = 8.0
+const NANOSWARM_TRIGGER_RADIUS: float = 4.2
+const NANOSWARM_BLAST_RADIUS: float = 5.6
+const NANOSWARM_DAMAGE: float = 52.0
+const NANOSWARM_LIFETIME: float = 10.0
 const ALARMBOT_SPEED: float = 15.0
-const ALARMBOT_LIFETIME: float = 3.0
-const ALARMBOT_VULNERABLE_DURATION: float = 4.0
-const ALARMBOT_VULNERABLE_BONUS: float = 1.0
+const ALARMBOT_LIFETIME: float = 3.75
+const ALARMBOT_VULNERABLE_DURATION: float = 5.0
+const ALARMBOT_VULNERABLE_BONUS: float = 1.4
 const LOCKDOWN_CHANNEL_TIME: float = 1.8
-const LOCKDOWN_RADIUS: float = 12.0
-const LOCKDOWN_STUN_DURATION: float = 2.5
-const LOCKDOWN_SILENCE_DURATION: float = 3.5
+const LOCKDOWN_RADIUS: float = 16.8
+const LOCKDOWN_STUN_DURATION: float = 3.1
+const LOCKDOWN_SILENCE_DURATION: float = 4.4
 
 # --- P20. Mamas Stoeckelschuhe ---
 const HEELS_MIN_SPEED: float = 6.0
@@ -473,49 +505,53 @@ const HEELS_SHOCKWAVE_STUN: float = 0.4
 # ============================================================================
 
 # --- A1. Sturmfeuerzeug ---
-const LIGHTER_RANGE: float = 8.0
-## Halber Oeffnungswinkel in Grad. 45 = 90-Grad-Bogen.
-const LIGHTER_HALF_ANGLE_DEG: float = 45.0
+# Gleicher Balance-Pass wie bei den Nr.51-83-Items (siehe dortiger Kommentar):
+# Schaden x1.75, Reichweite/Radius/Winkel x1.4, Effekt-Dauer x1.25.
+const LIGHTER_RANGE: float = 11.2
+## Halber Oeffnungswinkel in Grad. 45 = 90-Grad-Bogen. Ueber ~78 Grad wird ein
+## Vorwaerts-Kegel gegen den eigenen Sinn breit, deshalb hier gedeckelt statt
+## stur x1.7 weitergerechnet (siehe RAMEN_HALF_ANGLE_DEG-Kommentar).
+const LIGHTER_HALF_ANGLE_DEG: float = 63.0
 const LIGHTER_DAMAGE_MULTIPLIER: float = 3.0
-const LIGHTER_BASE_DAMAGE: float = 15.0
+const LIGHTER_BASE_DAMAGE: float = 26.0
 
 # --- A2. Schulbibliotheks-Buch ---
-const BOOK_EXECUTE_THRESHOLD: float = 0.20
+const BOOK_EXECUTE_THRESHOLD: float = 0.28
 
 # --- A3. Verfluchter Glueckswuerfel ---
-const CURSED_RADIUS: float = 30.0
+const CURSED_RADIUS: float = 42.0
 
 # --- A4. Alter Handstaubsauger ---
 const VACUUM_DURATION: float = 2.5
-const VACUUM_RANGE: float = 12.0
-const VACUUM_HALF_ANGLE_DEG: float = 35.0
-const VACUUM_PULL_SPEED: float = 9.0
+const VACUUM_RANGE: float = 17.0
+const VACUUM_HALF_ANGLE_DEG: float = 49.0
+const VACUUM_PULL_SPEED: float = 12.6
 ## Saeureschaden des Rueckstrahls pro getroffenem Gegner.
-const VACUUM_ACID_DAMAGE: float = 6.0
-const VACUUM_ACID_DURATION: float = 4.0
+const VACUUM_ACID_DAMAGE: float = 10.5
+const VACUUM_ACID_DURATION: float = 5.0
 
 # --- A5. Omas Pfeffermuehle ---
-const PEPPER_RADIUS: float = 9.0
-const PEPPER_SILENCE_DURATION: float = 2.0
-const PEPPER_DOT_EXTENSION: float = 3.0
+const PEPPER_RADIUS: float = 12.6
+const PEPPER_SILENCE_DURATION: float = 2.5
+const PEPPER_DOT_EXTENSION: float = 3.75
 
 # --- A6. Walkman (kaputt) ---
-const WALKMAN_RADIUS: float = 12.0
-const WALKMAN_KNOCKBACK: float = 26.0
-const WALKMAN_CONFUSE_DURATION: float = 4.0
+const WALKMAN_RADIUS: float = 17.0
+const WALKMAN_KNOCKBACK: float = 45.0
+const WALKMAN_CONFUSE_DURATION: float = 5.0
 const WALKMAN_SHAKE: float = 2.0
 
 # --- A7. Megafon aus der Schule ---
-const MEGAPHONE_RANGE: float = 11.0
-const MEGAPHONE_HALF_ANGLE_DEG: float = 30.0
-const MEGAPHONE_DAMAGE: float = 26.0
+const MEGAPHONE_RANGE: float = 15.4
+const MEGAPHONE_HALF_ANGLE_DEG: float = 42.0
+const MEGAPHONE_DAMAGE: float = 45.0
 
 # --- A8. Spruehsahne-Dose ---
-const CREAM_RADIUS: float = 6.0
-const CREAM_LIFETIME: float = 6.0
-const CREAM_KNOCKDOWN_DURATION: float = 1.5
+const CREAM_RADIUS: float = 8.4
+const CREAM_LIFETIME: float = 7.5
+const CREAM_KNOCKDOWN_DURATION: float = 1.9
 ## Schaden, wenn die Sahne einen brennenden Gegner loescht.
-const CREAM_EXTINGUISH_DAMAGE: float = 45.0
+const CREAM_EXTINGUISH_DAMAGE: float = 79.0
 
 var _items: Node = null
 
@@ -2482,8 +2518,8 @@ func _tick_jumper_cables(delta: float, player: CharacterBody3D) -> void:
 	# Der Spieler wird aktiv geschoben — dash_speed des Charakters ist hier
 	# bewusst NICHT die Referenz: das Kabel soll immer gleich weit tragen,
 	# unabhaengig davon, wer gerade gespielt wird.
-	player.velocity.x = forward.x * 30.0
-	player.velocity.z = forward.z * 30.0
+	player.velocity.x = forward.x * 42.0
+	player.velocity.z = forward.z * 42.0
 
 	for enemy: Node3D in _enemies_near(player.global_position, CABLES_HIT_RADIUS):
 		var id: int = enemy.get_instance_id()
@@ -2706,7 +2742,7 @@ func _use_megaphone(player: CharacterBody3D) -> void:
 		# Interrupt: laufende Telegraphs abbrechen.
 		if enemy.has_method("interrupt_attack"):
 			enemy.interrupt_attack()
-		StatusSilenced.apply(enemy, 0.8, player)
+		StatusSilenced.apply(enemy, 1.0, player)
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
 
 	_spawn_cone_flash(player, forward, MEGAPHONE_RANGE, MEGAPHONE_HALF_ANGLE_DEG, Color(1.0, 0.60, 0.15))
@@ -3055,7 +3091,7 @@ func _use_shock_bolt(player: CharacterBody3D) -> void:
 
 	var closest: Node3D = null
 	var closest_dist: float = SHOCK_BOLT_RANGE
-	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, SHOCK_BOLT_RANGE, 8.0):
+	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, SHOCK_BOLT_RANGE, 11.2):
 		var dist: float = player.global_position.distance_to(enemy.global_position)
 		if dist < closest_dist:
 			closest_dist = dist
@@ -3093,9 +3129,9 @@ func _use_fault_line(player: CharacterBody3D) -> void:
 	var forward: Vector3 = _player_forward(player)
 	var origin: Vector3 = player.global_position
 	var stats: PlayerStats = _stats()
-	var damage: float = 18.0 * (stats.get_damage_multiplier() if stats != null else 1.0)
+	var damage: float = 31.0 * (stats.get_damage_multiplier() if stats != null else 1.0)
 
-	for enemy: Node3D in _enemies_in_cone(origin, forward, FAULT_LINE_RANGE, 6.0):
+	for enemy: Node3D in _enemies_in_cone(origin, forward, FAULT_LINE_RANGE, 8.4):
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(damage, player)
@@ -3103,7 +3139,7 @@ func _use_fault_line(player: CharacterBody3D) -> void:
 		StatusStun.apply(enemy, FAULT_LINE_STUN, player)
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP * 0.2)
 
-	_spawn_cone_flash(player, forward, FAULT_LINE_RANGE, 6.0, Color(0.85, 0.55, 0.2))
+	_spawn_cone_flash(player, forward, FAULT_LINE_RANGE, 8.4, Color(0.85, 0.55, 0.2))
 	Juice.shake(0.8)
 
 
@@ -3118,9 +3154,9 @@ func _use_stim_beacon(player: CharacterBody3D) -> void:
 
 	var mesh_node := MeshInstance3D.new()
 	var cyl_mesh := CylinderMesh.new()
-	cyl_mesh.top_radius = 0.35
-	cyl_mesh.bottom_radius = 0.5
-	cyl_mesh.height = 1.4
+	cyl_mesh.top_radius = 0.5
+	cyl_mesh.bottom_radius = 0.7
+	cyl_mesh.height = 2.0
 	mesh_node.mesh = cyl_mesh
 	var mat: StandardMaterial3D = _make_glow_material(Color(1.0, 0.55, 0.15), 0.85)
 	mesh_node.material_override = mat
@@ -3167,7 +3203,7 @@ func _use_hunters_fury(player: CharacterBody3D) -> void:
 	for i: int in range(HUNTERS_FURY_BEAM_COUNT):
 		var offset_deg: float = (float(i) - half) * HUNTERS_FURY_BEAM_SPREAD_DEG
 		var beam_dir: Vector3 = forward.rotated(Vector3.UP, deg_to_rad(offset_deg))
-		for enemy: Node3D in _enemies_in_cone(player.global_position, beam_dir, HUNTERS_FURY_RANGE, 4.0):
+		for enemy: Node3D in _enemies_in_cone(player.global_position, beam_dir, HUNTERS_FURY_RANGE, 5.6):
 			var id: int = enemy.get_instance_id()
 			if hit_ids.has(id):
 				continue
@@ -3177,7 +3213,7 @@ func _use_hunters_fury(player: CharacterBody3D) -> void:
 				health.take_damage(damage, player)
 				_spawn_item_damage_number(enemy, damage)
 			_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
-		_spawn_cone_flash(player, beam_dir, HUNTERS_FURY_RANGE, 4.0, Color(0.6, 0.85, 1.0))
+		_spawn_cone_flash(player, beam_dir, HUNTERS_FURY_RANGE, 5.6, Color(0.6, 0.85, 1.0))
 
 	Juice.shake(1.1)
 
@@ -3193,7 +3229,7 @@ func _use_turret_item(player: CharacterBody3D) -> void:
 
 	var body := StaticBody3D.new()
 	var box_mesh := BoxMesh.new()
-	box_mesh.size = Vector3(1.2, 1.6, 1.2)
+	box_mesh.size = Vector3(2.4, 3.1, 2.4)
 	var mesh_node := MeshInstance3D.new()
 	mesh_node.mesh = box_mesh
 	mesh_node.position = Vector3.UP * 0.8
@@ -3339,7 +3375,7 @@ func _use_blade_storm(player: CharacterBody3D) -> void:
 		var beam_dir: Vector3 = forward.rotated(Vector3.UP, deg_to_rad(offset_deg))
 		var closest: Node3D = null
 		var closest_dist: float = BLADE_STORM_RANGE
-		for enemy: Node3D in _enemies_in_cone(player.global_position, beam_dir, BLADE_STORM_RANGE, 10.0):
+		for enemy: Node3D in _enemies_in_cone(player.global_position, beam_dir, BLADE_STORM_RANGE, 24.0):
 			var dist: float = player.global_position.distance_to(enemy.global_position)
 			if dist < closest_dist:
 				closest_dist = dist
@@ -3495,8 +3531,8 @@ func _use_leer(player: CharacterBody3D) -> void:
 
 	var eye := MeshInstance3D.new()
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.4
-	sphere.height = 0.8
+	sphere.radius = 0.8
+	sphere.height = 1.5
 	eye.mesh = sphere
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.85, 0.2, 0.9), 1.0)
 	eye.material_override = mat
@@ -3531,8 +3567,8 @@ func _use_fakeout(player: CharacterBody3D) -> void:
 
 	var decoy := MeshInstance3D.new()
 	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.4
-	capsule.height = 1.6
+	capsule.radius = 0.8
+	capsule.height = 3.1
 	decoy.mesh = capsule
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.3, 0.9, 1.0), 0.9)
 	decoy.material_override = mat
@@ -3576,7 +3612,7 @@ func _use_aftershock(player: CharacterBody3D) -> void:
 	var damage: float = AFTERSHOCK_DAMAGE * (stats.get_damage_multiplier() if stats != null else 1.0)
 
 	var impact_pos: Vector3 = player.global_position + forward * AFTERSHOCK_RANGE
-	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, AFTERSHOCK_RANGE, 6.0):
+	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, AFTERSHOCK_RANGE, 14.0):
 		impact_pos = enemy.global_position
 		break
 
@@ -3591,7 +3627,7 @@ func _use_aftershock(player: CharacterBody3D) -> void:
 		_spawn_ring_wave(impact_pos, AFTERSHOCK_RADIUS, Color(0.8, 0.3, 1.0), 0.6)
 		Juice.shake(1.3)
 	)
-	_spawn_cone_flash(player, forward, AFTERSHOCK_RANGE, 6.0, Color(0.8, 0.3, 1.0))
+	_spawn_cone_flash(player, forward, AFTERSHOCK_RANGE, 14.0, Color(0.8, 0.3, 1.0))
 
 
 # --- Nr. 69. Schatten-Pirscher --------------------------------------------------
@@ -3650,8 +3686,8 @@ func _use_nanoswarm(player: CharacterBody3D) -> void:
 
 	var mesh_node := MeshInstance3D.new()
 	var cyl_mesh := CylinderMesh.new()
-	cyl_mesh.top_radius = 0.3
-	cyl_mesh.bottom_radius = 0.3
+	cyl_mesh.top_radius = 0.6
+	cyl_mesh.bottom_radius = 0.6
 	cyl_mesh.height = 0.08
 	mesh_node.mesh = cyl_mesh
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.5, 1.0, 0.4), 0.0)

@@ -2,6 +2,34 @@
 TEIL 1: GIT COMMITS UND HISTORY
 ==================================================
 
+commit 11da57c571c5e63c3507ca25d6d48cd79edc9997
+Author: ImChubiii <chucki2005@gmail.com>
+Date:   Wed Aug 5 03:26:17 2026 +0200
+
+    feat(core): Massive Gameplay- und System-Erweiterung (Phase 3-5)
+    
+    Dieses Update bündelt die vollständige Implementierung der Design-Dokument-Phasen 3 bis 5. Es führt tiefgreifende Änderungen an der Level-Struktur, dem Kampfsystem und der Progression ein[cite: 1].
+    
+    Items & Status-Effekte:
+    - 47 neue Items (inkl. 33 "Ultimate"-Items) mit einzigartigen Synergien implementiert[cite: 1].
+    - Neues Status-Effekt-System (Brennen, Verlangsamung, Stille, Betäubung, Bezauberung, etc.) hinzugefügt[cite: 1].
+    - Aktive Fähigkeiten auf ein neues Zwei-Slot-System (Q/E) umgestellt[cite: 1].
+    
+    Level-Generierung & Umgebung:
+    - Multi-Zellen-Räume (z.B. 1x2, 2x2) im Grid-Generator aktiviert[cite: 1].
+    - Thematische Etagen-Progression (Farbwelten wie Kellergewölbe, Tiefkühlhaus) eingeführt[cite: 1].
+    - 12 neue Raum-Szenen und modulare Gefahren (Lava-Auftrieb, Turrets, Fallgruben) integriert[cite: 1].
+    
+    KI, Combat & Party:
+    - Neues "Threat-Budget"-System für dynamische Gegner-Spawns anstelle von festen Limits[cite: 1].
+    - Last-Stand-System für das Party-Setup integriert (Wechsel bei Tod, kombiniert mit 20% HP-Cap-Strafe)[cite: 1].
+    - Stun-Lock-Schutz durch Diminishing Returns und Immunitätsfenster eingebaut[cite: 1].
+    
+    UI & Systeme:
+    - Komplett neues, prozedurales Hauptmenü und überarbeitetes HUD (Combo-Zähler, Speedrun-Timer)[cite: 1].
+    - Neue Minimap-Funktionen (Sichtbarkeit von Raumtypen, Türverbindungen und Großkarten-Ansicht)[cite: 1].
+    - Zentrales Settings-Menü für rebindable Keybinds, FOV-Slider und Audio-Optionen ergänzt[cite: 1].
+
 commit 603fc498f39ae8089428fecbe36d0fe482152b71
 Author: ImChubiii <chucki2005@gmail.com>
 Date:   Wed Aug 5 00:24:11 2026 +0200
@@ -1694,15 +1722,9 @@ Date:   Fri Jul 24 11:17:51 2026 +0200
 
     feat: Minimap-Kalibrierung, HUD-Overlay-Fixes, Knockback-Rework, Settings-Erweiterungen
 
-commit 93054986282da7e0de6bb91e28e78c9702339a6b
-Author: ImChubiii <chucki2005@gmail.com>
-Date:   Thu Jul 23 23:48:40 2026 +0200
-
-    fix: reassign Area3D script to correct parent node
-
 ==================================================
 TEIL 2: DATEIUEBERSICHT UND STRUKTUR
-Gesamtanzahl Dateien: 862
+Gesamtanzahl Dateien: 869
 ==================================================
 
 • .claude\settings.local.json
@@ -2360,6 +2382,9 @@ Gesamtanzahl Dateien: 862
 • scenes\vfx\dust_ring.tscn
 • scenes\vfx\flash_white.tscn
 • scenes\vfx\hit_spark.tscn
+• scenes\vfx\hit_spark_primary.gd
+• scenes\vfx\hit_spark_primary.gd.uid
+• scenes\vfx\hit_spark_primary.tscn
 • scenes\vfx\hologram_blue.tscn
 • scenes\vfx\oil_bubbles.tscn
 • scenes\vfx\spark_yellow.tscn
@@ -2431,6 +2456,8 @@ Gesamtanzahl Dateien: 862
 • scripts\hud.gd.uid
 • scripts\hud_extra.gd
 • scripts\hud_extra.gd.uid
+• scripts\item_test_room.gd
+• scripts\item_test_room.gd.uid
 • scripts\items\active_item_swap_panel.gd
 • scripts\items\active_item_swap_panel.gd.uid
 • scripts\items\item_behaviours.gd
@@ -2541,6 +2568,8 @@ Gesamtanzahl Dateien: 862
 • scripts\ui\low_hp_vignette.gd.uid
 • scripts\vfx\blood_decal.gd
 • scripts\vfx\blood_decal.gd.uid
+• scripts\vfx\ghost_trail.gd
+• scripts\vfx\ghost_trail.gd.uid
 • scripts\vfx\homing_bolt.gd
 • scripts\vfx\homing_bolt.gd.uid
 • scripts\vfx\torch.gd
@@ -2569,7 +2598,7 @@ Gesamtanzahl Dateien: 862
 • textures\sidewalk-texture.jpg.import
 
 ==================================================
-TEIL 3: VOLLSTAENDIGER PROJEKT-CODE (412 DATEIEN)
+TEIL 3: VOLLSTAENDIGER PROJEKT-CODE (416 DATEIEN)
 ==================================================
 
 ===== FILE: assets\blossom_the_powerpuff_girls.glb.import =====
@@ -10095,6 +10124,7 @@ HudExtra="*uid://bys4sieyin6ky"
 Teleporter="*uid://dxfotrd7xhn1p"
 Stages="*uid://buqywesge6fy4"
 GameStats="*res://scripts/game_stats.gd"
+ItemTestRoom="*res://scripts/item_test_room.gd"
 
 [display]
 
@@ -10227,6 +10257,8 @@ script = ExtResource("1_data")
 character_id = &"ningning"
 character_name = "Ningning"
 player_scene = ExtResource("2_scene")
+attack_color = Color(0.25, 0.55, 1.0, 1.0)
+attack_color_secondary = Color(1.0, 1.0, 1.0, 1.0)
 name_ability_q = "Zest Burst"
 name_ability_e = "Sour Storm"
 
@@ -10243,6 +10275,8 @@ script = ExtResource("1_data")
 character_id = &"giselle"
 character_name = "Giselle"
 player_scene = ExtResource("2_scene")
+attack_color = Color(0.95, 0.15, 0.15, 1.0)
+attack_color_secondary = Color(1.0, 0.55, 0.1, 1.0)
 
 
 ===== FILE: resources\char_3.tres =====
@@ -10257,6 +10291,8 @@ script = ExtResource("1_data")
 character_id = &"karina"
 character_name = "Karina"
 player_scene = ExtResource("2_scene")
+attack_color = Color(0.9, 0.1, 0.25, 1.0)
+attack_color_secondary = Color(1.0, 0.4, 0.7, 1.0)
 
 
 ===== FILE: resources\char_4.tres =====
@@ -10271,6 +10307,8 @@ script = ExtResource("1_data")
 character_id = &"winter"
 character_name = "Winter"
 player_scene = ExtResource("2_scene")
+attack_color = Color(0.25, 0.9, 0.45, 1.0)
+attack_color_secondary = Color(1.0, 1.0, 1.0, 1.0)
 
 
 ===== FILE: resources\enemies\es_colossus.tres =====
@@ -10795,6 +10833,8 @@ footprint_cells = Vector2i(1, 1)
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_o7r84"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
 [ext_resource type="Script" uid="uid://ynh2l4waev1g" path="res://scripts/characters/combat_giselle.gd" id="5_gisellecombat"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/hit_spark_primary.tscn" id="6_hitspark"]
+[ext_resource type="Script" path="res://scripts/vfx/ghost_trail.gd" id="7_ghosttrail"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -10854,6 +10894,7 @@ collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 14.0
 damage_number_scene = ExtResource("4_o7r84")
+impact_vfx = ExtResource("6_hitspark")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1478091659]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
@@ -10875,6 +10916,9 @@ regen_enabled = false
 [node name="Combat" type="Node" parent="." unique_id=1120459944]
 script = ExtResource("5_gisellecombat")
 
+[node name="GhostTrail" type="Node" parent="."]
+script = ExtResource("7_ghosttrail")
+
 
 ===== FILE: scenes\characters\char_karina.tscn =====
 
@@ -10886,6 +10930,8 @@ script = ExtResource("5_gisellecombat")
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_71isp"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
 [ext_resource type="Script" uid="uid://eklnfrxejbuf" path="res://scripts/characters/combat_karina.gd" id="5_karinacombat"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/hit_spark_primary.tscn" id="6_hitspark"]
+[ext_resource type="Script" path="res://scripts/vfx/ghost_trail.gd" id="7_ghosttrail"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -10945,6 +10991,7 @@ collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 14.0
 damage_number_scene = ExtResource("4_71isp")
+impact_vfx = ExtResource("6_hitspark")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1270968494]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
@@ -10966,6 +11013,9 @@ regen_enabled = false
 [node name="Combat" type="Node" parent="." unique_id=2032550543]
 script = ExtResource("5_karinacombat")
 
+[node name="GhostTrail" type="Node" parent="."]
+script = ExtResource("7_ghosttrail")
+
 
 ===== FILE: scenes\characters\char_ningning.tscn =====
 
@@ -10977,6 +11027,8 @@ script = ExtResource("5_karinacombat")
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_u6hti"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
 [ext_resource type="Script" uid="uid://7kkvr2pd8oha" path="res://scripts/characters/combat_ningning.gd" id="5_ningcombat"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/hit_spark_primary.tscn" id="6_hitspark"]
+[ext_resource type="Script" path="res://scripts/vfx/ghost_trail.gd" id="7_ghosttrail"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -11079,6 +11131,7 @@ collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 14.0
 damage_number_scene = ExtResource("4_u6hti")
+impact_vfx = ExtResource("6_hitspark")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=498811588]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
@@ -11100,6 +11153,9 @@ regen_enabled = false
 [node name="Combat" type="Node" parent="." unique_id=932916164]
 script = ExtResource("5_ningcombat")
 
+[node name="GhostTrail" type="Node" parent="."]
+script = ExtResource("7_ghosttrail")
+
 
 ===== FILE: scenes\characters\char_winter.tscn =====
 
@@ -11111,6 +11167,8 @@ script = ExtResource("5_ningcombat")
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_i32li"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
 [ext_resource type="Script" uid="uid://qlxom5ue0a30" path="res://scripts/characters/combat_winter.gd" id="5_wintercombat"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/hit_spark_primary.tscn" id="6_hitspark"]
+[ext_resource type="Script" path="res://scripts/vfx/ghost_trail.gd" id="7_ghosttrail"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -11170,6 +11228,7 @@ collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 14.0
 damage_number_scene = ExtResource("4_i32li")
+impact_vfx = ExtResource("6_hitspark")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1249222209]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
@@ -11190,6 +11249,9 @@ regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=873002602]
 script = ExtResource("5_wintercombat")
+
+[node name="GhostTrail" type="Node" parent="."]
+script = ExtResource("7_ghosttrail")
 
 
 ===== FILE: scenes\enemies\dummy.tscn =====
@@ -18325,7 +18387,17 @@ func apply_theme(theme: StageTheme) -> void:
 
 func _apply_theme_recursive(node: Node, theme: StageTheme) -> void:
 	var mesh := node as MeshInstance3D
-	if mesh != null:
+	# BUGFIX "Abyss-Loch ist weiss/untexturiert": pit_floor.gd erzeugt fuer
+	# extra_void_pits einen absichtlich unbeleuchteten NAHE-SCHWARZ-Schacht
+	# (_emit_dark_box, Name enthaelt "VoidShaft") - er soll die Falltiefe
+	# verschleiern (siehe Kommentar dort), egal welches Etagen-Theme aktiv
+	# ist. Diese generierten Kinder haengen direkt unter dem "Floor"-Node,
+	# tint_for_node_name() liest aber den PARENT-Namen und haette sie sonst
+	# wie normale Bodenflaechen mit floor_color eingefaerbt - je nach Theme
+	# (z.B. Tiefkuehlhaus: Color(0.72, 0.84, 0.95), fast weiss) sieht der
+	# Abgrund dann aus wie eine flache, unbelichtete Flaeche statt wie ein
+	# dunkles Loch.
+	if mesh != null and not mesh.name.to_lower().contains("voidshaft"):
 		var tint: Color = theme.tint_for_node_name(mesh.get_parent().name if mesh.get_parent() else mesh.name)
 		# material_override hat Vorrang vor surface_material_override.
 		if mesh.material_override != null:
@@ -22071,6 +22143,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
 [ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -22115,6 +22188,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48, 48)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -22904,6 +22981,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 18)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -22948,6 +23026,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48, 48)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -23471,6 +23553,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(96, 1, 96)
@@ -23533,6 +23616,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(96, 96)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -23822,6 +23909,7 @@ size = Vector3(40, 1, 10)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 96)
@@ -23878,6 +23966,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48, 96)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -26451,6 +26543,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.5, 6)
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/lemonade.tscn" id="lemonade"]
+[ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 
 [sub_resource type="BoxMesh" id="bm1"]
 size = Vector3(48, 1, 48)
@@ -26501,6 +26594,10 @@ room_height = 14
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+script = ExtResource("pit_floor")
+floor_size = Vector2(48, 48)
+floor_thickness = 1.0
+pit_depth = 6.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("bm1")
@@ -30754,6 +30851,96 @@ draw_pass_1 = SubResource("QuadMesh_spark")
 
 
 
+===== FILE: scenes\vfx\hit_spark_primary.gd =====
+
+extends GPUParticles3D
+
+# ============================================================================
+# HitSparkPrimary — wuchtiger, charakterfarbener Trefferfunke fuer
+# Primaerangriffe (siehe primary_hitbox.gd _on_hit_landed_vfx()).
+# ============================================================================
+# Der Groessen-Schwund (voll -> 0 ueber die Lebenszeit) haengt am
+# scale_curve des ParticleProcessMaterial. Dessen Punkte/Tangenten von Hand
+# als [sub_resource type="Curve"] in der .tscn zu serialisieren ist
+# fehleranfaellig und schlecht lesbar - der Aufbau hier im Code ist robuster
+# und auf den ersten Blick verstaendlich (siehe stage_theme.gd fuer denselben
+# "im Code statt in Resource-Dateien" Grundsatz im Projekt).
+
+func _ready() -> void:
+	var material: ParticleProcessMaterial = process_material as ParticleProcessMaterial
+	if material == null:
+		return
+
+	var curve := Curve.new()
+	curve.add_point(Vector2(0.0, 1.0))
+	curve.add_point(Vector2(1.0, 0.0))
+
+	var curve_texture := CurveTexture.new()
+	curve_texture.curve = curve
+
+	material.scale_curve = curve_texture
+
+
+===== FILE: scenes\vfx\hit_spark_primary.tscn =====
+
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/vfx/hit_spark_primary.gd" id="1_script"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_primary"]
+direction = Vector3(0, 1, 0)
+spread = 140.0
+initial_velocity_min = 15.0
+initial_velocity_max = 25.0
+gravity = Vector3(0, -3.0, 0)
+damping_min = 8.0
+damping_max = 14.0
+scale_min = 0.7
+scale_max = 1.4
+color = Color(1, 1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_primary"]
+shading_mode = 0
+transparency = 1
+blend_mode = 1
+billboard_mode = 3
+albedo_color = Color(1, 1, 1, 1)
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_primary"]
+material = SubResource("StandardMaterial3D_primary")
+size = Vector2(0.22, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_primary_b"]
+shading_mode = 0
+transparency = 1
+blend_mode = 1
+billboard_mode = 3
+albedo_color = Color(1, 1, 1, 1)
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_primary_b"]
+material = SubResource("StandardMaterial3D_primary_b")
+size = Vector2(0.22, 0.22)
+
+[node name="HitSparkPrimary" type="GPUParticles3D"]
+script = ExtResource("1_script")
+emitting = false
+amount = 30
+lifetime = 0.45
+one_shot = true
+explosiveness = 1.0
+randomness = 0.35
+fixed_fps = 30
+process_material = SubResource("ParticleProcessMaterial_primary")
+draw_pass_1 = SubResource("QuadMesh_primary")
+draw_pass_2 = SubResource("QuadMesh_primary_b")
+
+
 ===== FILE: scenes\vfx\hologram_blue.tscn =====
 
 [gd_scene load_steps=4 format=3]
@@ -32449,6 +32636,18 @@ class_name CharacterData
 # z.B. res://scenes/characters/char_ningning.tscn
 @export var player_scene: PackedScene = null
 
+@export_group("Combat Visuals")
+## Zwei Akzentfarben pro Charakter - faerben sowohl den Primärangriff-
+## Trefferfunken (siehe primary_hitbox.gd _resolve_attacker_colors() /
+## vfx_manager.gd spawn_dual_tinted()) als auch den Ghost-/Motion-Blur-Trail
+## (siehe combat_base.gd setup() / ghost_trail.gd set_colors()) ein. Beide
+## Effekte alternieren bzw. mischen zwischen attack_color und
+## attack_color_secondary statt nur EINEN Ton zu zeigen - macht Treffer UND
+## Bewegung optisch dem aktiven Charakter zuordenbar, obwohl alle vier
+## dieselben Hitbox-/VFX-Szenen teilen.
+@export var attack_color: Color = Color(1.0, 1.0, 1.0, 1.0)
+@export var attack_color_secondary: Color = Color(1.0, 1.0, 1.0, 1.0)
+
 @export_group("Icons")
 @export var icon_primary: Texture2D = null
 @export var icon_secondary: Texture2D = null
@@ -32640,6 +32839,16 @@ class_name CombatBase
 
 @export var dash_speed: float = 35.0
 @export var dash_duration: float = 0.4
+
+## Kurzer Ghost-Trail-Burst waehrend eines Schlags (siehe _do_primary()/
+## _do_secondary()) - deckt sich mit der Dauer, die die jeweilige Hitbox
+## in der BASIS-Implementierung von _perform_primary()/_perform_secondary()
+## aktiv bleibt (0.15s/0.25s). Ueberschreibt ein Charakter-Script die
+## _perform_*-Methode mit einer eigenen Animation/Dauer, darf es diese Werte
+## ebenfalls ueberschreiben - der Trail muss nicht pixelgenau zur Schlag-
+## dauer passen, "ein bisschen Blur waehrend des Schlags" reicht.
+@export var primary_attack_trail_duration: float = 0.15
+@export var secondary_attack_trail_duration: float = 0.25
 
 # ============================================================================
 # DASH-SCHADEN - nur beim DURCHdashen
@@ -32854,12 +33063,27 @@ func _items() -> Node:
 ## local_coords = false — sonst zieht der Trail mit statt stehenzubleiben).
 @onready var dash_trail: GPUParticles3D = get_node_or_null("../DashTrail")
 
+## Ghost-/Nachbild-Trail fuer den Dash (siehe scripts/vfx/ghost_trail.gd) -
+## optionales Kind-Node "GhostTrail" am Player-Root. get_node_or_null():
+## fehlt der Node in einer Charakter-Szene (noch nicht eingebaut), bleibt der
+## Dash einfach ohne Ghost-Effekt, statt einen Fehler zu werfen.
+@onready var ghost_trail: GhostTrail = get_node_or_null("../GhostTrail")
+
 func setup(owner_player: CharacterBody3D) -> void:
 	player = owner_player
 	if primary_hitbox:
 		primary_hitbox.hit_landed.connect(_on_hit_landed)
 	if secondary_hitbox:
 		secondary_hitbox.hit_landed.connect(_on_hit_landed)
+
+	# Ghost-Trail in den beiden Akzentfarben des aktiven Charakters einfaerben
+	# (siehe character_data.gd attack_color/attack_color_secondary) - EINMAL
+	# hier gesetzt, gilt fuer beide GhostTrail-Modi (Dash-Burst UND
+	# player_base.gd's Lauf-Trail), da beide denselben Node referenzieren.
+	if ghost_trail:
+		var data: CharacterData = PartyManager.get_active_data()
+		if data != null:
+			ghost_trail.set_colors(data.attack_color, data.attack_color_secondary)
 
 func _on_hit_landed(target: Node) -> void:
 	_hit_lock_timer = hit_lock_duration
@@ -32971,6 +33195,8 @@ func _do_primary() -> void:
 	_primary_timer = cd
 	primary_used.emit()
 	cooldown_started.emit(Slot.PRIMARY, cd)
+	if ghost_trail:
+		ghost_trail.start_trail(primary_attack_trail_duration)
 	_perform_primary()
 
 # Von Charakter-Subklassen überschreibbar. Standardverhalten: PrimaryHitbox
@@ -32997,6 +33223,8 @@ func _do_secondary() -> void:
 	_secondary_timer = secondary_cooldown
 	secondary_used.emit()
 	cooldown_started.emit(Slot.SECONDARY, secondary_cooldown)
+	if ghost_trail:
+		ghost_trail.start_trail(secondary_attack_trail_duration)
 	_perform_secondary()
 
 # Von Charakter-Subklassen überschreibbar. Standardverhalten: SecondaryHitbox
@@ -33057,6 +33285,8 @@ func _perform_utility() -> void:
 		VFX.spawn(dash_vfx, player.global_position, -_dash_direction)
 	if dash_trail:
 		dash_trail.emitting = true
+	if ghost_trail:
+		ghost_trail.start_trail(dash_duration)
 
 # --- Q = aktiver Item-Slot 0 ------------------------------------------
 ## Kein Cooldown-Timer mehr hier: _items().use_active_item() prueft selbst
@@ -34151,16 +34381,25 @@ extends Node
 ## für direkten Transfer zum Tresor- oder Bossraum.
 @export var pad_offset_left: Vector3 = Vector3(-5.0, -2.2, 0.0)
 @export var pad_offset_right: Vector3 = Vector3(5.0, -2.2, 0.0)
+## Drittes Pad, Admin-only: teleportiert in den Item-Testraum (siehe
+## scripts/item_test_room.gd) - dort liegt JEDES Item aus dem Katalog
+## nacheinander auf einem eigenen Sockel, plus eine Loesch-Plattform fuers
+## Inventar. Bewusst auf der +Z-Achse statt links/rechts, damit es sich
+## nicht mit den Tresor-/Boss-Pads ueberlappt.
+@export var pad_offset_item_test: Vector3 = Vector3(0.0, -2.2, 6.0)
 @export var interact_action: StringName = &"interact"
 @export var only_in_debug_build: bool = false # Auf false, damit es garantiert im Editor & Build erscheint
 
 var _boss_pad: Area3D
 var _treasure_pad: Area3D
+var _item_test_pad: Area3D
 var _boss_label: Label3D
 var _treasure_label: Label3D
+var _item_test_label: Label3D
 
 var _player_in_boss: bool = false
 var _player_in_treasure: bool = false
+var _player_in_item_test: bool = false
 var _boss_grid: Vector2i = Vector2i(-999, -999)
 var _treasure_grid: Vector2i = Vector2i(-999, -999)
 
@@ -34249,6 +34488,12 @@ func _setup_pads() -> void:
 	_boss_pad.body_exited.connect(func(b): if _is_player(b): _player_in_boss = false; _update_labels())
 	start_room.add_child(_boss_pad)
 
+	_item_test_pad = _create_pad("ItemTestTeleportPad", Color(0.55, 0.25, 0.95, 0.6), base_pos + pad_offset_item_test)
+	_item_test_label = _create_label(_item_test_pad, "[ ITEM-TESTRAUM ]")
+	_item_test_pad.body_entered.connect(func(b): if _is_player(b): _player_in_item_test = true; _update_labels())
+	_item_test_pad.body_exited.connect(func(b): if _is_player(b): _player_in_item_test = false; _update_labels())
+	start_room.add_child(_item_test_pad)
+
 	print("[Teleporter] Pads erfolgreich im Startraum platziert!")
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -34262,6 +34507,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_teleport_player_to_grid(_treasure_grid)
 	elif _player_in_boss and _boss_grid != Vector2i(-999, -999):
 		_teleport_player_to_grid(_boss_grid)
+	elif _player_in_item_test:
+		ItemTestRoom.teleport_player_in()
 
 func _teleport_player_to_grid(target_grid: Vector2i) -> void:
 	var level_gen := get_tree().get_first_node_in_group("level_generator") as LevelGenerator
@@ -34331,12 +34578,16 @@ func _update_labels() -> void:
 		else:
 			_boss_label.text = "[ BOSS ]" if _boss_grid != Vector2i(-999, -999) else "[ kein Boss ]"
 
+	if _item_test_label:
+		_item_test_label.text = "[F / E] ITEM-TESTRAUM" if _player_in_item_test else "[ ITEM-TESTRAUM ]"
+
 func _is_player(body: Node) -> bool:
 	return body.is_in_group(PartyManager.PLAYER_GROUP)
 
 func _cleanup() -> void:
 	if is_instance_valid(_boss_pad): _boss_pad.queue_free()
 	if is_instance_valid(_treasure_pad): _treasure_pad.queue_free()
+	if is_instance_valid(_item_test_pad): _item_test_pad.queue_free()
 
 
 ===== FILE: scripts\det_rng.gd =====
@@ -39383,6 +39634,305 @@ func set_overlay_enabled(enabled: bool) -> void:
 		reset_overlay.set_process_input(enabled)
 
 
+===== FILE: scripts\item_test_room.gd =====
+
+extends Node
+
+# ============================================================================
+# ItemTestRoom — Admin/Debug: ein Raum mit JEDEM Item aus dem Katalog
+# nacheinander aufgereiht, plus eine Loesch-Plattform, die das komplette
+# Inventar zuruecksetzt. Nur zum Item-Austesten gedacht, kein Teil des
+# normalen Spiels - Zugang ausschliesslich ueber das dritte Teleport-Pad in
+# debug_teleporter.gd.
+#
+# REGISTRIEREN: Project Settings -> Autoload
+#   Pfad: res://scripts/item_test_room.gd
+#   Name: ItemTestRoom
+#
+# WARUM WEIT WEG IM LEEREN RAUM (y = 800) STATT ALS EIGENE RAUM-SZENE IM
+# LEVEL-GENERATOR:
+# Der Generator kennt nur seine eigenen Raumtypen (Combat/Treasure/Boss/...)
+# - ein Sonderraum, der ausserhalb jeder Etagen-Logik existieren soll, passt
+# da nicht rein, ohne den Generator selbst anzufassen. Eine feste Position
+# weit ausserhalb des generierten Layouts ist der einfachste Weg, "existiert
+# immer, kollidiert mit nichts" zu garantieren.
+#
+# WARUM LAZY GEBAUT (erst beim ersten Betreten) UND WAEHREND DER ABWESENHEIT
+# KOMPLETT PROZESS-STILLGELEGT:
+# Der Katalog hat aktuell ueber 150 Items - jeder Sockel (TreasurePedestal)
+# laeuft mit eigenem _physics_process() (Schweben, Rotation, Lichtpulsieren,
+# Entfernungs-Check zum Spieler). Waeren alle Sockel von Spielbeginn an aktiv,
+# liefe diese Kette 150+ mal PRO FRAME die GANZE Spielsitzung durch, obwohl
+# fast niemand je in diesem Debug-Raum steht - genau die Art von
+# Dauerkosten, die schon einmal zu spuerbaren Framerate-Einbruechen gefuehrt
+# hat (Gegner-Ghost-Trail, inzwischen deswegen wieder entfernt). Der Raum
+# wird deshalb erst beim ERSTEN Betreten gebaut und ist ausserhalb der
+# Besuchszeit komplett prozess-stillgelegt (process_mode = DISABLED).
+
+const ROOM_OFFSET: Vector3 = Vector3(0.0, 800.0, 0.0)
+## Deutlich groesser als der reine Sockel-Durchmesser (Ring-Radius 1.22,
+## Lichtsaeule bis 0.95) braucht: TreasurePedestal blendet seine Item-Karte
+## schon ab preview_distance = 7.0 ein. Bei zu engem Abstand faengt man sich
+## beim Anschauen EINES Sockels die Karte des NAECHBAR-Sockels mit ein, oder
+## loest [F] versehentlich am falschen Item aus. 10.0 haelt Ring/Saeule/
+## Karten sauber getrennt, damit man jedes Item einzeln in Ruhe anschauen kann.
+const PEDESTAL_SPACING: float = 10.0
+const ROOM_MARGIN: float = 6.0
+const FRONT_CLEARANCE: float = 8.0
+const FLOOR_THICKNESS: float = 1.0
+const WALL_HEIGHT: float = 10.0
+const RAYCAST_MASK: int = 1
+
+const DELETE_PLATE_COLOR: Color = Color(0.75, 0.05, 0.05, 0.7)
+const RETURN_PAD_COLOR: Color = Color(0.2, 0.6, 0.9, 0.6)
+
+const INTERACT_ACTION: String = "interact"
+
+var _root: Node3D = null
+var _built: bool = false
+var _spawn_position: Vector3 = Vector3.ZERO
+
+## Position, von der aus zuletzt in den Testraum teleportiert wurde - fuer
+## den Rueckweg per Return-Pad.
+var _return_position: Vector3 = Vector3.ZERO
+
+## Array[Dictionary{inside, label, idle, active, callback}] - siehe
+## _build_interact_pad()/_unhandled_input().
+var _pads: Array = []
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+
+## Baut den Raum (falls noch nicht geschehen) und teleportiert den Spieler
+## hinein. Merkt sich die aktuelle Position, damit teleport_player_out() den
+## Rueckweg kennt.
+func teleport_player_in() -> void:
+	var player: CharacterBody3D = _get_player()
+	if player == null:
+		return
+
+	_return_position = player.global_position
+
+	_ensure_built()
+	_root.process_mode = Node.PROCESS_MODE_INHERIT
+
+	_place_player(player, _spawn_position)
+
+
+func teleport_player_out() -> void:
+	var player: CharacterBody3D = _get_player()
+	if player == null:
+		return
+
+	_place_player(player, _return_position)
+
+	if _root != null and is_instance_valid(_root):
+		_root.process_mode = Node.PROCESS_MODE_DISABLED
+
+
+func _place_player(player: CharacterBody3D, pos: Vector3) -> void:
+	player.global_position = pos
+	player.velocity = Vector3.ZERO
+	if player.has_method("set_buoyancy"):
+		player.set_buoyancy(false)
+
+
+func _get_player() -> CharacterBody3D:
+	return get_tree().get_first_node_in_group(PartyManager.PLAYER_GROUP) as CharacterBody3D
+
+
+# ============================================================================
+# Aufbau
+# ============================================================================
+func _ensure_built() -> void:
+	if _built:
+		return
+	_built = true
+
+	_root = Node3D.new()
+	_root.name = "ItemTestRoom"
+	get_tree().current_scene.add_child(_root)
+	_root.global_position = ROOM_OFFSET
+	# Bis zum ersten Betreten stillgelegt - siehe Kopfkommentar.
+	_root.process_mode = Node.PROCESS_MODE_DISABLED
+
+	var items: Array[ItemData] = ItemCatalog.build_all()
+	var columns: int = maxi(int(ceil(sqrt(float(items.size())))), 1)
+	var rows: int = int(ceil(float(items.size()) / float(columns)))
+
+	var floor_size := Vector2(
+		columns * PEDESTAL_SPACING + ROOM_MARGIN * 2.0,
+		rows * PEDESTAL_SPACING + ROOM_MARGIN * 2.0 + FRONT_CLEARANCE
+	)
+	_build_floor(floor_size)
+	_build_walls(floor_size)
+	_build_light()
+
+	# Sockel-Gitter, zentriert ueber der hinteren Haelfte des Bodens - die
+	# vordere Haelfte (FRONT_CLEARANCE) bleibt frei fuer Spawn, Loesch-
+	# Plattform und Return-Pad.
+	var grid_origin := Vector3(
+		-((columns - 1) * PEDESTAL_SPACING) * 0.5,
+		0.0,
+		-(floor_size.y * 0.5) + ROOM_MARGIN
+	)
+	for i: int in range(items.size()):
+		var col: int = i % columns
+		var row: int = i / columns
+		var pedestal: TreasurePedestal = TreasurePedestal.create(items[i])
+		_root.add_child(pedestal)
+		pedestal.global_position = _root.global_position + grid_origin \
+			+ Vector3(col * PEDESTAL_SPACING, 0.0, row * PEDESTAL_SPACING)
+
+	# Spawn-Punkt in der freien Vorderzone, mit Blick auf das Gitter.
+	_spawn_position = _root.global_position + Vector3(0.0, 1.0, floor_size.y * 0.5 - FRONT_CLEARANCE * 0.5)
+
+	_build_interact_pad(
+		_spawn_position + Vector3(-3.0, -1.0, 3.0), DELETE_PLATE_COLOR,
+		"[ ITEMS LOESCHEN ]", "[F] ALLE ITEMS LOESCHEN",
+		func() -> void: Items.clear_inventory()
+	)
+
+	_build_interact_pad(
+		_spawn_position + Vector3(3.0, -1.0, 3.0), RETURN_PAD_COLOR,
+		"[ ZURUECK ]", "[F] ZURUECK ZUM RUN",
+		teleport_player_out
+	)
+
+
+func _build_floor(size: Vector2) -> void:
+	var mesh := MeshInstance3D.new()
+	mesh.name = "Floor"
+	var box := BoxMesh.new()
+	box.size = Vector3(size.x, FLOOR_THICKNESS, size.y)
+	mesh.mesh = box
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.16, 0.16, 0.20)
+	mesh.material_override = mat
+	_root.add_child(mesh)
+	mesh.position = Vector3(0.0, -FLOOR_THICKNESS * 0.5, 0.0)
+
+	var body := StaticBody3D.new()
+	body.name = "FloorCollision"
+	body.collision_layer = RAYCAST_MASK
+	_root.add_child(body)
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = box.size
+	col.shape = shape
+	body.add_child(col)
+	body.position = mesh.position
+
+
+func _build_walls(size: Vector2) -> void:
+	_build_one_wall(Vector3(size.x, WALL_HEIGHT, 1.0), Vector3(0.0, WALL_HEIGHT * 0.5, -size.y * 0.5))
+	_build_one_wall(Vector3(size.x, WALL_HEIGHT, 1.0), Vector3(0.0, WALL_HEIGHT * 0.5, size.y * 0.5))
+	_build_one_wall(Vector3(1.0, WALL_HEIGHT, size.y), Vector3(-size.x * 0.5, WALL_HEIGHT * 0.5, 0.0))
+	_build_one_wall(Vector3(1.0, WALL_HEIGHT, size.y), Vector3(size.x * 0.5, WALL_HEIGHT * 0.5, 0.0))
+
+
+func _build_one_wall(size: Vector3, pos: Vector3) -> void:
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = size
+	mesh.mesh = box
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.10, 0.10, 0.13)
+	mesh.material_override = mat
+	_root.add_child(mesh)
+	mesh.position = pos
+
+	var body := StaticBody3D.new()
+	body.collision_layer = RAYCAST_MASK
+	_root.add_child(body)
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	col.shape = shape
+	body.add_child(col)
+	body.position = pos
+
+
+func _build_light() -> void:
+	var light := DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-60.0, -30.0, 0.0)
+	light.light_energy = 1.0
+	light.shadow_enabled = false
+	_root.add_child(light)
+
+
+## Generischer interaktiver Trigger (Bodenplatte), gleiches Prinzip wie die
+## Teleport-Pads in debug_teleporter.gd: Area3D + Sichtflaeche + Label,
+## Aufruf per [F]/interact, sobald der Spieler drinsteht.
+func _build_interact_pad(pos: Vector3, color: Color, label_idle: String, label_active: String, callback: Callable) -> void:
+	var area := Area3D.new()
+	area.collision_layer = 0
+	area.collision_mask = RAYCAST_MASK
+
+	var col := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(3.0, 2.0, 3.0)
+	col.shape = box
+	area.add_child(col)
+
+	var csg := CSGBox3D.new()
+	csg.size = Vector3(2.8, 0.2, 2.8)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.emission_enabled = true
+	mat.emission = color
+	mat.emission_energy_multiplier = 2.0
+	csg.material = mat
+	area.add_child(csg)
+
+	var label := Label3D.new()
+	label.text = label_idle
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.position = Vector3(0.0, 2.0, 0.0)
+	label.font_size = 48
+	label.outline_size = 12
+	area.add_child(label)
+
+	_root.add_child(area)
+	area.global_position = pos
+
+	var entry: Dictionary = {
+		"inside": false, "label": label,
+		"idle": label_idle, "active": label_active,
+		"callback": callback,
+	}
+	_pads.append(entry)
+
+	area.body_entered.connect(func(b: Node) -> void:
+		if b.is_in_group(PartyManager.PLAYER_GROUP):
+			entry["inside"] = true
+			label.text = label_active
+	)
+	area.body_exited.connect(func(b: Node) -> void:
+		if b.is_in_group(PartyManager.PLAYER_GROUP):
+			entry["inside"] = false
+			label.text = label_idle
+	)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _pads.is_empty():
+		return
+
+	var is_interact: bool = event.is_action_pressed(INTERACT_ACTION) \
+		or (event is InputEventKey and event.pressed and not event.echo and (event as InputEventKey).physical_keycode == KEY_F)
+	if not is_interact:
+		return
+
+	for entry: Dictionary in _pads:
+		if entry["inside"]:
+			(entry["callback"] as Callable).call()
+			return
+
+
 ===== FILE: scripts\items\active_item_swap_panel.gd =====
 
 extends VBoxContainer
@@ -39705,10 +40255,13 @@ const OIL_SLOW_AMOUNT: float = 0.25
 const OIL_MIN_SPEED: float = 3.0
 
 # --- 6. Papas Starthilfekabel ---
+# BALANCE-PASS "Aktiv-Items sind zu schwach": Schaden x1.75, Reichweite/
+# Hitbox x1.4, Kontrolleffekt-Dauer x1.25 - siehe gleichlautender Kommentar
+# unten bei den A1-A12/Nr.51-83-Bloecken fuer die volle Begruendung.
 const CABLES_DURATION: float = 0.28
-const CABLES_DAMAGE: float = 45.0
-const CABLES_STUN: float = 2.0
-const CABLES_HIT_RADIUS: float = 2.6
+const CABLES_DAMAGE: float = 78.0
+const CABLES_STUN: float = 2.5
+const CABLES_HIT_RADIUS: float = 6.1
 
 # ============================================================================
 # PHASE 4 — PASSIVE ITEMS
@@ -39883,111 +40436,133 @@ const BUBBLE_SLOW_DURATION: float = 4.0
 const COPPER_RADIUS: float = 2.6
 
 # --- A9. Alte Ghettoblaster-Box ---
-const BOOMBOX_RADIUS: float = 12.0
-const BOOMBOX_SILENCE_DURATION: float = 4.0
+const BOOMBOX_RADIUS: float = 29.0
+const BOOMBOX_SILENCE_DURATION: float = 5.0
 ## Nahkampfschaden-Bonus gegen stummgeschaltete Gegner (Synergie).
-const BOOMBOX_SILENCED_MELEE_BONUS: float = 0.30
+const BOOMBOX_SILENCED_MELEE_BONUS: float = 0.40
 
 # --- A10. Scharfe Instant-Nudeln ---
-const RAMEN_RANGE: float = 7.0
-const RAMEN_HALF_ANGLE_DEG: float = 40.0
-const RAMEN_DAMAGE: float = 20.0
+const RAMEN_RANGE: float = 16.7
+## Cone-Winkel bewusst nicht weiter 1:1 mit x1.7 hochskaliert - ueber ~80
+## Grad Halbwinkel (160 Grad Gesamtkegel) wird ein Vorwaerts-Kegel gegen den
+## eigenen Sinn breit und die Winkel-Mathematik in _enemies_in_cone() naehert
+## sich Randfaellen. 74 ist trotzdem ein deutlicher Sprung von vorher 56.
+const RAMEN_HALF_ANGLE_DEG: float = 74.0
+const RAMEN_DAMAGE: float = 35.0
 
 # --- A11. USB-Mini-Ventilator ---
-const FAN_RANGE: float = 8.0
-const FAN_HALF_ANGLE_DEG: float = 30.0
-const FAN_SLOW_DURATION: float = 3.0
-const FAN_SLOW_AMOUNT: float = 0.35
-const FAN_SPREAD_RADIUS: float = 4.0
+const FAN_RANGE: float = 19.0
+const FAN_HALF_ANGLE_DEG: float = 71.0
+const FAN_SLOW_DURATION: float = 3.75
+const FAN_SLOW_AMOUNT: float = 0.44
+const FAN_SPREAD_RADIUS: float = 9.5
 
 # --- A12. Spruehdose aus dem Tunnel ---
-const GRAFFITI_RADIUS: float = 7.0
-const GRAFFITI_CHARM_DURATION: float = 5.0
+const GRAFFITI_RADIUS: float = 16.7
+const GRAFFITI_CHARM_DURATION: float = 6.3
 
 # --- Nr. 51-83: neue "Ultimate"-Items ---
-const UPDRAFT_IMPULSE: float = 16.0
-const HEALING_ORB_INSTANT_FRACTION: float = 0.25
-const HEALING_ORB_OVER_TIME_FRACTION: float = 0.15
-const HEALING_ORB_TICK_DURATION: float = 4.0
-const SLOW_ORB_RADIUS: float = 4.0
-const SLOW_ORB_SLOW_AMOUNT: float = 0.55
-const SLOW_ORB_SLOW_DURATION: float = 4.0
-const SLOW_ORB_LIFETIME: float = 6.0
-const INCENDIARY_RADIUS: float = 3.5
-const INCENDIARY_LIFETIME: float = 6.0
+# ##########################################################################
+# BALANCE-PASS "Aktiv-Items sind zu schwach"
+# ##########################################################################
+# Nur zwei Aktiv-Item-Slots (Q/E), beide mit Cooldown - der Preis fuer einen
+# Slot ist hoch, also muss die Auszahlung gross sein. NUR aktive Items
+# angefasst, KEIN passives Item veraendert (die sind laut Rueckmeldung schon
+# gut balanciert) und NIRGENDS cooldown_seconds/charge_rooms - nur die
+# eigentliche Wirkstaerke/Groesse:
+#   * Schaden/Heilung: x1.75
+#   * Reichweite/Radius/Winkel/Hitbox-Groesse: x1.4
+#   * Kontrolleffekt-Dauer (Stun/Slow/Root/Silence) und Effekt-Lebenszeit: x1.25
+#   * Prozentuale Debuff-/Buff-Staerke (Verlangsamung, Vulnerable-Bonus etc.): x1.4
+#
+# NACHSCHLAG (Rueckmeldung "Hitbox/Optik wirkt immer noch klein, Schaden
+# passt"): NOCHMAL x1.7 auf ALLE Reichweite/Radius/Winkel/Groesse-Werte
+# oben drauf - Schaden/Heilung/Dauer/Prozentwerte bleiben unangetastet.
+const UPDRAFT_IMPULSE: float = 22.0
+const HEALING_ORB_INSTANT_FRACTION: float = 0.44
+const HEALING_ORB_OVER_TIME_FRACTION: float = 0.26
+const HEALING_ORB_TICK_DURATION: float = 5.0
+const SLOW_ORB_RADIUS: float = 9.5
+const SLOW_ORB_SLOW_AMOUNT: float = 0.77
+const SLOW_ORB_SLOW_DURATION: float = 5.0
+const SLOW_ORB_LIFETIME: float = 7.5
+const INCENDIARY_RADIUS: float = 8.3
+const INCENDIARY_LIFETIME: float = 7.5
 const INCENDIARY_TICK_INTERVAL: float = 0.5
-const INCENDIARY_TICK_DAMAGE: float = 4.0
-const BARRIER_ORB_LIFETIME: float = 5.0
-const BARRIER_ORB_SIZE: Vector3 = Vector3(4.0, 3.0, 0.6)
-const SHOCK_BOLT_RANGE: float = 16.0
-const SHOCK_BOLT_DAMAGE: float = 12.0
-const SHOCK_BOLT_STUN: float = 2.0
-const ROLLING_THUNDER_RADIUS: float = 9.0
-const ROLLING_THUNDER_STUN: float = 1.5
-const ROLLING_THUNDER_KNOCKBACK: float = 14.0
-const FAULT_LINE_RANGE: float = 12.0
-const FAULT_LINE_WIDTH: float = 2.0
-const FAULT_LINE_STUN: float = 1.5
-const STIM_BEACON_RADIUS: float = 6.0
-const STIM_BEACON_LIFETIME: float = 10.0
-const STIM_BEACON_SPEED_MUL: float = 1.25
-const STIM_BEACON_DAMAGE_MUL: float = 1.20
-const SEIZE_RADIUS: float = 3.0
-const SEIZE_LIFETIME: float = 7.0
-const SEIZE_ROOTED_DURATION: float = 2.0
-const SEIZE_ACID_DAMAGE: float = 3.0
+const INCENDIARY_TICK_DAMAGE: float = 7.0
+const BARRIER_ORB_LIFETIME: float = 6.25
+const BARRIER_ORB_SIZE: Vector3 = Vector3(9.5, 7.1, 0.6)
+const SHOCK_BOLT_RANGE: float = 38.0
+const SHOCK_BOLT_DAMAGE: float = 21.0
+const SHOCK_BOLT_STUN: float = 2.5
+const ROLLING_THUNDER_RADIUS: float = 21.0
+const ROLLING_THUNDER_STUN: float = 1.9
+const ROLLING_THUNDER_KNOCKBACK: float = 24.0
+const FAULT_LINE_RANGE: float = 29.0
+const FAULT_LINE_WIDTH: float = 4.8
+const FAULT_LINE_STUN: float = 1.9
+const STIM_BEACON_RADIUS: float = 14.0
+const STIM_BEACON_LIFETIME: float = 12.5
+const STIM_BEACON_SPEED_MUL: float = 1.35
+const STIM_BEACON_DAMAGE_MUL: float = 1.35
+const SEIZE_RADIUS: float = 7.0
+const SEIZE_LIFETIME: float = 8.75
+const SEIZE_ROOTED_DURATION: float = 2.5
+const SEIZE_ACID_DAMAGE: float = 5.0
 const DEVOUR_HEAL_FRACTION: float = 0.04
-const HUNTERS_FURY_RANGE: float = 18.0
-const HUNTERS_FURY_WIDTH: float = 1.6
-const HUNTERS_FURY_DAMAGE: float = 30.0
+const HUNTERS_FURY_RANGE: float = 43.0
+const HUNTERS_FURY_WIDTH: float = 3.7
+const HUNTERS_FURY_DAMAGE: float = 52.0
 const HUNTERS_FURY_BEAM_COUNT: int = 3
-const HUNTERS_FURY_BEAM_SPREAD_DEG: float = 8.0
-const TURRET_ITEM_LIFETIME: float = 20.0
-const TURRET_ITEM_RANGE: float = 10.0
+const HUNTERS_FURY_BEAM_SPREAD_DEG: float = 14.0
+const TURRET_ITEM_LIFETIME: float = 25.0
+const TURRET_ITEM_RANGE: float = 24.0
 const TURRET_ITEM_FIRE_INTERVAL: float = 1.2
-const TURRET_ITEM_DAMAGE: float = 8.0
+const TURRET_ITEM_DAMAGE: float = 14.0
 const ORBITAL_STRIKE_DELAY: float = 1.4
-const ORBITAL_STRIKE_RADIUS: float = 5.0
-const ORBITAL_STRIKE_DAMAGE: float = 55.0
-const ORBITAL_STRIKE_RANGE_AHEAD: float = 9.0
-const SNAKE_BITE_RADIUS: float = 3.0
-const SNAKE_BITE_LIFETIME: float = 6.0
-const SNAKE_BITE_VULNERABLE_DURATION: float = 3.0
-const SNAKE_BITE_VULNERABLE_BONUS: float = 0.35
-const SNAKE_BITE_ACID_DAMAGE: float = 3.0
+const ORBITAL_STRIKE_RADIUS: float = 12.0
+const ORBITAL_STRIKE_DAMAGE: float = 96.0
+const ORBITAL_STRIKE_RANGE_AHEAD: float = 21.0
+const SNAKE_BITE_RADIUS: float = 7.0
+const SNAKE_BITE_LIFETIME: float = 7.5
+const SNAKE_BITE_VULNERABLE_DURATION: float = 3.75
+const SNAKE_BITE_VULNERABLE_BONUS: float = 0.49
+const SNAKE_BITE_ACID_DAMAGE: float = 5.0
 
 # --- Nr. 52-83 (Rest): weitere neue "Ultimate"-Items ---
+# Gleicher Balance-Pass wie oben (Schaden x1.75, Reichweite/Groesse x1.4,
+# Dauer x1.25).
 const BLADE_STORM_COUNT: int = 5
-const BLADE_STORM_SPREAD_DEG: float = 45.0
-const BLADE_STORM_RANGE: float = 10.0
-const BLADE_STORM_DAMAGE: float = 14.0
+const BLADE_STORM_SPREAD_DEG: float = 76.0
+const BLADE_STORM_RANGE: float = 24.0
+const BLADE_STORM_DAMAGE: float = 24.0
 const BLAZE_SEGMENTS: int = 4
-const BLAZE_SEGMENT_SPACING: float = 2.2
-const BLAZE_SEGMENT_RADIUS: float = 1.6
-const BLAZE_LIFETIME: float = 5.0
-const BLAZE_TICK_DAMAGE: float = 5.0
-const HOT_HANDS_RANGE_AHEAD: float = 7.0
-const HOT_HANDS_RADIUS: float = 3.0
-const HOT_HANDS_DAMAGE: float = 22.0
-const RUN_IT_BACK_HEAL_FRACTION: float = 0.5
-const RUN_IT_BACK_LIFETIME: float = 20.0
+const BLAZE_SEGMENT_SPACING: float = 5.3
+const BLAZE_SEGMENT_RADIUS: float = 3.7
+const BLAZE_LIFETIME: float = 6.25
+const BLAZE_TICK_DAMAGE: float = 9.0
+const HOT_HANDS_RANGE_AHEAD: float = 16.7
+const HOT_HANDS_RADIUS: float = 7.0
+const HOT_HANDS_DAMAGE: float = 38.0
+const RUN_IT_BACK_HEAL_FRACTION: float = 0.85
+const RUN_IT_BACK_LIFETIME: float = 25.0
 const BOOM_BOT_SPEED: float = 9.0
-const BOOM_BOT_LIFETIME: float = 5.0
-const BOOM_BOT_RADIUS: float = 3.5
-const BOOM_BOT_DAMAGE: float = 26.0
+const BOOM_BOT_LIFETIME: float = 6.25
+const BOOM_BOT_RADIUS: float = 8.3
+const BOOM_BOT_DAMAGE: float = 45.0
 const PAINT_SHELLS_COUNT: int = 4
-const PAINT_SHELLS_SPREAD: float = 3.0
-const PAINT_SHELLS_RADIUS: float = 2.5
-const PAINT_SHELLS_DAMAGE: float = 14.0
+const PAINT_SHELLS_SPREAD: float = 7.0
+const PAINT_SHELLS_RADIUS: float = 6.0
+const PAINT_SHELLS_DAMAGE: float = 24.0
 const PAINT_SHELLS_FUSE: float = 0.8
-const SHOWSTOPPER_RANGE_AHEAD: float = 10.0
-const SHOWSTOPPER_RADIUS: float = 5.5
-const SHOWSTOPPER_DAMAGE: float = 60.0
-const SHOWSTOPPER_KNOCKBACK: float = 18.0
-const LEER_RADIUS: float = 7.0
-const LEER_LIFETIME: float = 9.0
+const SHOWSTOPPER_RANGE_AHEAD: float = 24.0
+const SHOWSTOPPER_RADIUS: float = 13.0
+const SHOWSTOPPER_DAMAGE: float = 105.0
+const SHOWSTOPPER_KNOCKBACK: float = 31.0
+const LEER_RADIUS: float = 16.7
+const LEER_LIFETIME: float = 11.25
 const LEER_TICK_INTERVAL: float = 2.0
-const LEER_CONFUSE_DURATION: float = 2.5
+const LEER_CONFUSE_DURATION: float = 3.1
 ## Nr. 61 Kaiserin: urspruenglich als PASSIVE mit Kill-Chance kodiert, bevor
 ## der Abgleich mit der echten Tabelle zeigte, dass es ein AKTIV-Item ist
 ## ("Erhoeht drastisch das Tempo. Kills erneuern die Abklingzeiten und machen
@@ -39998,39 +40573,46 @@ const LEER_CONFUSE_DURATION: float = 2.5
 ## und ungetestet ein zu grosses Risiko. Stellvertretend: kurze
 ## Unverwundbarkeit (gleicher Mechanismus wie P1 Kochloeffel/P18 Schulter-
 ## polster) + sichtbarer Flash, statt echter KI-Blindheit.
-const EMPRESS_BUFF_DURATION: float = 5.0
-const EMPRESS_SPEED_MULTIPLIER: float = 1.6
-const EMPRESS_INVULN_DURATION: float = 0.6
-const FAKEOUT_LIFETIME: float = 3.0
-const FAKEOUT_RADIUS: float = 5.0
-const GATECRASH_LIFETIME: float = 10.0
-const AFTERSHOCK_RANGE: float = 14.0
-const AFTERSHOCK_RADIUS: float = 3.5
-const AFTERSHOCK_DAMAGE: float = 24.0
+const EMPRESS_BUFF_DURATION: float = 6.25
+const EMPRESS_SPEED_MULTIPLIER: float = 1.85
+const EMPRESS_INVULN_DURATION: float = 0.75
+const FAKEOUT_LIFETIME: float = 3.75
+const FAKEOUT_RADIUS: float = 12.0
+## BUGFIX "Portalanker laesst sich nicht mehr benutzen": item_catalog.gd
+## setzt gatecrash.cooldown_seconds = 12.0 - der Anker MUSS also spuerbar
+## LAENGER halten als diese Abklingzeit, sonst ist er schon wieder
+## abgelaufen, bevor der Spieler ueberhaupt ein zweites Mal draufkommen darf
+## (die alte Lebenszeit von 10.0 s war sogar KUERZER als der Cooldown - der
+## Anker war in der Praxis IMMER schon weg). 20.0 s laesst nach Ablauf des
+## Cooldowns ein grosszuegiges ~8-Sekunden-Fenster zum Zurueckteleportieren.
+const GATECRASH_LIFETIME: float = 20.0
+const AFTERSHOCK_RANGE: float = 33.0
+const AFTERSHOCK_RADIUS: float = 8.3
+const AFTERSHOCK_DAMAGE: float = 42.0
 const PROWLER_SPEED: float = 12.0
-const PROWLER_LIFETIME: float = 8.0
-const PROWLER_CONFUSE_DURATION: float = 2.0
-const PROWLER_SILENCE_DURATION: float = 2.0
-const NIGHTFALL_RADIUS: float = 11.0
-const NIGHTFALL_SLOW_AMOUNT: float = 0.4
-const NIGHTFALL_SLOW_DURATION: float = 4.0
-const NIGHTFALL_SILENCE_DURATION: float = 3.0
-const PARANOIA_RADIUS: float = 7.0
-const PARANOIA_CONFUSE_DURATION: float = 2.0
-const PARANOIA_SILENCE_DURATION: float = 2.0
+const PROWLER_LIFETIME: float = 10.0
+const PROWLER_CONFUSE_DURATION: float = 2.5
+const PROWLER_SILENCE_DURATION: float = 2.5
+const NIGHTFALL_RADIUS: float = 26.0
+const NIGHTFALL_SLOW_AMOUNT: float = 0.56
+const NIGHTFALL_SLOW_DURATION: float = 5.0
+const NIGHTFALL_SILENCE_DURATION: float = 3.75
+const PARANOIA_RADIUS: float = 16.7
+const PARANOIA_CONFUSE_DURATION: float = 2.5
+const PARANOIA_SILENCE_DURATION: float = 2.5
 const NANOSWARM_ARM_DELAY: float = 1.2
-const NANOSWARM_TRIGGER_RADIUS: float = 3.0
-const NANOSWARM_BLAST_RADIUS: float = 4.0
-const NANOSWARM_DAMAGE: float = 30.0
-const NANOSWARM_LIFETIME: float = 8.0
+const NANOSWARM_TRIGGER_RADIUS: float = 7.0
+const NANOSWARM_BLAST_RADIUS: float = 9.5
+const NANOSWARM_DAMAGE: float = 52.0
+const NANOSWARM_LIFETIME: float = 10.0
 const ALARMBOT_SPEED: float = 15.0
-const ALARMBOT_LIFETIME: float = 3.0
-const ALARMBOT_VULNERABLE_DURATION: float = 4.0
-const ALARMBOT_VULNERABLE_BONUS: float = 1.0
+const ALARMBOT_LIFETIME: float = 3.75
+const ALARMBOT_VULNERABLE_DURATION: float = 5.0
+const ALARMBOT_VULNERABLE_BONUS: float = 1.4
 const LOCKDOWN_CHANNEL_TIME: float = 1.8
-const LOCKDOWN_RADIUS: float = 12.0
-const LOCKDOWN_STUN_DURATION: float = 2.5
-const LOCKDOWN_SILENCE_DURATION: float = 3.5
+const LOCKDOWN_RADIUS: float = 28.5
+const LOCKDOWN_STUN_DURATION: float = 3.1
+const LOCKDOWN_SILENCE_DURATION: float = 4.4
 
 # --- P20. Mamas Stoeckelschuhe ---
 const HEELS_MIN_SPEED: float = 6.0
@@ -40050,49 +40632,53 @@ const HEELS_SHOCKWAVE_STUN: float = 0.4
 # ============================================================================
 
 # --- A1. Sturmfeuerzeug ---
-const LIGHTER_RANGE: float = 8.0
-## Halber Oeffnungswinkel in Grad. 45 = 90-Grad-Bogen.
-const LIGHTER_HALF_ANGLE_DEG: float = 45.0
+# Gleicher Balance-Pass wie bei den Nr.51-83-Items (siehe dortiger Kommentar):
+# Schaden x1.75, Reichweite/Radius/Winkel x1.4, Effekt-Dauer x1.25.
+const LIGHTER_RANGE: float = 19.0
+## Halber Oeffnungswinkel in Grad. 45 = 90-Grad-Bogen. Ueber ~78 Grad wird ein
+## Vorwaerts-Kegel gegen den eigenen Sinn breit, deshalb hier gedeckelt statt
+## stur x1.7 weitergerechnet (siehe RAMEN_HALF_ANGLE_DEG-Kommentar).
+const LIGHTER_HALF_ANGLE_DEG: float = 78.0
 const LIGHTER_DAMAGE_MULTIPLIER: float = 3.0
-const LIGHTER_BASE_DAMAGE: float = 15.0
+const LIGHTER_BASE_DAMAGE: float = 26.0
 
 # --- A2. Schulbibliotheks-Buch ---
-const BOOK_EXECUTE_THRESHOLD: float = 0.20
+const BOOK_EXECUTE_THRESHOLD: float = 0.28
 
 # --- A3. Verfluchter Glueckswuerfel ---
-const CURSED_RADIUS: float = 30.0
+const CURSED_RADIUS: float = 71.0
 
 # --- A4. Alter Handstaubsauger ---
 const VACUUM_DURATION: float = 2.5
-const VACUUM_RANGE: float = 12.0
-const VACUUM_HALF_ANGLE_DEG: float = 35.0
-const VACUUM_PULL_SPEED: float = 9.0
+const VACUUM_RANGE: float = 29.0
+const VACUUM_HALF_ANGLE_DEG: float = 78.0
+const VACUUM_PULL_SPEED: float = 12.6
 ## Saeureschaden des Rueckstrahls pro getroffenem Gegner.
-const VACUUM_ACID_DAMAGE: float = 6.0
-const VACUUM_ACID_DURATION: float = 4.0
+const VACUUM_ACID_DAMAGE: float = 10.5
+const VACUUM_ACID_DURATION: float = 5.0
 
 # --- A5. Omas Pfeffermuehle ---
-const PEPPER_RADIUS: float = 9.0
-const PEPPER_SILENCE_DURATION: float = 2.0
-const PEPPER_DOT_EXTENSION: float = 3.0
+const PEPPER_RADIUS: float = 21.0
+const PEPPER_SILENCE_DURATION: float = 2.5
+const PEPPER_DOT_EXTENSION: float = 3.75
 
 # --- A6. Walkman (kaputt) ---
-const WALKMAN_RADIUS: float = 12.0
-const WALKMAN_KNOCKBACK: float = 26.0
-const WALKMAN_CONFUSE_DURATION: float = 4.0
+const WALKMAN_RADIUS: float = 29.0
+const WALKMAN_KNOCKBACK: float = 45.0
+const WALKMAN_CONFUSE_DURATION: float = 5.0
 const WALKMAN_SHAKE: float = 2.0
 
 # --- A7. Megafon aus der Schule ---
-const MEGAPHONE_RANGE: float = 11.0
-const MEGAPHONE_HALF_ANGLE_DEG: float = 30.0
-const MEGAPHONE_DAMAGE: float = 26.0
+const MEGAPHONE_RANGE: float = 26.0
+const MEGAPHONE_HALF_ANGLE_DEG: float = 71.0
+const MEGAPHONE_DAMAGE: float = 45.0
 
 # --- A8. Spruehsahne-Dose ---
-const CREAM_RADIUS: float = 6.0
-const CREAM_LIFETIME: float = 6.0
-const CREAM_KNOCKDOWN_DURATION: float = 1.5
+const CREAM_RADIUS: float = 14.0
+const CREAM_LIFETIME: float = 7.5
+const CREAM_KNOCKDOWN_DURATION: float = 1.9
 ## Schaden, wenn die Sahne einen brennenden Gegner loescht.
-const CREAM_EXTINGUISH_DAMAGE: float = 45.0
+const CREAM_EXTINGUISH_DAMAGE: float = 79.0
 
 var _items: Node = null
 
@@ -42059,8 +42645,8 @@ func _tick_jumper_cables(delta: float, player: CharacterBody3D) -> void:
 	# Der Spieler wird aktiv geschoben — dash_speed des Charakters ist hier
 	# bewusst NICHT die Referenz: das Kabel soll immer gleich weit tragen,
 	# unabhaengig davon, wer gerade gespielt wird.
-	player.velocity.x = forward.x * 30.0
-	player.velocity.z = forward.z * 30.0
+	player.velocity.x = forward.x * 42.0
+	player.velocity.z = forward.z * 42.0
 
 	for enemy: Node3D in _enemies_near(player.global_position, CABLES_HIT_RADIUS):
 		var id: int = enemy.get_instance_id()
@@ -42283,7 +42869,7 @@ func _use_megaphone(player: CharacterBody3D) -> void:
 		# Interrupt: laufende Telegraphs abbrechen.
 		if enemy.has_method("interrupt_attack"):
 			enemy.interrupt_attack()
-		StatusSilenced.apply(enemy, 0.8, player)
+		StatusSilenced.apply(enemy, 1.0, player)
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
 
 	_spawn_cone_flash(player, forward, MEGAPHONE_RANGE, MEGAPHONE_HALF_ANGLE_DEG, Color(1.0, 0.60, 0.15))
@@ -42632,7 +43218,7 @@ func _use_shock_bolt(player: CharacterBody3D) -> void:
 
 	var closest: Node3D = null
 	var closest_dist: float = SHOCK_BOLT_RANGE
-	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, SHOCK_BOLT_RANGE, 8.0):
+	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, SHOCK_BOLT_RANGE, 19.0):
 		var dist: float = player.global_position.distance_to(enemy.global_position)
 		if dist < closest_dist:
 			closest_dist = dist
@@ -42670,9 +43256,9 @@ func _use_fault_line(player: CharacterBody3D) -> void:
 	var forward: Vector3 = _player_forward(player)
 	var origin: Vector3 = player.global_position
 	var stats: PlayerStats = _stats()
-	var damage: float = 18.0 * (stats.get_damage_multiplier() if stats != null else 1.0)
+	var damage: float = 31.0 * (stats.get_damage_multiplier() if stats != null else 1.0)
 
-	for enemy: Node3D in _enemies_in_cone(origin, forward, FAULT_LINE_RANGE, 6.0):
+	for enemy: Node3D in _enemies_in_cone(origin, forward, FAULT_LINE_RANGE, 14.0):
 		var health: Health = _health_of(enemy)
 		if health != null:
 			health.take_damage(damage, player)
@@ -42680,7 +43266,7 @@ func _use_fault_line(player: CharacterBody3D) -> void:
 		StatusStun.apply(enemy, FAULT_LINE_STUN, player)
 		_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP * 0.2)
 
-	_spawn_cone_flash(player, forward, FAULT_LINE_RANGE, 6.0, Color(0.85, 0.55, 0.2))
+	_spawn_cone_flash(player, forward, FAULT_LINE_RANGE, 14.0, Color(0.85, 0.55, 0.2))
 	Juice.shake(0.8)
 
 
@@ -42695,9 +43281,9 @@ func _use_stim_beacon(player: CharacterBody3D) -> void:
 
 	var mesh_node := MeshInstance3D.new()
 	var cyl_mesh := CylinderMesh.new()
-	cyl_mesh.top_radius = 0.35
-	cyl_mesh.bottom_radius = 0.5
-	cyl_mesh.height = 1.4
+	cyl_mesh.top_radius = 0.7
+	cyl_mesh.bottom_radius = 1.0
+	cyl_mesh.height = 2.8
 	mesh_node.mesh = cyl_mesh
 	var mat: StandardMaterial3D = _make_glow_material(Color(1.0, 0.55, 0.15), 0.85)
 	mesh_node.material_override = mat
@@ -42744,7 +43330,7 @@ func _use_hunters_fury(player: CharacterBody3D) -> void:
 	for i: int in range(HUNTERS_FURY_BEAM_COUNT):
 		var offset_deg: float = (float(i) - half) * HUNTERS_FURY_BEAM_SPREAD_DEG
 		var beam_dir: Vector3 = forward.rotated(Vector3.UP, deg_to_rad(offset_deg))
-		for enemy: Node3D in _enemies_in_cone(player.global_position, beam_dir, HUNTERS_FURY_RANGE, 4.0):
+		for enemy: Node3D in _enemies_in_cone(player.global_position, beam_dir, HUNTERS_FURY_RANGE, 9.5):
 			var id: int = enemy.get_instance_id()
 			if hit_ids.has(id):
 				continue
@@ -42754,7 +43340,7 @@ func _use_hunters_fury(player: CharacterBody3D) -> void:
 				health.take_damage(damage, player)
 				_spawn_item_damage_number(enemy, damage)
 			_spawn_vfx(SPARK_YELLOW_SCENE, enemy.global_position + Vector3.UP)
-		_spawn_cone_flash(player, beam_dir, HUNTERS_FURY_RANGE, 4.0, Color(0.6, 0.85, 1.0))
+		_spawn_cone_flash(player, beam_dir, HUNTERS_FURY_RANGE, 9.5, Color(0.6, 0.85, 1.0))
 
 	Juice.shake(1.1)
 
@@ -42770,7 +43356,7 @@ func _use_turret_item(player: CharacterBody3D) -> void:
 
 	var body := StaticBody3D.new()
 	var box_mesh := BoxMesh.new()
-	box_mesh.size = Vector3(1.2, 1.6, 1.2)
+	box_mesh.size = Vector3(1.7, 2.2, 1.7)
 	var mesh_node := MeshInstance3D.new()
 	mesh_node.mesh = box_mesh
 	mesh_node.position = Vector3.UP * 0.8
@@ -42916,7 +43502,7 @@ func _use_blade_storm(player: CharacterBody3D) -> void:
 		var beam_dir: Vector3 = forward.rotated(Vector3.UP, deg_to_rad(offset_deg))
 		var closest: Node3D = null
 		var closest_dist: float = BLADE_STORM_RANGE
-		for enemy: Node3D in _enemies_in_cone(player.global_position, beam_dir, BLADE_STORM_RANGE, 10.0):
+		for enemy: Node3D in _enemies_in_cone(player.global_position, beam_dir, BLADE_STORM_RANGE, 24.0):
 			var dist: float = player.global_position.distance_to(enemy.global_position)
 			if dist < closest_dist:
 				closest_dist = dist
@@ -43072,8 +43658,8 @@ func _use_leer(player: CharacterBody3D) -> void:
 
 	var eye := MeshInstance3D.new()
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.4
-	sphere.height = 0.8
+	sphere.radius = 0.56
+	sphere.height = 1.1
 	eye.mesh = sphere
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.85, 0.2, 0.9), 1.0)
 	eye.material_override = mat
@@ -43108,8 +43694,8 @@ func _use_fakeout(player: CharacterBody3D) -> void:
 
 	var decoy := MeshInstance3D.new()
 	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.4
-	capsule.height = 1.6
+	capsule.radius = 0.56
+	capsule.height = 2.2
 	decoy.mesh = capsule
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.3, 0.9, 1.0), 0.9)
 	decoy.material_override = mat
@@ -43153,7 +43739,7 @@ func _use_aftershock(player: CharacterBody3D) -> void:
 	var damage: float = AFTERSHOCK_DAMAGE * (stats.get_damage_multiplier() if stats != null else 1.0)
 
 	var impact_pos: Vector3 = player.global_position + forward * AFTERSHOCK_RANGE
-	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, AFTERSHOCK_RANGE, 6.0):
+	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, AFTERSHOCK_RANGE, 14.0):
 		impact_pos = enemy.global_position
 		break
 
@@ -43168,7 +43754,7 @@ func _use_aftershock(player: CharacterBody3D) -> void:
 		_spawn_ring_wave(impact_pos, AFTERSHOCK_RADIUS, Color(0.8, 0.3, 1.0), 0.6)
 		Juice.shake(1.3)
 	)
-	_spawn_cone_flash(player, forward, AFTERSHOCK_RANGE, 6.0, Color(0.8, 0.3, 1.0))
+	_spawn_cone_flash(player, forward, AFTERSHOCK_RANGE, 14.0, Color(0.8, 0.3, 1.0))
 
 
 # --- Nr. 69. Schatten-Pirscher --------------------------------------------------
@@ -43227,8 +43813,8 @@ func _use_nanoswarm(player: CharacterBody3D) -> void:
 
 	var mesh_node := MeshInstance3D.new()
 	var cyl_mesh := CylinderMesh.new()
-	cyl_mesh.top_radius = 0.3
-	cyl_mesh.bottom_radius = 0.3
+	cyl_mesh.top_radius = 0.42
+	cyl_mesh.bottom_radius = 0.42
 	cyl_mesh.height = 0.08
 	mesh_node.mesh = cyl_mesh
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.5, 1.0, 0.4), 0.0)
@@ -45930,6 +46516,24 @@ func reset_run() -> void:
 	bombs_changed.emit(bombs)
 
 
+## Admin/Debug: entfernt ALLE Items aus dem Inventar (inkl. Stat-Boni und
+## aktiver Slots), OHNE Muenzen/Bomben anzufassen - anders als reset_run(),
+## das fuer einen kompletten Rundenneustart gedacht ist. Gedacht fuer die
+## Loesch-Plattform im Item-Testraum (siehe scripts/item_test_room.gd):
+## Items durchtesten, dann per Knopfdruck wieder bei null anfangen, ohne
+## gleich den ganzen Run neu zu starten.
+func clear_inventory() -> void:
+	inventory.clear()
+	active_items = [null, null]
+	_active_charges.clear()
+	_active_cooldowns.clear()
+	if stats:
+		stats.clear_all()
+		stats.apply()
+	inventory_changed.emit()
+	active_slots_changed.emit()
+
+
 # ============================================================================
 # Waehrungen
 # ============================================================================
@@ -46331,7 +46935,7 @@ func _build() -> void:
 	# TOP_LEFT: Position wird ueber .position gesetzt (siehe
 	# _position_detail_panel), nicht ueber Anker relativ zu einem Container.
 	_detail_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	# Die Breite setzt jetzt _apply_detail_width() pro Item. Hier nur die
+	# Groesse und Position setzt jetzt _apply_detail_size() pro Item. Hier nur die
 	# Untergrenze, damit ein einzeiliger Name nicht zu einem Streifen
 	# zusammenfaellt.
 	_detail_panel.custom_minimum_size = Vector2(detail_min_width, 0.0)
@@ -46497,8 +47101,13 @@ func _show_detail(item: ItemData, style: StyleBoxFlat, color: Color, row: Contro
 	if panel_style is StyleBoxFlat:
 		(panel_style as StyleBoxFlat).border_color = Color(color.r, color.g, color.b, 0.85)
 
-	_apply_detail_width(text, item.display_name)
-
+	# Breite UND Hoehe werden komplett selbst berechnet (siehe
+	# _apply_detail_size()) - beides steht damit VOR dem Sichtbarmachen
+	# bereits fest, in diesem einen synchronen Aufruf. Kein Warten auf
+	# Godots eigenen (deferred laufenden) Container-Layout-Durchgang mehr
+	# noetig, und damit auch kein Frame, in dem die alte/falsche Groesse
+	# sichtbar waere.
+	_apply_detail_size(text, item.display_name)
 	_detail_panel.visible = true
 	_position_detail_panel(row)
 
@@ -46543,9 +47152,32 @@ func _format_active_status(item: ItemData) -> String:
 ## aller Zeichen waere ein Vielfaches der tatsaechlich noetigen Breite.
 ##
 ## get_string_size() liefert das Ergebnis SOFORT, ohne auf einen
-## Layout-Durchlauf zu warten - genauso wie get_combined_minimum_size()
+## Layout-Durchlauf zu warten - genauso wie get_multiline_string_size()
 ## weiter unten.
-func _apply_detail_width(body: String, title: String) -> void:
+##
+## ##########################################################################
+## BUGFIX "kurz sichtbar riesige, unpassende Karte beim Hovern"
+## ##########################################################################
+## Vorher wurde nur die BREITE hier gemessen; die Hoehe kam ueber
+## _detail_panel.size = Vector2(width, 0.0), was Godot zwingt, sich auf seine
+## "combined minimum size" hochzuklemmen. Diese Groesse haengt am autowrap-
+## Label darunter - und DESSEN Umbruch kennt Godot erst NACH dem naechsten
+## Container-Layout-Durchgang, der deferred laeuft. Im selben Frame lieferte
+## die Messung also noch die Zeilenzahl bei der ALTEN Breite - bei einem
+## langen Text auf der vorher schmaleren Karte (oder umgekehrt) kam dabei
+## eine viel zu grosse oder zu kleine Hoehe heraus, sichtbar fuer den
+## Bruchteil einer Sekunde, bis sich die Karte auf die richtige Groesse
+## korrigierte. Ein call_deferred() um EINEN Frame zu verschieben hat das
+## NICHT zuverlaessig behoben: die eigene deferred-Aufrufkette lief teils vor,
+## teils nach dem internen Container-Sort - keine garantierte Reihenfolge.
+##
+## LOESUNG: Die Hoehe wird jetzt genauso wie die Breite direkt aus den
+## Font-Metriken berechnet (get_multiline_string_size() kennt den Umbruch bei
+## einer BELIEBIGEN, selbst gewaehlten Breite sofort, ganz ohne Node-Baum
+## oder Layout-Durchgang) - Breite und Hoehe stehen damit im selben
+## synchronen Aufruf fest, bevor die Karte ueberhaupt sichtbar wird. Kein
+## Frame Verzoegerung mehr noetig.
+func _apply_detail_size(body: String, title: String) -> void:
 	if _detail_panel == null or _detail_text == null:
 		return
 
@@ -46557,23 +47189,44 @@ func _apply_detail_width(body: String, title: String) -> void:
 		for line: String in body.split("\n"):
 			widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x)
 
-		var title_font: Font = _detail_name.get_theme_font("font")
-		var title_size: int = _detail_name.get_theme_font_size("font_size")
-		if title_font != null:
-			widest = maxf(widest, title_font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1.0, title_size).x)
+	var title_font: Font = _detail_name.get_theme_font("font")
+	var title_size: int = _detail_name.get_theme_font_size("font_size")
+	if title_font != null:
+		widest = maxf(widest, title_font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1.0, title_size).x)
 
 	# Innenraender der StyleBox draufrechnen - die Messung oben kennt nur
 	# den Text, nicht den Kasten drumherum.
-	var padding: float = 0.0
+	var h_padding: float = 0.0
+	var v_padding: float = 0.0
 	var panel_style: StyleBox = _detail_panel.get_theme_stylebox("panel")
 	if panel_style != null:
-		padding = panel_style.get_margin(SIDE_LEFT) + panel_style.get_margin(SIDE_RIGHT)
+		h_padding = panel_style.get_margin(SIDE_LEFT) + panel_style.get_margin(SIDE_RIGHT)
+		v_padding = panel_style.get_margin(SIDE_TOP) + panel_style.get_margin(SIDE_BOTTOM)
 
-	var width: float = clampf(widest + padding, detail_min_width, detail_max_width)
-	_detail_panel.custom_minimum_size = Vector2(width, 0.0)
-	# size zuruecksetzen: der PanelContainer behaelt sonst die Breite des
-	# zuletzt angezeigten, laengeren Items bei.
-	_detail_panel.size = Vector2(width, 0.0)
+	var width: float = clampf(widest + h_padding, detail_min_width, detail_max_width)
+
+	# Hoehe: Titelzeile (kein autowrap, siehe _build()) + Abstand der
+	# column-VBoxContainer (separation = 2, siehe _build()) + der beim
+	# TATSAECHLICH gewaehlten width umgebrochene Beschreibungstext.
+	var content_width: float = maxf(width - h_padding, 1.0)
+	var title_line_height: float = title_font.get_height(title_size) if title_font != null else 0.0
+	var body_height: float = 0.0
+	if font != null:
+		body_height = font.get_multiline_string_size(
+			body, HORIZONTAL_ALIGNMENT_LEFT, content_width, font_size,
+			-1, TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND
+		).y
+
+	const COLUMN_SEPARATION: float = 2.0
+	var height: float = title_line_height + COLUMN_SEPARATION + body_height + v_padding
+
+	_detail_panel.custom_minimum_size = Vector2(width, height)
+	# size explizit mitziehen: ein PanelContainer ohne Elternteil-Container
+	# passt seine EIGENE Groesse sonst nicht automatisch an eine neue
+	# custom_minimum_size an (das erledigt normalerweise der Elternteil) -
+	# und wuerde bis zum naechsten fremden Trigger die Groesse des zuletzt
+	# gezeigten (moeglicherweise laengeren) Items behalten.
+	_detail_panel.size = Vector2(width, height)
 
 
 ## Bereich, den das Popup NICHT ueberdecken darf.
@@ -46670,8 +47323,6 @@ static func create(p_title: String = "GESAMMELTE ITEMS", p_currencies: bool = tr
 	list.title_text = p_title
 	list.show_currencies = p_currencies
 	return list
-
-
 
 
 ===== FILE: scripts\leaderboard_manager.gd =====
@@ -47286,7 +47937,11 @@ class_name StageTheme
 @export var wall_color: Color = Color(0.48, 0.47, 0.44)
 ## Decke und Wandkappen (die Minimap-Deckel).
 @export var ceiling_color: Color = Color(0.035, 0.04, 0.035)
-## Tueren heben sich bewusst leicht ab, damit sie lesbar bleiben.
+## Tueren heben sich bewusst leicht ab, damit sie lesbar bleiben - ABER im
+## selben Hue wie die Wand (siehe _door_shade()), nur heller/dunkler. Vorher
+## stand hier pro Theme ein frei erfundener Farbton, der teils in eine ganz
+## andere Farbfamilie kippte (z.B. Neon-Theme: lila Wand, aber magenta Tuer)
+## und dadurch wie ein Stilbruch statt wie eine Lesbarkeits-Hilfe wirkte.
 @export var door_color: Color = Color(0.70, 0.62, 0.45)
 
 ## Nebelfarbe/Umgebungslicht der Etage. Wird von stage_manager.gd auf die
@@ -47325,6 +47980,15 @@ func tint_for_node_name(node_name: String) -> Color:
 	return wall_color
 
 
+## Leitet den Tuerton AUS dem Wandton ab: gleicher Hue/gleiche Saettigung,
+## nur heller — statt eines frei erfundenen Tons pro Theme (der frueher teils
+## in eine andere Farbfamilie kippte, siehe door_color-Kommentar). So bleibt
+## die Tuer immer erkennbar heller als die Wand, ohne wie ein Stilbruch zu
+## wirken.
+static func _door_shade(wall: Color) -> Color:
+	return Color.from_hsv(wall.h, wall.s * 0.85, clampf(wall.v * 1.4 + 0.12, 0.0, 1.0))
+
+
 ## Die eingebauten Themen. Bewusst im Code und nicht als .tres-Dateien —
 ## dieselbe Begruendung wie beim ItemCatalog: ein neues Theme ist ein
 ## Funktionsaufruf, und Balancing-Aenderungen bleiben im Git-Diff lesbar.
@@ -47339,7 +48003,7 @@ static func build_all() -> Array[StageTheme]:
 	dungeon.floor_color = Color(0.58, 0.55, 0.50)
 	dungeon.wall_color = Color(0.44, 0.43, 0.40)
 	dungeon.ceiling_color = Color(0.035, 0.040, 0.035)
-	dungeon.door_color = Color(0.70, 0.60, 0.42)
+	dungeon.door_color = _door_shade(dungeon.wall_color)
 	dungeon.fog_color = Color(0.05, 0.05, 0.06)
 	dungeon.fog_density = 0.012
 	dungeon.ambient_energy = 0.55
@@ -47351,7 +48015,7 @@ static func build_all() -> Array[StageTheme]:
 	ice.floor_color = Color(0.72, 0.84, 0.95)
 	ice.wall_color = Color(0.52, 0.68, 0.86)
 	ice.ceiling_color = Color(0.06, 0.09, 0.14)
-	ice.door_color = Color(0.85, 0.93, 1.0)
+	ice.door_color = _door_shade(ice.wall_color)
 	ice.fog_color = Color(0.10, 0.16, 0.24)
 	ice.fog_density = 0.020
 	ice.ambient_energy = 0.70
@@ -47363,7 +48027,7 @@ static func build_all() -> Array[StageTheme]:
 	desert.floor_color = Color(0.88, 0.76, 0.48)
 	desert.wall_color = Color(0.70, 0.56, 0.34)
 	desert.ceiling_color = Color(0.12, 0.09, 0.05)
-	desert.door_color = Color(0.55, 0.40, 0.24)
+	desert.door_color = _door_shade(desert.wall_color)
 	desert.fog_color = Color(0.26, 0.20, 0.12)
 	desert.fog_density = 0.008
 	desert.ambient_energy = 0.85
@@ -47375,7 +48039,7 @@ static func build_all() -> Array[StageTheme]:
 	flesh.floor_color = Color(0.62, 0.30, 0.30)
 	flesh.wall_color = Color(0.45, 0.20, 0.22)
 	flesh.ceiling_color = Color(0.10, 0.03, 0.04)
-	flesh.door_color = Color(0.80, 0.45, 0.40)
+	flesh.door_color = _door_shade(flesh.wall_color)
 	flesh.fog_color = Color(0.16, 0.05, 0.06)
 	flesh.fog_density = 0.018
 	flesh.ambient_energy = 0.60
@@ -47387,7 +48051,7 @@ static func build_all() -> Array[StageTheme]:
 	neon.floor_color = Color(0.30, 0.28, 0.45)
 	neon.wall_color = Color(0.22, 0.20, 0.38)
 	neon.ceiling_color = Color(0.04, 0.03, 0.09)
-	neon.door_color = Color(0.85, 0.35, 0.95)
+	neon.door_color = _door_shade(neon.wall_color)
 	neon.fog_color = Color(0.10, 0.04, 0.18)
 	neon.fog_density = 0.022
 	neon.ambient_energy = 0.65
@@ -47690,6 +48354,32 @@ class_name MainMenu
 # funktioniert deshalb ausschliesslich innerhalb DERSELBEN Laufzeit-Sitzung,
 # ueber den Pause-Overlay-Weg oben — dort wird nie irgendetwas abgebaut, es
 # muss also auch nichts wiederhergestellt werden. Siehe GameStats.has_live_run.
+#
+# ---------------------------------------------------------------------------
+# PHASE "MENU REWORK": asymmetrisches Layout + Game Juice
+# ---------------------------------------------------------------------------
+# Vorher: zentriertes Panel mit reinen Text-Buttons auf schwarzem Grund.
+# Jetzt:
+#   * Hintergrund ist ein SubViewport mit eigener 3D-Welt (own_world_3d) statt
+#     eines flachen ColorRects - background_scene (@export) kann spaeter eine
+#     der Dungeon-Szenen hineinladen, ohne dass dieses Script noch einmal
+#     angefasst werden muss. Ohne zugewiesene Szene faellt die Umgebung auf
+#     die reine Hintergrundfarbe zurueck - optisch identisch zum alten
+#     ColorRect, also kein Regressions-Risiko.
+#   * Das UI-Menue selbst haengt linksbuendig in der linken Bildschirmhaelfte
+#     (MarginContainer mit anchor_right = 0.46), damit die rechte Haelfte frei
+#     fuer die 3D-Szene bleibt.
+#   * Buttons sind in drei Gruppen unterteilt (Play/Continue - Character/Stats
+#     - Settings/Quit), getrennt durch Spacer-Controls fuer eine klare
+#     visuelle Hierarchie.
+#   * Hover/Fokus ruecken den Button-Text per Tween nach rechts ein und faerben
+#     ihn rot ein - siehe _wire_button_juice(). WICHTIG: es wird NICHT direkt
+#     button.position animiert, weil der Button in einer VBoxContainer haengt,
+#     die seine Position bei jedem Sort-Durchgang ueberschreiben wuerde (siehe
+#     denselben Fallstrick, den item_description_hud.gd im Kopfkommentar
+#     dokumentiert). Stattdessen wird der linke Rand eines umschliessenden
+#     MarginContainer per Theme-Override getweent - der VBoxContainer
+#     positioniert nur den WRAPPER, das Einruecken passiert INNERHALB davon.
 
 signal continue_requested()
 
@@ -47706,6 +48396,17 @@ const BG_COLOR: Color = Color(0.03, 0.03, 0.05, 1.0)
 const TITLE_COLOR: Color = Color(0.92, 0.92, 0.98)
 const ACCENT_COLOR: Color = Color(0.55, 0.75, 1.0)
 
+## Menue-Buttons: Ruhefarbe (heller Grauton) und Hover/Fokus-Farbe (kraeftiges
+## Rot, passend zum Dungeon-/Lava-Look des Spiels).
+const MENU_TEXT_COLOR: Color = Color(0.88, 0.88, 0.92, 0.95)
+const MENU_HOVER_COLOR: Color = Color(0.92, 0.20, 0.20, 1.0)
+## Wie weit ein gehoverter/fokussierter Button nach rechts einrueckt.
+const BUTTON_INDENT_PX: float = 18.0
+const BUTTON_TWEEN_DURATION: float = 0.22
+
+const LOGO_BOB_AMPLITUDE: float = 5.0
+const LOGO_BOB_LEG_DURATION: float = 1.8
+
 const CHARACTER_RESOURCE_PATHS: Array[String] = [
 	"res://resources/char_1.tres",
 	"res://resources/char_2.tres",
@@ -47713,19 +48414,59 @@ const CHARACTER_RESOURCE_PATHS: Array[String] = [
 	"res://resources/char_4.tres",
 ]
 
+## Optionale 3D-Szene fuer den Hintergrund-Viewport (siehe Kopfkommentar).
+## Leer lassen = reine Hintergrundfarbe, kein Fehler.
+@export var background_scene: PackedScene = null
+## Optionales Logo-Bild. Leer lassen = Fallback auf einen grossen Schriftzug
+## ("WHIPLASH"), damit das Menue auch ohne fertige Logo-Grafik funktioniert.
+@export var logo_texture: Texture2D = null
+
+## Wie schnell die Hintergrund-Kamera um die Szene kreist (Grad/Sekunde) -
+## bewusst sehr langsam: soll dynamisch wirken (siehe Minecraft-Titelbild-
+## Panorama als Vorbild), nicht ablenken oder Bewegungsunwohlsein ausloesen.
+@export var camera_orbit_speed_deg: float = 3.0
+
 var _roster: Array[CharacterData] = []
 var _character_index: int = 0
 
 var _screens: Dictionary = {}  # String -> Control
+## Welcher Screen gerade sichtbar ist - siehe _show_screen(). Fuer die
+## ESC-Navigation (_handle_escape): "sind wir gerade in einem Submenue?"
+var _current_screen_id: String = "root"
 var _continue_button: Button = null
 var _settings_instance: SettingsMenu = null
+## Button, der beim Anzeigen des Root-Screens den Eingabefokus bekommt -
+## noetig fuer Tastatur-/Gamepad-Navigation ohne Maus.
+var _root_first_button: Button = null
 
-var _character_portrait: TextureRect = null
+## Live-3D-Vorschau statt einer flachen Portrait-Textur (die bei keinem der
+## vier Charaktere gepflegt ist - ohne diesen Umbau war im Character-Screen
+## schlicht nichts zu sehen). Eigener, isolierter Viewport wie beim
+## Hintergrund, damit Kamera/Licht unabhaengig vom Rest des Menues bleiben.
+var _character_viewport: SubViewport = null
+## Aktuell gezeigtes Modell - wird bei jedem Charakterwechsel ersetzt (siehe
+## _refresh_character_preview_model()) und in _process() sanft gedreht.
+var _character_preview_model: Node3D = null
+
 var _character_name_label: Label = null
 var _character_desc_label: Label = null
 var _character_abilities_label: Label = null
 
 var _stats_label: Label = null
+
+var _background_viewport: SubViewport = null
+var _logo_node: Control = null
+## Traegt die Hintergrund-Kamera - wird in _process() kontinuierlich um Y
+## gedreht, siehe camera_orbit_speed_deg.
+var _camera_rig: Node3D = null
+
+## Button -> laufender Hover/Fokus-Tween. Noetig, damit ein zweiter Hover
+## kurz nach dem ersten (schnelle Mausbewegung) den alten Tween abbricht
+## statt gegen ihn anzulaufen.
+var _button_tweens: Dictionary = {}
+## Button -> das separate Text-Label daneben (siehe _make_button() fuer den
+## Grund der Trennung von Hitbox und sichtbarem Text).
+var _button_labels: Dictionary = {}
 
 
 func _ready() -> void:
@@ -47744,6 +48485,49 @@ func _ready() -> void:
 	_show_screen("root")
 
 
+## ESC schliesst IMMER genau EINE Ebene: zuerst Settings (falls offen), sonst
+## zurueck zum Root-Screen (falls gerade ein Submenue - Play/Character/Stats -
+## offen ist). Auf dem Root-Screen selbst tut ESC nichts, da ist bereits die
+## oberste Ebene.
+##
+## Raw KEY_ESCAPE statt der "ui_cancel"-Action, damit dasselbe Muster wie
+## pause_menu.gd/settings_menu.gd gilt (siehe dort) - dieses Projekt prueft
+## Escape durchgehend so, unabhaengig davon, ob "ui_cancel" im Input-Map
+## angepasst wurde.
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+		return
+	if _handle_escape():
+		get_viewport().set_input_as_handled()
+
+
+func _handle_escape() -> bool:
+	if _settings_instance != null and is_instance_valid(_settings_instance) and _settings_instance.visible:
+		_on_settings_back()
+		return true
+	if _current_screen_id != "root":
+		_show_screen("root")
+		return true
+	return false
+
+
+const CHARACTER_PREVIEW_SPIN_DEG: float = 14.0
+
+## Laesst die Hintergrund-Kamera langsam um die Szene kreisen (siehe
+## camera_orbit_speed_deg). Laeuft dank process_mode = PROCESS_MODE_ALWAYS
+## auch weiter, wenn dieses Menue als pausiertes Overlay ueber einem
+## laufenden Run haengt. Dreht ausserdem sanft das Charakter-Vorschaumodell,
+## solange der Character-Screen tatsaechlich sichtbar ist (kein Grund, ein
+## unsichtbares Modell weiterzudrehen).
+func _process(delta: float) -> void:
+	if _camera_rig != null and is_instance_valid(_camera_rig):
+		_camera_rig.rotation.y += deg_to_rad(camera_orbit_speed_deg) * delta
+
+	if _current_screen_id == "character" and _character_preview_model != null \
+			and is_instance_valid(_character_preview_model):
+		_character_preview_model.rotation.y += deg_to_rad(CHARACTER_PREVIEW_SPIN_DEG) * delta
+
+
 func _load_roster() -> void:
 	for path: String in CHARACTER_RESOURCE_PATHS:
 		if not ResourceLoader.exists(path):
@@ -47753,13 +48537,295 @@ func _load_roster() -> void:
 			_roster.append(data)
 
 
+# ============================================================================
+# Hintergrund — SubViewport mit eigener 3D-Welt statt flachem ColorRect.
+# ============================================================================
+## Baut den Hintergrund aus mehreren Ebenen unter dem UI:
+##   1. SubViewportContainer/SubViewport mit eigener 3D-Welt (own_world_3d) -
+##      isoliert von der ggf. weiterhin lebenden Spielwelt im Pause-Overlay-
+##      Fall. background_scene wird hier hineingeladen, falls gesetzt.
+##   2. MEHRERE MOEGLICHE "SZENEN" STATT EINER (wie beim Minecraft-Titelbild-
+##      Panorama): ohne eigene background_scene wird eines der eingebauten
+##      Etagen-Themen (stage_theme.gd - Kellergewoelbe/Tiefkuehlhaus/Sandgrube/
+##      Fleischfabrik/Neon-Keller) zufaellig gewaehlt und faerbt sowohl die
+##      Umgebung (Nebel/Ambient) als auch die Deko-Alkove ein - bei jedem
+##      Aufbau dieses Menues (Titelbildschirm-Start, Rueckkehr aus einem Run)
+##      kann so ein spuerbar anderes Bild herauskommen, ohne 5 komplett
+##      separate 3D-Layouts pflegen zu muessen.
+##   3. Eine langsam um die Szene kreisende Kamera (siehe _process()) fuer
+##      den dynamischen Panorama-Effekt.
+##   4. Ein paar stillgelegte Gegner-Instanzen als Deko (_build_backdrop_enemy)
+##      - stehen/lauern nur herum, komplett handlungsunfaehig (siehe dortiger
+##      Kommentar), machen die Szene aber weniger leer/eintoenig.
+##      HINWEIS: KEIN Charakter-Standbild mehr hier - das gehoert stattdessen
+##      in den Character-Screen (siehe _build_character_preview()), wo man
+##      tatsaechlich gezielt hinschaut.
+##   5/6. Abdunklungs-Ebenen: ein gleichmaessiges Overlay (macht Text auf
+##      JEDER Szene lesbar) plus ein Verlauf, der NUR die linke Seite (wo das
+##      Menue sitzt) staerker abdunkelt, damit die rechte Bildhaelfte die
+##      3D-Szene trotzdem sichtbar zeigt.
 func _build_background() -> void:
-	var bg := ColorRect.new()
-	bg.color = BG_COLOR
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
-	move_child(bg, 0)
+	var viewport_container := SubViewportContainer.new()
+	viewport_container.name = "BackgroundViewport"
+	viewport_container.stretch = true
+	viewport_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	viewport_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(viewport_container)
+
+	var viewport := SubViewport.new()
+	viewport.name = "Background3D"
+	# Eigene Welt: im Pause-Overlay-Kontext laeuft dieses Menue UEBER der
+	# weiterhin existierenden, nur pausierten Spielszene - ohne own_world_3d
+	# wuerde der Hintergrund-Viewport versehentlich dieselbe 3D-Welt (und
+	# damit dieselben Lichter/Nebel/Kamera-Konflikte) wie das Spiel teilen.
+	viewport.own_world_3d = true
+	viewport.handle_input_locally = false
+	viewport.transparent_bg = false
+	viewport_container.add_child(viewport)
+	_background_viewport = viewport
+
+	var theme: StageTheme = _pick_backdrop_theme()
+	_build_environment(viewport, theme)
+	_build_camera_rig(viewport)
+
+	if background_scene != null:
+		viewport.add_child(background_scene.instantiate())
+	else:
+		# Kein Hintergrund zugewiesen -> nicht einfach schwarz stehenlassen,
+		# aber auch KEINE echte Raum-Szene laden (siehe Kopfkommentar bei
+		# background_scene: die erwartet Level-Generator-Pipeline/Autoloads,
+		# die am Titelbildschirm gar nicht existieren). Stattdessen eine
+		# kleine, komplett ungefaehrliche Deko-Alkove aus denselben Bausteinen
+		# wie die echten Raeume (psx_material, Lava-Hazard-Szene, Fackel-
+		# Script) - rein optisch, ohne Gameplay-Abhaengigkeiten.
+		_build_default_backdrop(viewport, theme)
+
+	var overlay := ColorRect.new()
+	overlay.name = "BackgroundOverlay"
+	overlay.color = Color(0.02, 0.02, 0.03, 0.55)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(overlay)
+
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(0.01, 0.01, 0.02, 0.88))
+	gradient.set_color(1, Color(0.01, 0.01, 0.02, 0.0))
+	var gradient_texture := GradientTexture2D.new()
+	gradient_texture.gradient = gradient
+	gradient_texture.fill = GradientTexture2D.FILL_LINEAR
+	gradient_texture.fill_from = Vector2(0.0, 0.5)
+	gradient_texture.fill_to = Vector2(0.62, 0.5)
+	var side_shade := TextureRect.new()
+	side_shade.name = "SideShade"
+	side_shade.texture = gradient_texture
+	side_shade.stretch_mode = TextureRect.STRETCH_SCALE
+	side_shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	side_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(side_shade)
+
+
+## Zufaellige Wahl aus den eingebauten Etagen-Themen (stage_theme.gd) - siehe
+## Kopfkommentar bei _build_background() fuer die "mehrere Szenen"-Idee
+## dahinter. null nur, falls build_all() aus irgendeinem Grund leer waere.
+func _pick_backdrop_theme() -> StageTheme:
+	var themes: Array[StageTheme] = StageTheme.build_all()
+	if themes.is_empty():
+		return null
+	return themes[randi() % themes.size()]
+
+
+## WorldEnvironment mit Farbwerten aus dem gewaehlten Theme (Fallback auf die
+## alten festen Werte, falls kein Theme vorliegt).
+func _build_environment(viewport: SubViewport, theme: StageTheme) -> void:
+	var world_env := WorldEnvironment.new()
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = theme.fog_color if theme != null else BG_COLOR
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = theme.fog_color if theme != null else Color(0.10, 0.10, 0.14)
+	environment.ambient_light_energy = (theme.ambient_energy if theme != null else 0.5) * 0.6
+	environment.fog_enabled = true
+	environment.fog_light_color = theme.fog_color if theme != null else Color(0.04, 0.04, 0.06)
+	environment.fog_density = theme.fog_density if theme != null else 0.025
+	world_env.environment = environment
+	viewport.add_child(world_env)
+
+
+## CameraRig (Node3D) + Camera3D als dessen Kind. _process() dreht NUR den
+## Rig um Y - die Kamera behaelt ihre lokale Position/Neigung relativ dazu
+## bei und kreist dadurch gleichmaessig um den Szenenmittelpunkt, waehrend
+## sie ihn im Blick behaelt.
+func _build_camera_rig(viewport: SubViewport) -> void:
+	var rig := Node3D.new()
+	rig.name = "CameraRig"
+	viewport.add_child(rig)
+	_camera_rig = rig
+
+	var camera := Camera3D.new()
+	camera.name = "Camera3D"
+	camera.position = Vector3(0.0, 2.4, 6.5)
+	camera.rotation_degrees = Vector3(-7.0, -10.0, 0.0)
+	camera.current = true
+	rig.add_child(camera)
+
+
+## Kleine, symmetrische Alkove (Boden + Rueckwand + zwei Seitenwaende), damit
+## die Kamera aus _build_background() bei JEDER Blickrichtung auf feste
+## Geometrie statt auf Leere trifft. Verwendet dasselbe psx_material.tres wie
+## die echten Raeume (optische Konsistenz, im gewaehlten Theme eingefaerbt),
+## plus eine dekorative Lava-Lache (scenes/hazards/lemonade.tscn - komplett
+## selbststaendig, reagiert nur auf Koerper mit einer Health-Komponente, von
+## denen hier keine existieren) und zwei Fackeln (scripts/vfx/torch.gd -
+## reines Licht+Partikel-Script ohne Autoload-Abhaengigkeiten) fuer etwas
+## Lebendigkeit. Alles rein dekorativ, keine Collision fuer irgendwen
+## relevant, da dieser Viewport nie einen Spieler-Koerper enthaelt.
+func _build_default_backdrop(viewport: SubViewport, theme: StageTheme) -> void:
+	var floor_material: Material = _make_backdrop_material(theme, true)
+	var wall_material: Material = _make_backdrop_material(theme, false)
+
+	var floor_mesh := MeshInstance3D.new()
+	floor_mesh.name = "BackdropFloor"
+	var floor_box := BoxMesh.new()
+	floor_box.size = Vector3(26.0, 1.0, 26.0)
+	floor_mesh.mesh = floor_box
+	floor_mesh.position = Vector3(0.0, -0.5, 0.0)
+	if floor_material != null:
+		floor_mesh.material_override = floor_material
+	viewport.add_child(floor_mesh)
+
+	_add_backdrop_wall(viewport, Vector3(26.0, 9.0, 1.0), Vector3(0.0, 4.0, -11.0), wall_material)
+	_add_backdrop_wall(viewport, Vector3(1.0, 9.0, 22.0), Vector3(-12.5, 4.0, -2.0), wall_material)
+	_add_backdrop_wall(viewport, Vector3(1.0, 9.0, 22.0), Vector3(12.5, 4.0, -2.0), wall_material)
+
+	var lava_scene: PackedScene = load("res://scenes/hazards/lemonade.tscn")
+	if lava_scene != null:
+		var lava: LavaHazard = lava_scene.instantiate() as LavaHazard
+		if lava != null:
+			lava.position = Vector3(1.5, 0.02, -5.0)
+			lava.size = Vector3(5.0, 0.6, 5.0)
+			if theme != null:
+				lava.lava_color = theme.hazard_color
+			viewport.add_child(lava)
+
+	_add_backdrop_torch(viewport, Vector3(-11.9, 3.4, -4.0))
+	_add_backdrop_torch(viewport, Vector3(11.9, 3.4, -6.0))
+
+	# Zwei stillgelegte Gegner als Deko (siehe _build_backdrop_enemy()) -
+	# reine Atmosphaere, "etwas lauert im Dunkeln", statt einer leeren Alkove.
+	_build_backdrop_enemy(viewport, load("res://scenes/enemies/dummy.tscn"), Vector3(-7.5, 0.0, -6.5), 35.0)
+	_build_backdrop_enemy(viewport, load("res://scenes/scout_dummy.tscn"), Vector3(7.0, 0.0, -8.0), -50.0)
+
+
+## Eigene Kopie von psx_material.tres, eingefaerbt in floor_color/wall_color
+## des Themes.
+##
+## WARUM duplicate(): psx_material.tres ist eine gecachte, GETEILTE Resource
+## - dieselbe, mit der auch das eigentliche Spiel seine Waende/Boeden
+## einfaerbt. Ohne eigene Kopie wuerde das Einfaerben hier rueckwirkend JEDE
+## Wand im ganzen Spiel mitfaerben (derselbe Fallstrick, den
+## room_instance.gd._apply_theme_recursive() und vfx_manager.gd._apply_dual_tint()
+## aus genau diesem Grund ebenfalls per duplicate() umgehen).
+func _make_backdrop_material(theme: StageTheme, is_floor: bool) -> Material:
+	var base: Material = load("res://materials/psx_material.tres")
+	if base == null:
+		return null
+	var unique: Material = base.duplicate()
+	if theme != null and unique is ShaderMaterial:
+		var tint: Color = theme.floor_color if is_floor else theme.wall_color
+		(unique as ShaderMaterial).set_shader_parameter("albedo_color", tint)
+	return unique
+
+
+func _add_backdrop_wall(viewport: SubViewport, size: Vector3, pos: Vector3, material: Material) -> void:
+	var wall := MeshInstance3D.new()
+	wall.name = "BackdropWall"
+	var box := BoxMesh.new()
+	box.size = size
+	wall.mesh = box
+	wall.position = pos
+	if material != null:
+		wall.material_override = material
+	viewport.add_child(wall)
+
+
+func _add_backdrop_torch(viewport: SubViewport, pos: Vector3) -> void:
+	var torch := Node3D.new()
+	torch.name = "BackdropTorch"
+	torch.set_script(load("res://scripts/vfx/torch.gd"))
+	torch.position = pos
+	viewport.add_child(torch)
+
+
+## Platziert einen KOMPLETTEN Gegner (nicht nur sein Modell) als Deko-Figur
+## in die Szene, dann sofort - im selben Aufruf, kein Frame Verzoegerung -
+## neutralisiert: Zustandsautomat/Bewegung/Kollision/Angriff sind tot, NUR
+## die Lauf-Animation laeuft optisch weiter (siehe Kommentar bei
+## _neutralize_backdrop_enemy() dazu) - "steht auf der Stelle, animiert aber
+## weiter", nicht buchstaeblich eingefroren wie eine Statue.
+##
+## ##########################################################################
+## WARUM DIE GANZE GEGNER-SZENE UND NICHT NUR EIN HERAUSGELOESTES MODELL:
+## ##########################################################################
+## Anders als beim Spieler (ein Modell pro Charakter-Szene) liegt in der
+## Gegner-.glb (assets/characters/lowpoly_robots.glb) ALLE Robotertypen
+## nebeneinander in EINEM Koordinatensystem - enemy_ai.gd._setup_visuals()
+## waehlt beim Eintreten in den Baum das passende Armature aus, zentriert es
+## ueber der Bindepose und baut pro Surface das PSX-Shader-Material. Das
+## liesse sich nicht gefahrlos von Hand nachbauen, ohne genau diesen Code zu
+## duplizieren. Die Szene wird deshalb GANZ NORMAL instanziert (add_child()
+## loest _ready()/_setup_visuals() synchron aus und erledigt die Arbeit
+## korrekt) - aber noch WAEHREND desselben Funktionsaufrufs, ohne dass
+## zwischendurch je ein Physik-/Prozess-Frame lief, neutralisiert: Kollision/
+## Hitbox/Navigation entfernt, aus der Gruppe "enemies" ausgetragen (sonst
+## zaehlt eine Deko-Leiche anderswo im Spiel - z.B. bei einer Raum-
+## Gegneranzahl - faelschlich mit) und die PartyManager-Signalverbindung
+## geloest.
+func _build_backdrop_enemy(viewport: SubViewport, enemy_scene: PackedScene, pos: Vector3, yaw_deg: float) -> void:
+	if enemy_scene == null:
+		return
+	var enemy: EnemyAI = enemy_scene.instantiate() as EnemyAI
+	if enemy == null:
+		return
+
+	viewport.add_child(enemy)  # loest _ready()/_setup_visuals() synchron aus
+	_neutralize_backdrop_enemy(enemy)
+
+	enemy.position = pos
+	enemy.rotation.y = deg_to_rad(yaw_deg)
+
+
+## set_process(false)/set_physics_process(false) schalten NUR die skript-
+## seitigen _process()/_physics_process()-Callbacks ab - also die komplette
+## Zustandsautomat-/Bewegungs-/Angriffslogik in enemy_ai.gd. Ein AnimationPlayer
+## laeuft aber ueber Godots INTERNE Prozess-Benachrichtigung weiter (davon
+## unberuehrt) und spult die zuletzt gestartete Lauf-Animation einfach weiter
+## ab - der Gegner "geht" also optisch auf der Stelle, bewegt sich aber nie
+## vom Platz. Bewusst SO belassen (nicht zusaetzlich per .stop()/.pause() auf
+## dem AnimationPlayer eingefroren): wirkt lebendiger als eine reine Statue,
+## ohne dass er tatsaechlich herumlaeuft.
+func _neutralize_backdrop_enemy(enemy: EnemyAI) -> void:
+	enemy.set_process(false)
+	enemy.set_physics_process(false)
+	enemy.remove_from_group("enemies")
+
+	if PartyManager.active_player_changed.is_connected(enemy._on_active_player_changed):
+		PartyManager.active_player_changed.disconnect(enemy._on_active_player_changed)
+
+	for node: Node in _iterate_all_descendants(enemy):
+		if node is CollisionShape3D or node is Area3D or node is NavigationAgent3D \
+				or node is AudioStreamPlayer or node is AudioStreamPlayer3D:
+			node.queue_free()
+		else:
+			node.set_process(false)
+			node.set_physics_process(false)
+
+
+func _iterate_all_descendants(node: Node) -> Array[Node]:
+	var out: Array[Node] = []
+	for child: Node in node.get_children():
+		out.append(child)
+		out.append_array(_iterate_all_descendants(child))
+	return out
 
 
 # ============================================================================
@@ -47802,6 +48868,7 @@ func _create_screen(id: String) -> VBoxContainer:
 
 
 func _show_screen(id: String) -> void:
+	_current_screen_id = id
 	for key: String in _screens.keys():
 		(_screens[key] as Control).visible = (key == id)
 	if id == "stats":
@@ -47810,6 +48877,8 @@ func _show_screen(id: String) -> void:
 		_refresh_character_screen()
 	elif id == "root":
 		_refresh_continue_button()
+		if _root_first_button != null and is_instance_valid(_root_first_button):
+			_root_first_button.grab_focus()
 
 
 func _make_title(text: String, size: int = 28) -> Label:
@@ -47821,50 +48890,279 @@ func _make_title(text: String, size: int = 28) -> Label:
 	return label
 
 
-func _make_button(text: String) -> Button:
+func _make_spacer(height: float) -> Control:
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0.0, height)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return spacer
+
+
+## Baut eine STATISCHE Hitbox (Button, unsichtbar, ohne eigenen Text) plus
+## ein separates, frei darueber schwebendes Text-Label. Haengt beides direkt
+## an "parent" und gibt den BUTTON zum Verbinden von .pressed zurueck -
+## Aufrufer muessen ihn NICHT mehr selbst per add_child() einhaengen.
+##
+## ##########################################################################
+## BUGFIX "Hover-Effekt zuckt, weil die Hitbox mitwandert"
+## ##########################################################################
+## Die erste Version tweente die Position des BUTTONS selbst (bzw. eines ihn
+## umschliessenden Wrappers). Der Button IST aber gleichzeitig seine eigene
+## Maus-Hitbox: sobald er beim Hovern nach rechts einrueckt, steht die Maus
+## (die sich ja nicht mitbewegt) nicht mehr ueber ihm -> mouse_exited feuert
+## -> der Button faehrt zurueck -> die Maus steht wieder drueber ->
+## mouse_entered feuert -> er rueckt wieder ein -> Endlosschleife, sichtbar
+## als staendiges Zucken.
+##
+## LOESUNG: Hitbox und sichtbarer Text werden getrennt. "button" bleibt IMMER
+## an derselben Stelle (volle Flaeche von "row", per Anker - reagiert also
+## normal auf Fenstergroessen-Aenderungen, bewegt sich aber nie durch die
+## Animation). Er hat keinen eigenen Text (text = ""), sondern dient nur als
+## Hover-/Fokus-/Klick-Empfaenger. Das sichtbare "label" liegt daneben, hat
+## mouse_filter = IGNORE (bekommt also selbst nie Maus-Events) und ist NICHT
+## containerverwaltet (row ist ein einfaches Control, kein Container) - sein
+## .position darf deshalb frei getweent werden, ohne dass irgendetwas dagegen
+## ankaempft. Die Maus bleibt so waehrend der ganzen Animation ueber der
+## unbewegten Hitbox, das Zucken ist strukturell unmoeglich.
+func _make_button(
+	parent: Control, text: String, font_size: int = 20,
+	min_size: Vector2 = Vector2(0.0, 40.0), center: bool = false
+) -> Button:
+	var row := Control.new()
+	row.custom_minimum_size = min_size
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	parent.add_child(row)
+
 	var button := Button.new()
-	button.text = text
-	button.custom_minimum_size = Vector2(0, 44)
+	button.text = ""
 	button.focus_mode = Control.FOCUS_ALL
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_clear_button_chrome(button)
+	row.add_child(button)
+
+	var label := Label.new()
+	label.text = text
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", MENU_TEXT_COLOR)
+	label.position = Vector2.ZERO
+	if center:
+		# Kleine, fest dimensionierte Buttons (die "<"/">"-Pfeile): Label
+		# deckt exakt die Hitbox ab und zentriert den Text darin.
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.size = min_size
+	else:
+		# Menue-Zeilen: die Hitbox ("row") wird von ihrem Container auf die
+		# volle Spaltenbreite gestreckt, aber diese Breite kennen wir hier
+		# noch nicht (steht erst nach dem Layout fest). Grosszuegige feste
+		# Breite statt dessen - reicht fuer jeden kurzen Menuepunkt-Text
+		# dieses Spiels, ohne dass er abgeschnitten wird.
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		label.size = Vector2(420.0, min_size.y)
+	row.add_child(label)
+
+	_button_labels[button] = label
+	_wire_button_juice(button, label)
 	return button
 
 
+## Entfernt die Standard-Button-Kaestchen (normal/hover/pressed/focus) - der
+## Button ist jetzt reine Hitbox (kein eigener Text mehr, siehe _make_button),
+## sichtbares Feedback kommt ausschliesslich vom Label.
+func _clear_button_chrome(button: Button) -> void:
+	var empty := StyleBoxEmpty.new()
+	button.add_theme_stylebox_override("normal", empty)
+	button.add_theme_stylebox_override("hover", empty)
+	button.add_theme_stylebox_override("pressed", empty)
+	button.add_theme_stylebox_override("focus", empty)
+	button.add_theme_stylebox_override("disabled", empty)
+
+
+## Game-Juice: Hover ODER Fokus (Maus bzw. Tastatur/Gamepad) rueckt den
+## Button-Text nach rechts ein und faerbt ihn rot; beim Verlassen faehrt
+## beides sanft zurueck. Siehe _make_button()-Kopfkommentar dafuer, warum das
+## auf dem LABEL laeuft und nicht auf der Hitbox selbst.
+func _wire_button_juice(button: Button, label: Label) -> void:
+	var on_focus := func() -> void: _animate_button(button, label, true)
+	var on_unfocus := func() -> void: _animate_button(button, label, false)
+
+	button.mouse_entered.connect(on_focus)
+	button.focus_entered.connect(on_focus)
+	button.mouse_exited.connect(on_unfocus)
+	button.focus_exited.connect(on_unfocus)
+
+
+func _animate_button(button: Button, label: Label, active: bool) -> void:
+	if not is_instance_valid(button) or not is_instance_valid(label):
+		return
+	# Deaktivierte Buttons (z.B. "Continue" ohne laufenden Run) sollen nicht
+	# rot aufleuchten oder einruecken - siehe _set_button_disabled().
+	if button.disabled:
+		return
+
+	var old_tween: Tween = _button_tweens.get(button)
+	if old_tween != null and old_tween.is_valid():
+		old_tween.kill()
+
+	var start_color: Color = label.get_theme_color("font_color")
+	var target_color: Color = MENU_HOVER_COLOR if active else MENU_TEXT_COLOR
+	var target_x: float = BUTTON_INDENT_PX if active else 0.0
+
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:x", target_x, BUTTON_TWEEN_DURATION) \
+		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_method(
+		func(v: Color) -> void:
+			if is_instance_valid(label):
+				label.add_theme_color_override("font_color", v),
+		start_color, target_color, BUTTON_TWEEN_DURATION
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	_button_tweens[button] = tween
+
+
+## Einziger erlaubter Weg, um button.disabled zu setzen (statt es direkt von
+## aussen zuzuweisen): der Button traegt seit dem Hitbox/Label-Split (siehe
+## _make_button) keinen eigenen Text mehr, Godots eingebautes
+## font_disabled_color wirkt also ins Leere. Dimmt stattdessen das Label und
+## bricht einen evtl. laufenden Hover-Tween sauber ab, statt den Button
+## eingerueckt/rot "einzufrieren".
+func _set_button_disabled(button: Button, disabled: bool) -> void:
+	if not is_instance_valid(button):
+		return
+	button.disabled = disabled
+
+	var label: Label = _button_labels.get(button)
+	if label == null or not is_instance_valid(label):
+		return
+
+	if disabled:
+		var old_tween: Tween = _button_tweens.get(button)
+		if old_tween != null and old_tween.is_valid():
+			old_tween.kill()
+		label.position.x = 0.0
+
+	label.add_theme_color_override(
+		"font_color", Color(MENU_TEXT_COLOR, 0.35) if disabled else MENU_TEXT_COLOR
+	)
+
+
 # ============================================================================
-# Root-Screen
+# Logo — Bild (falls zugewiesen) oder Text-Fallback, mit Schwebe-Animation.
+# ============================================================================
+func _build_logo(parent: Control) -> void:
+	var holder := Control.new()
+	holder.custom_minimum_size = Vector2(0.0, 88.0)
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(holder)
+
+	if logo_texture != null:
+		var rect := TextureRect.new()
+		rect.texture = logo_texture
+		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		rect.custom_minimum_size = Vector2(0.0, 88.0)
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(rect)
+		_logo_node = rect
+	else:
+		var label := _make_title("WHIPLASH", 42)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(label)
+		_logo_node = label
+
+	_start_logo_bob()
+
+
+## Leichte, unendliche Auf-Ab-Bewegung. Laeuft auf _logo_node.position - das
+## ist sicher, weil "holder" ein einfaches Control (KEIN Container) ist und
+## seine Kinder deshalb nicht selbst positioniert; anders als bei den
+## Buttons oben besteht hier also kein Konflikt mit einem Layout-Durchgang.
+func _start_logo_bob() -> void:
+	if _logo_node == null:
+		return
+	var tween: Tween = create_tween()
+	tween.set_loops(0)
+	tween.tween_property(_logo_node, "position:y", -LOGO_BOB_AMPLITUDE, LOGO_BOB_LEG_DURATION) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(_logo_node, "position:y", LOGO_BOB_AMPLITUDE, LOGO_BOB_LEG_DURATION) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+# ============================================================================
+# Root-Screen — linksbuendig, drei Button-Gruppen.
 # ============================================================================
 func _build_root_screen() -> void:
-	var box: VBoxContainer = _create_screen("root")
-	box.add_child(_make_title("WHIPLASH"))
+	var root_layer := Control.new()
+	root_layer.name = "RootScreen"
+	root_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_layer.visible = false
+	add_child(root_layer)
+	_screens["root"] = root_layer
 
-	var play_button: Button = _make_button("Play")
+	# Linke Bildschirmhaelfte (etwas weniger als 50%, damit rechts sichtbar
+	# Platz fuer die 3D-Hintergrundszene bleibt).
+	var side := MarginContainer.new()
+	side.anchor_left = 0.0
+	side.anchor_top = 0.0
+	side.anchor_right = 0.46
+	side.anchor_bottom = 1.0
+	side.offset_left = 0.0
+	side.offset_top = 0.0
+	side.offset_right = 0.0
+	side.offset_bottom = 0.0
+	side.mouse_filter = Control.MOUSE_FILTER_PASS
+	side.add_theme_constant_override("margin_left", 80)
+	side.add_theme_constant_override("margin_top", 64)
+	side.add_theme_constant_override("margin_right", 40)
+	side.add_theme_constant_override("margin_bottom", 64)
+	root_layer.add_child(side)
+
+	# SHRINK_CENTER: der Inhalt haengt vertikal mittig in der linken Spalte,
+	# statt oben zu kleben oder ueber die volle Hoehe gestreckt zu werden.
+	var content := VBoxContainer.new()
+	content.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	content.add_theme_constant_override("separation", 4)
+	side.add_child(content)
+
+	_build_logo(content)
+	content.add_child(_make_spacer(40.0))
+
+	# --- Gruppe 1: Play/Continue -----------------------------------------
+	var play_button: Button = _make_button(content, "Play", 22)
 	play_button.pressed.connect(func() -> void: _show_screen("play"))
-	box.add_child(play_button)
 
-	_continue_button = _make_button("Continue")
+	_continue_button = _make_button(content, "Continue", 22)
 	_continue_button.pressed.connect(_on_continue_pressed)
-	box.add_child(_continue_button)
 
-	var character_button: Button = _make_button("Character")
+	content.add_child(_make_spacer(22.0))
+
+	# --- Gruppe 2: Character/Stats -----------------------------------------
+	var character_button: Button = _make_button(content, "Character", 22)
 	character_button.pressed.connect(func() -> void: _show_screen("character"))
-	box.add_child(character_button)
 
-	var stats_button: Button = _make_button("Stats")
+	var stats_button: Button = _make_button(content, "Stats", 22)
 	stats_button.pressed.connect(func() -> void: _show_screen("stats"))
-	box.add_child(stats_button)
 
-	var settings_button: Button = _make_button("Settings")
+	content.add_child(_make_spacer(22.0))
+
+	# --- Gruppe 3: Settings/Quit -----------------------------------------
+	var settings_button: Button = _make_button(content, "Settings", 22)
 	settings_button.pressed.connect(_on_settings_pressed)
-	box.add_child(settings_button)
 
-	var quit_button: Button = _make_button("Quit")
+	var quit_button: Button = _make_button(content, "Quit", 22)
 	quit_button.pressed.connect(func() -> void: get_tree().quit())
-	box.add_child(quit_button)
+
+	_root_first_button = play_button
 
 
 func _refresh_continue_button() -> void:
 	if _continue_button == null:
 		return
-	_continue_button.disabled = not GameStats.has_live_run
+	_set_button_disabled(_continue_button, not GameStats.has_live_run)
 
 
 func _on_continue_pressed() -> void:
@@ -47880,13 +49178,11 @@ func _build_play_screen() -> void:
 	var box: VBoxContainer = _create_screen("play")
 	box.add_child(_make_title("Play", 22))
 
-	var normal_button: Button = _make_button("Normal")
+	var normal_button: Button = _make_button(box, "Normal")
 	normal_button.pressed.connect(func() -> void: _start_run(false))
-	box.add_child(normal_button)
 
-	var speedrun_button: Button = _make_button("Speedrun")
+	var speedrun_button: Button = _make_button(box, "Speedrun")
 	speedrun_button.pressed.connect(func() -> void: _start_run(true))
-	box.add_child(speedrun_button)
 
 	var speedrun_hint := Label.new()
 	speedrun_hint.text = "Speedrun: eine Etage, Bestenliste nach Zeit."
@@ -47895,9 +49191,8 @@ func _build_play_screen() -> void:
 	speedrun_hint.add_theme_font_size_override("font_size", 13)
 	box.add_child(speedrun_hint)
 
-	var back_button: Button = _make_button("Back")
+	var back_button: Button = _make_button(box, "Back")
 	back_button.pressed.connect(func() -> void: _show_screen("root"))
-	box.add_child(back_button)
 
 
 ## Startet einen neuen Run. In der PAUSE-OVERLAY-Nutzung (GameStats.has_live_run
@@ -47923,35 +49218,135 @@ func _start_run(speedrun: bool) -> void:
 # ============================================================================
 # Character-Screen
 # ============================================================================
+## Eigener, kleiner 3D-Viewport fuer die Charakter-Vorschau - isoliert
+## (own_world_3d) wie der Hintergrund-Viewport, mit eigenem Licht/Kamera,
+## unabhaengig davon, was gerade im Hintergrund zu sehen ist. Der Rahmen
+## (PanelContainer) gibt ihm eine feste Flaeche innerhalb der zentrierten
+## Character-Karte.
+func _build_character_preview(parent: Control) -> void:
+	var frame := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.03, 0.03, 0.045, 0.9)
+	style.set_corner_radius_all(4)
+	style.set_border_width_all(1)
+	style.border_color = Color(1.0, 1.0, 1.0, 0.08)
+	frame.add_theme_stylebox_override("panel", style)
+	frame.custom_minimum_size = Vector2(0.0, 240.0)
+	parent.add_child(frame)
+
+	var viewport_container := SubViewportContainer.new()
+	viewport_container.stretch = true
+	viewport_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(viewport_container)
+
+	var viewport := SubViewport.new()
+	viewport.own_world_3d = true
+	viewport.handle_input_locally = false
+	viewport.transparent_bg = false
+	viewport_container.add_child(viewport)
+	_character_viewport = viewport
+
+	var world_env := WorldEnvironment.new()
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color(0.03, 0.03, 0.045, 1.0)
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.55, 0.55, 0.62)
+	environment.ambient_light_energy = 1.0
+	world_env.environment = environment
+	viewport.add_child(world_env)
+
+	var key_light := DirectionalLight3D.new()
+	key_light.rotation_degrees = Vector3(-35.0, -35.0, 0.0)
+	key_light.light_energy = 1.2
+	viewport.add_child(key_light)
+
+	var camera := Camera3D.new()
+	camera.position = Vector3(0.0, 1.1, 3.4)
+	camera.rotation_degrees = Vector3(-8.0, 0.0, 0.0)
+	camera.current = true
+	viewport.add_child(camera)
+
+
+## Ersetzt das gezeigte Modell durch das des uebergebenen Charakters.
+##
+## Instanziert bewusst NICHT die volle Spieler-Szene dauerhaft: die haengt
+## Kamera-/Input-/Combat-/Health-Logik dran, die hier weder gebraucht wird
+## noch sicher liefe (kein PartyManager-Setup fuer diesen Titelbildschirm-
+## Kontext). Stattdessen wird nur der CharacterModel-Teilbaum herausgeloest
+## und der Rest der temporaeren Instanz sofort wieder freigegeben.
+func _refresh_character_preview_model(data: CharacterData) -> void:
+	if _character_viewport == null:
+		return
+
+	if _character_preview_model != null and is_instance_valid(_character_preview_model):
+		_character_preview_model.queue_free()
+	_character_preview_model = null
+
+	if data == null or data.player_scene == null:
+		return
+
+	var instance: Node = data.player_scene.instantiate()
+	var model: Node3D = instance.get_node_or_null("CharacterModel") as Node3D
+	if model == null:
+		instance.queue_free()
+		return
+
+	instance.remove_child(model)
+	instance.queue_free()
+
+	_sanitize_character_model(model)
+	_character_viewport.add_child(model)
+	model.position += Vector3(0.0, -1.0, 0.0)
+	# KEINE zusaetzliche Y-Rotation: die Kamera hat selbst keinen Yaw (schaut
+	# von +Z geradeaus auf -Z), und CharacterModel traegt in den Charakter-
+	# Szenen bereits KEINE eigene Rotation (nur Skalierung/Boden-Ausgleich,
+	# siehe char_ningning.tscn etc.) - das Modell schaut im Rohzustand also
+	# schon zur Kamera. Ein vorheriger Versuch, hier zusaetzlich einzudrehen
+	# (+200 Grad), drehte es stattdessen VON der Kamera weg.
+	_character_preview_model = model
+
+
+## Entfernt alles am Vorschau-Modell, das unerwuenschte Nebenwirkungen haette:
+## Audio, aktive Skripte (IK-/Footstep-Logik) und Kollision - gleiche
+## Begruendung wie ghost_trail.gd._sanitize_ghost().
+func _sanitize_character_model(node: Node) -> void:
+	if node is AudioStreamPlayer or node is AudioStreamPlayer3D or node is AudioStreamPlayer2D:
+		node.queue_free()
+		return
+	if node is CollisionObject3D or node is CollisionShape3D or node is CollisionShape2D:
+		node.queue_free()
+		return
+
+	if node.get_script() != null and not (node is MeshInstance3D or node is Skeleton3D or node is BoneAttachment3D):
+		node.set_script(null)
+	node.set_process(false)
+	node.set_physics_process(false)
+
+	for child: Node in node.get_children():
+		_sanitize_character_model(child)
+
+
 func _build_character_screen() -> void:
 	var box: VBoxContainer = _create_screen("character")
 	box.add_child(_make_title("Character", 22))
 
-	_character_portrait = TextureRect.new()
-	_character_portrait.custom_minimum_size = Vector2(160, 160)
-	_character_portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	_character_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_character_portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	box.add_child(_character_portrait)
+	_build_character_preview(box)
 
 	var nav_row := HBoxContainer.new()
 	nav_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	nav_row.add_theme_constant_override("separation", 24)
 	box.add_child(nav_row)
 
-	var prev_button: Button = _make_button("<")
-	prev_button.custom_minimum_size = Vector2(44, 44)
+	var prev_button: Button = _make_button(nav_row, "<", 20, Vector2(44, 44), true)
 	prev_button.pressed.connect(func() -> void: _step_character(-1))
-	nav_row.add_child(prev_button)
 
 	_character_name_label = _make_title("", 20)
 	_character_name_label.custom_minimum_size = Vector2(200, 0)
 	nav_row.add_child(_character_name_label)
 
-	var next_button: Button = _make_button(">")
-	next_button.custom_minimum_size = Vector2(44, 44)
+	var next_button: Button = _make_button(nav_row, ">", 20, Vector2(44, 44), true)
 	next_button.pressed.connect(func() -> void: _step_character(1))
-	nav_row.add_child(next_button)
 
 	_character_desc_label = Label.new()
 	_character_desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -47966,9 +49361,8 @@ func _build_character_screen() -> void:
 	_character_abilities_label.add_theme_color_override("font_color", ACCENT_COLOR)
 	box.add_child(_character_abilities_label)
 
-	var back_button: Button = _make_button("Back")
+	var back_button: Button = _make_button(box, "Back")
 	back_button.pressed.connect(func() -> void: _show_screen("root"))
-	box.add_child(back_button)
 
 
 func _step_character(delta: int) -> void:
@@ -47985,7 +49379,7 @@ func _refresh_character_screen() -> void:
 		return
 
 	var data: CharacterData = _roster[_character_index]
-	_character_portrait.texture = data.portrait
+	_refresh_character_preview_model(data)
 	_character_name_label.text = data.character_name
 	_character_desc_label.text = data.description if data.description != "" else ""
 	_character_abilities_label.text = "%s | %s | %s | %s | %s" % [
@@ -48006,9 +49400,8 @@ func _build_stats_screen() -> void:
 	_stats_label.add_theme_constant_override("line_spacing", 6)
 	box.add_child(_stats_label)
 
-	var back_button: Button = _make_button("Back")
+	var back_button: Button = _make_button(box, "Back")
 	back_button.pressed.connect(func() -> void: _show_screen("root"))
-	box.add_child(back_button)
 
 
 func _refresh_stats_screen() -> void:
@@ -49675,6 +51068,18 @@ const SWITCH_COOLDOWN_DURATION: float = 10.0
 ## _on_player_health_died()) - nicht nur die des Nachrueckers.
 const LAST_STAND_HP_FRACTION: float = 0.20
 
+## Der Nachruecker bei einer Last-Stand-Uebernahme bekommt kurz Schonzeit:
+## ohne das kann derselbe Hitbox-Treffer, der gerade den vorigen Charakter
+## umgebracht hat, im selben Atemzug auch noch den frisch eingewechselten
+## erwischen - der Spieler haette keine Chance, zu reagieren.
+const SWITCH_INVULN_DURATION: float = 2.0
+## Dauer eines vollen Blink-Zyklus (hell -> dunkel). Kleiner = schnelleres
+## Flackern. Muss SWITCH_INVULN_DURATION nicht restlos teilen - der letzte
+## Zyklus wird beim Ablauf der Unverwundbarkeit einfach sauber beendet.
+const SWITCH_BLINK_INTERVAL: float = 0.12
+const SWITCH_BLINK_COLOR: Color = Color(1.0, 1.0, 1.0)
+const SWITCH_BLINK_STRENGTH: float = 0.85
+
 var party: Array[CharacterData] = []
 
 var _current_health: Array[float] = []
@@ -49946,6 +51351,11 @@ func _force_switch_to_survivor(index: int) -> void:
 		if new_spring_arm:
 			new_spring_arm.rotation.x = carried_camera_pitch
 
+	# Schonzeit fuer den Nachruecker - siehe SWITCH_INVULN_DURATION-Kommentar.
+	if _player_health != null and is_instance_valid(_player_health):
+		_player_health.set_invulnerable(SWITCH_INVULN_DURATION)
+	_play_switch_invuln_blink(SWITCH_INVULN_DURATION)
+
 	active_character_changed.emit(index)
 
 
@@ -50089,6 +51499,75 @@ func _unhandled_input(event: InputEvent) -> void:
 		if InputMap.has_action(action) and event.is_action_pressed(action):
 			switch_to(i)
 			return
+
+
+# ============================================================================
+# Weisses Blinken waehrend der Last-Stand-Schonzeit
+# ============================================================================
+## Faerbt das Modell des Nachrueckers im selben psx.gdshader-Kanal wie die
+## Item-Effekte (siehe item_behaviours.gd _flash_player) weiss ein und lässt
+## flash_strength ueber die komplette Schonzeit zwischen 0 und
+## SWITCH_BLINK_STRENGTH pulsieren, statt nur einmal aufzublitzen - das macht
+## "ich bin gerade unverwundbar" sichtbar, nicht nur "ich wurde getroffen".
+func _play_switch_invuln_blink(duration: float) -> void:
+	if not has_player() or duration <= 0.0:
+		return
+
+	var materials: Array[ShaderMaterial] = []
+	_collect_shader_materials(player, materials)
+	if materials.is_empty():
+		return
+
+	for material: ShaderMaterial in materials:
+		material.set_shader_parameter("flash_color", SWITCH_BLINK_COLOR)
+
+	var half_cycle: float = SWITCH_BLINK_INTERVAL * 0.5
+	var cycles: int = maxi(int(ceil(duration / SWITCH_BLINK_INTERVAL)), 1)
+
+	# Auf PartyManager (Autoload) statt auf "player" erzeugt: player wird bei
+	# einem weiteren schnellen Wechsel/Tod noch WAEHREND der Schonzeit
+	# queue_free()'t, und ein an ihn gebundener Tween stuerbe mit ihm ab,
+	# noch bevor flash_strength zurueckgesetzt ist.
+	var tween: Tween = create_tween()
+	tween.set_loops(cycles)
+	tween.tween_method(
+		func(value: float) -> void:
+			for material: ShaderMaterial in materials:
+				if is_instance_valid(material):
+					material.set_shader_parameter("flash_strength", value),
+		0.0, SWITCH_BLINK_STRENGTH, half_cycle
+	)
+	tween.tween_method(
+		func(value: float) -> void:
+			for material: ShaderMaterial in materials:
+				if is_instance_valid(material):
+					material.set_shader_parameter("flash_strength", value),
+		SWITCH_BLINK_STRENGTH, 0.0, half_cycle
+	)
+	tween.finished.connect(
+		func() -> void:
+			for material: ShaderMaterial in materials:
+				if is_instance_valid(material):
+					material.set_shader_parameter("flash_strength", 0.0)
+	)
+
+
+## Gleiche Logik wie item_behaviours.gd _collect_shader_materials() - bewusst
+## dupliziert statt geteilt, weil ItemBehaviours ein eigenstaendiges, an den
+## jeweiligen Charakter gebundenes Node ist und PartyManager (Autoload) keine
+## fixe Referenz darauf haelt.
+func _collect_shader_materials(node: Node, out: Array[ShaderMaterial]) -> void:
+	var mesh := node as MeshInstance3D
+	if mesh != null:
+		if mesh.material_override is ShaderMaterial:
+			out.append(mesh.material_override as ShaderMaterial)
+		else:
+			for i: int in range(mesh.get_surface_override_material_count()):
+				var surface: Material = mesh.get_surface_override_material(i)
+				if surface is ShaderMaterial:
+					out.append(surface as ShaderMaterial)
+	for child: Node in node.get_children():
+		_collect_shader_materials(child, out)
 
 
 ===== FILE: scripts\party_setup.gd =====
@@ -51873,6 +53352,15 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 @onready var combat: CombatBase = $Combat
 @onready var health: Health = $Health
 @onready var own_collision: CollisionShape3D = $CollisionShape3D
+## Optional - direktes Kind "GhostTrail" (siehe scripts/vfx/ghost_trail.gd).
+## get_node_or_null(): fehlt der Node in einer Charakter-Szene, bleibt die
+## normale Bewegung einfach ohne Trail, statt einen Fehler zu werfen.
+@onready var ghost_trail: GhostTrail = get_node_or_null("GhostTrail")
+
+## Ab welcher horizontalen Geschwindigkeit (Einheiten/Sekunde) der
+## Dauer-Lauf-Trail einsetzt - verhindert, dass er schon beim Anlaufen/
+## Abbremsen oder bei kleinem Knockback-Restschwung flackert.
+@export var ghost_trail_speed_threshold: float = 10.0
 
 @export var own_damage_shake_strength: float = 0.6
 var _last_known_health: float = -1.0
@@ -52513,6 +54001,17 @@ func _physics_process(delta: float) -> void:
 			velocity.z = 0.0
 			break
 
+	# --- Lauf-Trail (Ghost-Nachbilder) -------------------------------------
+	# NACH dem Heavy-Enemy-Wall-Reset ausgewertet, damit ein dort gerade auf 0
+	# gesetztes velocity.x/z den Trail sofort mit abschaltet. Waehrend des
+	# Dashs macht combat_base.gd bereits den kraeftigeren Burst - hier
+	# deshalb explizit ausgenommen, siehe ghost_trail.gd-Kopfkommentar dazu,
+	# warum der Burst ohnehin Vorrang haette.
+	if ghost_trail:
+		var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+		var fast_enough: bool = horizontal_speed >= ghost_trail_speed_threshold
+		ghost_trail.set_running(fast_enough and not combat.is_dashing() and not _is_dead)
+
 	# NACH move_and_slide(): is_on_floor() ist erst jetzt fuer diesen Frame
 	# aktuell.
 	if void_death_enabled:
@@ -52784,7 +54283,33 @@ func _on_hit_landed_vfx(target: Node) -> void:
 	var spawn_pos: Vector3 = global_position.lerp(target_3d.global_position, 0.5)
 	spawn_pos.y = target_3d.global_position.y + impact_height
 
-	VFX.spawn(impact_vfx, spawn_pos, dir.normalized())
+	var attacker_colors: Variant = _resolve_attacker_colors()
+	if attacker_colors is Array:
+		VFX.spawn_dual_tinted(impact_vfx, spawn_pos, attacker_colors[0], attacker_colors[1], dir.normalized())
+	else:
+		VFX.spawn(impact_vfx, spawn_pos, dir.normalized())
+
+
+## Liefert [attack_color, attack_color_secondary] des aktiven Charakters,
+## WENN diese Hitbox zu einem Spieler-Treffer gehoert - sonst null (dann
+## bleibt impact_vfx in seiner in der Szene konfigurierten Standardfarbe,
+## unveraendert fuer Gegner-Angriffe, die dieselbe Hitbox-Klasse verwenden,
+## siehe enemy_ai.gd).
+##
+## "owner" ist hier Godots eingebautes Node.owner, NICHTS, das dieses Skript
+## selbst setzt: fuer einen Hitbox-Node, der im Editor als Kind einer
+## Charakter-Szene liegt (z.B. char_ningning.tscn/CameraPivot/PrimaryHitbox),
+## traegt die Engine dort automatisch die WURZEL dieser Szene ein - also
+## exakt die CharacterBody3D-Instanz, die PartyManager als "player" haelt.
+func _resolve_attacker_colors() -> Variant:
+	if owner == null or not is_instance_valid(owner):
+		return null
+	if not PartyManager.has_player() or owner != PartyManager.player:
+		return null
+	var data: CharacterData = PartyManager.get_active_data()
+	if data == null:
+		return null
+	return [data.attack_color, data.attack_color_secondary]
 
 
 func _spawn_damage_number(body: Node3D) -> void:
@@ -59673,28 +61198,55 @@ class_name BloodDecal
 # ============================================================================
 # BloodDecal — Blutspuren beim Tod eines Gegners.
 # ============================================================================
-# Ein Fleck auf dem Boden, plus (falls der Gegner nah genug an einer Wand
-# stand) ein Spritzer dort. Prozedural gebaut, kein Textur-Asset noetig -
-# gleiches Prinzip wie der Brandfleck in bomb.gd (_spawn_scorch): ein
-# unshaded, ungefiltertes Mesh mit Alpha, das nach einer Weile ausblendet.
+# MEHRERE Flecken auf dem Boden (statt einem), bis zu zwei Wand-Spritzer
+# (statt hoechstens einem), plus ein kurzer Partikel-Schwall fliegender
+# Tropfen im Moment des Todes - "splasht" jetzt sichtbar statt nur einen
+# einzelnen Fleck zu hinterlassen. Alles prozedural gebaut, kein Textur-
+# Asset noetig - gleiches Prinzip wie der Brandfleck in bomb.gd
+# (_spawn_scorch): unshaded, ungefiltertes Mesh mit Alpha, das nach einer
+# Weile ausblendet.
 #
 # WARUM RAYCAST STATT EINFACH AN DER TODESPOSITION: ein Gegner stirbt oft in
 # der Luft (Knockback, Sprung) oder leicht ueber dem Boden. Ohne den
 # Boden-Raycast wuerde der Fleck freischwebend haengen statt auf dem Boden zu
 # liegen.
+#
+# PERFORMANCE: das hier laeuft NUR EINMAL pro Gegnertod (kein Dauer-Effekt
+# wie ein Trail) - selbst mehrere gleichzeitige Kills bleiben ein einmaliger,
+# kurzer Spawn-Schwung statt fortlaufender Kosten pro Frame.
 
 const FLOOR_COLOR: Color = Color(0.42, 0.03, 0.05, 0.85)
 const WALL_COLOR: Color = Color(0.38, 0.03, 0.05, 0.75)
-const FLOOR_RADIUS_MIN: float = 0.7
-const FLOOR_RADIUS_MAX: float = 1.4
-const WALL_SIZE_MIN: float = 0.6
-const WALL_SIZE_MAX: float = 1.1
+
+## Mehrere kleinere Flecken statt einem grossen - liest sich als Spritzmuster.
+const FLOOR_SPLAT_COUNT_MIN: int = 3
+const FLOOR_SPLAT_COUNT_MAX: int = 5
+const FLOOR_SPLAT_SCATTER_RADIUS: float = 1.5
+const FLOOR_RADIUS_MIN: float = 0.35
+const FLOOR_RADIUS_MAX: float = 0.9
+
+## Bis zu zwei Wandtreffer statt hoechstens einem.
+const WALL_SPLAT_MAX_COUNT: int = 2
+const WALL_SIZE_MIN: float = 0.5
+const WALL_SIZE_MAX: float = 1.0
 const WALL_CHECK_RADIUS: float = 2.5
+
 const FLOOR_PROBE_UP: float = 1.0
 const FLOOR_PROBE_DOWN: float = 4.0
 const LIFETIME: float = 45.0
 const FADE_TIME: float = 3.0
 const RAYCAST_MASK: int = 1
+
+## Fliegende Tropfen im Todesmoment - das eigentliche "Splashen", die Decals
+## darunter sind nur, was danach liegen bleibt.
+const DROPLET_COUNT: int = 20
+const DROPLET_LIFETIME: float = 0.7
+const DROPLET_SPREAD_DEG: float = 100.0
+const DROPLET_VELOCITY_MIN: float = 3.0
+const DROPLET_VELOCITY_MAX: float = 7.0
+const DROPLET_GRAVITY: float = 14.0
+const DROPLET_SIZE: float = 0.07
+const DROPLET_COLOR: Color = Color(0.55, 0.03, 0.05, 1.0)
 
 
 ## context liefert Zugriff auf Szenenbaum und World3D (gleiches Prinzip wie
@@ -59706,11 +61258,80 @@ static func spawn(context: Node3D, origin: Vector3) -> void:
 	if parent == null:
 		parent = context.get_tree().get_root()
 
-	_spawn_floor_splat(parent, origin, context)
-	_spawn_wall_splat(parent, origin, context)
+	_spawn_droplet_burst(parent, origin)
+	_spawn_floor_splats(parent, origin, context)
+	_spawn_wall_splats(parent, origin, context)
 
 
-static func _spawn_floor_splat(parent: Node, origin: Vector3, context: Node3D) -> void:
+## Kurzer, unbeleuchteter Partikel-Schwall - dieselbe Bauweise wie
+## hit_spark_primary.tscn (one_shot, hohe Explosiveness), aber mit Schwerkraft
+## und geringerer Geschwindigkeit, damit die Tropfen sichtbar einem Bogen
+## folgen und zu Boden fallen statt geradlinig wegzuschiessen.
+static func _spawn_droplet_burst(parent: Node, origin: Vector3) -> void:
+	var process_mat := ParticleProcessMaterial.new()
+	process_mat.direction = Vector3(0.0, 1.0, 0.0)
+	process_mat.spread = DROPLET_SPREAD_DEG
+	process_mat.initial_velocity_min = DROPLET_VELOCITY_MIN
+	process_mat.initial_velocity_max = DROPLET_VELOCITY_MAX
+	process_mat.gravity = Vector3(0.0, -DROPLET_GRAVITY, 0.0)
+	process_mat.scale_min = 0.7
+	process_mat.scale_max = 1.3
+	process_mat.color = DROPLET_COLOR
+
+	var quad_mat := StandardMaterial3D.new()
+	quad_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	quad_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	quad_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	quad_mat.albedo_color = DROPLET_COLOR
+	quad_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	var quad := QuadMesh.new()
+	quad.size = Vector2(DROPLET_SIZE, DROPLET_SIZE)
+	quad.material = quad_mat
+
+	var particles := GPUParticles3D.new()
+	particles.name = "BloodDroplets"
+	particles.emitting = false
+	particles.amount = DROPLET_COUNT
+	particles.lifetime = DROPLET_LIFETIME
+	particles.one_shot = true
+	particles.explosiveness = 1.0
+	particles.randomness = 0.4
+	particles.fixed_fps = 30
+	particles.process_material = process_mat
+	particles.draw_pass_1 = quad
+
+	parent.add_child(particles)
+	particles.global_position = origin
+	particles.restart()
+	particles.emitting = true
+
+	# Selbstaendige Aufraeum-Zeit statt eines Dauer-Nodes - dieselbe
+	# Begruendung wie vfx_manager.gd._schedule_cleanup().
+	var cleanup: SceneTreeTimer = particles.get_tree().create_timer(DROPLET_LIFETIME + 0.5)
+	cleanup.timeout.connect(func() -> void:
+		if is_instance_valid(particles):
+			particles.queue_free()
+	)
+
+
+## Mehrere kleinere Flecken statt einem grossen, verstreut um origin herum -
+## jeder mit eigenem Boden-Raycast, damit auf unebenem/gestuftem Untergrund
+## keiner freischwebt.
+static func _spawn_floor_splats(parent: Node, origin: Vector3, context: Node3D) -> void:
+	var count: int = randi_range(FLOOR_SPLAT_COUNT_MIN, FLOOR_SPLAT_COUNT_MAX)
+	for i: int in range(count):
+		var offset: Vector3 = Vector3.ZERO
+		if i > 0:
+			# Erster Fleck bleibt genau am Todesort - die uebrigen streuen
+			# darum herum, wie echte Spritzer.
+			var angle: float = randf() * TAU
+			var dist: float = randf() * FLOOR_SPLAT_SCATTER_RADIUS
+			offset = Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+		_spawn_one_floor_splat(parent, origin + offset, context)
+
+
+static func _spawn_one_floor_splat(parent: Node, origin: Vector3, context: Node3D) -> void:
 	var space_state := context.get_world_3d().direct_space_state
 	var query := PhysicsRayQueryParameters3D.create(
 		origin + Vector3.UP * FLOOR_PROBE_UP, origin - Vector3.UP * FLOOR_PROBE_DOWN
@@ -59742,12 +61363,18 @@ static func _spawn_floor_splat(parent: Node, origin: Vector3, context: Node3D) -
 	_fade_and_free(mesh, mat)
 
 
-static func _spawn_wall_splat(parent: Node, origin: Vector3, context: Node3D) -> void:
+## Prueft ALLE vier Himmelsrichtungen (statt nur bis zum ersten Treffer) und
+## setzt an bis zu WALL_SPLAT_MAX_COUNT Stellen einen Spritzer.
+static func _spawn_wall_splats(parent: Node, origin: Vector3, context: Node3D) -> void:
 	var space_state := context.get_world_3d().direct_space_state
 	var directions: Array = [Vector3.FORWARD, Vector3.BACK, Vector3.LEFT, Vector3.RIGHT]
 	directions.shuffle()
 
+	var placed: int = 0
 	for dir: Vector3 in directions:
+		if placed >= WALL_SPLAT_MAX_COUNT:
+			break
+
 		var from: Vector3 = origin + Vector3.UP * 1.0
 		var query := PhysicsRayQueryParameters3D.create(from, from + dir * WALL_CHECK_RADIUS)
 		query.collision_mask = RAYCAST_MASK
@@ -59775,7 +61402,7 @@ static func _spawn_wall_splat(parent: Node, origin: Vector3, context: Node3D) ->
 		mesh.look_at(mesh.global_position + result.normal, Vector3.UP)
 
 		_fade_and_free(mesh, mat)
-		return  # nur EIN Wandspritzer pro Tod.
+		placed += 1
 
 
 static func _make_material(color: Color) -> StandardMaterial3D:
@@ -59797,6 +61424,291 @@ static func _fade_and_free(mesh: MeshInstance3D, mat: StandardMaterial3D) -> voi
 		if is_instance_valid(mesh):
 			mesh.queue_free()
 	)
+
+
+===== FILE: scripts\vfx\ghost_trail.gd =====
+
+extends Node
+class_name GhostTrail
+
+# ============================================================================
+# GhostTrail — "Fake" Per-Object Motion Blur ueber ausblendende Mesh-Kopien.
+# ============================================================================
+# WARUM NICHT ECHTER SCREEN-SPACE MOTION BLUR:
+# Forward Mobile hat keinen Velocity-Buffer und damit keinen performanten
+# Screen-Space-Motion-Blur-Pfad. Ein Per-Object-"Ghost Trail" (mehrere
+# durchsichtige Nachbilder des Meshes, die sich ausblenden) verkauft dieselbe
+# "das bewegt sich verdammt schnell"-Lesbarkeit rein per Geometrie/Material -
+# funktioniert auf Mobile/Compatibility genauso wie auf Forward+.
+#
+# VERWENDUNG:
+# Als Kind-Node an den Charakter-Root haengen (Sibling von CharacterModel,
+# gleiches Prinzip wie "DashTrail" in combat_base.gd) ODER zur Laufzeit per
+# set_mesh() an ein bereits aufgeloestes Modell binden (siehe enemy_ai.gd,
+# das GhostTrail-Nodes prozedural erzeugt statt sie in jede einzelne
+# Gegner-.tscn einzubauen).
+#
+# ZWEI UNABHAENGIGE MODI:
+#   * start_trail(duration)  - BURST, fuer einmalige schnelle Bewegungen
+#     (Dash, Gegner-Ansturm). Krasser (weiter sichtbare, langsamer
+#     ausblendende Nachbilder), laeuft genau "duration" Sekunden und stoppt
+#     dann von selbst.
+#   * set_running(active)    - DAUERSCHALTER, fuer normale Fortbewegung
+#     (siehe player_base.gd/enemy_ai.gd _physics_process, JEDEN Frame anhand
+#     der aktuellen Geschwindigkeit gesetzt). Enger getaktet UND kuerzer
+#     sichtbar als der Burst - soll wie ein knappes Nachziehen wirken, nicht
+#     wie klassisches Kamera-Motion-Blur mit langem Schweif. Eigene,
+#     dezentere Farb-/Energie-Werte, damit ein Dauereinsatz waehrend des
+#     gesamten normalen Laufens nicht erschlaegt.
+#
+# Ist BEIDES gleichzeitig aktiv (ein Dash schiebt z.B. auch die
+# Lauf-Geschwindigkeit ueber die Schwelle des Aufrufers), gewinnt IMMER der
+# Burst - siehe _process(). Der Dash soll sich weiterhin absetzen, nicht mit
+# dem subtileren Dauer-Trail verschmelzen.
+
+## Pfad zum Mesh-Root, relativ zu DIESEM Node. Default passt zum ueblichen
+## Aufbau "CharacterBody3D { CharacterModel, Combat, Health, GhostTrail, ... }".
+## Wird ignoriert, sobald set_mesh() von aussen aufgerufen wurde.
+@export var mesh_node_path: NodePath = NodePath("../CharacterModel")
+
+@export_group("Farben (siehe set_colors())")
+## Zwei Trail-Farben, GEWICHTET auf aufeinanderfolgende Nachbilder verteilt
+## (siehe _spawn_ghost() / color_a_weight) - ergibt ein sichtbar ZWEIFARBIGES
+## Muster statt einer gemittelten Mischfarbe. Default ist neutral Grau fuer
+## Gegner ohne eigene Zuordnung; combat_base.gd ueberschreibt sie beim
+## Charakter-Setup mit CharacterData.attack_color/attack_color_secondary.
+@export var color_a: Color = Color(0.62, 0.64, 0.68)
+@export var color_b: Color = Color(0.78, 0.80, 0.84)
+## Anteil der Nachbilder, die color_a statt color_b bekommen. Hoeher als 0.5,
+## weil color_b bei mehreren Charakteren Weiss ist (siehe character_data.gd
+## attack_color_secondary) - ein reiner 50/50-Wechsel liess den Trail dadurch
+## zu hell/weiss wirken. 0.7 haelt die charaktereigene Farbe dominant und
+## laesst Weiss nur als seltenen Akzent aufblitzen.
+@export_range(0.0, 1.0) var color_a_weight: float = 0.7
+
+@export_group("Dash-Burst (start_trail)")
+## Wie oft waehrend eines laufenden Burst-Trails ein neues Nachbild entsteht.
+@export var spawn_interval: float = 0.05
+## Wie lange EIN Burst-Nachbild braucht, um komplett zu verschwinden.
+@export_range(0.1, 1.0) var fade_duration: float = 0.25
+## Alpha am Start des Ausblendens - bewusst NIEDRIG ("wenig Deckkraft"),
+## sonst liest sich der Trail wie klassisches Kamera-Motion-Blur statt wie
+## ein dezentes Nachbild.
+@export_range(0.0, 1.0) var burst_alpha: float = 0.20
+## Zusaetzliches Selbstleuchten, damit die Nachbilder auch vor dunklem
+## Dungeon-Hintergrund gut lesbar bleiben statt nur wie ein Schatten zu wirken.
+@export var emission_energy: float = 0.6
+
+@export_group("Lauf-Trail (set_running)")
+## Deutlich enger getaktet als der Burst - mehr, aber jeweils kuerzer
+## sichtbare Nachbilder, damit es beim normalen Laufen nicht wie ein langer
+## Kamera-Motion-Blur-Schweif wirkt, sondern wie ein knappes Nachziehen.
+@export var running_spawn_interval: float = 0.025
+## Deutlich kuerzer als fade_duration - ein Lauf-Nachbild ist schon fast weg,
+## bevor das naechste entsteht.
+@export_range(0.05, 0.5) var running_fade_duration: float = 0.10
+## Noch dezenter als burst_alpha - laeuft potenziell dauerhaft waehrend des
+## gesamten Sprintens, darf also nicht so kraeftig wirken wie der seltene
+## Dash-Burst. Bewusst SEHR niedrig - beim normalen Laufen soll es nur ein
+## kaum wahrnehmbarer Hauch sein, nicht ablenken.
+@export_range(0.0, 1.0) var running_alpha: float = 0.015
+@export var running_emission_energy: float = 0.12
+
+var _mesh: Node3D = null
+var _spawn_timer: float = 0.0
+
+var _burst_remaining: float = 0.0
+var _running: bool = false
+
+
+func _ready() -> void:
+	if _mesh == null:
+		_mesh = get_node_or_null(mesh_node_path)
+	if _mesh == null:
+		push_warning("GhostTrail (%s): Mesh-Node '%s' nicht gefunden - Trail bleibt wirkungslos." % [get_path(), mesh_node_path])
+	set_process(false)
+
+
+## Bindet den Trail zur Laufzeit an ein bereits aufgeloestes Mesh - fuer
+## Faelle, in denen der Aufrufer den Modell-Node selbst schon kennt (siehe
+## enemy_ai.gd: dort steht der tatsaechliche Modell-Root erst nach
+## _setup_visuals() fest, ein statischer mesh_node_path waere dort fragil).
+## Ueberschreibt mesh_node_path fuer den Rest der Lebenszeit dieses Nodes.
+func set_mesh(node: Node3D) -> void:
+	_mesh = node
+
+
+## Setzt die beiden Trail-Farben - von combat_base.gd beim Charakter-Setup
+## mit CharacterData.attack_color/attack_color_secondary aufgerufen (siehe
+## dort). Wirkt auf BEIDE Modi (Burst und Lauf-Trail), da beide denselben
+## Node/Zustand teilen.
+func set_colors(a: Color, b: Color) -> void:
+	color_a = a
+	color_b = b
+
+
+## Startet den Burst-Trail fuer "duration" Sekunden. Ein Aufruf WAEHREND ein
+## Burst schon laeuft VERLAENGERT ihn nur, statt ihn neu zu starten (max
+## statt addiert) - gleiches Muster wie Health.set_invulnerable() im
+## Projekt, damit sich zwei kurz aufeinanderfolgende Trigger nicht
+## gegenseitig verkuerzen.
+func start_trail(duration: float) -> void:
+	if _mesh == null or duration <= 0.0:
+		return
+
+	_burst_remaining = maxf(_burst_remaining, duration)
+	_ensure_processing()
+
+
+## Dauerschalter fuer den Lauf-Trail - vom Aufrufer JEDEN Frame passend zur
+## aktuellen Bewegung gesetzt (siehe player_base.gd/enemy_ai.gd
+## _physics_process), NICHT zeitbasiert wie start_trail(). Solange ein
+## Burst laeuft, bleibt diese Einstellung wirkungslos (siehe Kopfkommentar).
+func set_running(active: bool) -> void:
+	if _mesh == null or _running == active:
+		return
+	_running = active
+	if active:
+		_ensure_processing()
+
+
+func _ensure_processing() -> void:
+	if is_processing():
+		return
+	_spawn_timer = 0.0
+	set_process(true)
+	# Sofort ein erstes Nachbild, nicht erst nach dem ersten Intervall.
+	_spawn_ghost(_burst_remaining > 0.0)
+
+
+func _process(delta: float) -> void:
+	if _mesh == null or not is_instance_valid(_mesh):
+		_burst_remaining = 0.0
+		_running = false
+		set_process(false)
+		return
+
+	if _burst_remaining > 0.0:
+		_burst_remaining -= delta
+
+	if _burst_remaining <= 0.0 and not _running:
+		set_process(false)
+		return
+
+	_spawn_timer -= delta
+	if _spawn_timer <= 0.0:
+		var use_burst: bool = _burst_remaining > 0.0
+		_spawn_timer = spawn_interval if use_burst else running_spawn_interval
+		_spawn_ghost(use_burst)
+
+
+## Dupliziert das aktuelle Mesh an Ort und Stelle (Position/Rotation/Skalierung
+## UND - bei geskinnten Modellen - der aktuellen Skeleton3D-Pose, da
+## Bone-Transforms als Node-Zustand mitkopiert werden), faerbt die Kopie
+## transparent ein und laesst sie ausblenden.
+##
+## use_burst entscheidet, welcher der beiden Parameter-Saetze (siehe
+## Kopfkommentar) fuer DIESES eine Nachbild gilt. Bewusst PFLICHT-Argument
+## statt Default-Wert: ein Default haette hier auf _burst_remaining zugreifen
+## muessen, und GDScript laesst Default-Werte nur als konstante Ausdruecke
+## zu, keine Instanz-Zugriffe.
+func _spawn_ghost(use_burst: bool) -> void:
+	if _mesh == null or not is_instance_valid(_mesh):
+		return
+
+	# DUPLICATE_USE_INSTANTIATION: bei einem Mesh, das selbst aus einer
+	# importierten Szene (.glb) instanziert wurde, werden dessen innere
+	# Instanzen dabei korrekt erneut instanziert statt flachgeklopft -
+	# wichtig fuer Skeleton3D/Sub-Szenen im Charaktermodell.
+	var ghost: Node3D = _mesh.duplicate(DUPLICATE_USE_INSTANTIATION) as Node3D
+	if ghost == null:
+		return
+
+	# In die aktuelle Szene haengen, NICHT unter den Charakter selbst - der
+	# bewegt sich ja weiter, das Nachbild soll an dieser Stelle stehenbleiben.
+	get_tree().current_scene.add_child(ghost)
+	ghost.global_transform = _mesh.global_transform
+
+	_sanitize_ghost(ghost)
+
+	# GEWICHTET statt strikt abwechselnd - siehe color_a_weight-Kommentar
+	# oben: verhindert, dass ein reiner 50/50-Wechsel den (oft weissen)
+	# color_b genauso oft zeigt wie die eigentliche Charakterfarbe.
+	var base_color: Color = color_a if randf() < color_a_weight else color_b
+
+	var alpha: float = burst_alpha if use_burst else running_alpha
+	var energy: float = emission_energy if use_burst else running_emission_energy
+	var fade: float = fade_duration if use_burst else running_fade_duration
+	var color: Color = Color(base_color.r, base_color.g, base_color.b, alpha)
+
+	var material: StandardMaterial3D = _apply_ghost_material(ghost, color, energy)
+	_fade_and_free(ghost, material, fade)
+
+
+## Entfernt alles an der Kopie, das unerwuenschte Nebenwirkungen haette:
+## Audio (doppelte Schritt-/Trefferklaenge), aktive Skripte (die sonst z.B.
+## eine IK- oder Footstep-Logik eigenstaendig weiterlaufen liessen) und
+## Kollision (das Nachbild ist reine Optik, kein zweiter Koerper).
+func _sanitize_ghost(node: Node) -> void:
+	if node is AudioStreamPlayer or node is AudioStreamPlayer3D or node is AudioStreamPlayer2D:
+		node.queue_free()
+		return
+	if node is CollisionObject3D or node is CollisionShape3D or node is CollisionShape2D:
+		node.queue_free()
+		return
+
+	if node.get_script() != null and not (node is MeshInstance3D or node is Skeleton3D or node is BoneAttachment3D):
+		node.set_script(null)
+	node.set_process(false)
+	node.set_physics_process(false)
+
+	for child: Node in node.get_children():
+		_sanitize_ghost(child)
+
+
+## Setzt EIN gemeinsames, transparentes Unlit-Material auf alle Mesh-
+## Oberflaechen der Kopie (unabhaengig vom PSX-Original-Shader/-Textur - die
+## waeren als Nachbild unlesbar/zu dominant) und gibt es zurueck, damit
+## _fade_and_free() nur DIESES eine Material (statt jeder einzelnen Surface)
+## ausblenden muss.
+func _apply_ghost_material(ghost: Node3D, color: Color, energy: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = color
+	material.emission_enabled = true
+	material.emission = Color(color.r, color.g, color.b)
+	material.emission_energy_multiplier = energy
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	var meshes: Array[MeshInstance3D] = []
+	_collect_mesh_instances(ghost, meshes)
+	for mesh_instance: MeshInstance3D in meshes:
+		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var surface_count: int = mesh_instance.mesh.get_surface_count() if mesh_instance.mesh else 0
+		if surface_count == 0:
+			mesh_instance.material_override = material
+			continue
+		for i in range(surface_count):
+			mesh_instance.set_surface_override_material(i, material)
+
+	return material
+
+
+func _collect_mesh_instances(node: Node, out: Array[MeshInstance3D]) -> void:
+	if node is MeshInstance3D:
+		out.append(node as MeshInstance3D)
+	for child: Node in node.get_children():
+		_collect_mesh_instances(child, out)
+
+
+## Blendet die Kopie per Tween aus (Alpha auf 0 ueber "fade") und entfernt
+## sie danach.
+func _fade_and_free(ghost: Node3D, material: StandardMaterial3D, fade: float) -> void:
+	var tween: Tween = ghost.create_tween()
+	tween.tween_property(material, "albedo_color:a", 0.0, fade) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_callback(ghost.queue_free)
 
 
 ===== FILE: scripts\vfx\homing_bolt.gd =====
@@ -60123,6 +62035,100 @@ func spawn(scene: PackedScene, global_pos: Vector3, direction: Vector3 = Vector3
 	var lifetime: float = _restart_emitters(node)
 	_schedule_cleanup(node, lifetime)
 	return node
+
+
+## Wie spawn(), faerbt aber zusaetzlich JEDEN gefundenen Partikel-Emitter
+## ZWEIFARBIG ein, BEVOR er emittiert (siehe primary_hitbox.gd, das damit den
+## Treffer-Funken in attack_color/attack_color_secondary des aktiven
+## Charakters einfaerbt, statt fuer jede Farbkombination eine eigene
+## VFX-Szene zu brauchen).
+##
+## WIE DIE ZWEIFARBIGKEIT ENTSTEHT: draw_pass_1 bekommt color_a, draw_pass_2
+## (sofern die Szene einen hat - siehe hit_spark_primary.tscn) color_b.
+## GPUParticles3D wuerfelt bei mehreren Draw-Passes PRO EINZELPARTIKEL aus,
+## welcher gezeichnet wird - das ist Godots eingebauter Mechanismus fuer
+## Partikel-Vielfalt (z.B. unterschiedlich gefaerbte Glut in einem Feuer) und
+## damit zuverlaessiger als der Versuch, Farbverlauf ueber
+## ParticleProcessMaterial.color_ramp + Vertex-Color-Passthrough zu erzwingen,
+## dessen genaues Verhalten mit einem unshaded StandardMaterial3D als
+## Draw-Pass nicht in jedem Fall garantiert ist.
+func spawn_dual_tinted(scene: PackedScene, global_pos: Vector3, color_a: Color, color_b: Color, direction: Vector3 = Vector3.ZERO, parent: Node = null) -> Node3D:
+	if scene == null:
+		return null
+
+	var target_parent: Node = parent if parent != null else get_tree().current_scene
+	if target_parent == null or not is_instance_valid(target_parent):
+		return null
+
+	var instance: Node = scene.instantiate()
+	if not (instance is Node3D):
+		push_warning("[VFX] '%s' ist kein Node3D — verworfen." % scene.resource_path)
+		instance.queue_free()
+		return null
+
+	var node: Node3D = instance as Node3D
+	target_parent.add_child(node)
+	node.global_position = global_pos
+
+	if direction.length_squared() > 0.0001:
+		_aim(node, direction.normalized())
+
+	# VOR dem Emittieren faerben: process_material/draw_pass-Material duerfen
+	# erst NACH dem Einfaerben live gehen, sonst startet der erste
+	# gerenderte Frame noch mit der alten Farbe.
+	_apply_dual_tint(node, color_a, color_b)
+
+	var lifetime: float = _restart_emitters(node)
+	_schedule_cleanup(node, lifetime)
+	return node
+
+
+## Faerbt draw_pass_1 mit color_a, draw_pass_2 (falls vorhanden) mit color_b.
+## Fehlt draw_pass_2 in der Szene, faerbt sich der Emitter einfach komplett
+## mit color_a - kein Fehler, nur weniger Abwechslung.
+##
+## WARUM ERST duplicate(): [sub_resource]-Materialien einer .tscn sind PRO
+## PACKEDSCENE, nicht pro Instanz - Godot teilt sie standardmaessig zwischen
+## allen scene.instantiate()-Aufrufen (derselbe Fallstrick, den
+## lemonade.gd._make_resources_unique() im Projekt schon einmal beheben
+## musste). Ohne die Duplikate wuerde das Einfaerben EINES Treffer-Funkens
+## rueckwirkend auch jeden anderen, gerade noch aktiven Funken umfaerben.
+func _apply_dual_tint(root: Node, color_a: Color, color_b: Color) -> void:
+	for node in _collect_emitters(root):
+		if node is GPUParticles3D:
+			var gpu: GPUParticles3D = node
+			# process_material.color bleibt neutral Weiss - die eigentliche
+			# Faerbung kommt aus den beiden Draw-Pass-Materialien unten, sonst
+			# wuerden beide Toene zusaetzlich gleichfoermig ueberfaerbt.
+			if gpu.process_material != null:
+				gpu.process_material = gpu.process_material.duplicate()
+				if gpu.process_material is ParticleProcessMaterial:
+					(gpu.process_material as ParticleProcessMaterial).color = Color(1.0, 1.0, 1.0, 1.0)
+			if gpu.draw_pass_1 != null:
+				gpu.draw_pass_1 = gpu.draw_pass_1.duplicate()
+				_tint_primitive_mesh(gpu.draw_pass_1, color_a)
+			if gpu.draw_pass_2 != null:
+				gpu.draw_pass_2 = gpu.draw_pass_2.duplicate()
+				_tint_primitive_mesh(gpu.draw_pass_2, color_b)
+		elif node is CPUParticles3D:
+			# CPUParticles3D kennt keine mehreren Draw-Passes - faerbt sich
+			# einfarbig mit color_a statt einer erzwungenen Mischfarbe.
+			(node as CPUParticles3D).color = color_a
+
+
+func _tint_primitive_mesh(mesh: Mesh, tint: Color) -> void:
+	if not (mesh is PrimitiveMesh):
+		return
+	var primitive: PrimitiveMesh = mesh as PrimitiveMesh
+	if primitive.material == null:
+		return
+	var unique_material: Material = primitive.material.duplicate()
+	if unique_material is StandardMaterial3D:
+		var std: StandardMaterial3D = unique_material as StandardMaterial3D
+		std.albedo_color = tint
+		if std.emission_enabled:
+			std.emission = tint
+	primitive.material = unique_material
 
 
 ## look_at() wirft einen Fehler, wenn die Blickrichtung exakt parallel zum

@@ -27,7 +27,11 @@ class_name StageTheme
 @export var wall_color: Color = Color(0.48, 0.47, 0.44)
 ## Decke und Wandkappen (die Minimap-Deckel).
 @export var ceiling_color: Color = Color(0.035, 0.04, 0.035)
-## Tueren heben sich bewusst leicht ab, damit sie lesbar bleiben.
+## Tueren heben sich bewusst leicht ab, damit sie lesbar bleiben - ABER im
+## selben Hue wie die Wand (siehe _door_shade()), nur heller/dunkler. Vorher
+## stand hier pro Theme ein frei erfundener Farbton, der teils in eine ganz
+## andere Farbfamilie kippte (z.B. Neon-Theme: lila Wand, aber magenta Tuer)
+## und dadurch wie ein Stilbruch statt wie eine Lesbarkeits-Hilfe wirkte.
 @export var door_color: Color = Color(0.70, 0.62, 0.45)
 
 ## Nebelfarbe/Umgebungslicht der Etage. Wird von stage_manager.gd auf die
@@ -66,6 +70,15 @@ func tint_for_node_name(node_name: String) -> Color:
 	return wall_color
 
 
+## Leitet den Tuerton AUS dem Wandton ab: gleicher Hue/gleiche Saettigung,
+## nur heller — statt eines frei erfundenen Tons pro Theme (der frueher teils
+## in eine andere Farbfamilie kippte, siehe door_color-Kommentar). So bleibt
+## die Tuer immer erkennbar heller als die Wand, ohne wie ein Stilbruch zu
+## wirken.
+static func _door_shade(wall: Color) -> Color:
+	return Color.from_hsv(wall.h, wall.s * 0.85, clampf(wall.v * 1.4 + 0.12, 0.0, 1.0))
+
+
 ## Die eingebauten Themen. Bewusst im Code und nicht als .tres-Dateien —
 ## dieselbe Begruendung wie beim ItemCatalog: ein neues Theme ist ein
 ## Funktionsaufruf, und Balancing-Aenderungen bleiben im Git-Diff lesbar.
@@ -80,7 +93,7 @@ static func build_all() -> Array[StageTheme]:
 	dungeon.floor_color = Color(0.58, 0.55, 0.50)
 	dungeon.wall_color = Color(0.44, 0.43, 0.40)
 	dungeon.ceiling_color = Color(0.035, 0.040, 0.035)
-	dungeon.door_color = Color(0.70, 0.60, 0.42)
+	dungeon.door_color = _door_shade(dungeon.wall_color)
 	dungeon.fog_color = Color(0.05, 0.05, 0.06)
 	dungeon.fog_density = 0.012
 	dungeon.ambient_energy = 0.55
@@ -92,7 +105,7 @@ static func build_all() -> Array[StageTheme]:
 	ice.floor_color = Color(0.72, 0.84, 0.95)
 	ice.wall_color = Color(0.52, 0.68, 0.86)
 	ice.ceiling_color = Color(0.06, 0.09, 0.14)
-	ice.door_color = Color(0.85, 0.93, 1.0)
+	ice.door_color = _door_shade(ice.wall_color)
 	ice.fog_color = Color(0.10, 0.16, 0.24)
 	ice.fog_density = 0.020
 	ice.ambient_energy = 0.70
@@ -104,7 +117,7 @@ static func build_all() -> Array[StageTheme]:
 	desert.floor_color = Color(0.88, 0.76, 0.48)
 	desert.wall_color = Color(0.70, 0.56, 0.34)
 	desert.ceiling_color = Color(0.12, 0.09, 0.05)
-	desert.door_color = Color(0.55, 0.40, 0.24)
+	desert.door_color = _door_shade(desert.wall_color)
 	desert.fog_color = Color(0.26, 0.20, 0.12)
 	desert.fog_density = 0.008
 	desert.ambient_energy = 0.85
@@ -116,7 +129,7 @@ static func build_all() -> Array[StageTheme]:
 	flesh.floor_color = Color(0.62, 0.30, 0.30)
 	flesh.wall_color = Color(0.45, 0.20, 0.22)
 	flesh.ceiling_color = Color(0.10, 0.03, 0.04)
-	flesh.door_color = Color(0.80, 0.45, 0.40)
+	flesh.door_color = _door_shade(flesh.wall_color)
 	flesh.fog_color = Color(0.16, 0.05, 0.06)
 	flesh.fog_density = 0.018
 	flesh.ambient_energy = 0.60
@@ -128,7 +141,7 @@ static func build_all() -> Array[StageTheme]:
 	neon.floor_color = Color(0.30, 0.28, 0.45)
 	neon.wall_color = Color(0.22, 0.20, 0.38)
 	neon.ceiling_color = Color(0.04, 0.03, 0.09)
-	neon.door_color = Color(0.85, 0.35, 0.95)
+	neon.door_color = _door_shade(neon.wall_color)
 	neon.fog_color = Color(0.10, 0.04, 0.18)
 	neon.fog_density = 0.022
 	neon.ambient_energy = 0.65

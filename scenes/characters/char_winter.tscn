@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_i32li"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
 [ext_resource type="Script" uid="uid://qlxom5ue0a30" path="res://scripts/characters/combat_winter.gd" id="5_wintercombat"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/hit_spark_primary.tscn" id="6_hitspark"]
+[ext_resource type="Script" path="res://scripts/vfx/ghost_trail.gd" id="7_ghosttrail"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 
@@ -65,6 +67,7 @@ collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 14.0
 damage_number_scene = ExtResource("4_i32li")
+impact_vfx = ExtResource("6_hitspark")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1249222209]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
@@ -85,3 +88,6 @@ regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=873002602]
 script = ExtResource("5_wintercombat")
+
+[node name="GhostTrail" type="Node" parent="."]
+script = ExtResource("7_ghosttrail")

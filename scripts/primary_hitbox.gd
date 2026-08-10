@@ -161,7 +161,33 @@ func _on_hit_landed_vfx(target: Node) -> void:
 	var spawn_pos: Vector3 = global_position.lerp(target_3d.global_position, 0.5)
 	spawn_pos.y = target_3d.global_position.y + impact_height
 
-	VFX.spawn(impact_vfx, spawn_pos, dir.normalized())
+	var attacker_colors: Variant = _resolve_attacker_colors()
+	if attacker_colors is Array:
+		VFX.spawn_dual_tinted(impact_vfx, spawn_pos, attacker_colors[0], attacker_colors[1], dir.normalized())
+	else:
+		VFX.spawn(impact_vfx, spawn_pos, dir.normalized())
+
+
+## Liefert [attack_color, attack_color_secondary] des aktiven Charakters,
+## WENN diese Hitbox zu einem Spieler-Treffer gehoert - sonst null (dann
+## bleibt impact_vfx in seiner in der Szene konfigurierten Standardfarbe,
+## unveraendert fuer Gegner-Angriffe, die dieselbe Hitbox-Klasse verwenden,
+## siehe enemy_ai.gd).
+##
+## "owner" ist hier Godots eingebautes Node.owner, NICHTS, das dieses Skript
+## selbst setzt: fuer einen Hitbox-Node, der im Editor als Kind einer
+## Charakter-Szene liegt (z.B. char_ningning.tscn/CameraPivot/PrimaryHitbox),
+## traegt die Engine dort automatisch die WURZEL dieser Szene ein - also
+## exakt die CharacterBody3D-Instanz, die PartyManager als "player" haelt.
+func _resolve_attacker_colors() -> Variant:
+	if owner == null or not is_instance_valid(owner):
+		return null
+	if not PartyManager.has_player() or owner != PartyManager.player:
+		return null
+	var data: CharacterData = PartyManager.get_active_data()
+	if data == null:
+		return null
+	return [data.attack_color, data.attack_color_secondary]
 
 
 func _spawn_damage_number(body: Node3D) -> void:
