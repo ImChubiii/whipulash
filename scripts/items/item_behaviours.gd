@@ -3229,7 +3229,7 @@ func _use_turret_item(player: CharacterBody3D) -> void:
 
 	var body := StaticBody3D.new()
 	var box_mesh := BoxMesh.new()
-	box_mesh.size = Vector3(2.4, 3.1, 2.4)
+	box_mesh.size = Vector3(1.7, 2.2, 1.7)
 	var mesh_node := MeshInstance3D.new()
 	mesh_node.mesh = box_mesh
 	mesh_node.position = Vector3.UP * 0.8
@@ -3531,8 +3531,8 @@ func _use_leer(player: CharacterBody3D) -> void:
 
 	var eye := MeshInstance3D.new()
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.8
-	sphere.height = 1.5
+	sphere.radius = 0.56
+	sphere.height = 1.1
 	eye.mesh = sphere
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.85, 0.2, 0.9), 1.0)
 	eye.material_override = mat
@@ -3567,8 +3567,8 @@ func _use_fakeout(player: CharacterBody3D) -> void:
 
 	var decoy := MeshInstance3D.new()
 	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.8
-	capsule.height = 3.1
+	capsule.radius = 0.56
+	capsule.height = 2.2
 	decoy.mesh = capsule
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.3, 0.9, 1.0), 0.9)
 	decoy.material_override = mat
@@ -3686,8 +3686,8 @@ func _use_nanoswarm(player: CharacterBody3D) -> void:
 
 	var mesh_node := MeshInstance3D.new()
 	var cyl_mesh := CylinderMesh.new()
-	cyl_mesh.top_radius = 0.6
-	cyl_mesh.bottom_radius = 0.6
+	cyl_mesh.top_radius = 0.42
+	cyl_mesh.bottom_radius = 0.42
 	cyl_mesh.height = 0.08
 	mesh_node.mesh = cyl_mesh
 	var mat: StandardMaterial3D = _make_glow_material(Color(0.5, 1.0, 0.4), 0.0)
@@ -3766,8 +3766,12 @@ func _use_lockdown(player: CharacterBody3D) -> void:
 
 	var timer := get_tree().create_timer(LOCKDOWN_CHANNEL_TIME)
 	timer.timeout.connect(func() -> void:
-		var cur_player: CharacterBody3D = _player()
-		var strike_pos: Vector3 = cur_player.global_position if cur_player != null else origin
+		# BUGFIX: schlug bisher am AKTUELLEN Spielerstandort zu statt am
+		# Telegraph-Ring, der sichtbar auf dem Boden liegen bleibt (gleiches
+		# Muster wie Orbitalschlag/Koeder/Nachbeben - siehe dort). Wer sich
+		# waehrend der Kanalisierung wegbewegt, sollte AUSSERHALB des
+		# eigenen Rings landen, nicht den Effekt hinterherziehen.
+		var strike_pos: Vector3 = telegraph.global_position if is_instance_valid(telegraph) else origin
 		for enemy: Node3D in _enemies_near(strike_pos, LOCKDOWN_RADIUS):
 			StatusStun.apply(enemy, LOCKDOWN_STUN_DURATION, player)
 			StatusSilenced.apply(enemy, LOCKDOWN_SILENCE_DURATION, player)
