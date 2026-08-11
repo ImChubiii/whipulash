@@ -132,7 +132,7 @@ func _start_lock(player: CharacterBody3D) -> void:
 	ring.bottom_radius = hit_radius
 	ring.height = 0.05
 	_lock_marker.mesh = ring
-	var mat := _make_unshaded_material(Color(1.0, 0.15, 0.1))
+	var mat := _make_unshaded_material(DANGER_TELEGRAPH_COLOR)
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.15
 	_lock_marker.material_override = mat
@@ -206,9 +206,22 @@ func _land() -> void:
 		_visual_body.rotation.x = deg_to_rad(90.0)
 
 
-## Truemmer, die liegen BLEIBEN (kein Fade-Timer wie bei normalem VFX) -
-## sichtbarer Beleg dafuer, dass hier gerade etwas eingeschlagen ist.
-## Werden nur beim Force-Clear ueber _cleanup_effects() entfernt.
+## Wie viele Gesteinsbrocken GLEICHZEITIG pro Bomber liegen bleiben duerfen -
+## etwa 2 Einschlaege wert. BUGFIX "Spiel friert nach ~30s ein": Truemmer
+## waren komplett unbegrenzt (nur Force-Clear raeumte sie auf). Bei
+## dash_interval=3.4s und bis zu 8 Divebombern/Raum (siehe
+## resources/enemies/es_divebomber.tres) haetten sich in 30s bereits
+## hunderte permanente Meshes + je eine eigene StandardMaterial3D
+## angesammelt - genau das hat den Frame-Einbruch verursacht. Vorher fiel
+## das nie auf, weil im Sandbox-Testraum nie mehr als 1-2 gleichzeitig
+## liefen.
+const MAX_RUBBLE_ROCKS: int = 12
+
+## Truemmer, die eine Weile liegen BLEIBEN (kein Fade-Timer wie bei
+## normalem VFX) - sichtbarer Beleg dafuer, dass hier gerade etwas
+## eingeschlagen ist. Werden beim Force-Clear ueber _cleanup_effects()
+## entfernt, ODER sobald MAX_RUBBLE_ROCKS ueberschritten ist (dann zuerst
+## der aelteste Brocken).
 func _spawn_rubble(pos: Vector3) -> void:
 	var rock_count: int = randi_range(4, 6)
 	for i: int in range(rock_count):
@@ -226,6 +239,11 @@ func _spawn_rubble(pos: Vector3) -> void:
 		rock.rotation = Vector3(randf() * TAU, randf() * TAU, randf() * TAU)
 
 		_rubble.append(rock)
+
+	while _rubble.size() > MAX_RUBBLE_ROCKS:
+		var oldest: Node3D = _rubble.pop_front()
+		if is_instance_valid(oldest):
+			oldest.queue_free()
 
 
 func _do_grounded(delta: float) -> void:

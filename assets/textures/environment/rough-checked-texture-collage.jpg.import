@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bd0s34jsplqb6"
-path="res://.godot/imported/image-removebg-preview (13).png-025e2e5a68c520ab945214c3b452f215.ctex"
+uid="uid://bi4c8i3srmgs5"
+path="res://.godot/imported/rough-checked-texture-collage.jpg-71c2e91d24b0b82c7ec4d71109a2752c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/image-removebg-preview (13).png"
-dest_files=["res://.godot/imported/image-removebg-preview (13).png-025e2e5a68c520ab945214c3b452f215.ctex"]
+source_file="res://assets/textures/environment/rough-checked-texture-collage.jpg"
+dest_files=["res://.godot/imported/rough-checked-texture-collage.jpg-71c2e91d24b0b82c7ec4d71109a2752c.ctex"]
 
 [params]
 

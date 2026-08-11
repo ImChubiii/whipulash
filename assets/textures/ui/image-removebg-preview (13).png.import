@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c167pyvf1u4l2"
-path="res://.godot/imported/Untitled-3.png-af346099f5a890056ef5658bd2895af0.ctex"
+uid="uid://bd0s34jsplqb6"
+path="res://.godot/imported/image-removebg-preview (13).png-12708b735529eb7bb4e9e71c6cc370ce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/walltile/Untitled-3.png"
-dest_files=["res://.godot/imported/Untitled-3.png-af346099f5a890056ef5658bd2895af0.ctex"]
+source_file="res://assets/textures/ui/image-removebg-preview (13).png"
+dest_files=["res://.godot/imported/image-removebg-preview (13).png-12708b735529eb7bb4e9e71c6cc370ce.ctex"]
 
 [params]
 

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemySpawnEntry" format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/mortar_bot.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+scene = ExtResource("2_scene")
+display_name = "Moerser-Bot"
+weight = 2.0
+threat_cost = 6
+max_per_room = 4
+min_spawn_spacing = 8.0

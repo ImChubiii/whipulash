@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bx83ybif5661e"
-path="res://.godot/imported/Untietled-1.png-e0b9d40a31b6dc63e84b15765e8fc5b8.ctex"
+uid="uid://c167pyvf1u4l2"
+path="res://.godot/imported/wall_tile_03.png-b64fbe93a7e648b2298a78772f0a782b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/walltile/Untietled-1.png"
-dest_files=["res://.godot/imported/Untietled-1.png-e0b9d40a31b6dc63e84b15765e8fc5b8.ctex"]
+source_file="res://assets/textures/environment/walltile/wall_tile_03.png"
+dest_files=["res://.godot/imported/wall_tile_03.png-b64fbe93a7e648b2298a78772f0a782b.ctex"]
 
 [params]
 

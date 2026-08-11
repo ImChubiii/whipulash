@@ -103,7 +103,7 @@ func _fire_at(target_pos: Vector3) -> void:
 	ring_mesh.bottom_radius = blast_radius
 	ring_mesh.height = 0.05
 	telegraph.mesh = ring_mesh
-	var ring_mat := _make_unshaded_material(Color(1.0, 0.1, 0.1))
+	var ring_mat := _make_unshaded_material(DANGER_TELEGRAPH_COLOR)
 	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	ring_mat.albedo_color.a = 0.12
 	telegraph.material_override = ring_mat

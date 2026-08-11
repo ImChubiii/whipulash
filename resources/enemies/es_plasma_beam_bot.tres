@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemySpawnEntry" format=3]
+
+[ext_resource type="Script" path="res://scenes/level_generation/enemy_spawn_entry.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/plasma_beam_bot.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+scene = ExtResource("2_scene")
+display_name = "Plasmastrahl-Bot"
+weight = 1.0
+threat_cost = 10
+max_per_room = 1
+min_spawn_spacing = 10.0

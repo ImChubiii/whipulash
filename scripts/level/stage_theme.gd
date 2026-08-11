@@ -52,6 +52,39 @@ class_name StageTheme
 @export var floor_texture: Texture2D
 @export var wall_texture: Texture2D
 
+## Pool der drei Wandtile-PNGs (siehe assets/textures/environment/walltile/).
+## EINE davon wird pro Etage zufaellig gezogen (siehe random_wall_texture(),
+## aufgerufen von stage_manager.gd EINMAL pro Etagenwechsel) - alle Raeume
+## dieser Etage zeigen dann dieselbe Textur, aber nicht jede Etage/jeder Lauf
+## zeigt dieselbe: Etage 1 ist nicht immer wall_tile_01.
+const WALL_TEXTURE_PATHS: PackedStringArray = [
+	"res://assets/textures/environment/walltile/wall_tile_01.png",
+	"res://assets/textures/environment/walltile/wall_tile_02.png",
+	"res://assets/textures/environment/walltile/wall_tile_03.png",
+]
+
+## Die drei PNGs sind von Haus aus sehr hell und passen unbehandelt nicht in
+## den sonst dunklen PSX-Stil. albedo_color multipliziert die Textur beim
+## Rendern (siehe psx.gdshader) - ein niedriger Faktor dunkelt sie also
+## spuerbar ab, ohne eine zweite, vorab abgedunkelte Kopie jeder PNG pflegen
+## zu muessen.
+const WALL_TEXTURE_DARKEN: float = 0.35
+
+
+static func random_wall_texture() -> Texture2D:
+	var path: String = WALL_TEXTURE_PATHS[randi() % WALL_TEXTURE_PATHS.size()]
+	return load(path) as Texture2D
+
+
+## Boden UND Decke bekommen dieselbe Karo-Textur - anders als die Waende KEIN
+## Zufallspool, immer dieselbe Datei (siehe Rueckmeldung: "die schach textur
+## fuer boden und decke").
+const FLOOR_CEILING_TEXTURE_PATH: String = "res://assets/textures/environment/rough-checked-texture-collage.jpg"
+
+
+static func floor_ceiling_texture() -> Texture2D:
+	return load(FLOOR_CEILING_TEXTURE_PATH) as Texture2D
+
 
 ## Ordnet einem Node-Namen den passenden Grundton zu.
 ##

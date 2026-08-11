@@ -15,7 +15,7 @@
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="11_6ci1b"]
 [ext_resource type="Resource" uid="uid://bcharset002" path="res://resources/char_2.tres" id="11_cgcdo"]
 [ext_resource type="Resource" uid="uid://bcharset003" path="res://resources/char_3.tres" id="12_6klec"]
-[ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="12_cgcdo"]
+[ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://assets/textures/environment/sidewalk-texture.jpg" id="12_cgcdo"]
 [ext_resource type="Resource" uid="uid://bcharset004" path="res://resources/char_4.tres" id="13_8blc5"]
 [ext_resource type="Script" uid="uid://bgngov2w0v4yo" path="res://scripts/player_spawn_point.gd" id="spawn_point"]
 

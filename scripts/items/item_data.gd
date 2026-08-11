@@ -173,7 +173,7 @@ func get_rarity_name() -> String:
 	return rarity_name(rarity)
 
 ## Wie oft dasselbe Item in einem Run maximal droppen darf. 0 = unbegrenzt.
-@export var max_stacks: int = 1
+@export var max_stacks: int = 0
 
 
 ## Baut ein ItemData komplett im Code. Praktisch fuer den Katalog, damit

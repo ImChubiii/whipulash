@@ -23,11 +23,22 @@ class_name CustomEnemyBase
 #   - Ein Kind-Node NAMENS "Health" vom Typ Health: primary_hitbox.gd und
 #     TurretProjectile suchen ausschliesslich per find_child("Health", ...).
 #
-# STAND JETZT: alle sechs Typen spawnen ausschliesslich im
-# EnemySandboxRoom (siehe scripts/enemy_sandbox_room.gd) - nicht Teil der
-# LevelGenerator-Tabellen, zaehlen also noch nicht zum Raum-Clear.
+# Alle sechs Typen sind sowohl ueber die LevelGenerator-Threat-Budget-
+# Tabellen (siehe resources/enemies/es_*.tres) als auch einzeln ueber
+# EnemySandboxRoom (scripts/enemy_sandbox_room.gd) spawnbar.
 
 const HIT_SPARK_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
+
+## Einheitliches Rot fuer alle Boden-Telegraphen ("hier schlaegt gleich etwas
+## ein") ueber alle sechs Typen hinweg - Rueckmeldung: die einzelnen Typen
+## tippten vorher leicht unterschiedliche Rottoene von Hand ein (z.B.
+## Moerser-Bot 1.0/0.1/0.1 vs. Divebomber 1.0/0.15/0.1), was auf den ersten
+## Blick nach zwei verschiedenen Signalfarben aussehen konnte. Wert
+## identisch zum bereits etablierten Rot der ORIGINALEN drei Threat-Budget-
+## Gegner (Fighter/Stinger/Colossus, siehe deren TelegraphInner/OuterRing in
+## scenes/{enemies/dummy,scout_dummy,tank_dummy}.tscn) - EIN Rot fuers ganze
+## Spiel statt eines pro Gegnertyp neu erfundenen.
+const DANGER_TELEGRAPH_COLOR: Color = Color(1.0, 0.15686275, 0.1254902)
 
 ## Kopie von StatusEffectManager.DOT_IDS/enemy_ai.DOT_EFFECT_IDS - const
 ## Ausdruecke duerfen in GDScript nicht auf andere Klassen zugreifen, siehe
@@ -38,6 +49,17 @@ var health: Health = null
 var visual_root: Node3D = null
 var status_effects: StatusEffectManager = null
 var _dead: bool = false
+
+## Von RoomInstance._spawn_one() gesetzt (bleibt null bei Sandbox-Spawns).
+## BUGFIX "Schild-Drohne/Plasmastrahl-Bot sterben nie, Raum bleibt
+## gesperrt": _despawn_if_room_clear() (siehe shield_drone.gd/
+## plasma_beam_bot.gd) hat vorher die GLOBALE Gruppe "enemies" durchsucht -
+## damit hat ein ueberlebender Gegner IRGENDWO SONST auf der Etage (z.B. ein
+## Verfolger aus einem vorherigen, nicht ganz leergeraeumten Raum) die
+## Drohne fuer immer am Despawnen gehindert, auch wenn IHR EIGENER Raum
+## laengst leer war. spawn_room erlaubt den beiden Klassen, nur noch
+## Gegner AUS DEMSELBEN RAUM zu zaehlen.
+var spawn_room: Node = null
 
 
 func _ready() -> void:
@@ -111,13 +133,23 @@ func _on_status_effect_expired(id: String) -> void:
 
 
 # ============================================================================
-# Schild-Buff (Schild-Drohne) — +25 % Maximal-HP, groesseres Modell, blau
-# schwankende Aura. Gleiche Werte/Regeln wie enemy_ai.gd, siehe dort und
-# scripts/status_effects/shield.gd fuer die ausfuehrliche Begruendung.
+# Schild-Buff (Schild-Drohne) — +25 % Maximal-HP, der Gegner selbst leuchtet.
 # ============================================================================
+# GEAENDERT (Rueckmeldung: "shield sollte die Gegner nur zum Leuchten
+# bringen"): vorher eine zusaetzliche, halbtransparente Kugel-Aura UM den
+# Gegner herum PLUS ein 25% groesseres Modell - je nach Gegner-Silhouette
+# sah die ueberlappende Kugel seltsam aus und die Groessenaenderung war ein
+# zweiter, unabhaengiger visueller Hinweis, den niemand gefordert hat. Jetzt
+# pulsiert stattdessen die Emission der EIGENEN Meshes des Gegners direkt -
+# der Gegner leuchtet, statt in einer fremden Kugel zu stecken. Gleiche
+# Werte/Regeln wie enemy_ai.gd (dort weiterhin die alte Aura, siehe
+# Kopfkommentar dort), siehe scripts/status_effects/shield.gd fuer die
+# ausfuehrliche Begruendung des HP-Bonus.
 var _shield_active: bool = false
 var _shield_pre_max_health: float = 0.0
-var _shield_aura: MeshInstance3D = null
+## Array[Dictionary{mesh: MeshInstance3D, original: Material, glow: Material}]
+var _shield_glow_entries: Array = []
+var _shield_glow_tween: Tween = null
 
 
 func _apply_shield_visual() -> void:
@@ -129,31 +161,46 @@ func _apply_shield_visual() -> void:
 		_shield_pre_max_health = health.max_health
 		health.set_max_health(_shield_pre_max_health * (1.0 + StatusShield.MAX_HEALTH_BONUS_FACTOR), true)
 
+	_shield_glow_entries.clear()
 	if visual_root != null and is_instance_valid(visual_root):
-		visual_root.scale = visual_root.scale * (1.0 + StatusShield.VISUAL_SCALE_BONUS)
+		for mesh: MeshInstance3D in _collect_mesh_instances(visual_root):
+			var original: Material = mesh.material_override
+			if original == null:
+				continue
+			var glow_mat: Material = original.duplicate()
+			mesh.material_override = glow_mat
+			_shield_glow_entries.append({"mesh": mesh, "original": original, "glow": glow_mat})
 
-	_shield_aura = MeshInstance3D.new()
-	_shield_aura.name = "ShieldAura"
-	var sphere := SphereMesh.new()
-	sphere.radius = 1.8
-	sphere.height = 3.6
-	_shield_aura.mesh = sphere
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mat.albedo_color = Color(StatusShield.TINT_COLOR.r, StatusShield.TINT_COLOR.g, StatusShield.TINT_COLOR.b, 0.22)
-	mat.emission_enabled = true
-	mat.emission = StatusShield.TINT_COLOR
-	mat.emission_energy_multiplier = 1.2
-	_shield_aura.material_override = mat
-	_shield_aura.position = Vector3.UP * 1.3
-	add_child(_shield_aura)
+	_shield_glow_tween = create_tween()
+	_shield_glow_tween.set_loops()
+	_shield_glow_tween.tween_method(_set_shield_glow_strength, 0.35, 1.0, 0.7) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_shield_glow_tween.tween_method(_set_shield_glow_strength, 1.0, 0.35, 0.7) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
-	var tween: Tween = _shield_aura.create_tween()
-	tween.set_loops()
-	tween.tween_property(mat, "albedo_color:a", 0.42, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(mat, "albedo_color:a", 0.18, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+## Alle sechs Sandbox-Typen bauen ihre Meshes ausschliesslich ueber
+## _make_unshaded_material() (immer StandardMaterial3D) - kein Fall hier
+## nutzt die geteilte psx-ShaderMaterial, deshalb genuegt dieser eine Zweig.
+func _set_shield_glow_strength(strength: float) -> void:
+	for entry: Dictionary in _shield_glow_entries:
+		var mat: Material = entry["glow"]
+		if mat is StandardMaterial3D:
+			var sm := mat as StandardMaterial3D
+			sm.emission_enabled = true
+			sm.emission = StatusShield.TINT_COLOR
+			sm.emission_energy_multiplier = lerpf(0.6, 3.2, strength)
+
+
+## Rekursiv, damit auch verschachtelte Meshes (z.B. Divebomber: Fluegel als
+## Kind von _visual_body) mitleuchten.
+func _collect_mesh_instances(node: Node) -> Array:
+	var found: Array = []
+	if node is MeshInstance3D:
+		found.append(node)
+	for child: Node in node.get_children():
+		found.append_array(_collect_mesh_instances(child))
+	return found
 
 
 func _remove_shield_visual() -> void:
@@ -164,12 +211,15 @@ func _remove_shield_visual() -> void:
 	if health != null and _shield_pre_max_health > 0.0:
 		health.set_max_health(_shield_pre_max_health, false)
 
-	if visual_root != null and is_instance_valid(visual_root) and StatusShield.VISUAL_SCALE_BONUS > -1.0:
-		visual_root.scale = visual_root.scale / (1.0 + StatusShield.VISUAL_SCALE_BONUS)
+	if _shield_glow_tween != null and _shield_glow_tween.is_valid():
+		_shield_glow_tween.kill()
+	_shield_glow_tween = null
 
-	if _shield_aura != null and is_instance_valid(_shield_aura):
-		_shield_aura.queue_free()
-	_shield_aura = null
+	for entry: Dictionary in _shield_glow_entries:
+		var mesh: MeshInstance3D = entry["mesh"]
+		if is_instance_valid(mesh):
+			mesh.material_override = entry["original"]
+	_shield_glow_entries.clear()
 
 
 @export var display_name: String = "Gegner"
@@ -199,6 +249,18 @@ func _cleanup_effects() -> void:
 
 func _on_died() -> void:
 	await _teardown(true)
+
+
+## Fuer "kein Pflicht-Kill"-Typen (Schild-Drohne/Plasmastrahl-Bot):
+## Gegner-Liste, auf die sich ihr eigener _despawn_if_room_clear() beim
+## Pruefen beschraenkt. Mit spawn_room gesetzt (Normalfall: ueber
+## RoomInstance gespawnt) NUR die eigenen Raum-Kameraden - ohne spawn_room
+## (Sandbox-Spawn) faellt es auf die globale Gruppe "enemies" zurueck, weil
+## dort kein Raum-Konzept existiert.
+func _room_scoped_enemies() -> Array:
+	if spawn_room != null and is_instance_valid(spawn_room) and spawn_room.has_method("get_spawned_enemies"):
+		return spawn_room.get_spawned_enemies()
+	return get_tree().get_nodes_in_group("enemies")
 
 
 ## Fuer Gegner, die NICHT im Kampf getoetet werden muessen, um zu
@@ -287,14 +349,18 @@ func _orient_beam_segment(node: Node3D, from: Vector3, to: Vector3) -> void:
 ## current_scene (Start-/Endpunkt sind unabhaengig von dieser Instanz-
 ## Transform), muss also explizit ueber _free_beam_visual() aufgeraeumt
 ## werden, NICHT automatisch beim Tod dieser Instanz.
-func _create_beam_visual(color: Color) -> Dictionary:
+## radius_scale weitet Kern/Glow/Puls proportional auf (Default 1.0 = alte
+## Groesse, unveraendert fuer Schild-Drohnen-Verbindungsstrahl) - gebraucht
+## vom Plasmastrahl-Bot, dessen Bodenstrahl deutlich breiter ist als der
+## duenne Verbindungsstrahl (siehe dortiger Aufrufer).
+func _create_beam_visual(color: Color, radius_scale: float = 1.0) -> Dictionary:
 	var root := Node3D.new()
 	get_tree().current_scene.add_child(root)
 
 	var glow := MeshInstance3D.new()
 	var glow_cyl := CylinderMesh.new()
-	glow_cyl.top_radius = 0.3
-	glow_cyl.bottom_radius = 0.3
+	glow_cyl.top_radius = 0.3 * radius_scale
+	glow_cyl.bottom_radius = 0.3 * radius_scale
 	glow_cyl.height = 1.0
 	glow.mesh = glow_cyl
 	var glow_mat := _make_unshaded_material(color, 0.8)
@@ -305,8 +371,8 @@ func _create_beam_visual(color: Color) -> Dictionary:
 
 	var core := MeshInstance3D.new()
 	var core_cyl := CylinderMesh.new()
-	core_cyl.top_radius = 0.09
-	core_cyl.bottom_radius = 0.09
+	core_cyl.top_radius = 0.09 * radius_scale
+	core_cyl.bottom_radius = 0.09 * radius_scale
 	core_cyl.height = 1.0
 	core.mesh = core_cyl
 	core.material_override = _make_unshaded_material(color, 2.8)
@@ -314,8 +380,8 @@ func _create_beam_visual(color: Color) -> Dictionary:
 
 	var pulse := MeshInstance3D.new()
 	var pulse_mesh := SphereMesh.new()
-	pulse_mesh.radius = 0.24
-	pulse_mesh.height = 0.48
+	pulse_mesh.radius = 0.24 * radius_scale
+	pulse_mesh.height = 0.48 * radius_scale
 	pulse.mesh = pulse_mesh
 	pulse.material_override = _make_unshaded_material(color, 3.2)
 	root.add_child(pulse)

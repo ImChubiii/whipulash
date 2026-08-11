@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://dq7ypxvjbo36p"]
 
 [ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="1_hgpdb"]
-[ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://textures/sidewalk-texture.jpg" id="2_mkv5x"]
+[ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://assets/textures/environment/sidewalk-texture.jpg" id="2_mkv5x"]
 
 [resource]
 render_priority = 0

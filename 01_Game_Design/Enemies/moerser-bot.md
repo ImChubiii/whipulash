@@ -13,11 +13,11 @@ tags: [enemy, "enemy/sandbox"]
 
 > Stationaer · Fernkampf (Wurfparabel, Flaechenschaden)
 
-**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
-[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
-[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
-Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
-[[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
+**Jetzt im Threat-Budget:** `threat_cost = 6`, `weight = 2.0`, `max_per_room = 4`,
+siehe `resources/enemies/es_mortar_bot.tres` und [[level_generator]].
+Weiterhin auch einzeln ueber [[enemy_sandbox_room]] (Debug-Teleporter)
+testbar. Baut wie alle sechs neuen Typen auf [[custom_enemy_base]] statt auf
+`enemy_ai.gd` auf.
 
 ## Mechanik
 

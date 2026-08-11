@@ -18,6 +18,7 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
     — [[_MOC_Enemies|nach Tier/Rolle]]
   - Rooms (26) — [[_MOC_Rooms|nach Typ]]
   - Status Effects (10) — [[_MOC_Status_Effects|nach Klasse]]
+  - Hazards — [[lemonade|Lemonade]]
 - Tech Architecture
   - [[party_manager]]
   - [[level_generator]]
@@ -67,7 +68,12 @@ WHERE tier = "levelgen" OR !tier
 SORT threat_cost ASC
 ```
 
-### Sandbox-Prototypen (`custom_enemy_base.gd`, noch nicht im Threat-Budget)
+### Sandbox-Prototypen (`custom_enemy_base.gd`, jetzt auch im Threat-Budget)
+
+Alle sechs sind seit der Budget-Integration zusaetzlich ueber
+`level_generation_test.tscn::enemy_table` normal spawnbar (siehe
+`resources/enemies/es_*.tres` fuer threat_cost/weight/max_per_room), bleiben
+aber weiterhin einzeln ueber [[enemy_sandbox_room]] testbar.
 
 ```dataview
 TABLE role AS "Rolle", base_hp AS "HP"

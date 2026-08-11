@@ -17,3 +17,7 @@ mono_crash.*.json
 .obsidian/
 graphify-out/
 .aider*
+
+# Private working notes, not meant for the repo
+/04_Chat_Prompts/
+/05_Gedanken/

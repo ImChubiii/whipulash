@@ -2,21 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dwjky0ikl4fnq"
-path.s3tc="res://.godot/imported/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg-21e627ebd64fb2b6a544d019129ac620.s3tc.ctex"
+uid="uid://cymxbq4pc3wxt"
+path="res://.godot/imported/wall_tile_02.png-4275b47fd3aaa830af781f5a8ee4cfa7.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg"
-dest_files=["res://.godot/imported/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg-21e627ebd64fb2b6a544d019129ac620.s3tc.ctex"]
+source_file="res://assets/textures/environment/walltile/wall_tile_02.png"
+dest_files=["res://.godot/imported/wall_tile_02.png-4275b47fd3aaa830af781f5a8ee4cfa7.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -24,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -38,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=1

@@ -209,6 +209,13 @@ func _ready() -> void:
 	# PHASE 3.2: Thema der Startetage festlegen, BEVOR generiert wird —
 	# sonst laeuft Etage 1 ungefaerbt und erst ab Etage 2 greift das System.
 	_stage_theme = StageTheme.for_stage(current_stage)
+	# Rueckmeldung "wall tiles sehen nicht gut aus, bitte wieder die andere
+	# Textur": wall_texture bleibt bewusst UNGESETZT, damit Waende wieder auf
+	# die alte, texturlose Theme-Faerbung zurueckfallen (siehe is_wall-Zweig
+	# in room_instance.gd::_apply_theme_recursive - greift nur, wenn
+	# wall_texture != null ist). floor_texture (Karo fuer Boden/Decke) bleibt
+	# unveraendert, dazu kam keine Beschwerde.
+	_stage_theme.floor_texture = StageTheme.floor_ceiling_texture()
 
 	# --- Schutz gegen doppelte Generatoren --------------------------------
 	# Zwei aktive LevelGenerator erzeugen ZWEI komplette Raumsaetze an
@@ -359,6 +366,7 @@ func generate_next_stage_same_pattern() -> void:
 func generate_stage(stage: int) -> void:
 	current_stage = maxi(stage, 1)
 	_stage_theme = StageTheme.for_stage(current_stage)
+	_stage_theme.floor_texture = StageTheme.floor_ceiling_texture()
 	print("[LevelGenerator] Baue Etage %d (Thema: %s)" % [current_stage, _stage_theme.theme_name])
 	_current_layout = grid_generator.generate_layout(_run_seed, current_stage)
 	_instantiate_layout(_current_layout)

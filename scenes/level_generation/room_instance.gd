@@ -121,6 +121,9 @@ enum DoorState {
 ## Box-Collider (Kollision braucht keine Ausrichtung).
 @export var build_ceiling: bool = true
 @export var ceiling_color: Color = Color(0.035, 0.04, 0.035)
+## Von apply_theme() gesetzt (siehe StageTheme.floor_texture) - dieselbe
+## Karo-Textur wie der Boden, damit Boden und Decke optisch zusammengehoeren.
+var ceiling_texture: Texture2D = null
 
 ## --- Lokale Raumbeleuchtung ---------------------------------------------
 ## ERSATZ fuer das globale DirectionalLight3D, das vorher die gesamte Karte
@@ -360,6 +363,11 @@ var _counted_dead_enemies: Dictionary = {}
 var _watchdog_timer: float = 0.0
 var _requires_clear: bool = false
 
+## Fuer den Stuck-Room-Watchdog (siehe _check_stuck_room_timeout()): Zeitpunkt
+## (Time.get_ticks_msec()), zu dem der Kampf in diesem Raum begonnen hat.
+## -1 = noch kein Kampf gestartet.
+var _combat_started_at_msec: int = -1
+
 var _entry_trigger: Area3D = null
 var _presence_area: Area3D = null
 var _escape_timer: float = 0.0
@@ -553,6 +561,8 @@ func _make_ceiling_material() -> Material:
 	if base is ShaderMaterial:
 		var mat: ShaderMaterial = (base as ShaderMaterial).duplicate()
 		mat.set_shader_parameter("albedo_color", ceiling_color)
+		if ceiling_texture != null:
+			mat.set_shader_parameter("albedo_texture", ceiling_texture)
 		return mat
 
 	push_warning("RoomInstance: ceiling_material_path '%s' nicht gefunden oder kein ShaderMaterial - Decke faellt auf Flatcolor zurueck." % ceiling_material_path)
@@ -560,6 +570,8 @@ func _make_ceiling_material() -> Material:
 	fallback.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	fallback.albedo_color = ceiling_color
 	fallback.cull_mode = BaseMaterial3D.CULL_FRONT
+	if ceiling_texture != null:
+		fallback.albedo_texture = ceiling_texture
 	return fallback
 
 
@@ -1229,6 +1241,7 @@ func reset_room() -> void:
 	_spawned_enemies.clear()
 	_counted_dead_enemies.clear()
 	_active_enemies = 0
+	_combat_started_at_msec = -1
 
 	# Neue Welle: alles, was von der alten noch nachfeuert, ist ab jetzt
 	# ungueltig.
@@ -1401,6 +1414,15 @@ func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage:
 	_lock_exits(false)
 
 
+## Deckelt, wie viele VERSCHIEDENE Gegnertypen ein einzelner Raum zeigen darf
+## - unabhaengig vom Budget. Ohne das kann ein zufaellig vollgeschriebener
+## Raum theoretisch 6-7 unterschiedliche Verhaltensmuster gleichzeitig
+## zeigen, was schnell unuebersichtlich wird (Rueckmeldung: "zu viel
+## Verwirrung"). Das Budget fuellt sich danach weiter mit WIEDERHOLUNGEN der
+## bereits gewaehlten Typen statt neuer Sorten auf.
+const MAX_DISTINCT_ENEMY_TYPES: int = 3
+
+
 func _roll_enemy_mix() -> Array[EnemySpawnEntry]:
 	var result: Array[EnemySpawnEntry] = []
 	var budget: int = _pending_budget
@@ -1408,6 +1430,8 @@ func _roll_enemy_mix() -> Array[EnemySpawnEntry]:
 	var guard: int = 0
 
 	for e in _pending_entries:
+		if used_count.size() >= MAX_DISTINCT_ENEMY_TYPES and not used_count.has(e):
+			continue
 		for i in range(e.guaranteed_count):
 			if result.size() >= enemy_spawn_points.size():
 				break
@@ -1423,6 +1447,8 @@ func _roll_enemy_mix() -> Array[EnemySpawnEntry]:
 			if e.threat_cost > budget:
 				continue
 			if used_count.get(e, 0) >= e.max_per_room:
+				continue
+			if used_count.size() >= MAX_DISTINCT_ENEMY_TYPES and not used_count.has(e):
 				continue
 			affordable.append(e)
 
@@ -1475,7 +1501,12 @@ func _spawn_prepared_enemies() -> void:
 		taken_positions.append(point.global_position)
 		_spawn_one(entry, point)
 
-	if _spawned_enemies.is_empty():
+	# _active_enemies statt _spawned_enemies.is_empty(): ein Raum, der NUR
+	# Schild-Drohnen/Plasmastrahl-Bots gewuerfelt hat (kein Pflicht-Kill,
+	# zaehlen seit dem counts_for_clear-Fix in _spawn_one() nicht mehr mit),
+	# waere sonst trotz nicht-leerer _spawned_enemies fuer immer gesperrt
+	# geblieben - _register_enemy_gone() feuert fuer sie ja nie.
+	if _active_enemies <= 0:
 		_is_cleared = true
 		_lock_exits(false)
 
@@ -1515,6 +1546,12 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	if _pending_is_boss_room:
 		enemy.add_to_group("boss")
 
+	# Damit ShieldDrone/PlasmaBeamBot ihren eigenen Raum-Clear-Check auf
+	# DIESEN Raum statt auf die globale Gruppe "enemies" beschraenken
+	# koennen - siehe custom_enemy_base.gd::_room_scoped_enemies().
+	if enemy is CustomEnemyBase:
+		(enemy as CustomEnemyBase).spawn_room = self
+
 	var spawn_pos: Vector3 = point.global_position
 	spawn_pos.y += 0.1
 	enemy.global_transform = Transform3D(Basis.IDENTITY, spawn_pos)
@@ -1524,6 +1561,17 @@ func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:
 	_apply_stage_scaling(enemy)
 
 	_spawned_enemies.append(enemy)
+
+	# BUGFIX "Raum bleibt fuer immer gesperrt, wenn Schild-Drohne/
+	# Plasmastrahl-Bot ueberleben": diese beiden sind laut Design "kein
+	# Pflicht-Kill" (siehe deren eigener despawn()-Mechanismus) und duerfen
+	# den Raum-Clear deshalb gar nicht erst blockieren - selbst wenn ihr
+	# eigener Despawn aus irgendeinem Grund ausbleibt, soll die Tuer
+	# trotzdem aufgehen, sobald alle PFLICHT-Gegner tot sind.
+	var counts_for_clear: bool = not (enemy is ShieldDrone or enemy is PlasmaBeamBot)
+	if not counts_for_clear:
+		return
+
 	_active_enemies += 1
 
 	# BUGFIX "Tueren gehen manchmal nicht auf":
@@ -1842,9 +1890,41 @@ func _watchdog_check() -> void:
 			alive += 1
 
 	if alive > 0:
+		_check_stuck_room_timeout()
 		return
 
 	push_warning("RoomInstance (%s): Watchdog - kein lebender Gegner mehr, aber _active_enemies = %d. Raum wird zwangsweise freigegeben." % [grid_position, _active_enemies])
+	_active_enemies = 0
+	_is_cleared = true
+	_lock_exits(false)
+	room_cleared.emit(self)
+
+
+## Wie lange ein Raum im Kampf haengen darf, bevor der Watchdog verbliebene
+## Gegner zwangsweise entfernt - grosszuegig genug (2.5 Minuten), um einen
+## legitim schweren/langen Kampf nicht zu unterbrechen.
+const STUCK_ROOM_TIMEOUT_MSEC: int = 150000
+
+## Sicherheitsnetz gegen Gegner, die lebendig, aber praktisch unerreichbar
+## feststecken (Rueckmeldung: ein Stinger blieb "unter einer Plattform"
+## haengen). Die Plattform-Raum-Vorlagen schliessen laut Code alle buendig
+## mit dem Boden ab - ein absichtlicher Hohlraum liess sich nicht finden,
+## die genaue Ursache (vermutlich ein Spawn-Punkt zu nah an einer Kante, der
+## den Gegner beim Spawnen leicht in die Kollision draengt) blieb ungeklaert.
+## Statt der Ursache hinterherzujagen: haengt EIN Raum ungewoehnlich lange im
+## Kampf fest, werden die verbliebenen Gegner entfernt und der Raum
+## freigegeben - unabhaengig davon, WARUM sie feststecken.
+func _check_stuck_room_timeout() -> void:
+	if _combat_started_at_msec < 0:
+		return
+	var elapsed_msec: int = Time.get_ticks_msec() - _combat_started_at_msec
+	if elapsed_msec < STUCK_ROOM_TIMEOUT_MSEC:
+		return
+
+	push_warning("RoomInstance (%s): Watchdog - Raum haengt seit %.0f s im Kampf fest, verbliebene Gegner werden zwangsweise entfernt." % [grid_position, elapsed_msec / 1000.0])
+	for enemy: Node3D in _spawned_enemies:
+		if is_instance_valid(enemy):
+			enemy.queue_free()
 	_active_enemies = 0
 	_is_cleared = true
 	_lock_exits(false)
@@ -1988,6 +2068,15 @@ func apply_theme(theme: StageTheme) -> void:
 	# Decke und Wandkappen werden im Code gebaut und haben eigene Materialien.
 	ceiling_color = theme.ceiling_color
 	wall_cap_color = theme.ceiling_color
+	# BUGFIX "Boden-/Deckentextur unsichtbar": _build_ceiling() laeuft in
+	# _ready(), also VOR diesem Aufruf hier (level_generator.gd instanziiert
+	# den Raum per add_child(), was _ready() synchron ausloest, BEVOR
+	# room.apply_theme() ueberhaupt aufgerufen wird). Ein reines Setzen von
+	# ceiling_color/ceiling_texture haette also nie Wirkung gezeigt, weil die
+	# Decke da schon fertig gebaut war - dieselbe Karo-Textur-Zuweisung
+	# muss die bereits gebaute Decke aktiv NEU einfaerben.
+	ceiling_texture = theme.floor_texture
+	_refresh_ceiling_material()
 
 
 func _apply_theme_recursive(node: Node, theme: StageTheme) -> void:
@@ -2002,30 +2091,69 @@ func _apply_theme_recursive(node: Node, theme: StageTheme) -> void:
 	# (z.B. Tiefkuehlhaus: Color(0.72, 0.84, 0.95), fast weiss) sieht der
 	# Abgrund dann aus wie eine flache, unbelichtete Flaeche statt wie ein
 	# dunkles Loch.
+	#
+	# "Ceiling" wird hier ebenfalls ausgeschlossen: die Decke haengt als Kind
+	# direkt unter self und wuerde sonst von diesem generischen Rundgang
+	# MIT eingefaerbt - aber ueber tint_for_node_name() faellt "Ceiling" in
+	# keinen der Praefix-Faelle (floor/door/lava) und laeuft in den
+	# WAND-Farbton als Default. Die Decke hat ihr eigenes, dediziertes
+	# Material via _make_ceiling_material()/_refresh_ceiling_material().
 	if mesh != null and not mesh.name.to_lower().contains("voidshaft"):
-		var tint: Color = theme.tint_for_node_name(mesh.get_parent().name if mesh.get_parent() else mesh.name)
-		# material_override hat Vorrang vor surface_material_override.
-		if mesh.material_override != null:
-			var copy: Material = mesh.material_override.duplicate()
-			_tint_material(copy, tint)
-			mesh.material_override = copy
-		else:
-			for i: int in range(mesh.get_surface_override_material_count()):
-				var surface: Material = mesh.get_surface_override_material(i)
-				if surface == null:
-					continue
-				var dup: Material = surface.duplicate()
-				_tint_material(dup, tint)
-				mesh.set_surface_override_material(i, dup)
+		var parent_name: String = mesh.get_parent().name if mesh.get_parent() else mesh.name
+		if parent_name != "Ceiling":
+			var tint: Color = theme.tint_for_node_name(parent_name)
+			var lower_parent: String = parent_name.to_lower()
+			var is_wall: bool = lower_parent.begins_with("wall")
+			var is_floor: bool = lower_parent.begins_with("floor")
+			var node_texture: Texture2D = null
+			if is_wall and theme.wall_texture != null:
+				node_texture = theme.wall_texture
+				# Nur die Waende werden abgedunkelt - siehe Rueckmeldung
+				# "Textur von Grundauf sehr hell, passt nicht zum Stil".
+				tint = tint * StageTheme.WALL_TEXTURE_DARKEN
+				tint.a = 1.0
+			elif is_floor and theme.floor_texture != null:
+				node_texture = theme.floor_texture
+			# material_override hat Vorrang vor surface_material_override.
+			if mesh.material_override != null:
+				var copy: Material = mesh.material_override.duplicate()
+				_tint_material(copy, tint, node_texture)
+				mesh.material_override = copy
+			else:
+				for i: int in range(mesh.get_surface_override_material_count()):
+					var surface: Material = mesh.get_surface_override_material(i)
+					if surface == null:
+						continue
+					var dup: Material = surface.duplicate()
+					_tint_material(dup, tint, node_texture)
+					mesh.set_surface_override_material(i, dup)
 	for child: Node in node.get_children():
 		_apply_theme_recursive(child, theme)
 
 
-func _tint_material(material: Material, tint: Color) -> void:
+func _tint_material(material: Material, tint: Color, texture: Texture2D = null) -> void:
 	if material is ShaderMaterial:
-		(material as ShaderMaterial).set_shader_parameter("albedo_color", tint)
+		var shader_mat := material as ShaderMaterial
+		shader_mat.set_shader_parameter("albedo_color", tint)
+		if texture != null:
+			shader_mat.set_shader_parameter("albedo_texture", texture)
 	elif material is BaseMaterial3D:
-		(material as BaseMaterial3D).albedo_color = tint
+		var base_mat := material as BaseMaterial3D
+		base_mat.albedo_color = tint
+		if texture != null:
+			base_mat.albedo_texture = texture
+
+
+## Rebuilt und ersetzt das Material der bereits gebauten Decke - noetig, weil
+## _build_ceiling() zeitlich vor apply_theme() laeuft (siehe Kommentar dort).
+func _refresh_ceiling_material() -> void:
+	var ceiling := get_node_or_null("Ceiling")
+	if ceiling == null:
+		return
+	var mesh := ceiling.get_node_or_null("MeshInstance3D") as MeshInstance3D
+	if mesh == null:
+		return
+	mesh.material_override = _make_ceiling_material()
 
 
 func get_room_center() -> Vector3:
@@ -2033,6 +2161,28 @@ func get_room_center() -> Vector3:
 		if is_instance_valid(marker):
 			return marker.global_position
 	return global_position
+
+
+## Fuer CustomEnemyBase._room_scoped_enemies() (Schild-Drohne/
+## Plasmastrahl-Bot): nur die Gegner, die DIESER Raum gespawnt hat, statt
+## der globalen Gruppe "enemies" ueber die ganze Etage.
+##
+## BUGFIX (Crash): _spawned_enemies wird nirgends bereinigt, sobald ein
+## Gegner stirbt/gefreed wird (_watchdog_check() unten prueft deshalb
+## explizit is_instance_valid() vor jedem Zugriff). get_tree().
+## get_nodes_in_group("enemies") - der fruehere Weg - entfernt gefreete
+## Nodes dagegen AUTOMATISCH aus der Gruppe, war also implizit sicher. Ohne
+## Filterung hier wuerde _room_scoped_enemies() (custom_enemy_base.gd)
+## bereits gefreete Referenzen zurueckgeben, an denen dann "is Node3D"/
+## "is ShieldDrone" ausgewertet wird - ein Use-after-free, das den
+## Engine-Absturz nach schnellem Massensterben (siehe Log: viele "Gegner
+## entfernt" im selben Frame) erklaert.
+func get_spawned_enemies() -> Array[Node3D]:
+	var alive: Array[Node3D] = []
+	for enemy: Node3D in _spawned_enemies:
+		if is_instance_valid(enemy):
+			alive.append(enemy)
+	return alive
 
 
 func is_cleared() -> bool:
@@ -2083,4 +2233,5 @@ func on_player_entered() -> void:
 		return
 	_enemies_spawned = true
 	_lock_exits(true)
+	_combat_started_at_msec = Time.get_ticks_msec()
 	_spawn_prepared_enemies()

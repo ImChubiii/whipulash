@@ -96,12 +96,19 @@ class_name ItemSummaryList
 @export var avoid_node_name: String = ""
 
 const ROW_HEIGHT: float = 30.0
+const ROW_SEPARATION: float = 2.0
 const SWATCH_SIZE: float = 22.0
 const BG_COLOR: Color = Color(0.05, 0.06, 0.075, 0.55)
 const MUTED_COLOR: Color = Color(0.62, 0.66, 0.72)
 const TEXT_COLOR: Color = Color(0.90, 0.90, 0.93)
 
+## Ab wie vielen sichtbaren Zeilen die Liste nicht mehr weiter waechst,
+## sondern scrollt. Darueber wuerde die Liste bei vielen Items ueber den
+## Bildschirmrand hinaus wachsen (siehe Rueckmeldung "ueberfuellt den Screen").
+const MAX_VISIBLE_ROWS: int = 8
+
 var _title: Label = null
+var _scroll: ScrollContainer = null
 var _rows_box: VBoxContainer = null
 var _empty_label: Label = null
 var _currency_label: Label = null
@@ -167,10 +174,20 @@ func _build() -> void:
 		_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(_title)
 
+	# Zeilen in einen ScrollContainer statt direkt in self — sonst waechst
+	# die Liste bei vielen Items unbegrenzt und ueberfuellt den Bildschirm
+	# (Pause-/Tod-/Siegkarte). custom_minimum_size wird pro refresh() neu
+	# gesetzt: bis MAX_VISIBLE_ROWS waechst die Karte mit, darueber scrollt sie.
+	_scroll = ScrollContainer.new()
+	_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(_scroll)
+
 	_rows_box = VBoxContainer.new()
-	_rows_box.add_theme_constant_override("separation", 2)
+	_rows_box.add_theme_constant_override("separation", ROW_SEPARATION)
 	_rows_box.mouse_filter = Control.MOUSE_FILTER_PASS
-	add_child(_rows_box)
+	_rows_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(_rows_box)
 
 	_empty_label = Label.new()
 	_empty_label.text = empty_text
@@ -269,6 +286,13 @@ func refresh() -> void:
 
 	for item: ItemData in order:
 		_rows_box.add_child(_make_row(item, int(counts[item.id])))
+
+	# Karte waechst mit bis MAX_VISIBLE_ROWS Zeilen, darueber bleibt die Hoehe
+	# gedeckelt und der ScrollContainer uebernimmt den Rest.
+	if _scroll:
+		var visible_rows: int = mini(order.size(), MAX_VISIBLE_ROWS)
+		var height: float = visible_rows * ROW_HEIGHT + maxi(visible_rows - 1, 0) * ROW_SEPARATION
+		_scroll.custom_minimum_size = Vector2(0.0, height)
 
 	if _currency_label:
 		_currency_label.text = "%d Muenzen  \u00b7  %d Bomben" % [

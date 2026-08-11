@@ -170,10 +170,13 @@ func _refresh_shields() -> void:
 
 ## Support-Flieger muessen fuer den Raum-Clear nicht sterben (siehe
 ## Kopfkommentar) - sobald ausser fliegenden Support-Typen (sich selbst
-## eingeschlossen) niemand mehr in "enemies" steht, verschwindet die Drohne
+## eingeschlossen) niemand mehr im EIGENEN Raum lebt (siehe
+## _room_scoped_enemies() in custom_enemy_base.gd), verschwindet die Drohne
 ## von selbst.
 func _despawn_if_room_clear() -> void:
-	for node: Node in get_tree().get_nodes_in_group("enemies"):
+	for node: Node in _room_scoped_enemies():
+		if not is_instance_valid(node):
+			continue
 		if node == self or not (node is Node3D):
 			continue
 		if node is ShieldDrone or node is PlasmaBeamBot:

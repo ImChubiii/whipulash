@@ -13,11 +13,17 @@ tags: [enemy, "enemy/sandbox"]
 
 > Stationaer · Kontrolle (Sog + Abstossungs-Schockwelle)
 
-**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
-[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
-[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
-Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
+**Jetzt im Threat-Budget:** `threat_cost = 8`, `weight = 0.5` (sehr niedrig),
+`max_per_room = 1`, siehe `resources/enemies/es_magnet_core.tres` und
+[[level_generator]]. Weiterhin auch einzeln ueber [[enemy_sandbox_room]]
+(Debug-Teleporter) testbar. Baut wie alle sechs neuen Typen auf
 [[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
+
+Balancing-Hinweis (echtes Risiko, nicht nur Kosten): der Sog kann den Spieler
+in andere Gefahren ziehen (Lava-/[[lemonade]]-Pfuetzen, Explosionsradien) und
+— sobald Parkour-Korridore mit Abgruenden existieren — an eine Kante ohne
+Gegenwehr. Kandidat fuer eine spaetere Raum-Ausschlussregel (kein Magnet-Kern
+in Raeumen/Korridoren mit `extra_void_pits`), aktuell noch nicht umgesetzt.
 
 ## Mechanik
 

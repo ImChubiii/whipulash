@@ -508,6 +508,9 @@ func _spawn_fireball(parent: Node, origin: Vector3) -> void:
 	parent.add_child(flash)
 	flash.global_position = origin
 	flash.scale = Vector3.ONE * 0.25
+	# ALWAYS: sonst friert der Tween ein, wenn waehrend der Explosion pausiert
+	# wird (Pause-/Tod-/Siegbildschirm), und das Mesh bleibt dauerhaft stehen.
+	flash.process_mode = Node.PROCESS_MODE_ALWAYS
 
 	var tween := flash.create_tween()
 	tween.set_parallel(true)
@@ -518,7 +521,9 @@ func _spawn_fireball(parent: Node, origin: Vector3) -> void:
 		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tween.tween_property(flash, "rotation:y", TAU * 0.15, 0.50)
 	tween.tween_property(material, "albedo_color:a", 0.0, 0.50)
-	tween.chain().tween_callback(flash.queue_free)
+	tween.chain().tween_callback(func() -> void:
+		if is_instance_valid(flash):
+			flash.queue_free())
 
 
 func _spawn_core(parent: Node, origin: Vector3) -> void:
@@ -537,13 +542,16 @@ func _spawn_core(parent: Node, origin: Vector3) -> void:
 	parent.add_child(core)
 	core.global_position = origin
 	core.scale = Vector3.ONE * 0.4
+	core.process_mode = Node.PROCESS_MODE_ALWAYS
 
 	var tween := core.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(core, "scale", Vector3.ONE * 1.3, 0.14) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(material, "albedo_color:a", 0.0, 0.18)
-	tween.chain().tween_callback(core.queue_free)
+	tween.chain().tween_callback(func() -> void:
+		if is_instance_valid(core):
+			core.queue_free())
 
 
 ## Flacher, sich aufweitender Zylinder direkt ueber dem Boden. Startet bei
@@ -566,13 +574,16 @@ func _spawn_shockwave(parent: Node, origin: Vector3) -> void:
 	parent.add_child(wave)
 	wave.global_position = origin + Vector3(0.0, 0.2, 0.0)
 	wave.scale = Vector3(0.2, 1.0, 0.2)
+	wave.process_mode = Node.PROCESS_MODE_ALWAYS
 
 	var tween := wave.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(wave, "scale", Vector3(explosion_radius, 0.35, explosion_radius), 0.34) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(material, "albedo_color:a", 0.0, 0.38)
-	tween.chain().tween_callback(wave.queue_free)
+	tween.chain().tween_callback(func() -> void:
+		if is_instance_valid(wave):
+			wave.queue_free())
 
 
 ## Kurzer Lichtblitz. Ohne ihn bleibt die Umgebung waehrend der Explosion
@@ -585,11 +596,14 @@ func _spawn_light(parent: Node, origin: Vector3) -> void:
 	light.shadow_enabled = false
 	parent.add_child(light)
 	light.global_position = origin + Vector3(0.0, 0.8, 0.0)
+	light.process_mode = Node.PROCESS_MODE_ALWAYS
 
 	var tween := light.create_tween()
 	tween.tween_property(light, "light_energy", 0.0, 0.32) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_callback(light.queue_free)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(light):
+			light.queue_free())
 
 
 ## Zweiter, duennerer Ring, der SCHNELLER nach aussen laeuft als die
@@ -612,13 +626,16 @@ func _spawn_outer_ring(parent: Node, origin: Vector3) -> void:
 	parent.add_child(wave)
 	wave.global_position = origin + Vector3(0.0, 0.35, 0.0)
 	wave.scale = Vector3(0.4, 0.4, 0.4)
+	wave.process_mode = Node.PROCESS_MODE_ALWAYS
 
 	var tween := wave.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(wave, "scale", Vector3(explosion_radius * 1.15, 0.6, explosion_radius * 1.15), 0.26) \
 		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tween.tween_property(material, "albedo_color:a", 0.0, 0.30)
-	tween.chain().tween_callback(wave.queue_free)
+	tween.chain().tween_callback(func() -> void:
+		if is_instance_valid(wave):
+			wave.queue_free())
 
 
 ## Splitter: kleine Wuerfel, die radial nach aussen und leicht nach oben
@@ -655,6 +672,7 @@ func _spawn_debris(parent: Node, origin: Vector3) -> void:
 		shard.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		parent.add_child(shard)
 		shard.global_position = origin + Vector3(0.0, 0.4, 0.0)
+		shard.process_mode = Node.PROCESS_MODE_ALWAYS
 
 		var peak: Vector3 = origin + direction * distance * 0.6 + Vector3(0.0, height, 0.0)
 		var landing: Vector3 = origin + direction * distance + Vector3(0.0, 0.15, 0.0)
@@ -673,7 +691,9 @@ func _spawn_debris(parent: Node, origin: Vector3) -> void:
 		fade.tween_property(shard, "scale", Vector3.ONE * 0.2, 0.42) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		fade.tween_property(material, "albedo_color:a", 0.0, 0.42)
-		fade.chain().tween_callback(shard.queue_free)
+		fade.chain().tween_callback(func() -> void:
+			if is_instance_valid(shard):
+				shard.queue_free())
 
 
 ## Flacher, dunkler Kreis auf Bodenhoehe, der NACH dem Feuer noch kurz
@@ -707,13 +727,24 @@ func _spawn_scorch(parent: Node, origin: Vector3) -> void:
 	parent.add_child(mark)
 	mark.global_position = origin + Vector3(0.0, 0.05, 0.0)
 	mark.scale = Vector3(0.3, 1.0, 0.3)
+	mark.process_mode = Node.PROCESS_MODE_ALWAYS
 
 	var tween := mark.create_tween()
 	tween.tween_property(mark, "scale", Vector3(1.0, 1.0, 1.0), 0.20) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_interval(maxf(scorch_lifetime - 0.6, 0.0))
 	tween.tween_property(material, "albedo_color:a", 0.0, 0.40)
-	tween.tween_callback(mark.queue_free)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(mark):
+			mark.queue_free())
+
+	# Notfall-Netz: bleibt der Tween aus irgendeinem Grund haengen (z.B.
+	# Fehler mitten in der Kette), sorgt dieser unabhaengige Timer trotzdem
+	# dafuer, dass der Brandfleck nicht dauerhaft auf dem Boden liegen bleibt.
+	var failsafe: SceneTreeTimer = get_tree().create_timer(scorch_lifetime + 1.0, true, false, true)
+	failsafe.timeout.connect(func() -> void:
+		if is_instance_valid(mark):
+			mark.queue_free())
 
 
 func _make_flash_material(color: Color) -> StandardMaterial3D:

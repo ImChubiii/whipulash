@@ -2,20 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bi4c8i3srmgs5"
-path="res://.godot/imported/rough-checked-texture-collage.jpg-f0162b3fb5df961ff7cc9f9c1ac6beb9.ctex"
+uid="uid://ctppwe73yg1xg"
+path.s3tc="res://.godot/imported/180efe57-cfaf-4517-8033-2c0fda4877c6.jpg-0782461ac7d10838eff07d0d7fade94c.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
-source_file="res://textures/rough-checked-texture-collage.jpg"
-dest_files=["res://.godot/imported/rough-checked-texture-collage.jpg-f0162b3fb5df961ff7cc9f9c1ac6beb9.ctex"]
+source_file="res://assets/textures/environment/180efe57-cfaf-4517-8033-2c0fda4877c6.jpg"
+dest_files=["res://.godot/imported/180efe57-cfaf-4517-8033-2c0fda4877c6.jpg-0782461ac7d10838eff07d0d7fade94c.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -23,7 +24,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -37,4 +38,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

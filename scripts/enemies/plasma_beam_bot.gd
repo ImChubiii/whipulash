@@ -32,7 +32,7 @@ var _state: State = State.DRIFT
 var _timer: float = 0.0
 var _clear_check_timer: float = 0.0
 var _charge_light: OmniLight3D = null
-var _beam_mesh: MeshInstance3D = null
+var _ground_beam: Dictionary = {}
 var _vertical_beam: Dictionary = {}
 var _beam_start: Vector3 = Vector3.ZERO
 var _beam_end: Vector3 = Vector3.ZERO
@@ -88,7 +88,9 @@ func _physics_process(delta: float) -> void:
 ## Klassenkommentar oben und shield_drone.gd::_despawn_if_room_clear(),
 ## identisches Prinzip).
 func _despawn_if_room_clear() -> void:
-	for node: Node in get_tree().get_nodes_in_group("enemies"):
+	for node: Node in _room_scoped_enemies():
+		if not is_instance_valid(node):
+			continue
 		if node == self or not (node is Node3D):
 			continue
 		if node is ShieldDrone or node is PlasmaBeamBot:
@@ -134,12 +136,16 @@ func _do_charge(delta: float) -> void:
 	_beam_elapsed = 0.0
 	_beam_tick_timer = 0.0
 
-	_beam_mesh = MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(beam_width, 0.08, 0.6)
-	_beam_mesh.mesh = box
-	_beam_mesh.material_override = _make_unshaded_material(BEAM_COLOR, 2.0)
-	get_tree().current_scene.add_child(_beam_mesh)
+	# BUGFIX/Rueckmeldung "sieht nicht wie ein Laser aus, nur Rechtecke":
+	# vorher ein einzelnes 0.6 Einheiten LANGES Box-Mesh, das jeden Frame an
+	# die aktuelle Position teleportiert wurde - auf dem Bildschirm ein
+	# huepfendes Kaestchen statt eines Strahls. _create_beam_visual() (Kern +
+	# Glow + Puls, siehe custom_enemy_base.gd) zieht sich jetzt von
+	# _beam_start bis zur aktuellen Sweep-Position - eine durchgehende,
+	# WACHSENDE Laserlinie statt eines wandernden Rechtecks. radius_scale
+	# skaliert die Breite auf beam_width, damit die Optik zur tatsaechlichen
+	# Trefferbreite in _tick_damage() passt.
+	_ground_beam = _create_beam_visual(BEAM_COLOR, maxf(beam_width / 0.6, 1.0))
 
 	# Verbindet den Bot sichtbar mit dem Bodenfleck - ohne diesen Strahl
 	# wirkt der wandernde Fleck wie eine eigenstaendige Falle statt wie ein
@@ -159,10 +165,7 @@ func _do_fire(delta: float) -> void:
 	var t: float = clampf(_beam_elapsed / maxf(beam_duration, 0.01), 0.0, 1.0)
 	var point: Vector3 = _beam_start.lerp(_beam_end, t)
 
-	if _beam_mesh != null and is_instance_valid(_beam_mesh):
-		_beam_mesh.global_position = point + Vector3.UP * 0.1
-		_beam_mesh.look_at(point + (_beam_end - _beam_start), Vector3.UP)
-
+	_update_beam_visual(_ground_beam, _beam_start, point, delta)
 	_update_beam_visual(_vertical_beam, global_position, point, delta)
 
 	_beam_tick_timer -= delta
@@ -191,9 +194,8 @@ func _tick_damage(point: Vector3) -> void:
 
 
 func _end_beam() -> void:
-	if _beam_mesh != null and is_instance_valid(_beam_mesh):
-		_beam_mesh.queue_free()
-	_beam_mesh = null
+	_free_beam_visual(_ground_beam)
+	_ground_beam = {}
 	_free_beam_visual(_vertical_beam)
 	_vertical_beam = {}
 	_state = State.COOLDOWN
@@ -209,6 +211,13 @@ func _do_cooldown(delta: float) -> void:
 		_timer = randf_range(0.5, 1.5)
 
 
+## Oeffentlich fuer PlasmaDarknessOverlay (scripts/ui/plasma_darkness_overlay.gd):
+## waehrend Aufladen+Feuern soll der Bildschirm in der Naehe stark abdunkeln,
+## damit ein Abgrund in Reichweite nicht mehr sicher zu sehen ist.
+func is_beam_active() -> bool:
+	return _state == State.CHARGE or _state == State.FIRE
+
+
 func _find_facing_toward(target_pos: Vector3) -> Vector3:
 	var dir: Vector3 = target_pos - global_position
 	dir.y = 0.0
@@ -218,8 +227,7 @@ func _find_facing_toward(target_pos: Vector3) -> Vector3:
 
 
 func _cleanup_effects() -> void:
-	if _beam_mesh != null and is_instance_valid(_beam_mesh):
-		_beam_mesh.queue_free()
-	_beam_mesh = null
+	_free_beam_visual(_ground_beam)
+	_ground_beam = {}
 	_free_beam_visual(_vertical_beam)
 	_vertical_beam = {}

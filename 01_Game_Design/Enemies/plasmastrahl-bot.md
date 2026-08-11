@@ -13,11 +13,19 @@ tags: [enemy, "enemy/sandbox"]
 
 > Flieger · Fernkampf (Flaechenlaser), kein Pflicht-Kill
 
-**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
-[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
-[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
-Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
-[[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
+**Jetzt im Threat-Budget:** `threat_cost = 10`, `weight = 1.0` (bewusst niedrig
+statt mittel gesetzt — dazu unten mehr), `max_per_room = 1`, siehe
+`resources/enemies/es_plasma_beam_bot.tres` und [[level_generator]].
+Weiterhin auch einzeln ueber [[enemy_sandbox_room]] (Debug-Teleporter)
+testbar. Baut wie alle sechs neuen Typen auf [[custom_enemy_base]] statt auf
+`enemy_ai.gd` auf.
+
+Balancing-Hinweis: der urspruenglich vorgeschlagene Sichtblockade-Effekt
+("man sieht den Abgrund gar nicht mehr") wurde bewusst als starke
+Vignette/Nebel statt Komplett-Blackout umgesetzt — ein voller Blackout neben
+einem Abgrund waere ein Tod ohne Gegenspiel, kein faires Risiko. Weight aus
+demselben Grund von "mittel" auf "niedrig" reduziert, damit die seltenste/
+gefaehrlichste Mechanik auch tatsaechlich selten bleibt.
 
 ## Mechanik
 

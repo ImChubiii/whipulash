@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://clkpkvxk2ioi5"]
 
 [ext_resource type="Script" uid="uid://ckroiydokysuy" path="res://scripts/spawn_tutorial_hologram.gd" id="2_28lom"]
-[ext_resource type="Texture2D" uid="uid://dwjky0ikl4fnq" path="res://textures/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg" id="3_28lom"]
+[ext_resource type="Texture2D" uid="uid://dwjky0ikl4fnq" path="res://assets/textures/environment/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg" id="3_28lom"]
 [ext_resource type="Script" uid="uid://coe3fhp5dv6qb" path="res://scenes/level_generation/door.gd" id="door_script"]
 [ext_resource type="Material" uid="uid://dq7ypxvjbo36p" path="res://materials/psx_material.tres" id="mat"]
 [ext_resource type="Script" uid="uid://0am35ym4bq0" path="res://scenes/level_generation/room_instance.gd" id="room_script"]

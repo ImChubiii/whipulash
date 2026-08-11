@@ -4,11 +4,12 @@ tags: [moc, rooms]
 
 # MOC — Raeume nach Typ
 
-26 Raum-Templates insgesamt.
+28 Raum-Templates insgesamt.
 
-### BOSS (1)
+### BOSS (2)
 
 - [[boss_01]]
+- [[boss_02]]
 
 ### COMBAT (15)
 
@@ -28,7 +29,7 @@ tags: [moc, rooms]
 - [[combat_tall_01]]
 - [[combat_wide_01]]
 
-### CORRIDOR (6)
+### CORRIDOR (7)
 
 - [[corridor_01]]
 - [[corridor_02]]
@@ -36,6 +37,7 @@ tags: [moc, rooms]
 - [[corridor_abyss_01]]
 - [[corridor_abyss_02]]
 - [[corridor_abyss_03]]
+- [[corridor_pillars_01]]
 
 ### START (1)
 

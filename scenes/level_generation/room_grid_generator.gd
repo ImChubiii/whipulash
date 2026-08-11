@@ -121,7 +121,7 @@ class RoomCell:
 
 ## Chance, dass ein Tresorraum als Sackgasse DIREKT am Startraum (0,0)
 ## platziert wird, statt wie sonst am weitesten entfernten passenden Punkt.
-@export_range(0.0, 1.0) var treasure_start_adjacent_chance: float = 0.35
+@export_range(0.0, 1.0) var treasure_start_adjacent_chance: float = 0.2
 
 ## Wie viele Tresorraeume pro Etage reserviert werden.
 @export var treasure_room_count: int = 2
