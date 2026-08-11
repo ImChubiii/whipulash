@@ -150,13 +150,20 @@ signal exploded(position: Vector3)
 @export var debris_count: int = 14
 @export var debris_size: float = 0.45
 
-## Dunkler Brandfleck, der nach dem Feuer kurz stehenbleibt. Ohne ihn ist
-## eine halbe Sekunde nach der Explosion nicht mehr zu sehen, dass an der
-## Stelle ueberhaupt etwas passiert ist.
+## Dunkler Brandfleck, der nach dem Feuer dauerhaft liegen bleibt (siehe
+## _spawn_scorch()) statt nach kurzer Zeit auszublenden.
 @export var scorch_enabled: bool = true
-@export var scorch_lifetime: float = 1.6
 
 @export var debug_logging: bool = false
+
+## Insgesamt maximal erlaubte Brandflecken IM GANZEN LAUF, nicht pro Bombe -
+## bleiben sie dauerhaft liegen, braucht es trotzdem eine Obergrenze, sonst
+## waechst die Mesh-Anzahl bei genug geworfenen Bomben unbegrenzt (gleiches
+## Muster wie MAX_RUBBLE_ROCKS in dive_bomber.gd). "static", weil Brandflecken
+## ueber viele verschiedene Bomben-Instanzen hinweg gezaehlt werden - jede
+## Bombe ist ihr eigener, kurzlebiger Node.
+const MAX_SCORCH_MARKS: int = 40
+static var _scorch_marks: Array[MeshInstance3D] = []
 
 var _fuse_remaining: float = 0.0
 var _exploded: bool = false
@@ -696,8 +703,9 @@ func _spawn_debris(parent: Node, origin: Vector3) -> void:
 				shard.queue_free())
 
 
-## Flacher, dunkler Kreis auf Bodenhoehe, der NACH dem Feuer noch kurz
-## stehenbleibt und dann ausblendet.
+## Flacher, dunkler Kreis auf Bodenhoehe, der NACH dem Feuer dauerhaft liegen
+## bleibt (siehe MAX_SCORCH_MARKS oben fuer die Obergrenze ueber den ganzen
+## Lauf).
 ##
 ## Wird als ERSTES gespawnt, damit er unter allen anderen Ebenen liegt.
 ## Er benutzt bewusst KEIN additives Blending (im Gegensatz zu allen
@@ -732,19 +740,16 @@ func _spawn_scorch(parent: Node, origin: Vector3) -> void:
 	var tween := mark.create_tween()
 	tween.tween_property(mark, "scale", Vector3(1.0, 1.0, 1.0), 0.20) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_interval(maxf(scorch_lifetime - 0.6, 0.0))
-	tween.tween_property(material, "albedo_color:a", 0.0, 0.40)
-	tween.tween_callback(func() -> void:
-		if is_instance_valid(mark):
-			mark.queue_free())
 
-	# Notfall-Netz: bleibt der Tween aus irgendeinem Grund haengen (z.B.
-	# Fehler mitten in der Kette), sorgt dieser unabhaengige Timer trotzdem
-	# dafuer, dass der Brandfleck nicht dauerhaft auf dem Boden liegen bleibt.
-	var failsafe: SceneTreeTimer = get_tree().create_timer(scorch_lifetime + 1.0, true, false, true)
-	failsafe.timeout.connect(func() -> void:
-		if is_instance_valid(mark):
-			mark.queue_free())
+	# Aelteste Brandflecken zuerst raeumen, sobald das Kontingent ueber den
+	# GANZEN Lauf ausgeschoepft ist - nicht per Lebensdauer, siehe Kopfkommentar.
+	# Ungueltige Eintraege (z.B. von einem abgebrochenen vorherigen Lauf nach
+	# reload_current_scene()) werden dabei einfach uebersprungen statt gezaehlt.
+	_scorch_marks.append(mark)
+	while _scorch_marks.size() > MAX_SCORCH_MARKS:
+		var oldest: MeshInstance3D = _scorch_marks.pop_front()
+		if is_instance_valid(oldest):
+			oldest.queue_free()
 
 
 func _make_flash_material(color: Color) -> StandardMaterial3D:

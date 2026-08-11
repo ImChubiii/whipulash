@@ -36,6 +36,10 @@ var grounded_stun_time: float = 5.0
 var recover_speed: float = 10.0
 var detect_range: float = 40.0
 
+## Optisch (und, ueber die Kollisionsbox, auch spielerisch) groesser - reine
+## Groessenanpassung, siehe visual_root.scale unten.
+const VISUAL_SCALE: float = 1.5
+
 var _state: State = State.HOVER
 var _bob_phase: float = 0.0
 var _timer: float = 0.0
@@ -43,6 +47,19 @@ var _dive_target: Vector3 = Vector3.ZERO
 var _lock_marker: MeshInstance3D = null
 var _visual_body: MeshInstance3D = null
 var _rubble: Array[Node3D] = []
+
+## Feste Ziel-Hoehe fuer den RECOVER-Zustand, EINMALIG beim Verlassen von
+## GROUNDED gesetzt statt bei jedem _do_recover()-Aufruf neu berechnet.
+##
+## BUGFIX "Divebomber stuerzt in den Boden, steigt dann auf und kommt nie
+## wieder runter": target_y wurde vorher JEDEN Frame frisch aus der
+## AKTUELLEN global_position.y berechnet (target_y = aktuelle Hoehe +
+## hover_height * 0.5). Damit war target_y immer um denselben Betrag ueber
+## der aktuellen Position - move_toward kam der Zielhoehe also nie naeher
+## (der "Abstand" wurde ja jeden Frame neu auf denselben Wert zurueckgesetzt),
+## der Bomber stieg dadurch unbegrenzt weiter, statt jemals in den HOVER-
+## Zustand zurueckzuwechseln.
+var _recover_target_y: float = 0.0
 
 
 func _configure() -> void:
@@ -52,7 +69,8 @@ func _configure() -> void:
 
 func _build() -> void:
 	_build_visual()
-	_add_box_collision(Vector3(1.6, 1.0, 1.6))
+	visual_root.scale = Vector3.ONE * VISUAL_SCALE
+	_add_box_collision(Vector3(1.6, 1.0, 1.6) * VISUAL_SCALE)
 	_bob_phase = randf() * TAU
 	_timer = dash_interval * randf_range(0.4, 1.0)
 
@@ -250,14 +268,14 @@ func _do_grounded(delta: float) -> void:
 	_timer -= delta
 	if _timer <= 0.0:
 		_state = State.RECOVER
+		_recover_target_y = global_position.y + hover_height * 0.5
 		if _visual_body:
 			_visual_body.rotation.x = 0.0
 
 
 func _do_recover(delta: float) -> void:
-	var target_y: float = global_position.y + hover_height * 0.5
-	global_position.y = move_toward(global_position.y, target_y, recover_speed * delta)
-	if global_position.y >= target_y - 0.1:
+	global_position.y = move_toward(global_position.y, _recover_target_y, recover_speed * delta)
+	if global_position.y >= _recover_target_y - 0.1:
 		_state = State.HOVER
 		_timer = dash_interval
 

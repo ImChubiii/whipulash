@@ -46,6 +46,12 @@ size = Vector3(0.8, 10, 10)
 [sub_resource type="BoxShape3D" id="bs7"]
 size = Vector3(0.8, 10, 10)
 
+[sub_resource type="BoxMesh" id="pillar_mesh"]
+size = Vector3(3.0, 10.0, 3.0)
+
+[sub_resource type="BoxShape3D" id="pillar_shape"]
+size = Vector3(3.0, 10.0, 3.0)
+
 [node name="RoomRoot" type="Node3D"]
 script = ExtResource("room_script")
 room_footprint = Vector2(48, 48)
@@ -160,6 +166,48 @@ surface_material_override/0 = ExtResource("mat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="WallCrossZ"]
 shape = SubResource("bs5")
+
+[node name="Pillars" type="Node3D" parent="."]
+
+[node name="Pillar1" type="StaticBody3D" parent="Pillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.0, 5.0, -12.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillars/Pillar1"]
+mesh = SubResource("pillar_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillars/Pillar1"]
+shape = SubResource("pillar_shape")
+
+[node name="Pillar2" type="StaticBody3D" parent="Pillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0, 5.0, -12.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillars/Pillar2"]
+mesh = SubResource("pillar_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillars/Pillar2"]
+shape = SubResource("pillar_shape")
+
+[node name="Pillar3" type="StaticBody3D" parent="Pillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.0, 5.0, 12.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillars/Pillar3"]
+mesh = SubResource("pillar_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillars/Pillar3"]
+shape = SubResource("pillar_shape")
+
+[node name="Pillar4" type="StaticBody3D" parent="Pillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0, 5.0, 12.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pillars/Pillar4"]
+mesh = SubResource("pillar_mesh")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillars/Pillar4"]
+shape = SubResource("pillar_shape")
 
 [node name="Doors" type="Node3D" parent="."]
 

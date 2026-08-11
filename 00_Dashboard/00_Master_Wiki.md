@@ -16,9 +16,8 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
   - Items (84) — [[_MOC_Items|nach Kategorie/Rarity/Kind]]
   - Enemies (3 Threat-Budget + 6 Sandbox-Prototypen)
     — [[_MOC_Enemies|nach Tier/Rolle]]
-  - Rooms (26) — [[_MOC_Rooms|nach Typ]]
+  - Rooms (34) — [[_MOC_Rooms|nach Typ]]
   - Status Effects (10) — [[_MOC_Status_Effects|nach Klasse]]
-  - Hazards — [[lemonade|Lemonade]]
 - Tech Architecture
   - [[party_manager]]
   - [[level_generator]]
@@ -26,7 +25,7 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
   - [[status_effect_manager]]
   - [[custom_enemy_base]] — Unterbau der sechs Sandbox-Prototypen
   - [[enemy_sandbox_room]] — Debug-Spawnraum fuer alle Gegnertypen
-- DevLogs (74 Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
+- DevLogs (77 Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
 - Templates: [[tpl_Item]] · [[tpl_Enemy]] · [[tpl_Room]] · [[tpl_StatusEffect]]
 
 Jede Item-/Gegner-/Raum-/Status-Effekt-/Architektur-Notiz hat unten einen
@@ -68,12 +67,7 @@ WHERE tier = "levelgen" OR !tier
 SORT threat_cost ASC
 ```
 
-### Sandbox-Prototypen (`custom_enemy_base.gd`, jetzt auch im Threat-Budget)
-
-Alle sechs sind seit der Budget-Integration zusaetzlich ueber
-`level_generation_test.tscn::enemy_table` normal spawnbar (siehe
-`resources/enemies/es_*.tres` fuer threat_cost/weight/max_per_room), bleiben
-aber weiterhin einzeln ueber [[enemy_sandbox_room]] testbar.
+### Sandbox-Prototypen (`custom_enemy_base.gd`, noch nicht im Threat-Budget)
 
 ```dataview
 TABLE role AS "Rolle", base_hp AS "HP"
@@ -126,5 +120,5 @@ SORT date DESC
 LIMIT 20
 ```
 
-Nur die juengsten 20 — [[_MOC_DevLogs]] listet wirklich **alle** 74
+Nur die juengsten 20 — [[_MOC_DevLogs]] listet wirklich **alle** 77
 Commits, nach Monat gruppiert.

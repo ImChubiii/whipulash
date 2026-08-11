@@ -13,15 +13,11 @@ tags: [enemy, "enemy/sandbox"]
 
 > Flieger · Nahkampf-Sturzangriff (Rhythmus-Timing)
 
-**Jetzt im Threat-Budget:** `threat_cost = 2`, `weight = 3.0` (hoch — guenstiges
-Fuellmaterial), `max_per_room = 8`, siehe `resources/enemies/es_divebomber.tres`
-und [[level_generator]]. Weiterhin auch einzeln ueber
-[[enemy_sandbox_room]] (Debug-Teleporter) testbar. Baut wie alle sechs neuen
-Typen auf [[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
-
-Balancing-Hinweis: bei hoher Stueckzahl (bis zu 8/Raum) koennen mehrere
-unabhaengige Sturz-Timer zufaellig zusammenfallen und mehrere Treffer
-gleichzeitig landen — akzeptables Risiko fuer Fuellmaterial, aber beobachten.
+**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
+[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
+[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
+Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
+[[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
 
 ## Mechanik
 

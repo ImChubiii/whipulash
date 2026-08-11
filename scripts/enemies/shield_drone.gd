@@ -18,6 +18,7 @@ class_name ShieldDrone
 # reiner Support, kein Ziel im eigentlichen Sinn. Wird der Raum trotzdem
 # leergeraeumt (alle "echten" Gegner tot), verschwindet sie von selbst.
 
+const VISUAL_SCALE: float = 1.5
 const MAX_SHIELDED: int = 3
 const RESCAN_INTERVAL: float = 1.0
 const SHIELD_REFRESH_INTERVAL: float = 0.5
@@ -48,7 +49,8 @@ func _configure() -> void:
 
 func _build() -> void:
 	_build_visual()
-	_add_box_collision(Vector3(1.2, 1.0, 1.2))
+	visual_root.scale = Vector3.ONE * VISUAL_SCALE
+	_add_box_collision(Vector3(1.2, 1.0, 1.2) * VISUAL_SCALE)
 	_angle = randf() * TAU
 
 

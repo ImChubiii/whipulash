@@ -52,6 +52,11 @@ mitschuetzen, wenn man sie in eine Pfuetze lockt).
   05/06`) und in den Parkour-Korridoren [[corridor_abyss_01]],
   [[corridor_abyss_02]], [[corridor_abyss_03]] — dort per
   [[pit_floor|PitFloor]] automatisch zu POOL-Gruben umgebaut.
+- [[combat_lemonade_01]] / [[combat_lemonade_02]] — SURFACE-Instanzen mit
+  `size.y` auf volle Raumhoehe gestreckt statt einer flachen Pfuetze:
+  duenne, bodentiefe Saeulen zwischen Pfeilern, die wie fliessende Lemonade
+  wirken sollen ("Wasserfall"-Optik). Jede Saeule hat ein begleitendes
+  `NavigationObstacle3D`, damit Gegner nicht hindurchpathen.
 - [[saeure-sprinkler|Saeure-Sprinkler]] nutzt dasselbe Area3D-Prinzip fuer
   seine geworfenen Saeure-Pfuetzen (siehe `item_behaviours.gd`).
 - Items wie "Mamas Stoeckelschuhe" ([[acid_boots]]) legen eigene

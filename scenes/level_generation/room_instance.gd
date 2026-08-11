@@ -208,6 +208,37 @@ var ceiling_texture: Texture2D = null
 ## sieht dann genauso aus, wie er sich verhaelt.
 @export var seal_unused_exits: bool = true
 
+## Wie weit die zugemauerte Wand (_seal_exit()) seitlich in die
+## angrenzenden Wall*_A/B-Segmente hineinragt. Ohne Ueberlappung stossen
+## beide Flaechen exakt auf derselben Koordinate aneinander (leaf.x/leaf.z
+## kommt aus dem Tuerblatt, die Nachbarwaende sind unabhaengig davon von
+## Hand in der .tscn platziert) - kleinste Rundungsfehler reichen dann fuer
+## Z-Fighting an der Fuge. Ein winziges Ueberlappen zweier undurchsichtiger,
+## gleich texturierter Waende faellt dagegen nicht auf.
+@export var wall_seal_overlap: float = 0.02
+
+## --- Deko-Requisiten (Kisten/Fässer/etc.) -------------------------------
+## Streut ein paar Requisiten aus dem "fps_dungeon_extras"-Asset-Pack an
+## Waenden/Ecken, damit ein Raum nicht wie eine leere Box wirkt. Rein
+## optisch - KEINE eigene Kollision, um Nav-Mesh-Bake und bestehende
+## Bewegungs-/Pfadfindungslogik nicht anzufassen. NICHT seed-deterministisch
+## (im Gegensatz zu Loot/Gegner-Spawns, siehe loot_manager.gd): _ready()
+## laeuft VOR set_spawn_seed() (das ruft der Generator separat NACH dem
+## Instanziieren auf), waere zu diesem Zeitpunkt also ungueltig - reine
+## Deko braucht die Reproduzierbarkeit ohnehin nicht.
+@export var build_props: bool = true
+## Wie viele Requisiten-HAUFEN (siehe PROP_CLUSTER_MIN/MAX, je 2-5
+## Requisiten) pro (48x48-)Bodenflaeche versucht werden - groessere
+## Multi-Zellen-Raeume bekommen automatisch proportional mehr, siehe
+## _build_props(). Angehoben (Rueckmeldung "viel mehr Props"): bei
+## durchschnittlich ~3.5 Requisiten/Haufen macht 10.0 hier ~35 Requisiten
+## in einem Standard-48x48-Raum.
+@export var prop_density: float = 10.0
+## Mindestabstand einer Requisite zu Tueren/Pfeilern/Gegner-Spawnpunkten,
+## damit nichts optisch mit ihnen ueberlappt oder eine Tuer verdeckt.
+@export var prop_clearance: float = 3.5
+@export var prop_wall_inset: float = 2.2
+
 ## --- Rampen / Hoehenunterschiede --------------------------------------
 ## Dicke des Rampen-Keils UNTER seiner Lauf-Flaeche. Frueher fest 1.0 -
 ## darunter klaffte bis zu "rise" Meter Leere. Ein Gegner, der auf der Rampe
@@ -254,6 +285,11 @@ var enemy_health_multiplier: float = 1.0
 var enemy_damage_multiplier: float = 1.0
 
 var grid_position: Vector2i = Vector2i.ZERO
+
+## Von configure_slope() gesetzt, sobald dieser Raum eine Rampe bekommt -
+## siehe dortigen Kopfkommentar sowie prepare_enemies() (schliesst
+## stationaere Gegnertypen aus).
+var _has_slope: bool = false
 
 var enemy_spawn_points: Array[Marker3D] = []
 var loot_spawn_points: Array[Marker3D] = []
@@ -434,6 +470,8 @@ func _ready() -> void:
 		_build_wall_caps()
 	if build_room_lights:
 		_build_room_lights()
+	if build_props:
+		_build_props()
 
 
 func _exit_tree() -> void:
@@ -551,6 +589,308 @@ func _build_room_lights() -> void:
 			container.add_child(light)
 
 
+const PROPS_SCENE: PackedScene = preload("res://assets/environments/fps_dungeon_extras/scene.gltf")
+const PROP_SHADER: Shader = preload("res://shaders/psx.gdshader")
+## Nur STANDALONE Requisiten aus dem Pack - "cratepieces"/"piece*"/"lock"/
+## "lower" sind Bruchstuecke bzw. Unterteile anderer Objekte, "LMGshell"/
+## "grenadiershell" sind Munitionshuelsen (zu klein/unauffaellig als
+## Raumdeko).
+const PROP_NAMES: PackedStringArray = [
+	"crate", "crate_1", "barrel", "barrelbroken", "chest", "ammobox", "healthbox", "chair",
+]
+
+## Wie viele Requisiten an JEDEM Ablageplatz zusammen abgestellt werden -
+## Rueckmeldung: einzelne, weit verstreute Objekte wirken wie zufaellig
+## verlorener Kram statt wie absichtlich abgestellte Haufen.
+const PROP_CLUSTER_MIN: int = 2
+const PROP_CLUSTER_MAX: int = 5
+## Wie weit die einzelnen Requisiten eines Haufens vom Ablageplatz-Zentrum
+## abweichen koennen - genug Spielraum, dass die Ueberlappungs-Vermeidung
+## unten (_find_cluster_offset()) auch fuer 5 Objekte noch Platz findet.
+const PROP_CLUSTER_SPREAD: float = 2.0
+## Mindestabstand (zusaetzlich zu den beiden Footprint-Radien) zwischen
+## zwei Requisiten IM SELBEN Haufen, damit sich ihre Meshes nicht sichtbar
+## durchdringen.
+const PROP_OVERLAP_MARGIN: float = 0.15
+## Rejection-Sampling-Versuche pro Requisite, bevor die zuletzt geprobte
+## (moeglicherweise noch leicht ueberlappende) Position trotzdem genommen
+## wird - lieber selten mal knapp ueberlappend als eine Endlosschleife bei
+## einem vollen Haufen.
+const PROP_PLACEMENT_ATTEMPTS: int = 12
+## Zusaetzlicher Sicherheitsabstand NUR zu Tueren, oben auf prop_clearance.
+## Ein Haufen breitet sich nach dem Platzieren noch bis zu
+## PROP_CLUSTER_SPREAD nach aussen aus - der Ablageplatz selbst braucht
+## deshalb mehr Puffer zur Tuer als zu einem Pfeiler/Spawnpunkt, sonst
+## landet ein einzelnes Objekt am Rand des Haufens trotzdem noch davor.
+const PROP_DOOR_CLEARANCE_BONUS: float = 3.0
+
+## Streut Requisiten-Haufen entlang der Waende, mit Abstand zu Tueren/
+## Pfeilern/Gegner-Spawnpunkten. Rein optisch, siehe build_props-Kommentar
+## oben.
+func _build_props() -> void:
+	if get_node_or_null("Props") != null:
+		return
+
+	var candidates: Array[Vector3] = _collect_prop_candidates()
+	if candidates.is_empty():
+		return
+	candidates.shuffle()
+
+	# Groessere (Multi-Zellen-)Raeume bekommen proportional mehr Haufen statt
+	# derselben festen Anzahl wie ein 1x1-Raum.
+	var area_factor: float = (room_footprint.x * room_footprint.y) / (48.0 * 48.0)
+	var cluster_count: int = clampi(int(round(prop_density * area_factor)), 0, candidates.size())
+	if cluster_count <= 0:
+		return
+
+	var container := Node3D.new()
+	container.name = "Props"
+	add_child(container)
+
+	var placed: Array[Vector3] = []
+	for pos: Vector3 in candidates:
+		if placed.size() >= cluster_count:
+			break
+		var too_close: bool = false
+		for other: Vector3 in placed:
+			if pos.distance_to(other) < prop_clearance:
+				too_close = true
+				break
+		if too_close:
+			continue
+
+		_build_prop_cluster(container, pos)
+		placed.append(pos)
+
+
+## Stellt PROP_CLUSTER_MIN..MAX Requisiten dicht beieinander um "center" auf
+## - per Rejection-Sampling (_find_cluster_offset()) so platziert, dass sich
+## ihre Meshes nicht gegenseitig durchdringen (Rueckmeldung: "duerfen in
+## Haufen stehen, aber nicht kollidieren").
+func _build_prop_cluster(container: Node3D, center: Vector3) -> void:
+	var count: int = randi_range(PROP_CLUSTER_MIN, PROP_CLUSTER_MAX)
+	# Array[Dictionary{offset: Vector3, radius: float}] - bereits platzierte
+	# Requisiten DIESES Haufens, fuer die Abstandspruefung der naechsten.
+	var placed_in_cluster: Array = []
+	for i: int in range(count):
+		var prop: Node3D = _instance_random_prop(container)
+		if prop == null:
+			continue
+		var local_aabb: AABB = _prop_local_aabb(prop)
+		var radius: float = _prop_footprint_radius(local_aabb, prop.scale)
+
+		var offset: Vector3 = Vector3.ZERO
+		if i > 0:
+			offset = _find_cluster_offset(placed_in_cluster, radius)
+		prop.position = center + offset
+		prop.rotation.y += randf() * TAU
+		_ground_prop(prop, center.y, local_aabb)
+		placed_in_cluster.append({"offset": offset, "radius": radius})
+
+
+## Sucht per Rejection-Sampling eine Position innerhalb PROP_CLUSTER_SPREAD
+## um das Haufen-Zentrum, die zu JEDER bereits platzierten Requisite dieses
+## Haufens mindestens "radius + deren radius + PROP_OVERLAP_MARGIN" Abstand
+## haelt. Nach PROP_PLACEMENT_ATTEMPTS erfolglosen Versuchen wird die
+## zuletzt geprobte Position trotzdem genommen (siehe Konstanten-Kommentar).
+func _find_cluster_offset(placed_in_cluster: Array, radius: float) -> Vector3:
+	var candidate := Vector3.ZERO
+	for attempt: int in range(PROP_PLACEMENT_ATTEMPTS):
+		var angle: float = randf() * TAU
+		var dist: float = randf_range(radius, PROP_CLUSTER_SPREAD + radius)
+		candidate = Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+
+		var overlaps: bool = false
+		for entry: Dictionary in placed_in_cluster:
+			var min_dist: float = radius + float(entry["radius"]) + PROP_OVERLAP_MARGIN
+			if candidate.distance_to(entry["offset"]) < min_dist:
+				overlaps = true
+				break
+		if not overlaps:
+			return candidate
+	return candidate
+
+
+## Kandidatenpunkte entlang aller vier Waende (Raster im Abstand
+## prop_clearance), abzueglich aller Punkte zu nah an Tueren (grosszuegigerer
+## PROP_DOOR_CLEARANCE_BONUS-Puffer, siehe dortiger Kommentar), Pfeilern
+## (Kind-Node "Pillars", falls vorhanden) oder Gegner-Spawnpunkten.
+func _collect_prop_candidates() -> Array[Vector3]:
+	var half_x: float = room_footprint.x * 0.5 - prop_wall_inset
+	var half_z: float = room_footprint.y * 0.5 - prop_wall_inset
+	if half_x <= 0.0 or half_z <= 0.0:
+		return []
+
+	var door_avoid: Array[Vector3] = []
+	for marker: Marker3D in exit_points.values():
+		if is_instance_valid(marker):
+			door_avoid.append(marker.position)
+
+	var other_avoid: Array[Vector3] = []
+	for marker: Marker3D in enemy_spawn_points:
+		if is_instance_valid(marker):
+			other_avoid.append(marker.position)
+	var pillars: Node = get_node_or_null("Pillars")
+	if pillars != null:
+		for child: Node in pillars.get_children():
+			if child is Node3D:
+				other_avoid.append((child as Node3D).position)
+
+	var raw: Array[Vector3] = []
+	var step: float = maxf(prop_clearance, 3.0)
+	var x: float = -half_x
+	while x <= half_x:
+		raw.append(Vector3(x, 0.0, -half_z))
+		raw.append(Vector3(x, 0.0, half_z))
+		x += step
+	var z: float = -half_z
+	while z <= half_z:
+		raw.append(Vector3(-half_x, 0.0, z))
+		raw.append(Vector3(half_x, 0.0, z))
+		z += step
+
+	var door_clearance: float = prop_clearance + PROP_DOOR_CLEARANCE_BONUS
+	var filtered: Array[Vector3] = []
+	for pos: Vector3 in raw:
+		var blocked: bool = false
+		for a: Vector3 in door_avoid:
+			var flat_a: Vector3 = a
+			flat_a.y = 0.0
+			if flat_a.distance_to(pos) < door_clearance:
+				blocked = true
+				break
+		if not blocked:
+			for a: Vector3 in other_avoid:
+				var flat_a: Vector3 = a
+				flat_a.y = 0.0
+				if flat_a.distance_to(pos) < prop_clearance:
+					blocked = true
+					break
+		if not blocked:
+			filtered.append(pos)
+	return filtered
+
+
+## Instanziiert das GESAMTE Asset-Pack-Scene (Sketchfab-Export mit vielen
+## Objekten in einer Datei), zieht sich per reparent() NUR den gewuenschten
+## Requisiten-Teilbaum heraus (keep_global_transform=true erhaelt dessen
+## Ausrichtung/Skalierung aus der Originaldatei) und wirft den Rest wieder
+## weg. root muss dafuer kurz selbst im Baum haengen - global_position/
+## reparent() liefern vor add_child() keine gueltigen Werte (siehe
+## _attach_to_world() in item_behaviours.gd fuer denselben Hinweis).
+## Der Asset-Pack ist offenbar in cm statt Godot-Metern modelliert -
+## keep_global_transform uebernimmt diese Originalskalierung 1:1, die
+## Requisiten kamen dadurch ~50x zu gross im Spiel an. Nachtraeglich mit
+## festem Faktor herunterskaliert statt die Ursache (Import-Settings der
+## .gltf) anzufassen, damit dieselbe Korrektur unabhaengig davon greift, ob
+## irgendwann noch weitere Objekte aus demselben Pack dazukommen.
+const PROP_IMPORT_SCALE: float = 1.0 / 50.0
+
+
+func _instance_random_prop(container: Node3D) -> Node3D:
+	var root: Node = PROPS_SCENE.instantiate()
+	container.add_child(root)
+
+	var prop_name: String = PROP_NAMES[randi() % PROP_NAMES.size()]
+	var found: Node = root.find_child(prop_name, true, false)
+	if found == null or not (found is Node3D):
+		root.queue_free()
+		return null
+
+	var prop := found as Node3D
+	prop.reparent(container, true)
+	root.queue_free()
+	prop.scale *= PROP_IMPORT_SCALE
+	_psxify_prop_materials(prop)
+	return prop
+
+
+## BUGFIX "Requisiten sind schwarz/texturlos": das importierte .gltf bringt
+## normale BELEUCHTETE StandardMaterial3D mit - dieselbe Situation wie bei
+## importierten Gegner-Modellen (siehe scripts/enemies/enemy_ai.gd, dort
+## exakt dasselbe Verfahren fuer .glb-Importe). In den dunklen Raumecken, in
+## denen Requisiten bevorzugt stehen (siehe prop_wall_inset), rendert ein
+## normal beleuchtetes Material praktisch schwarz, weil dieses Spiel fast
+## ausschliesslich mit dem gemeinsamen UNSHADED PSX-Shader arbeitet statt
+## mit Godots Beleuchtung. Fix: Albedo-Textur/-Farbe aus dem Original
+## uebernehmen, aber ueber denselben unshaded Shader wie der Rest des Spiels
+## rendern - dadurch immer voll sichtbar, unabhaengig vom Umgebungslicht.
+func _psxify_prop_materials(node: Node3D) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.mesh != null:
+			for surface: int in range(mi.mesh.get_surface_count()):
+				var source: Material = mi.get_surface_override_material(surface)
+				if source == null:
+					source = mi.get_active_material(surface)
+				var shader_mat := ShaderMaterial.new()
+				shader_mat.shader = PROP_SHADER
+				if source is BaseMaterial3D:
+					var base: BaseMaterial3D = source as BaseMaterial3D
+					if base.albedo_texture != null:
+						shader_mat.set_shader_parameter("albedo_texture", base.albedo_texture)
+					shader_mat.set_shader_parameter("albedo_color", base.albedo_color)
+				else:
+					shader_mat.set_shader_parameter("albedo_color", Color.WHITE)
+				mi.set_surface_override_material(surface, shader_mat)
+	for child: Node in node.get_children():
+		if child is Node3D:
+			_psxify_prop_materials(child as Node3D)
+
+
+## Kombinierte lokale AABB aller MeshInstance3D-Nachfahren von "prop" (VOR
+## prop.scale gemessen) - gemeinsame Grundlage fuer _ground_prop() (Y) und
+## _prop_footprint_radius() (X/Z), damit der Baum nur einmal pro Requisite
+## durchlaufen wird.
+func _prop_local_aabb(prop: Node3D) -> AABB:
+	var aabbs: Array = []
+	_collect_local_aabbs(prop, Transform3D.IDENTITY, aabbs)
+	if aabbs.is_empty():
+		return AABB()
+	var combined: AABB = aabbs[0]
+	for i: int in range(1, aabbs.size()):
+		combined = combined.merge(aabbs[i])
+	return combined
+
+
+## BUGFIX "Requisiten stecken zu tief im Boden": der Pivot/Ursprung
+## importierter Sketchfab-Objekte sitzt selten exakt an ihrer eigenen
+## Unterkante - eine simple "position.y = floor_y" liess sie deshalb je
+## nach Objekt unterschiedlich tief einsinken oder ueber dem Boden
+## schweben. Hebt/senkt "prop" exakt so weit, dass die tatsaechliche
+## Mesh-Unterkante (local_aabb, siehe _prop_local_aabb()) auf floor_y zu
+## liegen kommt.
+func _ground_prop(prop: Node3D, floor_y: float, local_aabb: AABB) -> void:
+	# local_aabb ist in prop-LOKALEN Einheiten (VOR prop.scale) gemessen. Nur
+	# eine Y-Rotation wird zusaetzlich angewendet (siehe _build_prop_cluster)
+	# - die aendert die Y-Ausdehnung nicht, "* prop.scale.y" reicht deshalb.
+	var lowest_y: float = local_aabb.position.y * prop.scale.y
+	prop.position.y = floor_y - lowest_y
+
+
+## Horizontaler "Sicherheitsradius" einer Requisite (Umkreis ihrer X/Z-
+## Bodenflaeche) - konservativ genug, dass er auch nach einer beliebigen
+## Y-Rotation nicht unterschaetzt wird (Diagonale statt Kantenlaenge).
+func _prop_footprint_radius(local_aabb: AABB, prop_scale: Vector3) -> float:
+	var half_x: float = local_aabb.size.x * 0.5 * prop_scale.x
+	var half_z: float = local_aabb.size.z * 0.5 * prop_scale.z
+	return sqrt(half_x * half_x + half_z * half_z)
+
+
+## Sammelt die lokalen AABBs aller MeshInstance3D-Nachfahren, jede
+## transformiert in den Koordinatenraum von "prop" (NICHT von prop selbst
+## mitverzerrt - xform startet bei IDENTITY und akkumuliert nur die
+## Kind-Transforms darunter).
+func _collect_local_aabbs(node: Node3D, xform: Transform3D, out: Array) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.mesh != null:
+			out.append(xform * mi.get_aabb())
+	for child: Node in node.get_children():
+		if child is Node3D:
+			_collect_local_aabbs(child as Node3D, xform * (child as Node3D).transform, out)
+
+
 ## Dupliziert das geteilte PSX-Shader-Material (NIEMALS die Original-
 ## Resource direkt benutzen - sonst faerbt das erste instanziierte
 ## Zimmer ALLE anderen Decken im Spiel mit ein) und faerbt es dunkel via
@@ -561,6 +901,12 @@ func _make_ceiling_material() -> Material:
 	if base is ShaderMaterial:
 		var mat: ShaderMaterial = (base as ShaderMaterial).duplicate()
 		mat.set_shader_parameter("albedo_color", ceiling_color)
+		# Weltraum-UV statt Mesh-UV (siehe psx.gdshader): haelt die
+		# Schachbrettkachel in Weltunits konstant, egal wie gross
+		# room_footprint fuer diesen Raum ist - sonst wuerde dasselbe
+		# PlaneMesh-UV (0..1 ueber die ganze Decke) das Muster in jedem
+		# unterschiedlich grossen Raum anders verzerren.
+		mat.set_shader_parameter("world_space_uv", true)
 		if ceiling_texture != null:
 			mat.set_shader_parameter("albedo_texture", ceiling_texture)
 		return mat
@@ -791,6 +1137,24 @@ func _disable_flat_floor() -> Material:
 func configure_slope(low_dir: String, rise: float) -> void:
 	if not _DIR_VECTOR.has(low_dir) or is_zero_approx(rise):
 		return
+
+	# BUGFIX "Stationaere Gegner/Requisiten schweben in Rampen-Raeumen":
+	# _build_props() laeuft in _ready(), lange bevor der Generator hier
+	# konfiguriert, ob der Raum ueberhaupt eine Rampe braucht - Requisiten
+	# wurden also auf einen flachen Boden bei y=0 gestellt, der es dann gar
+	# nicht mehr gibt. Stationaere Gegner (Moerser-Bot/Saeure-Sprinkler/
+	# Magnet-Kern rufen NIE move_and_slide() auf, siehe deren
+	# _physics_process()) korrigieren sich - anders als die beweglichen
+	# Threat-Budget-Gegner, fuer die _snap_markers_to_ground() unten sorgt -
+	# nach dem Spawn nie von selbst und bleiben dauerhaft auf der falschen
+	# Hoehe stehen. Einfachster robuster Fix statt einer erneuten
+	# Boden-Suche mitten in der Bauphase: Requisiten in Rampen-Raeumen ganz
+	# weglassen, stationaere Gegner aus der Spawn-Tabelle ausschliessen
+	# (siehe prepare_enemies()).
+	_has_slope = true
+	var stale_props: Node = get_node_or_null("Props")
+	if stale_props != null:
+		stale_props.queue_free()
 
 	var high_dir: String = _opposite(low_dir)
 	var axis: Vector3 = _DIR_VECTOR[high_dir]
@@ -1388,6 +1752,22 @@ func set_spawn_seed(seed_value: int) -> void:
 	_spawn_seed_set = true
 
 
+## Bewegen sich NIE (kein move_and_slide()/Positionsupdate in ihrem
+## _physics_process(), siehe mortar_bot.gd/acid_sprinkler.gd/
+## magnet_core.gd) - anders als die fliegenden Sandbox-Typen (die dem
+## Spieler jeden Frame nachfliegen und sich damit selbst korrigieren) oder
+## die urspruenglichen drei Threat-Budget-Gegner (bewegen sich per
+## move_and_slide(), fallen also per Physik-Depenetration auf den echten
+## Rampen-Boden). In Rampen-Raeumen bleiben sie deshalb dauerhaft auf der
+## Hoehe stehen, auf der ihr EnemySpawnPoints-Marker urspruenglich lag -
+## siehe configure_slope()/_has_slope, wo genau diese Raeume erkannt werden.
+const STATIONARY_ENEMY_SCENE_PATHS: PackedStringArray = [
+	"res://scenes/enemies/mortar_bot.tscn",
+	"res://scenes/enemies/acid_sprinkler.tscn",
+	"res://scenes/enemies/magnet_core.tscn",
+]
+
+
 func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage: int, is_boss_room: bool = false) -> void:
 	_pending_is_boss_room = is_boss_room
 	if not _spawn_seed_set:
@@ -1400,8 +1780,11 @@ func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage:
 	_pending_stage = stage
 	var usable: Array[EnemySpawnEntry] = []
 	for e in entries:
-		if e != null and e.is_allowed(stage, room_height):
-			usable.append(e)
+		if e == null or not e.is_allowed(stage, room_height):
+			continue
+		if _has_slope and e.scene != null and STATIONARY_ENEMY_SCENE_PATHS.has(e.scene.resource_path):
+			continue
+		usable.append(e)
 
 	if usable.is_empty() or enemy_spawn_points.is_empty() or threat_budget <= 0:
 		_is_cleared = true
@@ -1810,9 +2193,9 @@ func _seal_exit(dir: String) -> bool:
 
 	var box_size: Vector3
 	if leaf.x >= leaf.z:
-		box_size = Vector3(leaf.x, room_height, door_lintel_thickness)
+		box_size = Vector3(leaf.x + wall_seal_overlap * 2.0, room_height, door_lintel_thickness)
 	else:
-		box_size = Vector3(door_lintel_thickness, room_height, leaf.z)
+		box_size = Vector3(door_lintel_thickness, room_height, leaf.z + wall_seal_overlap * 2.0)
 
 	# Als DIREKTES Kind und mit "Wall"-Praefix, damit _build_wall_caps()
 	# die Wand findet und ihr eine Minimap-Kappe verpasst.

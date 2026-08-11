@@ -4,7 +4,7 @@
 
 [ext_resource type="Script" path="res://scenes/level_generation/room_instance.gd" id="room_script"]
 [ext_resource type="Script" path="res://scenes/level_generation/door.gd" id="door_script"]
-[ext_resource type="Material" path="res://materials/psx_material.tres" id="mat"]
+[ext_resource type="Material" path="res://materials/psx_material_boss.tres" id="mat"]
 [ext_resource type="PackedScene" uid="uid://dlj5htolv7pph" path="res://scenes/lemonade.tscn" id="lava"]
 [ext_resource type="Script" path="res://scripts/pit_floor.gd" id="pit_floor"]
 [ext_resource type="Script" path="res://scripts/vfx/torch.gd" id="torch_script"]
@@ -38,6 +38,12 @@ size = Vector3(0.8, 10.0, 10.0)
 
 [sub_resource type="BoxShape3D" id="bs5"]
 size = Vector3(0.8, 10.0, 10.0)
+
+[sub_resource type="BoxMesh" id="bm_dais"]
+size = Vector3(7.0, 1.5, 7.0)
+
+[sub_resource type="BoxShape3D" id="bs_dais"]
+size = Vector3(7.0, 1.5, 7.0)
 
 [node name="RoomRoot" type="Node3D"]
 script = ExtResource("room_script")
@@ -200,6 +206,16 @@ surface_material_override/0 = ExtResource("mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/DoorWest"]
 shape = SubResource("bs5")
 
+[node name="Dais" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.75, 0.0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Dais"]
+mesh = SubResource("bm_dais")
+surface_material_override/0 = ExtResource("mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dais"]
+shape = SubResource("bs_dais")
+
 [node name="Hazards" type="Node3D" parent="."]
 
 [node name="Lava1" parent="Hazards" instance=ExtResource("lava")]
@@ -293,7 +309,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.5, 0.0)
 [node name="LootSpawnPoints" type="Node3D" parent="."]
 
 [node name="Loot1" type="Marker3D" parent="LootSpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.5, 0.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.0, 0.0)
 
 [node name="Enemy9" type="Marker3D" parent="EnemySpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0, 0.5, -10.0)

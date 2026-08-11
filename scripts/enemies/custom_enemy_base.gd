@@ -328,13 +328,27 @@ func _add_box_collision(size: Vector3, offset: Vector3 = Vector3.ZERO) -> void:
 func _orient_beam_segment(node: Node3D, from: Vector3, to: Vector3) -> void:
 	var dist: float = from.distance_to(to)
 	node.global_position = from.lerp(to, 0.5)
-	node.scale = Vector3(1.0, maxf(dist, 0.01), 1.0)
+
+	# BUGFIX "Strahl sieht wie ein hochkantes Rechteck aus": Godots
+	# look_at() liest die aktuelle node.scale VOR der Rotation aus und legt
+	# sie danach unveraendert auf die (noch lokale, nicht neu ausgerichtete)
+	# Achsen um - stand die Laengen-Skalierung schon VOR look_at() auf der
+	# Y-Achse, landet sie dadurch auf der FALSCHEN Achse (der "Hoch"-Achse
+	# des Strahls statt seiner Laengsachse) und der duenne Zylinder wird
+	# quer zur Blickrichtung zu einer Ellipse/einem Rechteck aufgeblaeht,
+	# statt sich zwischen from/to zu strecken. Deshalb: Skalierung erst
+	# NACHDEM look_at() + die 90-Grad-Korrektur die endgueltige
+	# Ausrichtung stehen haben, direkt auf die dann korrekte Laengsachse
+	# (lokal Y) anwenden.
+	node.scale = Vector3.ONE
 	if dist <= 0.01:
+		node.scale = Vector3(1.0, 0.01, 1.0)
 		return
 	var dir: Vector3 = (to - from) / dist
 	var up_hint: Vector3 = Vector3.FORWARD if absf(dir.dot(Vector3.UP)) > 0.95 else Vector3.UP
 	node.look_at(to, up_hint)
 	node.rotate_object_local(Vector3.RIGHT, deg_to_rad(90.0))
+	node.scale = Vector3(1.0, dist, 1.0)
 
 
 ## Baut einen deutlich lesbaren Energiestrahl: duenner heller Kern + breiterer

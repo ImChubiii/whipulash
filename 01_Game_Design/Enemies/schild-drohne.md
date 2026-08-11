@@ -13,16 +13,11 @@ tags: [enemy, "enemy/sandbox"]
 
 > Flieger · Support, kein Pflicht-Kill (Schild-Buff)
 
-**Jetzt im Threat-Budget:** `threat_cost = 4`, `weight = 2.0`, `max_per_room = 2`
-(bewusst auf 2 statt 3 gedeckelt), siehe `resources/enemies/es_shield_drone.tres`
-und [[level_generator]]. Weiterhin auch einzeln ueber
-[[enemy_sandbox_room]] (Debug-Teleporter) testbar. Baut wie alle sechs neuen
-Typen auf [[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
-
-Balancing-Hinweis: der Kostenpunkt bildet nur die eigene HP/Praesenz ab, NICHT
-den Multiplikator-Effekt auf bis zu drei geschildete Verbuendete — eine
-zufaellige Paarung mit teuren Einheiten (Colossus) kann den Raum effektiv
-zaeher machen, als das Budget zeigt. Deshalb `max_per_room` niedrig gehalten.
+**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
+[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
+[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
+Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
+[[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
 
 ## Mechanik
 

@@ -1,16 +1,16 @@
 ---
-id: "corridor_pillars_01"
+id: "bridge_02"
 room_type: CORRIDOR
 footprint_cells: "1x1"
-available_exits: ["Norden", "Sueden"]
+available_exits: ["Norden", "Sueden", "Osten", "Westen"]
 spawn_weight: 1.0
 min_stage: 0
 unique_per_run: false
-scene_path: "scenes/rooms/corridor/room_corridor_pillars_01.tscn"
+scene_path: "scenes/rooms/corridor/room_bridge_02.tscn"
 tags: [room, "room/corridor"]
 ---
 
-# corridor_pillars_01
+# bridge_02
 
 ## Layout
 
@@ -18,7 +18,7 @@ tags: [room, "room/corridor"]
 |---|---|
 | Typ | CORRIDOR |
 | Grundflaeche | 1x1 Rasterzellen |
-| Tueren | Norden, Sueden |
+| Tueren | Norden, Sueden, Osten, Westen |
 | Ziehgewicht | 1.0 |
 | Min. Etage | 0 |
 | Einmalig pro Run | Nein |
@@ -31,4 +31,4 @@ tags: [room, "room/corridor"]
 
 ## Quelle
 
-`resources/rooms/rd_corridor_pillars_01.tres` → `scenes/rooms/corridor/room_corridor_pillars_01.tscn`
+`resources/rooms/rd_bridge_02.tres` → `scenes/rooms/corridor/room_bridge_02.tscn`

@@ -69,10 +69,11 @@ const PROBE_DEPTH: float = 40.0
 ## Sicherheitsabstand, falls der Raycast ins Leere geht.
 const FALLBACK_HEIGHT: float = 1.6
 
-## Ein zweites Exemplar desselben Items ist bei nur acht Items im Katalog
-## eine Enttaeuschung. Erst wenn wirklich alles vergeben ist, wird der Pool
-## zurueckgesetzt.
-@export var avoid_duplicates: bool = true
+## AUS: Items sollen beliebig oft wieder angeboten und aufgesammelt werden
+## koennen (jedes Item hat ohnehin max_stacks = 0 = unbegrenzt stapelbar,
+## siehe item_data.gd/item_manager.gd::add_item()). Auf true stellen, um
+## zur alten "ein Item erscheint nur einmal pro Lauf"-Regel zurueckzukehren.
+@export var avoid_duplicates: bool = false
 
 ## Meldet jeden gesehenen Raum mitsamt Erkennungsergebnis. Nach der
 ## Verifikation auf false stellen.

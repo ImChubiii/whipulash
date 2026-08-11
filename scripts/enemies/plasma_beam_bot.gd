@@ -11,6 +11,7 @@ class_name PlasmaBeamBot
 # Spieler beim Feuern stand - wer nicht seitlich ausweicht, steht laenger
 # im Feuer und sammelt burn-Ticks.
 
+const VISUAL_SCALE: float = 1.5
 const BURN_TICK_INTERVAL: float = 0.4
 const BURN_DAMAGE_PER_TICK: float = 5.0
 const BURN_DURATION: float = 2.5
@@ -47,7 +48,8 @@ func _configure() -> void:
 
 func _build() -> void:
 	_build_visual()
-	_add_box_collision(Vector3(1.4, 1.2, 1.4))
+	visual_root.scale = Vector3.ONE * VISUAL_SCALE
+	_add_box_collision(Vector3(1.4, 1.2, 1.4) * VISUAL_SCALE)
 	_timer = cooldown_time * randf_range(0.3, 0.8)
 
 

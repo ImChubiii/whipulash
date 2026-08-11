@@ -27,7 +27,27 @@ uniform float alpha_multiplier : hint_range(0.0, 1.0) = 1.0;
 uniform vec4 flash_color : source_color = vec4(1.0, 0.0, 0.0, 1.0);
 uniform float flash_strength : hint_range(0.0, 1.0) = 0.0;
 
+// NEU: Welt-Raum-UV statt Mesh-UV (fuer Boden/Decke). Ein BoxMesh/PlaneMesh
+// spannt seine UV normalerweise IMMER 0..1 ueber die gesamte Flaeche -
+// dieselbe Schachbrett-Textur wuerde also in jedem unterschiedlich grossen
+// Raum auf eine andere Kachelgroesse gestreckt/verzerrt. Mit world_space_uv
+// haengt die UV stattdessen nur von der WELT-XZ-Position ab: die Kachel
+// bleibt in jedem Raum exakt gleich gross, groessere Raeume zeigen einfach
+// mehr Wiederholungen. Aus per Default, damit Waende/Tueren/Pfeiler (die
+// dieselbe geteilte Material-Resource benutzen) weiterhin ihre normale
+// Mesh-UV bekommen - siehe pit_floor.gd/room_instance.gd fuer die Stellen,
+// die dies gezielt an einer DUPLIZIERTEN Material-Instanz einschalten.
+uniform bool world_space_uv = false;
+// 1 / Kachelgroesse in Weltunits. 1.0/24.0 = Textur wiederholt sich alle
+// 24 Einheiten - im 48x48-Standardraum also genau 2x pro Achse (4x4
+// sichtbare Schachbrettfelder bei einer 2x2-Textur).
+uniform float world_uv_scale : hint_range(0.005, 1.0) = 0.0416667;
+
+varying vec3 world_position;
+
 void vertex() {
+	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+
 	// Vertex in Clip-Space transformieren (wie es die GPU normalerweise am Ende macht)
 	vec4 clip_position = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1.0));
 
@@ -48,7 +68,8 @@ void vertex() {
 void fragment() {
 	// filter_nearest sorgt zusammen mit Import-Settings (siehe unten) für die
 	// blockige, ungefilterte Textur-Optik statt weichgezeichneter moderner Texturen.
-	vec4 tex_color = texture(albedo_texture, UV);
+	vec2 tex_uv = world_space_uv ? world_position.xz * world_uv_scale : UV;
+	vec4 tex_color = texture(albedo_texture, tex_uv);
 	vec3 base_albedo = tex_color.rgb * albedo_color.rgb;
 	ALBEDO = mix(base_albedo, flash_color.rgb, flash_strength);
 	ALPHA = tex_color.a * albedo_color.a * alpha_multiplier;

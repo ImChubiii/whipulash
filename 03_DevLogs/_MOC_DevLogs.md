@@ -2,14 +2,17 @@
 tags: [moc, devlogs]
 ---
 
-# MOC — Alle DevLogs (74 Commits)
+# MOC — Alle DevLogs (77 Commits)
 
 Jeder Commit in der `main`-Historie dieses Repos, chronologisch nach Monat
 gruppiert (neuester Monat zuerst). Das Dashboard zeigt nur die juengsten 20 —
 diese Seite ist die vollstaendige Liste.
 
-### 2026-08 (19)
+### 2026-08 (22)
 
+- [[2026-08-11_bf671c8_fix_finalize_room_clearance_logic_and_polish_enemy|2026-08-11 — fix: finalize room clearance logic and polish enemy visuals]]
+- [[2026-08-11_4879445_update_documentation_and_ignore_aider_files|2026-08-11 — Update documentation and ignore aider files]]
+- [[2026-08-10_72accca_wiki_vollstaendige_devlog-liste_freitext-verknuepf|2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt]]
 - [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
 - [[2026-08-10_5a37c20_obsidian-vault_ins_repo_aufnehmen|2026-08-10 — Obsidian-Vault ins Repo aufnehmen]]
 - [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]

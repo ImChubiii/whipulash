@@ -69,6 +69,12 @@
 [ext_resource type="Resource" path="res://resources/enemies/es_plasma_beam_bot.tres" id="55_es_plasma_beam_bot"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_corridor_pillars_01.tres" id="56_pillars1"]
 [ext_resource type="Resource" path="res://resources/rooms/rd_boss_02.tres" id="57_boss2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_pillars_02.tres" id="58_pillars2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_corridor_pillars_03.tres" id="59_pillars3"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_lemonade_01.tres" id="60_lemonade1"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_combat_lemonade_02.tres" id="61_lemonade2"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_bridge_01.tres" id="62_bridge1"]
+[ext_resource type="Resource" path="res://resources/rooms/rd_bridge_02.tres" id="63_bridge2"]
 
 [sub_resource type="Environment" id="Environment_gen"]
 background_mode = 1
@@ -125,7 +131,7 @@ script = ExtResource("2_grid")
 
 [node name="LevelGenerator" type="Node" parent="." unique_id=864998062 node_paths=PackedStringArray("grid_generator", "navigation_region")]
 script = ExtResource("1_lg")
-room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("35_c7"), ExtResource("36_c8"), ExtResource("37_c9"), ExtResource("38_c10"), ExtResource("39_c11"), ExtResource("40_c12"), ExtResource("41_cwide"), ExtResource("42_ctall"), ExtResource("43_carena"), ExtResource("44_cor3"), ExtResource("45_treasure2"), ExtResource("46_treasure3"), ExtResource("47_abyss1"), ExtResource("48_abyss2"), ExtResource("49_abyss3"), ExtResource("56_pillars1"), ExtResource("57_boss2")])
+room_pool = Array[ExtResource("3_room_data_script")]([ExtResource("14_start"), ExtResource("15_c1"), ExtResource("16_c2"), ExtResource("17_c3"), ExtResource("18_c4"), ExtResource("19_c5"), ExtResource("20_c6"), ExtResource("21_treasure"), ExtResource("22_boss"), ExtResource("23_cor1"), ExtResource("24_cor2"), ExtResource("35_c7"), ExtResource("36_c8"), ExtResource("37_c9"), ExtResource("38_c10"), ExtResource("39_c11"), ExtResource("40_c12"), ExtResource("41_cwide"), ExtResource("42_ctall"), ExtResource("43_carena"), ExtResource("44_cor3"), ExtResource("45_treasure2"), ExtResource("46_treasure3"), ExtResource("47_abyss1"), ExtResource("48_abyss2"), ExtResource("49_abyss3"), ExtResource("56_pillars1"), ExtResource("57_boss2"), ExtResource("58_pillars2"), ExtResource("59_pillars3"), ExtResource("60_lemonade1"), ExtResource("61_lemonade2"), ExtResource("62_bridge1"), ExtResource("63_bridge2")])
 enemy_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("5_es_stinger"), ExtResource("6_es_fighter"), ExtResource("50_es_divebomber"), ExtResource("51_es_shield_drone"), ExtResource("52_es_acid_sprinkler"), ExtResource("53_es_mortar_bot"), ExtResource("54_es_magnet_core"), ExtResource("55_es_plasma_beam_bot")])
 boss_table = Array[ExtResource("4_enemy_entry_script")]([ExtResource("7_es_colossus"), ExtResource("5_es_stinger")])
 grid_generator = NodePath("../RoomGridGenerator")

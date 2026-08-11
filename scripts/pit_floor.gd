@@ -160,10 +160,27 @@ func _capture_template_material() -> void:
 		return
 	# material_override hat Vorrang vor surface_material_override - hier
 	# also in der richtigen Reihenfolge auslesen.
+	var base: Material = null
 	if template.material_override:
-		_floor_material = template.material_override
+		base = template.material_override
 	elif template.get_surface_override_material_count() > 0:
-		_floor_material = template.get_surface_override_material(0)
+		base = template.get_surface_override_material(0)
+	if base == null:
+		return
+
+	if base is ShaderMaterial:
+		# Duplizieren, NIEMALS die geteilte Original-Resource direkt
+		# umschalten (siehe room_instance.gd::_make_ceiling_material() fuer
+		# denselben Grund): dieselbe .tres haengt auch an Waenden, Tueren
+		# und Pfeilern DIESES Raumes sowie an jedem anderen Raum-Template,
+		# das dieselbe Resource referenziert - world_space_uv=true wuerde
+		# sonst global die Optik aller Waende in allen Raeumen mit
+		# umstellen.
+		var mat: ShaderMaterial = (base as ShaderMaterial).duplicate()
+		mat.set_shader_parameter("world_space_uv", true)
+		_floor_material = mat
+	else:
+		_floor_material = base
 
 
 func _clear_generated() -> void:

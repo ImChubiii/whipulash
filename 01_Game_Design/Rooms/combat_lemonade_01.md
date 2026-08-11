@@ -1,27 +1,27 @@
 ---
-id: "boss_02"
-room_type: BOSS
+id: "combat_lemonade_01"
+room_type: COMBAT
 footprint_cells: "1x1"
 available_exits: ["Norden", "Sueden", "Osten", "Westen"]
 spawn_weight: 1.0
 min_stage: 0
-unique_per_run: true
-scene_path: "scenes/rooms/boss/room_boss_02.tscn"
-tags: [room, "room/boss"]
+unique_per_run: false
+scene_path: "scenes/rooms/combat/room_combat_lemonade_01.tscn"
+tags: [room, "room/combat"]
 ---
 
-# boss_02
+# combat_lemonade_01
 
 ## Layout
 
 | Feld | Wert |
 |---|---|
-| Typ | BOSS |
+| Typ | COMBAT |
 | Grundflaeche | 1x1 Rasterzellen |
 | Tueren | Norden, Sueden, Osten, Westen |
 | Ziehgewicht | 1.0 |
 | Min. Etage | 0 |
-| Einmalig pro Run | Ja |
+| Einmalig pro Run | Nein |
 
 
 
@@ -31,4 +31,4 @@ tags: [room, "room/boss"]
 
 ## Quelle
 
-`resources/rooms/rd_boss_02.tres` → `scenes/rooms/boss/room_boss_02.tscn`
+`resources/rooms/rd_combat_lemonade_01.tres` → `scenes/rooms/combat/room_combat_lemonade_01.tscn`

@@ -8,19 +8,17 @@ Zwei unabhaengige Gegner-Systeme im Projekt, siehe [[level_generator]] und
 [[custom_enemy_base]]/[[enemy_sandbox_room]] fuer die architektonische
 Begruendung der Trennung.
 
-Threat-Budget = in LevelGenerator-Tabellen, zaehlt zum Raum-Clear. Alle neun
-Gegner unten sind mittlerweile im Threat-Budget (siehe `enemy_table` in
-`level_generation_test.tscn`); die sechs Sandbox-Prototypen bleiben zusaetzlich
-einzeln ueber [[enemy_sandbox_room]] spawnbar.
+Threat-Budget = in LevelGenerator-Tabellen, zaehlt zum Raum-Clear. Sandbox =
+nur ueber [[enemy_sandbox_room]] spawnbar, noch nicht integriert.
 
-### Ur-Threat-Budget (3)
+### Threat-Budget (3)
 
 - [[fighter|Fighter]]
 - [[stinger|Stinger]]
 - [[colossus|Colossus]]
 
 
-### Sandbox-Prototypen, jetzt ebenfalls im Threat-Budget (6)
+### Sandbox-Prototypen (6)
 
 - [[moerser-bot|Moerser-Bot]]
 - [[saeure-sprinkler|Saeure-Sprinkler]]

@@ -860,6 +860,34 @@ func _attach_to_world(node: Node3D, world_pos: Vector3) -> void:
 	node.global_position = world_pos
 
 
+## BUGFIX "Boden-Telegraph haengt in der Luft, wenn beim Auslösen gerade
+## gesprungen wird": Boden-Ringe/-Pfuetzen/-Fallen wurden bisher direkt auf
+## player.global_position gelegt - im Sprung ist das die Sprunghoehe, nicht
+## der Boden, und sie bleiben fuer ihre ganze Lebensdauer auf dieser Hoehe
+## haengen. Gleiche Technik wie CustomEnemyBase._project_to_ground()
+## (scripts/enemies/custom_enemy_base.gd): senkrechter Raycast nach unten,
+## collision_mask = 1 ("World", siehe project.godot layer_names) - fragt
+## NICHT nach dem players eigenen Body, der sitzt ohnehin auf Layer 1 nicht
+## drauf.
+func _project_to_ground(pos: Vector3) -> Vector3:
+	# get_world_3d() haengt an Node3D, ItemBehaviours ist aber ein reiner
+	# Node - ueber den Viewport kommt man trotzdem an dieselbe World3D.
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return pos
+	var world: World3D = viewport.world_3d
+	if world == null:
+		return pos
+	var query := PhysicsRayQueryParameters3D.create(
+		pos + Vector3.UP * 2.0, pos - Vector3.UP * 20.0
+	)
+	query.collision_mask = 1
+	var result := world.direct_space_state.intersect_ray(query)
+	if result.is_empty():
+		return pos
+	return result.position
+
+
 ## Blendet einen Node aus und raeumt ihn danach ab.
 func _fade_and_free(node: Node3D, lifetime: float, mesh: MeshInstance3D = null) -> void:
 	var tween: Tween = create_tween()
@@ -1465,7 +1493,8 @@ func _apply_executioner_hood(target: Node3D) -> void:
 # ----------------------------------------------------------------------------
 # P47. Ausgelaufener Sekundenkleber — klebrige Stelle bei Kills
 # ----------------------------------------------------------------------------
-func _spawn_glue_spot(world_pos: Vector3) -> void:
+func _spawn_glue_spot(raw_world_pos: Vector3) -> void:
+	var world_pos: Vector3 = _project_to_ground(raw_world_pos)
 	var area := Area3D.new()
 	area.collision_layer = 0
 	area.collision_mask = 0xFFFFFFFF
@@ -1836,7 +1865,7 @@ func _trigger_heels_shockwave(player: CharacterBody3D) -> void:
 ## waechst mit der ersten Pfuetze auch jede Lava-Flaeche im Level mit).
 ## Ein im Code gebauter Area3D ist kuerzer und hat das Problem gar nicht.
 func _spawn_hazard_puddle(
-		world_pos: Vector3,
+		raw_world_pos: Vector3,
 		puddle_size: Vector3,
 		lifetime: float,
 		damage_per_tick: float,
@@ -1844,6 +1873,7 @@ func _spawn_hazard_puddle(
 		slow_amount: float,
 		is_acid: bool
 ) -> void:
+	var world_pos: Vector3 = _project_to_ground(raw_world_pos)
 	var area := Area3D.new()
 	area.monitoring = true
 	# Layer 0 / Maske auf "alles": die Pfuetze soll Gegner finden, nicht selbst
@@ -1905,7 +1935,8 @@ func _spawn_gum_trail(player: CharacterBody3D) -> void:
 
 ## Ein Klebefleck. Verlangsamt und verlaengert laufende Saeure um 50 %
 ## (Synergie aus dem Design-Dokument, Regel steht in acid.gd).
-func _spawn_gum_blob(world_pos: Vector3) -> void:
+func _spawn_gum_blob(raw_world_pos: Vector3) -> void:
+	var world_pos: Vector3 = _project_to_ground(raw_world_pos)
 	var area := Area3D.new()
 	area.collision_layer = 0
 	area.collision_mask = 0xFFFFFFFF
@@ -2751,7 +2782,7 @@ func _use_megaphone(player: CharacterBody3D) -> void:
 
 # --- A8. Spruehsahne-Dose ---------------------------------------------------
 func _use_whipped_cream(player: CharacterBody3D) -> void:
-	var origin: Vector3 = player.global_position + _player_forward(player) * 3.0
+	var origin: Vector3 = _project_to_ground(player.global_position + _player_forward(player) * 3.0)
 
 	var area := Area3D.new()
 	area.collision_layer = 0
@@ -3011,7 +3042,8 @@ func _use_snake_bite(player: CharacterBody3D) -> void:
 ## ein mehrzeiliges Lambda mitten in einer Argumentliste, gefolgt von noch
 ## mehr Argumenten danach, ist in GDScript unnoetig fehleranfaellig - als
 ## letztes Argument schliesst die Klammer direkt nach dem Lambda-Block.
-func _spawn_hazard_area(world_pos: Vector3, radius: float, lifetime: float, color: Color, tick_interval: float, on_tick: Callable) -> void:
+func _spawn_hazard_area(raw_world_pos: Vector3, radius: float, lifetime: float, color: Color, tick_interval: float, on_tick: Callable) -> void:
+	var world_pos: Vector3 = _project_to_ground(raw_world_pos)
 	var area := Area3D.new()
 	area.collision_layer = 0
 	area.collision_mask = 0xFFFFFFFF
@@ -3275,7 +3307,7 @@ func _use_turret_item(player: CharacterBody3D) -> void:
 
 # --- Nr. 74. Orbitalschlag ----------------------------------------------------
 func _use_orbital_strike(player: CharacterBody3D) -> void:
-	var origin: Vector3 = player.global_position + _player_forward(player) * ORBITAL_STRIKE_RANGE_AHEAD
+	var origin: Vector3 = _project_to_ground(player.global_position + _player_forward(player) * ORBITAL_STRIKE_RANGE_AHEAD)
 
 	var telegraph := MeshInstance3D.new()
 	var ring_mesh := CylinderMesh.new()
@@ -3563,7 +3595,7 @@ func _use_leer(player: CharacterBody3D) -> void:
 
 # --- Nr. 62. Koeder ------------------------------------------------------------
 func _use_fakeout(player: CharacterBody3D) -> void:
-	var origin: Vector3 = player.global_position + _player_forward(player) * 3.0
+	var origin: Vector3 = _project_to_ground(player.global_position + _player_forward(player) * 3.0)
 
 	var decoy := MeshInstance3D.new()
 	var capsule := CapsuleMesh.new()
@@ -3615,6 +3647,9 @@ func _use_aftershock(player: CharacterBody3D) -> void:
 	for enemy: Node3D in _enemies_in_cone(player.global_position, forward, AFTERSHOCK_RANGE, 14.0):
 		impact_pos = enemy.global_position
 		break
+	# Nur der Kein-Ziel-Fallback braucht die Projektion - traf die Cone-Suche
+	# einen Gegner, steht impact_pos ohnehin schon auf dessen Bodenhoehe.
+	impact_pos = _project_to_ground(impact_pos)
 
 	var timer := get_tree().create_timer(0.35)
 	timer.timeout.connect(func() -> void:
@@ -3679,7 +3714,7 @@ func _use_paranoia(player: CharacterBody3D) -> void:
 
 # --- Nr. 80. Nano-Schwarm ---------------------------------------------------------
 func _use_nanoswarm(player: CharacterBody3D) -> void:
-	var origin: Vector3 = player.global_position + _player_forward(player) * 3.0
+	var origin: Vector3 = _project_to_ground(player.global_position + _player_forward(player) * 3.0)
 	var armed: bool = false
 	var stats: PlayerStats = _stats()
 	var damage: float = NANOSWARM_DAMAGE * (stats.get_damage_multiplier() if stats != null else 1.0)
@@ -3749,7 +3784,7 @@ func _use_alarmbot(player: CharacterBody3D) -> void:
 
 # --- Nr. 83. Lockdown -------------------------------------------------------------
 func _use_lockdown(player: CharacterBody3D) -> void:
-	var origin: Vector3 = player.global_position
+	var origin: Vector3 = _project_to_ground(player.global_position)
 
 	var telegraph := MeshInstance3D.new()
 	var ring_mesh := CylinderMesh.new()

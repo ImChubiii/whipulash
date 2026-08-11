@@ -1,0 +1,15 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="1_boss"]
+[ext_resource type="Texture2D" uid="uid://7wgqy2q0hqcb" path="res://assets/textures/environment/sidewalk-texture.jpg" id="2_boss"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_boss")
+shader_parameter/albedo_texture = ExtResource("2_boss")
+shader_parameter/albedo_color = Color(0.47058824, 0.14117648, 0.09803922, 1)
+shader_parameter/snap_resolution = 4.0
+shader_parameter/vertex_jitter_strength = 0.0
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
