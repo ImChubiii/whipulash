@@ -422,6 +422,64 @@ func _free_beam_visual(beam: Dictionary) -> void:
 		(beam["root"] as Node3D).queue_free()
 
 
+## Dreht "self" langsam um die Y-Achse in Richtung target_pos - fuer
+## stationaere Turret-Gegner (Moerser-Bot/Saeure-Sprinkler), die sich nie
+## bewegen, aber beim Schiessen sichtbar zum Spieler schwenken sollen statt
+## fix in eine Richtung zu zeigen. Gleiche atan2/lerp_angle-Formel wie
+## enemy_ai.gd::_wander_step(), nur deutlich langsamer (turn_speed statt
+## dort fix 6.0).
+func _turn_toward(target_pos: Vector3, delta: float, turn_speed: float = 1.5) -> void:
+	var dir: Vector3 = target_pos - global_position
+	dir.y = 0.0
+	if dir.length_squared() < 0.01:
+		return
+	var target_rotation: float = atan2(dir.x, dir.z)
+	rotation.y = lerp_angle(rotation.y, target_rotation, turn_speed * delta)
+
+
+## Bruchstuecke, die nach unten auf den Boden fallen und dort liegen bleiben
+## (statt wie eine reine VFX-Partikelwolke in der Luft zu verblassen) - fuer
+## Turret-Gegner (Moerser-Bot/Saeure-Sprinkler), deren "Kanone" beim Tod
+## sichtbar als Schrott am Einsatzort zurueckbleiben soll.
+func _spawn_ground_fragments(colors: Array[Color], count: int = 6) -> void:
+	var tree: SceneTree = get_tree()
+	var origin: Vector3 = global_position + Vector3.UP * 1.0
+
+	for i: int in range(count):
+		var frag := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		var size: float = randf_range(0.25, 0.5)
+		box.size = Vector3(size, size * randf_range(0.6, 1.0), size)
+		frag.mesh = box
+		frag.material_override = _make_unshaded_material(colors[i % colors.size()], 0.4)
+		# Gruppe statt freihaengendem Node: stage_manager.gd raeumt
+		# "floor_debris" beim Etagenwechsel mit auf (wie pickups/hazard/
+		# projectiles) - ohne das wuerden sich Bruchstuecke ueber eine ganze
+		# Run-Dauer unbegrenzt unter current_scene ansammeln, weil sie
+		# absichtlich nie von selbst queue_free()en.
+		frag.add_to_group("floor_debris")
+		tree.current_scene.add_child(frag)
+		frag.global_position = origin
+		frag.rotation = Vector3(randf() * TAU, randf() * TAU, randf() * TAU)
+
+		var angle: float = randf() * TAU
+		var horiz: float = randf_range(1.0, 2.8)
+		var landing_xz: Vector3 = origin + Vector3(cos(angle) * horiz, 0.0, sin(angle) * horiz)
+		# _project_to_ground() statt eines geratenen Y-Werts, damit die
+		# Bruchstuecke auch auf leicht geneigtem/unebenem Boden sauber
+		# aufliegen statt in der Luft zu haengen oder im Boden zu versinken.
+		var target: Vector3 = _project_to_ground(landing_xz) + Vector3.UP * (size * 0.5)
+		var spin: Vector3 = frag.rotation + Vector3(
+			randf_range(2.0, 6.0), randf_range(2.0, 6.0), randf_range(2.0, 6.0)
+		)
+
+		var tween: Tween = frag.create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(frag, "global_position", target, 0.6) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.tween_property(frag, "rotation", spin, 0.6)
+
+
 const _GROUND_RAYCAST_MASK: int = 1
 
 ## Projiziert eine Position senkrecht auf den Boden darunter. Gebraucht von

@@ -10,3 +10,6 @@ character_name = "Winter"
 player_scene = ExtResource("2_scene")
 attack_color = Color(0.25, 0.9, 0.45, 1.0)
 attack_color_secondary = Color(1.0, 1.0, 1.0, 1.0)
+max_health = 80.0
+name_primary = "Magnetic Plasma"
+name_secondary = "Heavy Laser Stream"

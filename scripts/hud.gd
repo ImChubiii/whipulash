@@ -27,6 +27,7 @@ extends Control
 @onready var right_panel: Control = $RightPanel
 @onready var ability_bar: Control = $AbilityBar
 @onready var run_timer: Control = $RunTimer
+@onready var sniper_crosshair: Control = $SniperCrosshair
 
 const SLOT_COUNT: int = 5
 
@@ -244,12 +245,40 @@ func _process(_delta: float) -> void:
 		_party_slots[i].update_switch_cooldown(switch_percent, switch_remaining)
 
 	if player_combat == null or not is_instance_valid(player_combat):
+		if sniper_crosshair:
+			sniper_crosshair.visible = false
 		return
 
 	for i: int in range(min(SLOT_COUNT, _ability_slots.size())):
 		var percent: float = player_combat.get_cooldown_percent(i)
 		var remaining: float = player_combat.get_cooldown_remaining(i)
 		_ability_slots[i].update_cooldown(percent, remaining)
+
+	_update_resource_widgets()
+
+
+## Kleine, charakterspezifische Zusatzanzeigen (Giselles Munition, Winters
+## Laser-Energie, Giselles Sniper-Fadenkreuz) - ueber has_method()-Checks auf
+## player_combat statt Charakter-ID-Verzweigung, gleiches Prinzip wie
+## InputMap.has_action(...)-Checks in combat_base.gd. hud.gd muss dadurch nie
+## wissen, welcher Charakter gerade aktiv ist.
+func _update_resource_widgets() -> void:
+	if _ability_slots.size() > 0:
+		if player_combat.has_method("get_uzi_ammo_remaining"):
+			_ability_slots[0].set_resource_text("%d/%d" % [
+				player_combat.get_uzi_ammo_remaining(), player_combat.get_uzi_magazine_size()
+			])
+		else:
+			_ability_slots[0].set_resource_text("")
+
+	if _ability_slots.size() > 1:
+		if player_combat.has_method("get_laser_energy_percent"):
+			_ability_slots[1].set_resource_bar(player_combat.get_laser_energy_percent())
+		else:
+			_ability_slots[1].set_resource_bar(-1.0)
+
+	if sniper_crosshair:
+		sniper_crosshair.visible = player_combat.has_method("is_sniper_charging") and player_combat.is_sniper_charging()
 
 # ============================================================================
 # Combo-Anzeige

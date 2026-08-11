@@ -22,7 +22,9 @@ const DUST_RING_SCENE: PackedScene = preload("res://scenes/vfx/dust_ring.tscn")
 const SPARK_YELLOW_SCENE: PackedScene = preload("res://scenes/vfx/spark_yellow.tscn")
 
 const VISUAL_SCALE: float = 1.5
-const FRAGMENT_LIFETIME: float = 1.1
+## Wie schnell sich der Moerser-Bot zum Spieler dreht (rad/s) - langsam
+## genug, dass die Drehung als sichtbares "Zielen" wirkt statt als Snap.
+const TURN_SPEED: float = 1.2
 
 var fire_interval: float = 3.6
 var flight_time: float = 1.3
@@ -85,6 +87,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if global_position.distance_to(player.global_position) > detect_range:
 		return
+
+	_turn_toward(player.global_position, delta, TURN_SPEED)
 
 	_cooldown -= delta
 	if _cooldown <= 0.0:
@@ -204,40 +208,8 @@ func _teardown(with_hit_vfx: bool) -> void:
 	await super._teardown(with_hit_vfx)
 
 
-## Fragmente haengen unter current_scene und ihre Tweens sind an SICH SELBST
-## gebunden, nicht an den Moerser-Bot - sonst wuerden sie beim queue_free()
-## des Bots (siehe custom_enemy_base.gd::_teardown()) sofort eingefroren,
-## exakt derselbe Fehler wie vorher bei den Geschossen in _fire_at().
+## Bruchstuecke bleiben (ueber _spawn_ground_fragments() in
+## custom_enemy_base.gd) sichtbar als Schrott am Boden liegen, statt in der
+## Luft zu verblassen.
 func _spawn_death_fragments() -> void:
-	var tree: SceneTree = get_tree()
-	var origin: Vector3 = global_position + Vector3.UP * VISUAL_SCALE
-	var colors: Array[Color] = [Color(0.16, 0.15, 0.18), Color(0.85, 0.25, 0.15)]
-
-	for i: int in range(6):
-		var frag := MeshInstance3D.new()
-		var box := BoxMesh.new()
-		var size: float = randf_range(0.3, 0.6) * VISUAL_SCALE
-		box.size = Vector3(size, size * randf_range(0.6, 1.0), size)
-		frag.mesh = box
-		var mat := _make_unshaded_material(colors[i % colors.size()], 0.4)
-		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		frag.material_override = mat
-		tree.current_scene.add_child(frag)
-		frag.global_position = origin
-		frag.rotation = Vector3(randf() * TAU, randf() * TAU, randf() * TAU)
-
-		var angle: float = randf() * TAU
-		var horiz: float = randf_range(1.5, 3.5) * VISUAL_SCALE
-		var target: Vector3 = origin + Vector3(cos(angle) * horiz, randf_range(0.5, 2.0), sin(angle) * horiz)
-		var spin: Vector3 = frag.rotation + Vector3(
-			randf_range(2.0, 6.0), randf_range(2.0, 6.0), randf_range(2.0, 6.0)
-		)
-
-		var tween: Tween = frag.create_tween()
-		tween.set_parallel(true)
-		tween.tween_property(frag, "global_position", target, FRAGMENT_LIFETIME) \
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(frag, "rotation", spin, FRAGMENT_LIFETIME)
-		tween.tween_property(mat, "albedo_color:a", 0.0, FRAGMENT_LIFETIME * 0.5) \
-			.set_delay(FRAGMENT_LIFETIME * 0.5)
-		tween.tween_callback(frag.queue_free).set_delay(FRAGMENT_LIFETIME)
+	_spawn_ground_fragments([Color(0.16, 0.15, 0.18), Color(0.85, 0.25, 0.15)])

@@ -32,7 +32,7 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="CharKarina" type="CharacterBody3D" unique_id=1211426866]
 script = ExtResource("1_karina")
-speed = 17.0
+speed = 20.0
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
@@ -84,6 +84,7 @@ spring_length = 8.0
 
 [node name="Health" type="Node" parent="." unique_id=1014464105]
 script = ExtResource("3_qhqgy")
+max_health = 70.0
 regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=2032550543]

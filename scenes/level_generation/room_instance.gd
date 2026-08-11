@@ -596,7 +596,7 @@ const PROP_SHADER: Shader = preload("res://shaders/psx.gdshader")
 ## "grenadiershell" sind Munitionshuelsen (zu klein/unauffaellig als
 ## Raumdeko).
 const PROP_NAMES: PackedStringArray = [
-	"crate", "crate_1", "barrel", "barrelbroken", "chest", "ammobox", "healthbox", "chair",
+	"crate", "crate_1", "barrel", "chest", "ammobox", "healthbox", "chair",
 ]
 
 ## Wie viele Requisiten an JEDEM Ablageplatz zusammen abgestellt werden -

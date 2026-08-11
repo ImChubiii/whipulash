@@ -32,7 +32,7 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="CharGiselle" type="CharacterBody3D" unique_id=95100292]
 script = ExtResource("1_giselle")
-speed = 17.0
+speed = 14.0
 zoom_max = 15.0
 large_enemy_zoom_hold_time = 1.0
 large_enemy_zoom_speed = 4.0
@@ -84,6 +84,7 @@ spring_length = 8.0
 
 [node name="Health" type="Node" parent="." unique_id=721868555]
 script = ExtResource("3_qhqgy")
+max_health = 130.0
 regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=1120459944]

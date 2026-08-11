@@ -131,7 +131,7 @@ func _do_advance(gen: Node, from_stage: int) -> void:
 
 	# Herumliegende Drops und Hazards der alten Etage entfernen — sie haengen
 	# an Raeumen, die gleich verschwinden.
-	for group_name: String in ["pickups", "hazard", "projectiles"]:
+	for group_name: String in ["pickups", "hazard", "projectiles", "floor_debris"]:
 		for node: Node in get_tree().get_nodes_in_group(group_name):
 			if is_instance_valid(node):
 				node.queue_free()

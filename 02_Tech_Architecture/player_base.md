@@ -44,6 +44,9 @@ Fall in tiefe Abgruende, statt endlos zu fallen.
 
 - [[party_manager]] — Switch-Invulnerabilitaet beim Last-Stand-Wechsel.
 - [[status_effect_manager]] — zentrale Tick-/Verlaengerungs-Logik.
+- [[combat_base]] — Schwester-Komponente ("Combat"-Kind-Node), enthaelt die
+  eigentlichen Angriffsfaehigkeiten, waehrend player_base.gd Bewegung/Kamera/
+  Status/Tod uebernimmt.
 
 ## Erwaehnt in DevLogs
 

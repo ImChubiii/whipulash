@@ -10,3 +10,6 @@ character_name = "Karina"
 player_scene = ExtResource("2_scene")
 attack_color = Color(0.9, 0.1, 0.25, 1.0)
 attack_color_secondary = Color(1.0, 0.4, 0.7, 1.0)
+max_health = 70.0
+name_primary = "Acid Rush Mode"
+name_secondary = "Phantom Execute"

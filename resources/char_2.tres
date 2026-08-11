@@ -10,3 +10,6 @@ character_name = "Giselle"
 player_scene = ExtResource("2_scene")
 attack_color = Color(0.95, 0.15, 0.15, 1.0)
 attack_color_secondary = Color(1.0, 0.55, 0.1, 1.0)
+max_health = 130.0
+name_primary = "Uzi Spray"
+name_secondary = "Sniper Burst"

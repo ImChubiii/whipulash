@@ -2,7 +2,7 @@
 extends CombatBase
 class_name CombatNingning
 
-# Ningning: schnelle Combo-Klingen, kurze Cooldowns.
+# Ningning: Brawler/Nahkampf mit starkem Burst-Potenzial.
 # WICHTIG: @export-Variablen, die schon in CombatBase existieren, duerfen in
 # der Subklasse NICHT nochmal mit @export deklariert werden (Godot-Fehler
 # "member already exists in parent class"). Stattdessen werden abweichende
@@ -11,11 +11,33 @@ class_name CombatNingning
 # PHASE 5: die "Zest Burst"/"Sour Storm"-Platzhalter (ability_q_cooldown/
 # ability_e_cooldown + _perform_ability_q()/_perform_ability_e()) sind weg -
 # Q/E loesen jetzt immer das aktive Item im jeweiligen Slot aus, siehe
-# combat_base.gd. Primary/Secondary/Utility nutzen weiterhin das
-# Standardverhalten aus CombatBase (Hitbox-Angriff / Dash) — hier kannst du
-# das bei Bedarf ueberschreiben (_perform_primary, _perform_secondary,
-# _perform_utility).
+# combat_base.gd.
+#
+# Primary "Quick Jab": sehr schneller, schwacher Schlag mit minimalem
+# Cooldown, um Gegner im Stunlock zu halten - das Standardverhalten aus
+# CombatBase._perform_primary() (kurzer Hitbox-Puls) passt dafuer schon
+# unveraendert, nur der Cooldown und PrimaryHitbox.damage (siehe
+# char_ningning.tscn) werden angepasst.
+#
+# Secondary "Heavy Haymaker": wuchtiger, aufgeladener Schlag mit Windup-
+# Telegraphing und Knockback - dafuer _perform_secondary() unten
+# ueberschrieben. SecondaryHitbox.damage/knockback_force sitzen weiterhin im
+# Inspector (char_ningning.tscn), nicht hier - gleiche Konvention wie beim
+# Primary.
 func _init() -> void:
-	primary_cooldown = 0.4
+	primary_cooldown = 0.18
 	secondary_cooldown = 3.0
 	utility_cooldown = 0.8
+
+
+## Windup VOR der Hitbox-Aktivierung (Telegraphing) - der einzige Unterschied
+## zum Standardverhalten aus CombatBase._perform_secondary(), das die Hitbox
+## sofort aktiviert. Der Ghost-Trail-Burst aus _do_secondary() startet
+## trotzdem schon beim Tastendruck (combat_base.gd steuert das, nicht hier),
+## damit man den Windup optisch schon "einleitet" statt tot dazustehen.
+func _perform_secondary() -> void:
+	await get_tree().create_timer(0.35).timeout
+	if secondary_hitbox:
+		secondary_hitbox.activate()
+		await get_tree().create_timer(0.3).timeout
+		secondary_hitbox.deactivate()

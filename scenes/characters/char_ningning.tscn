@@ -32,7 +32,7 @@ size = Vector3(18.537506, 22.847519, 72.81865)
 
 [node name="CharNingning" type="CharacterBody3D" unique_id=695229074]
 script = ExtResource("1_ning")
-speed = 17.0
+speed = 19.5
 jump_velocity = null
 mouse_sensitivity = null
 gravity = null
@@ -94,6 +94,7 @@ collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
 damage = 30.0
+knockback_force = 12.0
 damage_number_scene = ExtResource("4_u6hti")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=474198894]
@@ -108,7 +109,7 @@ mesh = SubResource("BoxMesh_qlg0r")
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("5_fjrip")
-damage = 14.0
+damage = 10.0
 damage_number_scene = ExtResource("4_u6hti")
 impact_vfx = ExtResource("6_hitspark")
 
@@ -127,6 +128,7 @@ spring_length = 8.0
 
 [node name="Health" type="Node" parent="." unique_id=2081695957]
 script = ExtResource("3_qhqgy")
+max_health = 125.0
 regen_enabled = false
 
 [node name="Combat" type="Node" parent="." unique_id=932916164]

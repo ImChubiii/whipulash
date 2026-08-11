@@ -2,14 +2,15 @@
 tags: [moc, devlogs]
 ---
 
-# MOC — Alle DevLogs (77 Commits)
+# MOC — Alle DevLogs (78 Commits)
 
 Jeder Commit in der `main`-Historie dieses Repos, chronologisch nach Monat
 gruppiert (neuester Monat zuerst). Das Dashboard zeigt nur die juengsten 20 —
 diese Seite ist die vollstaendige Liste.
 
-### 2026-08 (22)
+### 2026-08 (23)
 
+- [[2026-08-11_69742bf_update_room_and_enemy_documentation_to_reflect_san|2026-08-11 — Update room and enemy documentation to reflect sandbox status and new co]]
 - [[2026-08-11_bf671c8_fix_finalize_room_clearance_logic_and_polish_enemy|2026-08-11 — fix: finalize room clearance logic and polish enemy visuals]]
 - [[2026-08-11_4879445_update_documentation_and_ignore_aider_files|2026-08-11 — Update documentation and ignore aider files]]
 - [[2026-08-10_72accca_wiki_vollstaendige_devlog-liste_freitext-verknuepf|2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt]]

@@ -71,6 +71,7 @@ FOLDERS = [
     "00_Dashboard",
     "01_Game_Design/Items",
     "01_Game_Design/Enemies",
+    "01_Game_Design/Characters",
     "01_Game_Design/Rooms",
     "01_Game_Design/Status_Effects",
     "02_Tech_Architecture",
@@ -1043,6 +1044,256 @@ Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
 
 
 # ============================================================================
+# 4c) CHARACTERS — geparst aus resources/char_*.tres (CharacterData),
+#     scenes/characters/char_*.tscn (speed) und scripts/characters/
+#     combat_*.gd (Primary/Secondary-Cooldowns aus _init()).
+# ============================================================================
+# Wie bei ENEMY_MECHANICS/CUSTOM_ENEMY_MECHANICS oben: die strukturierten
+# Basiswerte (Name, HP, Speed, Cooldowns) werden per Regex aus den echten
+# Quelldateien gelesen, die detaillierten Balancing-Zahlen jeder Faehigkeit
+# (Munition, Batterie, Aura-Radius, ...) sind zu charakterspezifisch fuer eine
+# gemeinsame generische Tabellenform und werden deshalb wie die Mechanik-
+# Absaetze handgepflegt - bei Balance-Aenderungen an einem combat_*.gd IMMER
+# den passenden Eintrag hier mitpflegen.
+
+CHARACTER_SCENES = {
+    "ningning": "scenes/characters/char_ningning.tscn",
+    "giselle": "scenes/characters/char_giselle.tscn",
+    "karina": "scenes/characters/char_karina.tscn",
+    "winter": "scenes/characters/char_winter.tscn",
+}
+CHARACTER_RESOURCES = {
+    "ningning": "resources/char_1.tres",
+    "giselle": "resources/char_2.tres",
+    "karina": "resources/char_3.tres",
+    "winter": "resources/char_4.tres",
+}
+CHARACTER_COMBAT_SCRIPTS = {
+    "ningning": "scripts/characters/combat_ningning.gd",
+    "giselle": "scripts/characters/combat_giselle.gd",
+    "karina": "scripts/characters/combat_karina.gd",
+    "winter": "scripts/characters/combat_winter.gd",
+}
+
+CHARACTER_MECHANICS = {
+    "ningning": (
+        "**Quick Jab (Primary):** sehr schneller, schwacher Nahkampf-Schlag "
+        "mit minimalem Cooldown - haelt Gegner im Stunlock, unveraendertes "
+        "Standardverhalten aus `combat_base.gd::_perform_primary()` (kurzer "
+        "Hitbox-Puls). **Heavy Haymaker (Secondary):** wuchtiger Schlag mit "
+        "sichtbarem Windup-Telegraph vor der Hitbox-Aktivierung, groessere "
+        "Hitbox/Reichweite, Knockback, deutlich laengerer Cooldown - Combo-"
+        "Finisher."
+    ),
+    "giselle": (
+        "**Uzi Spray (Primary):** Hitscan-Dauerfeuer ohne jeglichen Streu-"
+        "Winkel (`scripts/core/hitscan.gd`), haelt bei gehaltener LMB ueber "
+        "den unveraenderten Halten-Loop aus `combat_base.gd`. 25-Schuss-"
+        "Magazin, danach fester 1s-Reload (ueberschreibt `_primary_timer` "
+        "statt eines eigenen Timers, siehe `_get_effective_primary_cooldown()`"
+        "-Override). **Sniper Burst (Secondary):** komplett eigenes Press/"
+        "Hold/Release-Handling (`_poll_secondary_input()`-Override) - RMB "
+        "halten zoomt die Kamera-FOV runter (Zielfernrohr-Simulation, "
+        "unabhaengig vom bestehenden SpringArm3D-Scroll-Zoom), Loslassen "
+        "loest einen 3-Schuss-Burst aus UND erst dann den 5s-Cooldown."
+    ),
+    "winter": (
+        "**Magnetic Plasma (Primary):** feuert weich zielsuchende Plasma-"
+        "Bolts (`scripts/vfx/homing_bolt.gd`, Ziel ueber `EnemyQuery."
+        "nearest_enemy()`) mit niedrigem Basisschaden. Jeder Treffer zieht "
+        "den getroffenen Gegner per Einzelimpuls (`apply_knockback()`, "
+        "gleiches Prinzip wie `magnet_core.gd`, nur schwaecher) Richtung "
+        "Einschlag - stoert Movement, ohne ihn komplett heranzuziehen. "
+        "**Heavy Laser Stream (Secondary):** kontinuierlicher Hitscan-Tick-"
+        "Strahl (`scripts/vfx/beam_visual.gd`) waehrend RMB gehalten wird, "
+        "ersetzt den klassischen Cooldown komplett durch eine Energiezelle "
+        "(max. 10s Dauerfeuer, laedt in 5s wieder auf, wenn nicht gefeuert "
+        "wird - Teilladung ist sofort wieder nutzbar, kein Mindest-"
+        "Schwellenwert)."
+    ),
+    "karina": (
+        "**Acid Rush Mode (Primary):** KEIN klassischer Schlag - Primary IST "
+        "die Stance. Gehalten: +Move-Speed (ueber `PlayerStats.add_modifier()`"
+        ", nicht direkt geschrieben), alle Gegner in der Praesenz-Aura "
+        "bekommen per `EnemyQuery.enemies_within()` wiederholt den "
+        "[[acid]]-Statuseffekt aufgefrischt. `_primary_timer` wird "
+        "zweckentfremdet: zaehlt waehrend der Stance die Restzeit runter, "
+        "danach die kurze Wiedereintritts-Sperre - der bestehende Cooldown-"
+        "Ring im HUD zeigt dadurch beides ohne HUD-Aenderung. **Phantom "
+        "Execute (Secondary):** Toggle statt Halten - aktiviert "
+        "Unsichtbarkeit (`GeometryInstance3D.transparency`) und volle "
+        "Unverwundbarkeit (`Health.set_invulnerable_permanent()`). Beruehrte "
+        "Gegner werden per Instanz-ID markiert; Deaktivierung (manuell oder "
+        "nach Ablauf) detoniert alle markierten Gegner gleichzeitig - der "
+        "Cooldown startet ERST nach dieser Detonation, nicht beim "
+        "Aktivieren."
+    ),
+}
+
+## Charakterspezifische Zusatz-Links fuers "Verwandt"-Kapitel jeder Notiz -
+## Entitaeten, die in Mechanik/Balancing erwaehnt werden, aber nicht generisch
+## fuer alle vier Charaktere gelten (z.B. Karinas Acid-Status, die Enemy-HP-
+## Referenzen aus den Sniper-/Detonations-Balancing-Zeilen oben).
+CHARACTER_RELATED = {
+    "ningning": [],
+    "giselle": [
+        "[[fighter]], [[stinger]], [[colossus]] — HP-Referenzen fuer die Sniper-Burst-Balancing (siehe oben).",
+    ],
+    "winter": [
+        "[[magnet-kern]] — gleiches Einzelimpuls-statt-Dauerzug-Prinzip fuer den Magnetic-Plasma-Zug (`apply_knockback()`), nur schwaecher dosiert.",
+    ],
+    "karina": [
+        "[[acid]] — Statuseffekt hinter Acid Rush Mode, geteilt mit [[lemonade]] und [[saeure-sprinkler]].",
+        "[[fighter]], [[stinger]], [[colossus]] — HP-Referenzen fuer die Phantom-Execute-Balancing (siehe oben).",
+    ],
+}
+
+CHARACTER_BALANCING = {
+    "ningning": [
+        ("Quick Jab - Schaden", "10"),
+        ("Quick Jab - Cooldown", "0.18 s (Combo-Reduktion bis 50%)"),
+        ("Heavy Haymaker - Schaden", "30"),
+        ("Heavy Haymaker - Knockback", "12"),
+        ("Heavy Haymaker - Windup", "0.35 s"),
+        ("Heavy Haymaker - Cooldown", "3.0 s"),
+    ],
+    "giselle": [
+        ("Uzi Spray - Schaden/Schuss", "7"),
+        ("Uzi Spray - Magazin", "25 Schuss"),
+        ("Uzi Spray - Reload", "1.0 s"),
+        ("Uzi Spray - Reichweite", "40 m"),
+        ("Sniper Burst - Schaden/Schuss", "100 (x3 = 300 Gesamt)"),
+        ("Sniper Burst - Zoom-FOV", "28 Grad"),
+        ("Sniper Burst - Cooldown", "5.0 s (startet bei Release)"),
+        ("Sniper Burst - Wirkung", "one-shottet [[fighter]] (100 HP) und [[stinger]] (25 HP), laesst [[colossus]] (400 HP) bei 25% HP"),
+    ],
+    "winter": [
+        ("Magnetic Plasma - Schaden", "12"),
+        ("Magnetic Plasma - Reichweite", "22 m"),
+        ("Magnetic Plasma - Zug-Impuls", "10.0"),
+        ("Heavy Laser Stream - Schaden/Tick", "4 (alle 0.1 s, 40 DPS)"),
+        ("Heavy Laser Stream - Reichweite", "25 m"),
+        ("Heavy Laser Stream - Max. Batterie", "10 s Dauerfeuer"),
+        ("Heavy Laser Stream - Aufladezeit", "5 s (volle Batterie)"),
+    ],
+    "karina": [
+        ("Acid Rush - Speed-Bonus", "+20%"),
+        ("Acid Rush - Aura-Radius", "3 m"),
+        ("Acid Rush - Schaden/Tick", "15 (alle 0.4 s)"),
+        ("Acid Rush - Max. Dauer", "10 s"),
+        ("Acid Rush - Wiedereintritts-Sperre", "1.0 s"),
+        ("Phantom Execute - Max. Dauer", "5 s"),
+        ("Phantom Execute - Beruehrungsradius", "1.6 m"),
+        ("Phantom Execute - Detonationsschaden", "220 (an ALLEN markierten Gegnern)"),
+        ("Phantom Execute - Cooldown", "5.0 s (startet nach Detonation)"),
+        ("Phantom Execute - Wirkung", "toetet [[fighter]] (100 HP) und [[stinger]] (25 HP), laesst [[colossus]] (400 HP) bei 45% HP"),
+    ],
+}
+
+
+def parse_gd_cooldowns(text: str) -> dict[str, float]:
+    result = {}
+    for key in ("primary_cooldown", "secondary_cooldown", "utility_cooldown"):
+        m = re.search(rf'{key}\s*=\s*([\d.]+)', text)
+        if m:
+            result[key] = float(m.group(1))
+    return result
+
+
+def parse_characters() -> list[dict]:
+    characters = []
+    for char_id, tres_rel in CHARACTER_RESOURCES.items():
+        tres_kv = parse_tres_kv((PROJECT_ROOT / tres_rel).read_text(encoding="utf-8"))
+        scene_text = (PROJECT_ROOT / CHARACTER_SCENES[char_id]).read_text(encoding="utf-8")
+        combat_text = (PROJECT_ROOT / CHARACTER_COMBAT_SCRIPTS[char_id]).read_text(encoding="utf-8")
+        cooldowns = parse_gd_cooldowns(combat_text)
+
+        def tres_str(key: str, default: str) -> str:
+            raw = tres_kv.get(key, "")
+            return raw.strip('"') if raw else default
+
+        speed_m = re.search(r'^speed = ([\d.]+)', scene_text, re.MULTILINE)
+
+        characters.append({
+            "id": char_id,
+            "display_name": tres_str("character_name", char_id.title()),
+            "name_primary": tres_str("name_primary", "Primary"),
+            "name_secondary": tres_str("name_secondary", "Secondary"),
+            "speed": float(speed_m.group(1)) if speed_m else 0.0,
+            "max_health": float(tres_kv.get("max_health", "100.0")),
+            "primary_cooldown": cooldowns.get("primary_cooldown", 0.0),
+            "secondary_cooldown": cooldowns.get("secondary_cooldown", 0.0),
+            "scene": CHARACTER_SCENES[char_id],
+            "combat_script": CHARACTER_COMBAT_SCRIPTS[char_id],
+            "resource": tres_rel,
+        })
+    return characters
+
+
+def write_character_notes(characters: list[dict],
+                           entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
+    out_dir = PROJECT_ROOT / "01_Game_Design/Characters"
+    for ch in characters:
+        balancing_rows = "\n".join(f"| {label} | {value} |" for label, value in CHARACTER_BALANCING.get(ch["id"], []))
+        related_lines = "\n".join(f"- {line}" for line in CHARACTER_RELATED.get(ch["id"], []))
+        body = f"""---
+id: {yaml_escape(ch['id'])}
+display_name: {yaml_escape(ch['display_name'])}
+name_primary: {yaml_escape(ch['name_primary'])}
+name_secondary: {yaml_escape(ch['name_secondary'])}
+speed: {ch['speed']}
+max_health: {ch['max_health']}
+primary_cooldown: {ch['primary_cooldown']}
+secondary_cooldown: {ch['secondary_cooldown']}
+tags: [character]
+---
+
+# {ch['display_name']}
+
+## Basiswerte
+
+| Wert | Betrag |
+|---|---|
+| Move-Speed | {ch['speed']} |
+| Max. HP | {ch['max_health']} |
+| Primary-Basis-Cooldown | {ch['primary_cooldown']} s |
+| Secondary-Basis-Cooldown | {ch['secondary_cooldown']} s |
+
+## Mechanik
+
+{CHARACTER_MECHANICS.get(ch['id'], '-')}
+
+## Balancing
+
+| Wert | Betrag |
+|---|---|
+{balancing_rows}
+
+## Verwandt
+
+- [[combat_base]] — Basisklasse, stellt Cooldown-/Combo-/Hit-Lock-/Dash-
+  System bereit; `{ch['combat_script']}` ueberschreibt nur Primary/Secondary.
+  Utility (Dash) und die zwei aktiven Item-Slots (Q/E) bleiben fuer alle vier
+  Charaktere geteilt und unveraendert.
+- [[player_base]] — Schwester-Komponente ("Combat" vs. player_base direkt am
+  Charakter), definiert Move-Speed/HP-Basiswerte in `{ch['scene']}`.
+{related_lines}
+
+Siehe [[_MOC_Characters]] fuer den vollstaendigen Ueberblick aller vier
+Charaktere.
+
+## Erwaehnt in DevLogs
+
+{devlog_backlink_section(entity_mentions, "character", ch['id'])}
+
+## Quelle
+
+`{ch['scene']}`, `{ch['resource']}`, `{ch['combat_script']}`
+"""
+        write_md(out_dir / f"{ch['id']}.md", body)
+
+
+# ============================================================================
 # 5) ROOMS — geparst aus resources/rooms/rd_*.tres
 # ============================================================================
 
@@ -1534,6 +1785,74 @@ Fall in tiefe Abgruende, statt endlos zu fallen.
 
 - [[party_manager]] — Switch-Invulnerabilitaet beim Last-Stand-Wechsel.
 - [[status_effect_manager]] — zentrale Tick-/Verlaengerungs-Logik.
+- [[combat_base]] — Schwester-Komponente ("Combat"-Kind-Node), enthaelt die
+  eigentlichen Angriffsfaehigkeiten, waehrend player_base.gd Bewegung/Kamera/
+  Status/Tod uebernimmt.
+""",
+    "combat_base": """---
+script_path: scripts/combat_base.gd
+tags: [architecture, player, combat]
+---
+
+# combat_base.gd
+
+Basisklasse ALLER Charakter-Combat-Skripte (`combat_ningning.gd`,
+`combat_giselle.gd`, `combat_winter.gd`, `combat_karina.gd` — als "Combat"-
+Kind-Node neben [[player_base]] am Spieler haengend). Enthaelt das komplette
+GETEILTE Cooldown-, Combo-, Hit-Lock- und Dash-Schadenssystem; was Primary/
+Secondary/Utility tatsaechlich TUN, ueberschreibt jeder Charakter individuell.
+
+## Primary/Secondary-Erweiterungspunkte
+
+`_process()` ruft pro Frame zwei ueberschreibbare virtuelle Methoden auf,
+`_poll_primary_input(delta)`/`_poll_secondary_input(delta)` — Standard-
+verhalten: gehaltene Taste feuert erneut, sobald der jeweilige Cooldown
+abgelaufen ist (passt fuer klassische Nahkampf-/Dauerfeuer-Faehigkeiten wie
+[[ningning]]s Quick Jab oder [[giselle]]s Uzi Spray unveraendert).
+Faehigkeiten, die nicht ins "gehalten -> feuert" Schema passen, ueber-
+schreiben NUR diese eine Methode statt `_process()` komplett zu duplizieren:
+
+- [[giselle]]s Sniper Burst laedt bei gedrueckter Taste (Kamera-FOV-Zoom) und
+  feuert erst beim LOSLASSEN — ruft dabei den unveraenderten `_do_secondary()`
+  auf, nur zeitlich verschoben von "press" zu "release".
+- [[winter]]s Heavy Laser Stream ersetzt den Cooldown komplett durch eine
+  Energiezelle/Batterie statt eines Timers.
+- [[karina]]s Acid Rush Mode (Primary) und Phantom Execute (Secondary) sind
+  reine Halte-/Toggle-Zustaende ohne klassischen Hitbox-Treffer — Primary
+  IST bei ihr die gesamte Faehigkeit, kein zusaetzlicher Schlag.
+
+WICHTIG fuer jede Ueberschreibung: `_primary_timer`/`_secondary_timer` werden
+schon WEITER OBEN im selben `_process()`-Durchlauf heruntergezaehlt, bevor die
+Poll-Methoden aufgerufen werden — eine Ueberschreibung darf sie nur LESEN und
+bei Zustandswechseln neu SETZEN, nie ein zweites Mal dekrementieren.
+
+## Combo-/Hit-Lock-System
+
+Jeder TATSAECHLICHE Treffer (nicht jeder Schwung) setzt einen kurzen Hit-Lock
+(reduzierte Bewegung, gekappte Schwerkraft) und zaehlt die Combo hoch; ab dem
+zweiten Treffer sinkt `primary_cooldown` linear, hart gedeckelt bei
+`combo_max_reduction` (Standard 50 %). Ein "Bohrer"-Kamera-Tilt waechst mit
+der Combo und flippt nur bei Zielwechsel.
+
+## Dash-Schaden
+
+Reines Durchqueren loest Schaden aus, kein Antippen und kein Davorstehen-
+bleiben — erkannt ueber den Vorzeichenwechsel der Gegnerposition entlang der
+Dash-Achse (`_dash_along()`), nicht ueber ein simples `body_entered`.
+
+## Q/E = aktive Item-Slots
+
+Seit "PHASE 5" loesen Q/E IMMER das aktive Item im jeweiligen Slot aus
+(`Items.use_active_item()`), keine charakterspezifischen Faehigkeiten mehr —
+siehe [[party_manager]]/`item_manager.gd`. Die alten zeitbasierten Cooldown-
+Getter (`get_ability_q_cooldown_percent()`) liefern seitdem die Item-Ladung
+(Raeume statt Sekunden), das HUD selbst musste dafuer nicht angefasst werden.
+
+## Verwandt
+
+- [[player_base]] — Schwester-Komponente, Bewegung/Kamera/Status/Tod.
+- [[ningning]], [[giselle]], [[winter]], [[karina]] — die vier
+  Charakter-spezifischen Ueberschreibungen dieser Basisklasse.
 """,
     "status_effect_manager": """---
 script_path: scripts/status_effects/status_effect_manager.gd
@@ -1763,7 +2082,7 @@ ENTITY_KIND_LABELS = {
 
 
 def build_entity_index(items: list[dict], enemies: list[dict], custom_enemies: list[dict],
-                        rooms: list[dict], effects: list[dict]
+                        rooms: list[dict], effects: list[dict], characters: list[dict] | None = None
                         ) -> list[tuple[int, "re.Pattern[str]", str, str]]:
     """Gibt (Laenge, Regex, Notiz-Dateiname, Kind) zurueck, absteigend nach
     Laenge sortiert (spezifischste/laengste Namen zuerst geprueft)."""
@@ -1789,6 +2108,8 @@ def build_entity_index(items: list[dict], enemies: list[dict], custom_enemies: l
         add(r["id"], "room", r["id"].replace("_", " ").title(), r["id"])
     for fx in effects:
         add(fx["id"], "status-effect", fx["id"])
+    for ch in (characters or []):
+        add(ch["id"], "character", ch["display_name"], ch["name_primary"], ch["name_secondary"])
     for arch_id in ARCH_NOTES.keys():
         add(arch_id, "architecture", arch_id.replace("_", " ").title())
 
@@ -1949,7 +2270,7 @@ def _group_block(title: str, entries: list[tuple[str, str]]) -> str:
 
 
 def write_moc_pages(items: list[dict], enemies: list[dict], custom_enemies: list[dict],
-                     rooms: list[dict], effects: list[dict]) -> None:
+                     rooms: list[dict], effects: list[dict], characters: list[dict] | None = None) -> None:
     # --- Items: nach Kategorie, Rarity, Kind -------------------------------
     by_category: dict[str, list[tuple[str, str]]] = {}
     by_rarity: dict[str, list[tuple[str, str]]] = {}
@@ -2016,6 +2337,24 @@ nur ueber [[enemy_sandbox_room]] spawnbar, noch nicht integriert.
 {chr(10).join(_group_block(role, by_role.get(role, [])) for role in sorted(by_role.keys()))}
 """
     write_md(PROJECT_ROOT / "01_Game_Design/Enemies/_MOC_Enemies.md", enemies_content)
+
+    # --- Characters: die vier spielbaren Charaktere -------------------------
+    if characters:
+        character_entries = [(ch["id"], ch["display_name"]) for ch in characters]
+        characters_content = f"""---
+tags: [moc, characters]
+---
+
+# MOC — Charaktere
+
+{len(characters)} spielbare Charaktere, jeder mit eigenem Primary/Secondary
+in `scripts/characters/combat_*.gd` (erweitert [[combat_base]]). Utility
+(Dash) und die zwei aktiven Item-Slots (Q/E) sind fuer alle vier identisch,
+siehe [[combat_base]].
+
+{_group_block("Charaktere", character_entries)}
+"""
+        write_md(PROJECT_ROOT / "01_Game_Design/Characters/_MOC_Characters.md", characters_content)
 
     # --- Rooms: nach Typ -----------------------------------------------------
     by_type: dict[str, list[tuple[str, str]]] = {}
@@ -2388,13 +2727,14 @@ def main() -> None:
     item_cross_refs = parse_item_cross_references(items)
     enemies = parse_enemies()
     custom_enemies = parse_custom_enemies()
+    characters = parse_characters()
     rooms = parse_rooms()
     effects = parse_status_effects()
     commits = parse_git_log()
     print(f"[3/7] Rohdaten eingelesen: {len(items)} Items, {len(enemies)}+{len(custom_enemies)} Gegner, "
-          f"{len(rooms)} Raeume, {len(effects)} Status-Effekte, {len(commits)} Commits")
+          f"{len(characters)} Charaktere, {len(rooms)} Raeume, {len(effects)} Status-Effekte, {len(commits)} Commits")
 
-    entity_index = build_entity_index(items, enemies, custom_enemies, rooms, effects)
+    entity_index = build_entity_index(items, enemies, custom_enemies, rooms, effects, characters)
     commit_mentions, entity_mentions = compute_devlog_mentions(commits, entity_index)
     n_mentions = sum(len(v) for v in commit_mentions.values())
     print(f"      -> {n_mentions} DevLog<->Spielinhalt-Erwaehnungen per Freitext-Abgleich gefunden")
@@ -2413,6 +2753,9 @@ def main() -> None:
     print(f"[4/7] {len(enemies)} Enemy-Notizen (Threat-Budget) + {len(custom_enemies)} "
           f"Sandbox-Prototyp-Notizen geschrieben (01_Game_Design/Enemies)")
 
+    write_character_notes(characters, entity_mentions)
+    print(f"[4/7] {len(characters)} Character-Notizen geschrieben (01_Game_Design/Characters)")
+
     write_room_notes(rooms, entity_mentions)
     print(f"[4/7] {len(rooms)} Room-Notizen geschrieben (01_Game_Design/Rooms)")
 
@@ -2430,7 +2773,7 @@ def main() -> None:
     write_architecture_notes(entity_mentions)
     print("[5/7] Architektur-Notizen geschrieben (02_Tech_Architecture)")
 
-    write_moc_pages(items, enemies, custom_enemies, rooms, effects)
+    write_moc_pages(items, enemies, custom_enemies, rooms, effects, characters)
     print("[5/7] Gruppierungs-Seiten (MOCs) geschrieben")
 
     write_devlogs(commits, commit_mentions)

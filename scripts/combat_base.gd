@@ -371,11 +371,8 @@ func _process(delta: float) -> void:
 	if Minimap.big_map_open:
 		return
 
-	if Input.is_action_pressed("attack_primary") and _primary_timer <= 0.0:
-		_do_primary()
-
-	if Input.is_action_pressed("attack_secondary") and _secondary_timer <= 0.0:
-		_do_secondary()
+	_poll_primary_input(delta)
+	_poll_secondary_input(delta)
 
 	if Input.is_action_just_pressed("utility") and _utility_timer <= 0.0:
 		_do_utility()
@@ -387,6 +384,30 @@ func _process(delta: float) -> void:
 	if InputMap.has_action("ability_secondary") \
 			and Input.is_action_just_pressed("ability_secondary"):
 		_do_ability_e()
+
+# --- Primary/Secondary Input-Polling, ueberschreibbar pro Charakter --------
+# Extrahiert aus dem alten inline "if Input.is_action_pressed(...)" in
+# _process(), damit Charaktere mit einer Faehigkeit, die nicht ins simple
+# "gehalten -> feuert jeden Frame erneut, sobald Cooldown abgelaufen"-Schema
+# passt (Giselles Sniper-Ladevorgang, Winters Batterie-Laser, Karinas
+# Stance/Stealth-Toggle), NUR diese eine Methode ueberschreiben koennen,
+# statt den kompletten _process() zu duplizieren.
+#
+# WICHTIG fuer jede Ueberschreibung: _primary_timer/_secondary_timer wurden
+# bereits WEITER OBEN in DIESEM _process()-Aufruf per max(x - delta, 0.0)
+# heruntergezaehlt (siehe Zeilen oben) - eine Ueberschreibung darf sie hier
+# NICHT ein zweites Mal dekrementieren, sonst laeuft der Timer doppelt so
+# schnell ab. Nur LESEN (<= 0.0 pruefen) und bei Zustandswechseln (Stance
+# betreten/verlassen etc.) neu SETZEN.
+func _poll_primary_input(_delta: float) -> void:
+	if Input.is_action_pressed("attack_primary") and _primary_timer <= 0.0:
+		_do_primary()
+
+
+func _poll_secondary_input(_delta: float) -> void:
+	if Input.is_action_pressed("attack_secondary") and _secondary_timer <= 0.0:
+		_do_secondary()
+
 
 func _do_primary() -> void:
 	var cd: float = _get_effective_primary_cooldown()

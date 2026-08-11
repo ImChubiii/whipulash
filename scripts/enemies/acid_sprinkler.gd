@@ -22,6 +22,10 @@ var puddle_radius: float = 2.6
 var puddle_lifetime: float = 6.0
 var detect_range: float = 40.0
 
+## Wie schnell sich der Saeure-Sprinkler zum Spieler dreht (rad/s) - langsam
+## genug, dass die Drehung als sichtbares "Zielen" wirkt statt als Snap.
+const TURN_SPEED: float = 1.2
+
 var _cooldown: float = 0.0
 
 
@@ -73,6 +77,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if global_position.distance_to(player.global_position) > detect_range:
 		return
+
+	_turn_toward(player.global_position, delta, TURN_SPEED)
 
 	_cooldown -= delta
 	if _cooldown <= 0.0:
@@ -156,3 +162,13 @@ func _spawn_puddle(pos: Vector3) -> void:
 		if is_instance_valid(area):
 			area.queue_free()
 	)
+
+
+## Maschinen-Tod statt des generischen Wegschrumpfens aus custom_enemy_base.gd
+## - der Saeure-Sprinkler ist ein Geraet, keine organische Einheit, und
+## zerspringt deshalb sichtbar in seine Bauteile (gleiches Prinzip wie
+## Moerser-Bot, siehe dortiger _teardown()).
+func _teardown(with_hit_vfx: bool) -> void:
+	if with_hit_vfx:
+		_spawn_ground_fragments([Color(0.25, 0.35, 0.15), Color(0.55, 0.95, 0.25)])
+	await super._teardown(with_hit_vfx)

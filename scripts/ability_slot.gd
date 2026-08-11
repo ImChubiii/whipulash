@@ -10,6 +10,9 @@ class_name AbilitySlot
 @onready var cooldown_label: Label = $CooldownLabel
 @onready var key_label: Label = $KeyLabel
 @onready var ready_flash: ColorRect = $ReadyFlash
+@onready var resource_bar_bg: ColorRect = $ResourceBarBg
+@onready var resource_bar_fill: ColorRect = $ResourceBarBg/ResourceBarFill
+@onready var resource_label: Label = $ResourceLabel
 
 var _was_on_cooldown: bool = false
 
@@ -33,6 +36,8 @@ func _ready() -> void:
 	cooldown_overlay.visible = false
 	cooldown_label.text = ""
 	ready_flash.modulate.a = 0.0
+	resource_bar_bg.visible = false
+	resource_label.visible = false
 
 func setup(texture: Texture2D, key_text: String) -> void:
 	if texture:
@@ -45,6 +50,23 @@ func setup(texture: Texture2D, key_text: String) -> void:
 
 func set_icon(texture: Texture2D) -> void:
 	icon.texture = texture
+
+## Kleiner Text unten links (z.B. Giselles Munition "18/25") - nur fuer
+## Charaktere/Slots mit einer solchen Ressource genutzt, siehe hud.gd. Leerer
+## String blendet das Label wieder aus, statt dass hud.gd zwei getrennte
+## Methoden (setzen/verstecken) aufrufen muesste.
+func set_resource_text(text: String) -> void:
+	resource_label.text = text
+	resource_label.visible = text != ""
+
+## Duenner Fuellbalken oben (z.B. Winters Laser-Energie), waechst von links
+## nach rechts - gleiche anchor_right-als-Fuellstand-Konvention wie
+## cooldown_overlay.anchor_top oben. percent < 0 blendet den Balken aus.
+func set_resource_bar(percent: float) -> void:
+	var shown: bool = percent >= 0.0
+	resource_bar_bg.visible = shown
+	if shown:
+		resource_bar_fill.anchor_right = clampf(percent, 0.0, 1.0)
 
 # percent: 1.0 = gerade gestartet, 0.0 = bereit
 func update_cooldown(percent: float, remaining: float) -> void:
