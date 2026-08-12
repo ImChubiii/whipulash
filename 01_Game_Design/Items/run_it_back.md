@@ -20,47 +20,29 @@ tags: [item, "item/active", "rarity/legendary"]
 
 > *Zweite Chance*
 
-## Effekt
-
-Setzt eine Marke an deiner Position. Wuerdest du sterben, wirst du stattdessen dorthin zurueckgeholt und teilweise geheilt.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `run_it_back` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | DEFENSE |
-| Rarity | LEGENDARY |
+| Seltenheit | LEGENDARY |
 | Cooldown | 25.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.18 |
 
-## Quelle
+## Effekt
+Platziert eine Markierung am Boden. Stirbt der Spieler während der Aktivheitsdauer, spawnt er augenblicklich am Marker mit voller Gesundheit (100 % HP).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_RUN_IT_BACK`, Variable `run_it_back`)
+## Visueller Effekt (VFX)
+Der Spieler brennt während der Wirkungsdauer in leuchtendem Orange.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[rice_pudding|Überkochter Milchreis]] – Ermöglicht das schutzschirmunterstützte Stehenbleiben (bis 15 % Max-HP Schild) direkt nach dem Respawn.
+- [[plastic_halo|Plastik-Heiligenschein]] – Kombiniert den vollen Respawn-Heal mit +1 Max-HP Kapazität.
+
+## Empfohlen für
+Risikofreudige Spieler und Glass-Cannon-Builds, die maximale Rückendeckung bei Bosskämpfen suchen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

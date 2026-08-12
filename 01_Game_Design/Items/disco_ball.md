@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["confused"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare"]
+tags: [item, "item/passive", "rarity/rare", "applies/confused"]
 ---
 
 # Disco-Kugel-Anhaenger
 
 > *Samstagnacht, jede Nacht*
 
-## Effekt
-
-Kills werfen Lichtreflexe durch den Raum. 10 % Chance, umstehende Gegner 2 s zu verwirren. Verwirrte Gegner nehmen 25 % mehr Schaden, wenn sie betaeubt sind.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[confused]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `disco_ball` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.20 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Erzielte Kills erzeugen schillernde Lichtreflexe im Raum und besitzen eine 10 % Chance, nahe Gegner zu verwirren (`confused`). Erhöht zusätzlich jeglichen zugefügten Schaden an betäubten (`stun`) Gegnern um +25 %.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_DISCO_BALL`, Variable `disco`)
+## Visueller Effekt (VFX)
+Bunte Punkte spiegeln sich im Raum wider, ergänzt durch ein Regenbogen-Hologramm (`HOLOGRAM_RAINBOW`).
+
+## Status-Effekte
+- [[confused|Verwirrt]]
+
+## Synergiert gut mit
+- [[battery_pack|Ausgelaufene Flachbatterie]] – Liefert verlässliche Betäubung (1,5s `stun`), wodurch der +25 % Schadensbonus von Disco-Kugel aktiv wird.
+- [[fakeout|Taeuschung]] – Wendet Betäubung (`stun`) und Verwirrung (`confused`) an, um den +25 % Schadensbonus direkt auszunutzen.
+
+## Empfohlen für
+- **Ningning**: Verstärkt Gruppenkontrolle bei schnellen Mob-Kills.
+- **Giselle**: Profitieren von verunsicherten Gegnern beim präzisen Abarbeiten von Zielen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

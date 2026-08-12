@@ -2,42 +2,46 @@
 tags: [moc, dashboard]
 ---
 
-# Whiplash — Master Wiki
+# Whiplash — Entwickler-Dashboard
 
-Automatisch generiert von `generate_vault.py` aus den echten Projektdateien
-(nicht aus `_project_export.txt` selbst — siehe Skript-Docstring). Erneut
-ausfuehren, sobald sich Items/Gegner/Raeume/Statuseffekte im Code aendern,
-oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
+> Für das Spieler-Wiki: **[[HOME|→ Zur Hauptseite des Wikis]]**
 
-## Map of Contents
+---
 
-- [[00_Master_Wiki|Dashboard]] (diese Seite)
-- Game Design
-  - Items (84) — [[_MOC_Items|nach Kategorie/Rarity/Kind]]
-  - Enemies (3 Threat-Budget + 6 Sandbox-Prototypen)
-    — [[_MOC_Enemies|nach Tier/Rolle]]
-  - Rooms (34) — [[_MOC_Rooms|nach Typ]]
-  - Status Effects (10) — [[_MOC_Status_Effects|nach Klasse]]
-- Tech Architecture
-  - [[party_manager]]
-  - [[level_generator]]
-  - [[player_base]]
-  - [[status_effect_manager]]
-  - [[custom_enemy_base]] — Unterbau der sechs Sandbox-Prototypen
-  - [[enemy_sandbox_room]] — Debug-Spawnraum fuer alle Gegnertypen
-- DevLogs (78 Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
-- Templates: [[tpl_Item]] · [[tpl_Enemy]] · [[tpl_Room]] · [[tpl_StatusEffect]]
+## Entwickler-Übersicht
 
-Jede Item-/Gegner-/Raum-/Status-Effekt-/Architektur-Notiz hat unten einen
-Abschnitt **"Erwaehnt in DevLogs"** — per Freitext-Abgleich aus den
-Commit-Nachrichten erkannt (siehe `build_entity_index()` in
-`generate_vault.py`). Jede DevLog-Notiz hat umgekehrt einen Abschnitt
-**"Erwaehnte Entitaeten"**.
+Dieses Dashboard ist für die Entwicklung gedacht. Das Spieler-Wiki ist unter [[HOME]] erreichbar.
+
+## Inhalts-Verzeichnis
+
+### Spieler-Wiki
+- [[HOME|Startseite]] — Spieler-Wiki-Hauptseite
+- [[_MOC_Characters|Charaktere]] — Alle 4 spielbaren Charaktere
+- [[_MOC_Enemies|Gegner]] — Alle Gegner mit Tipps
+- [[_MOC_Items|Items]] — Alle 84 Items
+- [[_MOC_Rooms|Räume]] — Alle 35 Raum-Vorlagen
+- [[_MOC_Status_Effects|Status-Effekte]] — Alle 10 Effekte
+
+### Technische Dokumentation
+- [[party_manager]] — Party-System
+- [[level_generator]] — Level-Generator
+- [[player_base]] — Spieler-Basis
+- [[status_effect_manager]] — Status-Effekt-Manager
+- [[custom_enemy_base]] — Gegner-Basis (Sandbox-Prototypen)
+- [[enemy_sandbox_room]] — Debug-Spawnraum
+
+### DevLogs
+- [[_MOC_DevLogs|Alle DevLogs]] — Vollständige Commit-Liste
+
+---
+
+*Automatisch generiert von `generate_vault.py` — bei Änderungen erneut ausführen.*
+
 
 ## Items
 
 ```dataview
-TABLE kind AS "Kind", category AS "Kategorie", rarity AS "Rarity", cooldown_seconds AS "Cooldown (s)", charge_rooms AS "Charge (Raeume)"
+TABLE kind AS "Kind", category AS "Kategorie", rarity AS "Rarity", cooldown_seconds AS "Cooldown (s)", charge_rooms AS "Charge (Räume)"
 FROM "01_Game_Design/Items"
 WHERE file.name != "_MOC_Items"
 SORT rarity DESC, name ASC
@@ -53,7 +57,7 @@ GROUP BY rarity
 SORT rarity DESC
 ```
 
-Siehe auch [[_MOC_Items]] fuer feste Wikilink-Verzeichnisse nach Kategorie/
+Siehe auch [[_MOC_Items]] für feste Wikilink-Verzeichnisse nach Kategorie/
 Rarity/Kind (funktioniert auch ohne Dataview-Plugin).
 
 ## Enemies
@@ -76,7 +80,7 @@ WHERE tier = "sandbox"
 SORT display_name ASC
 ```
 
-Siehe auch [[_MOC_Enemies]] fuer die vollstaendige Rollen-Gruppierung.
+Siehe auch [[_MOC_Enemies]] für die vollständige Rollen-Gruppierung.
 
 ## Rooms
 
@@ -107,7 +111,7 @@ WHERE file.name != "_MOC_Status_Effects"
 SORT id ASC
 ```
 
-Siehe auch [[_MOC_Status_Effects]] fuer die Gruppierung nach DoT/Crowd-Control/
+Siehe auch [[_MOC_Status_Effects]] für die Gruppierung nach DoT/Crowd-Control/
 Buff/generisches Debuff.
 
 ## DevLogs (jüngste zuerst)

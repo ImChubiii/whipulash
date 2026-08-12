@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["confused"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic"]
+tags: [item, "item/active", "rarity/epic", "applies/confused"]
 ---
 
 # Schwebendes Auge
 
 > *Es beobachtet dich alle*
 
-## Effekt
-
-Beschwoert ein schwebendes Auge, das nahe Gegner regelmaessig verwirrt.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[confused]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `leer` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | EPIC |
+| Seltenheit | EPIC |
 | Cooldown | 16.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.22 |
 
-## Quelle
+## Effekt
+Wirft ein Auge in die Luft. Schränkt die Sicht und Zielgenauigkeit aller Gegner ein, die es anblicken, und versetzt sie in Verwirrung (`confused`).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_LEER`, Variable `leer`)
+## Visueller Effekt (VFX)
+Ein dunkles, lila leuchtendes Auge schwebt hoch in der Luft über dem Kampfareal.
+
+## Status-Effekte
+- [[confused|Verwirrt]]
+
+## Synergiert gut mit
+- [[disco_ball|Disco-Kugel-Anhaenger]] – Verwirrte Gegner erleiden +25 % mehr Schaden, wenn sie gleichzeitig betäubt sind.
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an den durch das Auge verwirrten Gegnern heilen +0,5 HP und verlängern Buffs um 1s.
+
+## Empfohlen für
+- [[giselle|Giselle]] – Gewaehrt dauerhafte Raumkontrolle, waehrend man aus der Distanz angreift.
+- [[ningning|Ningning]] – Stoert gegnerische Formationen zuverlaessig.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

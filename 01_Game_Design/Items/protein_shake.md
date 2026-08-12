@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/uncommon"]
 
 > *Abgelaufen, aber wirksam*
 
-## Effekt
-
-+25 % Schaden. Deine Angriffs-Reichweite schrumpft dafuer um 15 %.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `protein_shake` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MELEE |
-| Rarity | UNCOMMON |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.8 |
+| Seltenheit | UNCOMMON |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Erhöht deinen Gesamtschaden um +25 %, verringert jedoch die Hitbox-Größe um -15 %.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_PROTEIN_SHAKE`, Variable `shake`)
+## Visueller Effekt (VFX)
+Grünes Aufleuchten (`FLASH_GREEN`) bei Aktivierung sowie eine visuelle Reduzierung der Charakter-Mesh-Skalierung auf 0,85x.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[rusty_cleaver|Rostiges Beil]] – Kombiniert den +25 % Schadensbonus mit der 30 % Blutungschance für maximierten Schaden.
+- [[tight_pants|Omas Enge Hosen]] – Gleicht den -15 % Hitbox-Nachteil durch +20 % Bewegungstempo beim Ausweichen aus.
+
+## Empfohlen für
+- [[karina|Karina]] – Nahkämpfer, die sowieso extrem nah am Feind stehen.
+- [[winter|Winter]] – Verleiht Nahkampfangriffen rohe Zerstoerungskraft.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/epic"]
 
 > *Der letzte Weg ist kurz*
 
-## Effekt
-
-Kill-Heal: Kills an betaeubten oder festgenagelten Gegnern heilen +1 Leben und loesen eine Schockwelle aus.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `executioner_hood` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | UTILITY |
-| Rarity | EPIC |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.30 |
+| Seltenheit | EPIC |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Kill-Heal: Kills an betäubten (`stun`) oder festgenagelten (`rooted`) Gegnern heilen dich um +1 HP und entladen eine zusätzliche Schockwelle im Raum.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_EXECUTIONER_HOOD`, Variable `executioner`)
+## Visueller Effekt (VFX)
+Ein weißes Aufblitzen (`FLASH_WHITE`) kombiniert mit einem sich ausbreitenden blauen Torus-Ring bei Auslösung des Kill-Heals.
+
+## Status-Effekte
+Löst keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[roof_nail|Rostiger Dachnagel]] – Die 25 % Chance auf Festnageln (`rooted` 1,5s) garantiert regelmäßige +1 HP Heilungen und Schockwellen bei Kills.
+- [[battery_pack|Ausgelaufene Flachbatterie]] – Liefert 1,5s Betäubungen (`stun`) auf Säureflächen für verlässliche +1 HP Exekutions-Heal-Triggers.
+
+## Empfohlen für
+- **Karina**: Erhält massive Lebenskraft und Flächenschaden bei aggressiven Betäubungs-Combos.
+- **Ningning**: Ideal zum Säubern kontrollierter Gegnergruppen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

@@ -13,55 +13,37 @@ has_stat_modifiers: false
 status_effects: ["acid", "rooted"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare"]
+tags: [item, "item/active", "rarity/rare", "applies/acid"]
 ---
 
 # Ergreifen
 
 > *Kein Entkommen*
 
-## Effekt
-
-Legt eine Falle ab, die Gegner darin festwurzelt und mit Saeure uebergiesst.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[acid]]
-- [[rooted]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `seize` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
+| Seltenheit | RARE |
 | Cooldown | 11.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.32 |
 
-## Quelle
+## Effekt
+Feuert eine Kapsel ab, die eine Zonen-Falle erzeugt. Hält Gegner am Ort fest (`rooted`) und fügt ihnen kontinuierlichen Säureschaden über Zeit (`acid` DoT) zu.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_SEIZE`, Variable `seize`)
+## Visueller Effekt (VFX)
+Ein dunkles Feld breitet sich am Boden aus, aus dem schwarze Tentakeln emporsteigen.
+
+## Status-Effekte
+- [[acid|Säure]]
+- [[rooted|Festgenagelt]]
+
+## Synergiert gut mit
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an in der Zonen-Falle gefangenen Gegnern (`acid` / `rooted`) heilen +0,5 HP und verlängern Buffs um 1s.
+- [[chewing_gum|Kaugummi unter dem Schuh]] – Verlängert die Säuredauer (`acid`) der Zonen-Falle um +50 %.
+
+## Empfohlen für
+Taktiker und Zonen-Kontroll-Builds, die Chokepoints effektiv blockieren wollen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

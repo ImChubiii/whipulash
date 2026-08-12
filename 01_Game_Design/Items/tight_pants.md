@@ -20,47 +20,29 @@ tags: [item, "item/passive", "rarity/uncommon"]
 
 > *Sitzt wie angegossen. Zu gut.*
 
-## Effekt
-
-+20 % Tempo. Vorbeirennen oder ein abrupter Richtungswechsel loesen einen Tritt aus: halber Schaden und starker Rueckstoss (~4 m).
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-04_5d63fe2_featitemscombatlevelgenui_ouija-board_item-reworks|2026-08-04 — feat(items,combat,levelgen,ui): Ouija-Board, Item-Reworks, Last-Stand, Boss-HP-Balken, diverse Bugfixes]]
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `tight_pants` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MOVEMENT |
-| Rarity | UNCOMMON |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.9 |
+| Seltenheit | UNCOMMON |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Gewährt dauerhaft +20 % Bewegungsgeschwindigkeit. Das Vorbeirennen an Gegnern löst automatisch einen Tritt aus, der 0,5x Schaden verursacht.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_TIGHT_PANTS`, Variable `pants`)
+## Visueller Effekt (VFX)
+Beim Laufen entstehen weiße Windlinien hinter dem Spieler, und der automatisch ausgelöste Tritt erzeugt einen Staubring (`DUST_RING`).
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[brimstone_horns|Hoellenfeuer-Hoerner]] – Die +20 % Bewegungsgeschwindigkeit helfen, den Schwellenwert für Ramm-Attacken dauerhaft zu überschreiten.
+- [[stiletto_heels|Mamas Stoeckelschuhe]] – Kombiniert das +20 % Tempo mit hinterlassenen Säurepfützen (`acid` / `slow`), während Tritte 0,5x Schaden austeilen.
+
+## Empfohlen für
+Schnelle Charaktere, die im Dauerlauf Distanz schaffen wollen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

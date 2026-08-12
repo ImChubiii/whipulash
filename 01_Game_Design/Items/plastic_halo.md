@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/uncommon"]
 
 > *Aus dem Karnevalsbedarf*
 
-## Effekt
-
-+1 maximales Leben. Jeder Kill hat 10 % Chance, 0,5 Leben zu heilen.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `plastic_halo` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | DEFENSE |
-| Rarity | UNCOMMON |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.10 |
+| Seltenheit | UNCOMMON |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Erhöht das maximale Leben um +1 Max-HP. Bei jedem erzielten Gegner-Kill besteht eine 10 % Chance auf eine Heilung von +0,5 HP.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_PLASTIC_HALO`, Variable `halo`)
+## Visueller Effekt (VFX)
+Ein blauer, leuchtender Ring schwebt als blaues Hologramm (`HOLOGRAM_BLUE`) über dem Kopf des Spielers.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[vampire_teeth|Vampirzaehne]] – Kombiniert die 10 % Kill-Chance auf +0,5 HP Heilung mit garantierten +0,5 HP Kill-Heals an Gegnern unter Status-Effekten.
+- [[magnetic_compass|Magnetischer Kompass]] – Zieht im 6m-Radius automatisch gedroppte Heil-Items und Ressourcen heran.
+
+## Empfohlen für
+- [[karina|Karina]] – Sehr gute Lebensverstaerkung für den Nahkampf.
+- [[giselle|Giselle]] – Erhoeht die Sicherheit bei Unachtsamkeiten.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

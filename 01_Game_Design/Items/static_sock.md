@@ -20,47 +20,29 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Ladung baut sich auf*
 
-## Effekt
-
-Jeder 6. Treffer entlaedt eine Schockwelle: doppelter Schaden im Umkreis, Gegner werden zurueckgestossen.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `static_sock` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MELEE |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.3 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Jeder 6. Treffer entlädt eine gewaltige elektrische Schockwelle, die doppelten Schaden verursacht und getroffene Gegner stark zurückstößt (Knockback).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_STATIC_SOCK`, Variable `sock`)
+## Visueller Effekt (VFX)
+Bei der Entladung erscheinen gelbe Funken (`SPARK_YELLOW`) kombiniert mit einem blauen Torus-Ring, der sich kreisförmig ausbreitet.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[rusty_cleaver|Rostiges Beil]] - 30 % Chance auf Blutung ergänzt jeden 6. Treffer um flächendeckenden doppelten Schaden.
+- [[rolling_thunder|Donnergrollen]] - Kombiniert den doppelten Schockwellenschaden mit zusätzlichen Flächen-Betäubungen (`stun`).
+
+## Empfohlen für
+Schnell angreifende Nahkämpfer, die regelmäßig von Flächenschadens-Spitzen profitieren.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

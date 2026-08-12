@@ -82,3 +82,7 @@ ausgelegt — nicht auf Erkundung.
 | Große Karte | `M` |
 | Pause & Optionen | `Esc` |
 | Etage neu starten | `R` |
+
+
+## Verwandte Seiten
+- [[HOME]]

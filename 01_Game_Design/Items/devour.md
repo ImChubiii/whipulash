@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Nimmt, was uebrig bleibt*
 
-## Effekt
-
-Passiv: Toetest du einen Gegner, heilst du sofort um einen kleinen Teil deines Maximal-Lebens.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `devour` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.38 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Zieht automatisch Lebensenergie aus besiegten Gegnern ab und regeneriert Gesundheit für den Spieler.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_DEVOUR`, Variable `devour`)
+## Visueller Effekt (VFX)
+Ein lila Energiestrahl fließt von der Leiche des besiegten Gegners direkt zum Spieler.
+
+## Status-Effekte
+Löst keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kombiniert die Energieabsorption mit garantierten +0,5 HP Kill-Heals an Status-betroffenen Gegnern.
+- [[executioner_hood|Scharfrichter-Kapuze]] – Ergänzt die Lebensenergie-Absorption um +1 HP Heilung und Raum-Schockwellen bei Betäubungs-Kills.
+
+## Empfohlen für
+- **Karina**: Essenziell für Sustain mitten im gegnerischen Ansturm.
+- **Giselle**: Garantiert konstante Regeneration beim schnellen Durchqueren von Räumen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

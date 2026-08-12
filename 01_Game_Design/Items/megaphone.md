@@ -20,47 +20,30 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *RUHE JETZT*
 
-## Effekt
-
-Ein Schrei nach vorn unterbricht Gegner und verursacht Schaden. Gegen bereits betaeubte Gegner dreifacher Schaden.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[silenced]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `megaphone` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | MELEE |
-| Rarity | EPIC |
+| Seltenheit | EPIC |
 | Cooldown | 5.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.8 |
 
-## Quelle
+## Effekt
+Stoesst einen lautstarken Schrei ab, der gegnerische Aktionen unterbricht, Schaden verursacht und Ziele stummschaltet (silenced). Gegen bereits betaeubte (stunned) Gegner richtet der Schrei 3x Schaden (dreifachen Schaden) an. Cooldown: 5,0 Sekunden.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_MEGAPHONE`, Variable `megaphone`)
+## Visueller Effekt (VFX)
+Ein sich nach vorne oeffnender oranger Schallkegel mit Druckwellen-Visualisierung.
+
+## Status-Effekte
+- [[silenced|Stummgeschaltet]]
+
+## Synergiert gut mit
+- [[jumper_cables|Papas Starthilfekabel]] – Dash betaeubt Gegner (stun 2s), woraufhin das Megafon 3x Schaden anrichtet.
+- [[modem_56k|Altes Modulations-Modem]] – Ergaenzt Stummschaltung (silenced) und profitiert von Betaeuerungskombos.
+
+## Empfohlen für
+- [[karina|Karina]] – Perfekt für Nahkämpfer mit Betaeuerungskombinationen.
+- [[winter|Winter]] – Stoert gegnerische Angriffe im Nahbereich verlaesslich.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

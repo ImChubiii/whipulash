@@ -63,3 +63,43 @@ static func enemies_within(from_pos: Vector3, radius: float) -> Array[Node3D]:
 		result.append(enemy)
 
 	return result
+
+
+## Aim-Assist: liegt ein lebender Gegner innerhalb "max_angle_deg" um die
+## reine Blickrichtung UND in Reichweite, wird "dir" sanft (per Slerp,
+## Staerke "strength") auf ihn gebogen statt hart eingerastet - verzeiht
+## knapp daneben gezielte Schuesse, ohne komplett automatisch zu treffen.
+## Ohne Kandidat wird "dir" unveraendert zurueckgegeben.
+static func aim_assisted_direction(
+		origin: Vector3, dir: Vector3, max_range: float,
+		max_angle_deg: float = 6.0, strength: float = 0.5
+) -> Vector3:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or dir.length_squared() < 0.0001:
+		return dir
+
+	var flat_dir: Vector3 = dir.normalized()
+	var best: Node3D = null
+	var best_angle: float = deg_to_rad(max_angle_deg)
+
+	for node: Node in tree.get_nodes_in_group("enemies"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		var enemy: Node3D = node as Node3D
+		var to_enemy: Vector3 = (enemy.global_position + Vector3.UP) - origin
+		if to_enemy.length_squared() < 0.0001 or to_enemy.length() > max_range:
+			continue
+		var health: Node = enemy.find_child("Health", true, false)
+		if health == null or not (health is Health) or not (health as Health).is_alive():
+			continue
+
+		var angle: float = flat_dir.angle_to(to_enemy.normalized())
+		if angle < best_angle:
+			best_angle = angle
+			best = enemy
+
+	if best == null:
+		return dir
+
+	var to_best: Vector3 = ((best.global_position + Vector3.UP) - origin).normalized()
+	return flat_dir.slerp(to_best, strength).normalized()

@@ -13,54 +13,36 @@ has_stat_modifiers: false
 status_effects: ["rooted"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic"]
+tags: [item, "item/active", "rarity/epic", "applies/rooted"]
 ---
 
 # Spruehsahne-Dose
 
 > *Direkt aus der Dose*
 
-## Effekt
-
-Legt einen Sahneteppich aus: Gegner rutschen aus und liegen 1,5 s am Boden. Loescht brennende Gegner und richtet dabei massiven Schaden an.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[rooted]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `whipped_cream` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | EPIC |
+| Seltenheit | EPIC |
 | Cooldown | 7.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.9 |
 
-## Quelle
+## Effekt
+Breitet einen Sahneteppich aus. Gegner darauf rutschen aus und geraten für 1,5 Sekunden in Bodenlage (rooted 1.5s). Trifft die Sahne auf brennende Gegner (burn), wird das Feuer geloescht und verursacht augenblicklich massiven Explosionsschaden. Cooldown: 7,0 Sekunden.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_WHIPPED_CREAM`, Variable `cream`)
+## Visueller Effekt (VFX)
+Ein dichter, strahlend weisser Sahneteppich auf dem Boden.
+
+## Status-Effekte
+- [[rooted|Fixiert / Bodenlage (1.5s)]]
+
+## Synergiert gut mit
+- [[storm_lighter|Sturmfeuerzeug]] – Versetzt Gegner in den burn-Status (3s DoT), der bei Kontakt mit der Sahne geloescht wird und massiven Schaden ausloest.
+- [[spicy_ramen|Scharfe Instant-Nudeln]] – Zuendet Gegner mit 4s burn an, um den Sahne-Loesch-Burst zu triggern.
+
+## Empfohlen für
+Combo-Spieler, die das Zusammenspiel verschiedener Elemente ausreizen wollen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

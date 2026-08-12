@@ -7,39 +7,27 @@ is_damage_over_time: false
 heavy_duration: "4.0"
 synergies: ["max_angle_rad"]
 triggered_by_items: ["disco_ball", "roller_skates", "walkman", "leer", "fakeout", "prowler", "paranoia"]
-tags: [status-effect]
+tags: [status-effect, type/cc]
 ---
 
 # confused
 
-CONFUSED — der Gegner schlaegt in die falsche Richtung.
+> *Der Gegner gerät ins Taumeln und schlägt in eine völlig falsche Richtung.*
 
 ## Werte
-
 | Feld | Wert |
 |---|---|
-| Dauer (Standard) | 2.0 s |
+| Dauer | 2.0 s |
+| Typ | Crowd Control |
 | Tick-Intervall | — |
-| Schaden/Tick | — |
-| Heavy-Variante | 4.0 |
+| Schaden pro Tick | — |
+| Damage over Time | Nein |
+| Heavy-Dauer | 4.0 s |
 
+## Wirkung
+Confused lenkt die Angriffsrichtung des Gegners zufällig um bis zu 75° ab (in der Heavy-Variante um bis zu 140° über 4,0 Sekunden). Optisch zieht die verwirrte Einheit einen leuchtenden Regenbogen-Schimmer hinter sich her. Zusätzlich erleiden verwirrte Gegner 25 % Bonusschaden durch Stun-Kombinationen.
 
-## Zusatzwerte
-
-| Konstante | Wert |
-|---|---|
-| `DEFAULT_MAX_ANGLE_DEG` | 75.0 |
-| `HEAVY_MAX_ANGLE_DEG` | 140.0 |
-| `TINT_STRENGTH` | 0.35 |
-| `RAINBOW_SPEED` | 0.9 |
-| `STUN_DAMAGE_BONUS` | 0.25 |
-
-## Synergien
-
-- `max_angle_rad()`
-
-## Ausgeloest von (Items)
-
+## Ausgeloest von
 - [[disco_ball]]
 - [[roller_skates]]
 - [[walkman]]
@@ -48,25 +36,18 @@ CONFUSED — der Gegner schlaegt in die falsche Richtung.
 - [[prowler]]
 - [[paranoia]]
 
-## Wird abgefragt von (Items, ohne es auszuloesen)
+## Synergiert mit
+- [[stun]] (nutzt den verknüpften `STUN_DAMAGE_BONUS` von +25 %)
+- Ausweich- & Mobilitäts-Items, da Schläge ins Leere gehen
 
-- —
-
-## Gegner-Interaktion
-
-- —
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
-
-## Laufzeit
-
-Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
-`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
-altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
-`extend_all()`.
-
-## Quelle
-
-`scripts/status_effects/confused.gd`
+## Alle Status-Effekte
+- [[acid]] — Säure-Schaden über Zeit (DOT)
+- [[burn]] — Feuer-Schaden über Zeit (DOT)
+- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
+- [[confused]] — Zufällige Angriffsrichtung (Crowd Control)
+- [[rooted]] — Bewegungsunfähig (Crowd Control)
+- [[shield]] — Schutzschild für Einheiten (Buff)
+- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
+- [[slow]] — Verlangsamte Bewegung (Crowd Control)
+- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
+- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)

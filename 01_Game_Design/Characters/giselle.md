@@ -7,57 +7,67 @@ speed: 14.0
 max_health: 130.0
 primary_cooldown: 0.08
 secondary_cooldown: 5.0
-tags: [character]
+tags: [character, role/ranged, difficulty/medium]
 ---
 
 # Giselle
 
-## Basiswerte
+> *Eine tödliche Fernkämpferin, die Dauerfeuer aus der Hüfte mit präzisen Scharfschützenschüssen kombiniert.*
 
-| Wert | Betrag |
+## Übersicht
+| Feld | Wert |
 |---|---|
+| Rolle | Sniper |
+| Spielstil | Halte Gegner mit der Uzi auf Distanz und schalte dicke Brocken mit gezielten Schüssen aus. |
+| Schwierigkeit | Mittel |
 | Move-Speed | 14.0 |
 | Max. HP | 130.0 |
-| Primary-Basis-Cooldown | 0.08 s |
-| Secondary-Basis-Cooldown | 5.0 s |
+| Primaer | Uzi Spray (Cooldown: 0.08s) |
+| Sekundaer | Sniper Burst (Cooldown: 5.0s) |
 
-## Mechanik
+## Fähigkeiten
 
-**Uzi Spray (Primary):** Hitscan-Dauerfeuer ohne jeglichen Streu-Winkel (`scripts/core/hitscan.gd`), haelt bei gehaltener LMB ueber den unveraenderten Halten-Loop aus `combat_base.gd`. 25-Schuss-Magazin, danach fester 1s-Reload (ueberschreibt `_primary_timer` statt eines eigenen Timers, siehe `_get_effective_primary_cooldown()`-Override). **Sniper Burst (Secondary):** komplett eigenes Press/Hold/Release-Handling (`_poll_secondary_input()`-Override) - RMB halten zoomt die Kamera-FOV runter (Zielfernrohr-Simulation, unabhaengig vom bestehenden SpringArm3D-Scroll-Zoom), Loslassen loest einen 3-Schuss-Burst aus UND erst dann den 5s-Cooldown.
+### Uzi Spray
+**Wie benutzen:** LMB halten
+Feuert einen ununterbrochenen Hagel an Kugeln ab. Du hast ein 25-Schuss-Magazin, danach musst du kurz für 1 Sekunde nachladen. Ideal, um Gegnergruppen in Schach zu halten!
 
-## Balancing
+### Sniper Burst
+**Wie benutzen:** RMB halten zum Zoomen, Loslassen zum Feuern
+Halte die rechte Maustaste gedrückt, um durch das Zielfernrohr zu schauen. Lass los, um einen mächtigen 3-Schuss-Burst abzufeuern, der massiven Schaden anrichtet und Fighter sowie Stinger one-shottet. (Lässt Colossus bei 25% HP)
 
+### ⚡ Dash
+Kurze Ausweichrolle — druecke Shift. Kein Cooldown-Timer, aber kurze Animationsdauer. Unvermeidbar-Frames waehrend des Dashens.
+
+## Balancing auf einen Blick
 | Wert | Betrag |
 |---|---|
-| Uzi Spray - Schaden/Schuss | 7 |
-| Uzi Spray - Magazin | 25 Schuss |
-| Uzi Spray - Reload | 1.0 s |
-| Uzi Spray - Reichweite | 40 m |
-| Sniper Burst - Schaden/Schuss | 100 (x3 = 300 Gesamt) |
-| Sniper Burst - Zoom-FOV | 28 Grad |
-| Sniper Burst - Cooldown | 5.0 s (startet bei Release) |
-| Sniper Burst - Wirkung | one-shottet [[fighter]] (100 HP) und [[stinger]] (25 HP), laesst [[colossus]] (400 HP) bei 25% HP |
+| Uzi Magazin | 25 Schuss |
+| Uzi Reload | 1.0s |
+| Sniper Burst | 3 Schuss |
 
-## Verwandt
+## Tipps & Tricks
+- **Distanz halten**: Nutze das Zielfernrohr aus sicherer Entfernung, um Fighter und Stinger mit einem Schuss (One-Shot) auszuschalten.
+- **Munition managen**: Behalte deine 25 Schuss im Auge, damit du nicht mitten im Schwarm nachladen musst.
+- **Positionierung**: Mit 130 HP hältst du einiges aus, bist aber mit 14.0 Move-Speed recht langsam – bleib auf Distanz!
+- **Synergiert mit Gegnern**: Sehr effektiv gegen Colossus auf Distanz.
 
-- [[combat_base]] — Basisklasse, stellt Cooldown-/Combo-/Hit-Lock-/Dash-
-  System bereit; `scripts/characters/combat_giselle.gd` ueberschreibt nur Primary/Secondary.
-  Utility (Dash) und die zwei aktiven Item-Slots (Q/E) bleiben fuer alle vier
-  Charaktere geteilt und unveraendert.
-- [[player_base]] — Schwester-Komponente ("Combat" vs. player_base direkt am
-  Charakter), definiert Move-Speed/HP-Basiswerte in `scenes/characters/char_giselle.tscn`.
-- [[fighter]], [[stinger]], [[colossus]] — HP-Referenzen fuer die Sniper-Burst-Balancing (siehe oben).
+## Empfohlene Items
+> Empfehlungen basieren auf dem Spielstil — nur Items aus der 84er-Liste verwenden!
 
-Siehe [[_MOC_Characters]] fuer den vollstaendigen Ueberblick aller vier
-Charaktere.
+- [[laser_pointer|Laser Pointer]] — Markiert den stärksten Gegner für +15% Schaden.
+- [[protein_shake|Protein Shake]] — Erhoeht deinen allgemeinen Schaden um 25%.
+- [[blood_pact|Blood Pact]] — Gewaehrt zusätzlich +40% Schaden.
+- [[library_book|Library Book]] — Instant-Kill bei Gegnern unter 20% HP, super für die Sniper.
+- [[hunters_fury|Hunters Fury]] — Feuert 3 riesige Energie-Impulse zusätzlich ab.
+- [[nanoswarm|Nanoswarm]] — Beschwoert unsichtbare Nanobots zur Bereichskontrolle.
 
-## Erwaehnt in DevLogs
+## Gut gegen diese Gegner
+- [[fighter|Fighter]] — Werden vom Sniper Burst direkt ge-one-shottet.
+- [[stinger|Stinger]] — Werden ebenfalls vom Sniper Burst sofort erledigt.
+- [[colossus|Colossus]] — Werden auf 25% HP reduziert und koennen auf Distanz gehalten werden.
 
-- [[2026-08-10_baeb020_featvfxuiitemslevelgen_ghost-trail-system_main-men|2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes]]
-- [[2026-07-28_2642172_featitems_aktive_items_auf_qe-slots_umgestellt|2026-07-28 — feat(items): aktive Items auf Q/E-Slots umgestellt]]
-- [[2026-07-24_d86f02e_refactorplayer_split_player_system_into_per-charac|2026-07-24 — refactor(player): split player system into per-character scenes with shared base classes]]
-- [[2026-07-24_b39a97d_refactorplayer_split_player_system_into_per-charac|2026-07-24 — refactor(player): split player system into per-character scenes with shared base classes]]
+## Alle Charaktere
+[[ningning|Ningning]] . [[giselle|Giselle]] . [[karina|Karina]] . [[winter|Winter]]
 
-## Quelle
-
-`scenes/characters/char_giselle.tscn`, `resources/char_2.tres`, `scripts/characters/combat_giselle.gd`
+## Schnellnavigation
+[[_MOC_Items|Items]] . [[_MOC_Enemies|Gegner]] . [[_MOC_Rooms|Räume]] . [[_MOC_Status_Effects|Status-Effekte]] . [[HOME|Startseite]]

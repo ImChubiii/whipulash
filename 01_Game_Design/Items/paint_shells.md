@@ -20,47 +20,30 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *Bunter Regen*
 
-## Effekt
-
-Wirft mehrere kleine Granaten in einem Streumuster vor dir, die kurz danach explodieren.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `paint_shells` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | EPIC |
+| Seltenheit | EPIC |
 | Cooldown | 11.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.20 |
 
-## Quelle
+## Effekt
+Streugranate, die nach dem ersten Aufprall in mehrere kleine Granaten zerfällt und hohem flächendeckenden Schaden verursacht.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_PAINT_SHELLS`, Variable `paint_shells`)
+## Visueller Effekt (VFX)
+Bunte Farbbomben explodieren beim Aufprall in farbenfrohen Effekten.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[gatecrash|Portalanker]] – Vorstürmen, Streugranaten entladen und während des 11s Cooldowns sofort zum Anker zurückteleportieren.
+- [[super_glue|Ausgelaufener Sekundenkleber]] – Hält Gegnergruppen 2s am Boden fest, um die volle Wirkung der Streugranaten zu gewährleisten.
+
+## Empfohlen für
+- [[ningning|Ningning]] – Grossartiger Burst-Schaden gegen kompakte Gegnerhaufen.
+- [[winter|Winter]] – Deckt breite Raumareale ab.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

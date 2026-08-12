@@ -6,45 +6,37 @@ tier: sandbox
 role: "Flieger · Fernkampf (Flaechenlaser), kein Pflicht-Kill"
 base_hp: 65.0
 status_effects: []
-tags: [enemy, "enemy/sandbox"]
+tags: [enemy, "enemy/sandbox", role/ranged, role/flyer]
 ---
 
 # Plasmastrahl-Bot
 
-> Flieger · Fernkampf (Flaechenlaser), kein Pflicht-Kill
+> *Ein schwebender Gefahrenherd, der mit einem kriechenden Feuerlaser die Arena durchschneidet.*
 
-**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
-[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
-[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
-Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
-[[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
-
-## Mechanik
-
-Driftet langsam ueber dem Schlachtfeld, laedt sichtbar auf (`charge_time`) und zieht danach einen [[burn]]-Laser als wandernde Linie ueber den Boden (`beam_duration`), zentriert auf die Spielerposition beim Feuern - wer nicht seitlich ausweicht, sammelt mehrere Burn-Ticks. Wie [[schild-drohne]] kein Pflicht-Kill fuer den Raum-Clear und despawnt von selbst, sobald der Raum sonst leer ist.
-
-## Balancing (roh aus `scripts/enemies/plasma_beam_bot.gd`)
-
-| Wert | Betrag |
+## Übersicht
+| Feld | Wert |
 |---|---|
-| Basis-HP | 65 |
-| Schwebehoehe | 8 |
-| Anflug-Geschwindigkeit | 2 |
-| Aufladezeit (s) | 1.1 |
-| Strahl-Dauer (s) | 1.4 |
-| Strahlbreite | 2 |
-| Strahl-Sweep-Laenge | 14 |
-| Cooldown nach Schuss (s) | 3.2 |
-| Erkennungsreichweite | 40 |
+| Typ | Flieger / Fernkämpfer |
+| Gefahr | Hoch |
+| HP | 65.0 |
+| Schaden | Brand-Ticks |
+| Geschwindigkeit | 2.0 |
 
-## Status-Effekte (ausgeloest)
+## Verhalten
+Der Plasmastrahl-Bot driftet langsam über dir. Nach einer sichtbaren Aufladephase zieht er einen unaufhaltsamen Feuerlaser in einer Linie über den Boden. Wer in den Strahl gerät, kassiert schnell mehrere Brand-Ticks. Er zaehlt als Support/Extra-Einheit und verschwindet, wenn der Rest des Raums geraeumt ist.
 
-- — (reiner Schaden/Knockback, kein Status-Effekt)
+## Tipps & Schwachstellen
+- Seitlich ausweichen! Der Laser zieht immer in eine gerade Linie; sobald er anfaengt zu feuern, tritt einfach aus der Bahn.
+- Nutze die lange Aufladezeit (1.1s), um ihn mit starken Schlaegen vom Himmel zu holen.
+- Wenn der Rest des Raums leicht ist, kannst du ihn einfach ignorieren und die anderen Gegner erledigen, dann flieht er von selbst.
 
-## Erwaehnt in DevLogs
+## Wirksame Status-Effekte
+| Status | Wirkung |
+|---|---|
+| [[burn\|Brand]] | Schaden über Zeit |
+| [[acid\|Säure]] | Schaden über Zeit |
+| [[stun\|Betäubung]] | Handlungsunfaehig (unterbricht den Ladevorgang) |
+| [[silenced\|Stille]] | Sperrt Angriffe |
 
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
-
-## Quelle
-
-`scripts/enemies/plasma_beam_bot.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+## Verwandt
+- [[_MOC_Enemies|Alle Gegner]] . [[custom_enemy_base|Basisklasse]] . [[enemy_models|Modelle]]

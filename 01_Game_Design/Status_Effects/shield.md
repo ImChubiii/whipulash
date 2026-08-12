@@ -7,60 +7,41 @@ is_damage_over_time: false
 heavy_duration: ""
 synergies: []
 triggered_by_items: []
-tags: [status-effect]
+tags: [status-effect, type/buff]
 ---
 
 # shield
 
-SHIELD — neuer Status-Effekt: Schild-Drohne verpasst bis zu drei Gegnern einen Schild (siehe scripts/enemies/shield_drone.gd).
+> *Ein schützendes Energiefeld umgibt das Ziel, gewährt Bonus-Lebenspunkte und verringert eingehenden Schaden.*
 
 ## Werte
-
 | Feld | Wert |
 |---|---|
-| Dauer (Standard) | 1.0 s |
+| Dauer | 1.0 s |
+| Typ | Buff |
 | Tick-Intervall | — |
-| Schaden/Tick | — |
-| Heavy-Variante | — |
+| Schaden pro Tick | — |
+| Damage over Time | Nein |
+| Heavy-Dauer | — |
 
+## Wirkung
+Shield hüllt das Ziel in ein schützendes Feld, das die maximalen Lebenspunkte um 25 % erhöht und die Modelle optisch leicht vergrößert sowie bläulich aufleuchten lässt. Der Effekt hält standardmäßig 1,0 Sekunde an und wird von gegnerischen Schild-Drohnen per Strahl regelmäßig auf bis zu drei verbündete Einheiten auffrischt.
 
-## Zusatzwerte
+## Ausgeloest von
+- [[schild-drohne]] (Gegner-Fähigkeit)
 
-| Konstante | Wert |
-|---|---|
-| `TINT_STRENGTH` | 0.3 |
-| `MAX_HEALTH_BONUS_FACTOR` | 0.25 |
-| `VISUAL_SCALE_BONUS` | 0.15 |
+## Synergiert mit
+- [[vulnerable]] (kontert den Schildbonus durch drastisch erhöhten Folgeschaden)
+- [[silenced]] und [[stun]] (unterbricht die Schild-Drohne beim Aufrechterhalten der Schildstrahlen)
 
-## Synergien
-
-- —
-
-## Ausgeloest von (Items)
-
-- —
-
-## Wird abgefragt von (Items, ohne es auszuloesen)
-
-- —
-
-## Gegner-Interaktion
-
-- Ausgeloest von [[schild-drohne]] auf bis zu drei verbundene Gegner gleichzeitig (`MAX_SHIELDED = 3`), per Strahl-Refresh alle `SHIELD_REFRESH_INTERVAL` (0.5s) — bricht die Drohne die Verbindung ab, laeuft der Schild von selbst aus.
-- Wirkung ist **doppelt implementiert**, einmal pro Basisklasse: `enemy_ai.gd::_apply_shield_visual()` fuer [[fighter]]/[[stinger]]/[[colossus]], `custom_enemy_base.gd::_apply_shield_visual()` fuer die sechs Sandbox-Prototypen ueber [[custom_enemy_base]]. Beide lesen dieselben `StatusShield`-Konstanten, damit +25 % HP / Aura-Farbe an einer Stelle gepflegt werden.
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
-- [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
-
-## Laufzeit
-
-Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
-`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
-altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
-`extend_all()`.
-
-## Quelle
-
-`scripts/status_effects/shield.gd`
+## Alle Status-Effekte
+- [[acid]] — Säure-Schaden über Zeit (DOT)
+- [[burn]] — Feuer-Schaden über Zeit (DOT)
+- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
+- [[confused]] — Zufällige Angriffsrichtung (Crowd Control)
+- [[rooted]] — Bewegungsunfähig (Crowd Control)
+- [[shield]] — Schutzschild für Einheiten (Buff)
+- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
+- [[slow]] — Verlangsamte Bewegung (Crowd Control)
+- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
+- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)

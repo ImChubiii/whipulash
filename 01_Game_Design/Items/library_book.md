@@ -20,47 +20,30 @@ tags: [item, "item/active", "rarity/legendary"]
 
 > *Ueberfaellig seit 1997*
 
-## Effekt
-
-Toetet sofort alle Gegner im Raum unter 20 % Leben. Nur einmal pro Etage.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `library_book` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | LEGENDARY |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.3 |
+| Seltenheit | LEGENDARY |
+| Cooldown | 1x pro Etage |
 
-## Quelle
+## Effekt
+Eliminiert bei Aktivierung augenblicklich alle Gegner im aktuellen Raum, deren Lebenspunkte unter 20 % gefallen sind (sofortige Exekution). Loest keine Status-Effekte aus. Kann nur 1x pro Etage verwendet werden.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_LIBRARY_BOOK`, Variable `book`)
+## Visueller Effekt (VFX)
+Ein intensiver, raumweiter weisser Bildschirmblitz (`FLASH_WHITE`), gefolgt vom sofortigen Zerfall betroffener Gegner.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[laser_pointer|Laser-Pointer aus dem Kiosk]] – Erhoeht den Schaden auf den stärksten Gegner um +15 %, um dessen HP rasch unter die 20 % Exekutions-Schwelle zu druecken.
+- [[blood_pact|Das Blutpakt]] – Gewaehrt +40 % Schaden, um Gegnergruppen blitzschnell unter die 20 % HP-Grenze zu bringen.
+
+## Empfohlen für
+- [[giselle|Giselle]] – Perfekt, um zaehe Elitemonster oder Bosse auf Distanz zu finishen.
+- [[winter|Winter]] – Ultimativer Joker für brenzlige Bossraeume.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

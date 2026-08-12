@@ -6,42 +6,37 @@ tier: sandbox
 role: "Stationaer · Kontrolle (Sog + Abstossungs-Schockwelle)"
 base_hp: 160.0
 status_effects: []
-tags: [enemy, "enemy/sandbox"]
+tags: [enemy, "enemy/sandbox", role/control, role/stationary]
 ---
 
 # Magnet-Kern
 
-> Stationaer · Kontrolle (Sog + Abstossungs-Schockwelle)
+> *Ein fieser Kontrollknoten, der dich mit unaufhaltsamem Sog anzieht und dann mit brutaler Gewalt wegschleudert.*
 
-**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
-[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
-[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
-Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
-[[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
-
-## Mechanik
-
-Bewegt sich nie, schiesst nicht. Zieht den Spieler und freiliegende Pickups kontinuierlich per Einzelimpulsen (`PULL_TICK_INTERVAL`, bewusst gepulst statt Dauerkraft: player_base.gd baut Knockback-Impulse per `knockback_friction` ab, ein Dauer-Impuls pro Frame ginge im Reibungs-Rauschen unter) zu sich heran. Kommt der Spieler unter `too_close_radius`, feuert der Kern stattdessen eine Schockwelle mit massivem Abstossungs-Knockback - bestraft also sowohl Abstand halten (Sog) als auch draufhalten (Schockwelle).
-
-## Balancing (roh aus `scripts/enemies/magnet_core.gd`)
-
-| Wert | Betrag |
+## Übersicht
+| Feld | Wert |
 |---|---|
-| Basis-HP | 160 |
-| Sog-Reichweite | 20 |
-| Schockwellen-Ausloeseradius | 7 |
-| Schockwellen-Kraft | 30 |
-| Schockwellen-Cooldown (s) | 1.6 |
-| Pickup-Sog-Geschwindigkeit | 7 |
+| Typ | Stationaer / Kontrolle |
+| Gefahr | Hoch |
+| HP | 160.0 |
+| Schaden | 30.0 (Schockwelle) |
+| Geschwindigkeit | 0.0 |
 
-## Status-Effekte (ausgeloest)
+## Verhalten
+Der Magnet-Kern feuert keine normalen Projektile, sondern zieht dich (und herumliegende Items) kontinuierlich heran. Wer zu gierig wird und in seine direkte Naehe gerät, loest eine explosive Schockwelle aus, die massiven Abstossungs-Knockback und 30 Schaden verursacht. 
 
-- — (reiner Schaden/Knockback, kein Status-Effekt)
+## Tipps & Schwachstellen
+- Halte die Distanz! Kaempfe aktiv gegen den Sog an, um nicht in die toedliche Schockwellen-Reichweite zu geraten.
+- Nutze Waffen, die von alleine agieren oder hohen Burst-Schaden auf Distanz machen.
+- Vorsicht bei Pickups: Der Kern zieht auch Items an, sodass du leicht in eine Falle tappst, wenn du Beute sammeln willst.
 
-## Erwaehnt in DevLogs
+## Wirksame Status-Effekte
+| Status | Wirkung |
+|---|---|
+| [[burn\|Brand]] | Schaden über Zeit |
+| [[acid\|Säure]] | Schaden über Zeit |
+| [[stun\|Betäubung]] | Handlungsunfaehig |
+| [[silenced\|Stille]] | Sperrt Angriffe (verhindert Schockwelle) |
 
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
-
-## Quelle
-
-`scripts/enemies/magnet_core.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+## Verwandt
+- [[_MOC_Enemies|Alle Gegner]] . [[custom_enemy_base|Basisklasse]] . [[enemy_models|Modelle]]

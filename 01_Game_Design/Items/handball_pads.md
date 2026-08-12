@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/epic"]
 
 > *Kreislaeufer-Ausruestung*
 
-## Effekt
-
-Einmal pro Raum: toedlicher Schaden laesst dich stattdessen mit 1 Leben stehen.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `handball_pads` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | DEFENSE |
-| Rarity | EPIC |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.25 |
+| Seltenheit | EPIC |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Einmal pro Raum wird sonst toedlicher Schaden abgefangen: Der Charakter ueberlebt den Treffer garantiert mit genau 1 HP.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_HANDBALL_PADS`, Variable `pads`)
+## Visueller Effekt (VFX)
+Ein weisser Aufblitz-Effekt (`FLASH_WHITE`) kombiniert mit einem pulsierenden blaeulich-weissen Schutzschild (`Schild-Puls`).
+
+## Status-Effekte
+Loest keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[devil_outfit|Teufelchen-Outfit]] – Garantiert das Ueberleben bei 1 HP, wodurch der +50 % Schadensbonus unter 50 % HP gefahrlos genutzt werden kann.
+- [[blood_pact|Das Blutpakt]] – Schuetzt vor versehentlichem Selbstmord durch den HP-Kosten-Effekt bei jedem 5. Treffer.
+
+## Empfohlen für
+- [[karina|Karina]] – Sehr wertvoll für riskante Nahkampf-Builds.
+- [[giselle|Giselle]] – Verhindert ein schnelles Ableben bei ungluecklichen Treffern.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

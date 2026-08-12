@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["burn"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare"]
+tags: [item, "item/active", "rarity/rare", "applies/burn"]
 ---
 
 # Brandsatz
 
 > *Alles brennt lichterloh*
 
-## Effekt
-
-Legt ein Napalm-Feld vor dir ab, das Gegner darin kontinuierlich verbrennt.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[burn]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `incendiary` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
+| Seltenheit | RARE |
 | Cooldown | 10.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.35 |
 
-## Quelle
+## Effekt
+Wirft eine Granate ab, die bei Detonation ein brennendes Napalm-Feld am Boden erzeugt. Wendet den Status-Effekt Brand (`burn` DoT) auf alle Gegner im Wirkungsbereich an.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_INCENDIARY`, Variable `incendiary`)
+## Visueller Effekt (VFX)
+Ein feuriges rot-gelbes Flammenfeld breitet sich am Boden aus.
+
+## Status-Effekte
+- [[burn|Brennen (DoT)]]
+
+## Synergiert gut mit
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an im Napalm-Feld brennenden (`burn`) Gegnern gewähren +0,5 HP Heilung und verlängern Buffs um 1s.
+- [[super_glue|Ausgelaufener Sekundenkleber]] – Fixiert Gegner 2s lang im Napalm-Feld für maximalen Brandschaden.
+
+## Empfohlen für
+- [[winter|Winter]] – Grossartiges Area-Control-Werkzeug.
+- [[ningning|Ningning]] – Schafft Gefahrenzonen zur Kontrolle von Gegnerwellen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

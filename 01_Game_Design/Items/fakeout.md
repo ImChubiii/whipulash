@@ -13,54 +13,38 @@ has_stat_modifiers: false
 status_effects: ["confused"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare"]
+tags: [item, "item/active", "rarity/rare", "applies/stun"]
 ---
 
 # Koeder
 
 > *Nicht die echte*
 
-## Effekt
-
-Stellt einen Koeder auf, der nach kurzer Zeit explodiert und nahe Gegner verwirrt.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[confused]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `fakeout` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
+| Seltenheit | RARE |
 | Cooldown | 10.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.24 |
 
-## Quelle
+## Effekt
+Schickt einen Klon nach vorne. Wird der Klon von Gegnern beschossen, explodiert er, blendet die Angreifer und wendet Betäubung (`stun`) sowie Verwirrung (`confused`) auf sie an.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_FAKEOUT`, Variable `fakeout`)
+## Visueller Effekt (VFX)
+Ein blau-transparenter Klon läuft nach vorne auf die Gegner zu.
+
+## Status-Effekte
+- [[stun|Betäubung]]
+- [[confused|Verwirrt]]
+
+## Synergiert gut mit
+- [[disco_ball|Disco-Kugel-Anhaenger]] – Verwirrte (`confused`) und betäubte (`stun`) Gegner durch die Klondetonation erleiden +25 % mehr Schaden.
+- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den durch die Detonation betäubten (`stun`) Gegnern heilen +1 HP und erzeugen Schockwellen.
+
+## Empfohlen für
+- [[giselle|Giselle]] – Perfekt, um Abstand zu halten und ungestoert aus der Distanz anzugreifen.
+- [[karina|Karina]] – Hilft beim Crowd Control in brenzligen Nahkampfsituationen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

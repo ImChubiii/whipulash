@@ -7,35 +7,27 @@ is_damage_over_time: false
 heavy_duration: ""
 synergies: []
 triggered_by_items: ["modem_56k", "car_alarm", "pepper_mill", "megaphone", "boombox", "prowler", "nightfall", "paranoia", "lockdown"]
-tags: [status-effect]
+tags: [status-effect, type/cc]
 ---
 
 # silenced
 
-SILENCED — keine Spezialangriffe, keine Telegraphs.
+> *Der Gegner wird stummgeschaltet: Spezialangriffe und Angriffs-Telegraphs werden sofort blockiert.*
 
 ## Werte
-
 | Feld | Wert |
 |---|---|
-| Dauer (Standard) | 1.0 s |
+| Dauer | 1.0 s |
+| Typ | Crowd Control |
 | Tick-Intervall | — |
-| Schaden/Tick | — |
-| Heavy-Variante | — |
+| Schaden pro Tick | — |
+| Damage over Time | Nein |
+| Heavy-Dauer | — |
 
+## Wirkung
+Silenced unterbricht für 1,0 Sekunde das Ausführen von Spezialangriffen und sperrt die Angriffsführung aller Gegnerklassen. Betroffene Ziele dunkeln optisch ab und können während der Dauer keine gefährlichen Angriffs-Telegraphs starten.
 
-## Zusatzwerte
-
-| Konstante | Wert |
-|---|---|
-| `TINT_STRENGTH` | 0.30 |
-
-## Synergien
-
-- —
-
-## Ausgeloest von (Items)
-
+## Ausgeloest von
 - [[modem_56k]]
 - [[car_alarm]]
 - [[pepper_mill]]
@@ -46,25 +38,18 @@ SILENCED — keine Spezialangriffe, keine Telegraphs.
 - [[paranoia]]
 - [[lockdown]]
 
-## Wird abgefragt von (Items, ohne es auszuloesen)
+## Synergiert mit
+- [[boombox]] (löst Spezialboni aus, wenn das Ziel bereits stummgeschaltet ist)
+- [[stun]] & [[confused]] für eine vollständige Neutralisierung gefährlicher Elite-Gegner
 
-- [[boombox]] — Effekt greift nur, wenn dieser Status bereits aktiv ist
-
-## Gegner-Interaktion
-
-- Sperrt in `enemy_ai.gd::is_attack_locked()` den Angriff **aller** Gegner ([[fighter]], [[stinger]], [[colossus]]).
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
-
-## Laufzeit
-
-Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
-`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
-altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
-`extend_all()`.
-
-## Quelle
-
-`scripts/status_effects/silenced.gd`
+## Alle Status-Effekte
+- [[acid]] — Säure-Schaden über Zeit (DOT)
+- [[burn]] — Feuer-Schaden über Zeit (DOT)
+- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
+- [[confused]] — Zufällige Angriffsrichtung (Crowd Control)
+- [[rooted]] — Bewegungsunfähig (Crowd Control)
+- [[shield]] — Schutzschild für Einheiten (Buff)
+- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
+- [[slow]] — Verlangsamte Bewegung (Crowd Control)
+- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
+- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)

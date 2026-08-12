@@ -13,54 +13,38 @@ has_stat_modifiers: false
 status_effects: ["vulnerable"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare"]
+tags: [item, "item/active", "rarity/rare", "applies/acid"]
 ---
 
 # Alarm-Bot
 
 > *Markiert das Ziel*
 
-## Effekt
-
-Rast auf den naechsten Gegner zu und markiert ihn - er nimmt danach kurzzeitig doppelten Schaden.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[vulnerable]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `alarmbot` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
-| Cooldown | 9.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.43 |
+| Seltenheit | RARE |
+| Cooldown | 9 s |
 
-## Quelle
+## Effekt
+Setzt einen getarnten Roboter ein. Der Roboter stürmt auf Gegner zu und wendet Säure (`acid`) an, wodurch deren erlittener Schaden verdoppelt wird.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_ALARMBOT`, Variable `alarmbot`)
+## Visueller Effekt (VFX)
+Ein kleiner gelber Roboter-Käfer krabbelt flink auf sein Ziel zu.
+
+## Status-Effekte
+- [[acid|Säure (Doppel-Schaden)]]
+- [[vulnerable|Verwundbar]]
+
+## Synergiert gut mit
+- [[boom_bot|Boom-Bot]] – Verdoppelt den Detonationsschaden des Bots am vom Käfer markierten Ziel.
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an den vom Roboter-Käfer getroffenen Gegnern gewähren +0,5 HP Heilung und verlängern Buffs um 1s.
+
+## Empfohlen für
+- **Giselle**: Perfekt, um Schlüsselziele oder Bosse schnell zu fokussieren und zu eliminieren.
+- **Karina**: Verstärkt ihre Burst-Schadensspitzen gegen zähe Einzelgegner.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

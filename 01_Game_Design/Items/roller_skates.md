@@ -13,54 +13,36 @@ has_stat_modifiers: false
 status_effects: ["confused"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/epic"]
+tags: [item, "item/passive", "rarity/epic", "applies/confused"]
 ---
 
 # Alte Rollschuhe
 
 > *Bremsen? Kannte man nicht.*
 
-## Effekt
-
-Dash-Treffer stossen Gegner extrem weit zurueck und verwirren sie kurz.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[confused]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `roller_skates` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MOVEMENT |
-| Rarity | EPIC |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.35 |
+| Seltenheit | EPIC |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Dash-Treffer stoßen Gegner extrem weit zurück und verwirren sie für 3 Sekunden bei Dash-Kollision (`confused` 3s).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_ROLLER_SKATES`, Variable `skates`)
+## Visueller Effekt (VFX)
+Beim Dashing und bei Kollisionen ziehen weiße Windlinien hinter dem Spieler her.
+
+## Status-Effekte
+- [[confused|Verwirrt (3s)]]
+
+## Synergiert gut mit
+- [[disco_ball|Disco-Kugel-Anhaenger]] – Verwirrte Gegner erleiden +25 % mehr Schaden, wenn sie zusätzlich betäubt sind.
+- [[tight_pants|Omas Enge Hosen]] – Kombiniert +20 % Bewegungstempo mit extremen Dash-Rückstößen und 3s Verwirrung.
+
+## Empfohlen für
+Hochmobile, agile Charaktere mit einem Spielstil, der auf Ausweichen und Hit-and-Run basiert.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

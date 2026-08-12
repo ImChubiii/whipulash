@@ -40,6 +40,10 @@ const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
 @export var sniper_zoom_in_time: float = 0.5
 @export var sniper_zoom_out_time: float = 0.35
 
+## --- Aim-Assist (beide Waffen) ----------------------------------------------
+@export var aim_assist_angle_deg: float = 5.0
+@export var aim_assist_strength: float = 0.5
+
 var _uzi_ammo: int = 25
 var _uzi_reloading: bool = false
 
@@ -83,16 +87,21 @@ func _perform_primary() -> void:
 	# das die tatsaechliche Blickrichtung. Bewusst ueber die Camera3D selbst
 	# statt SpringArm3D berechnet, damit hier keine Annahme ueber gleiche
 	# Rotation zwischen beiden Nodes mehr noetig ist.
-	var dir: Vector3 = -_camera.global_transform.basis.z
+	var dir: Vector3 = EnemyQuery.aim_assisted_direction(
+		origin, -_camera.global_transform.basis.z, uzi_range, aim_assist_angle_deg, aim_assist_strength
+	)
 
 	var dns: PackedScene = primary_hitbox.damage_number_scene if primary_hitbox else null
 	var result: Dictionary = Hitscan.fire(self, origin, dir, uzi_range, uzi_damage * _damage_multiplier(), player, dns)
 	_spawn_muzzle_vfx(origin, dir)
+	_spawn_tracer(origin, result["position"], 0.35, 0.06)
 	if result["hit"]:
-		VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
+		var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
+		if spark:
+			spark.scale *= 1.6
 		_lock_model_to(result["target"])
 		if player and player.has_method("shake_camera"):
-			player.shake_camera(0.12)
+			player.shake_camera(0.18)
 
 	_uzi_ammo -= 1
 	if _uzi_ammo <= 0:
@@ -183,7 +192,9 @@ func _perform_secondary() -> void:
 	# das die tatsaechliche Blickrichtung. Bewusst ueber die Camera3D selbst
 	# statt SpringArm3D berechnet, damit hier keine Annahme ueber gleiche
 	# Rotation zwischen beiden Nodes mehr noetig ist.
-	var dir: Vector3 = -_camera.global_transform.basis.z
+	var dir: Vector3 = EnemyQuery.aim_assisted_direction(
+		origin, -_camera.global_transform.basis.z, sniper_range, aim_assist_angle_deg, aim_assist_strength
+	)
 	var dmg: float = sniper_damage_per_shot * _damage_multiplier()
 	var dns: PackedScene = secondary_hitbox.damage_number_scene if secondary_hitbox else null
 	var landed_hit: bool = false
@@ -191,15 +202,23 @@ func _perform_secondary() -> void:
 	for i: int in range(sniper_shot_count):
 		var result: Dictionary = Hitscan.fire(self, origin, dir, sniper_range, dmg, player, dns)
 		_spawn_muzzle_vfx(origin, dir)
+		# Deutlich staerker als der Uzi-Tracer - der Sniper soll sich wie
+		# der "one-shot-kill"-Treffer anfuehlen, den die Spec verlangt.
+		_spawn_tracer(origin, result["position"], 0.9, 0.12)
 		if result["hit"]:
 			landed_hit = true
-			VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
+			var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
+			if spark:
+				spark.scale *= 2.2
 			_lock_model_to(result["target"])
 		if i < sniper_shot_count - 1:
 			await get_tree().create_timer(0.03).timeout
 
-	if landed_hit and player and player.has_method("shake_camera"):
-		player.shake_camera(0.4)
+	if landed_hit:
+		# Kurzer Hit-Stop + kraeftige Kamera-Erschuetterung statt nur Shake -
+		# verkauft das Gewicht eines Treffers, der die meisten Gegner sofort
+		# toetet, deutlich staerker als reines Wackeln.
+		Juice.impact(0.6, Juice.DURATION_HEAVY)
 
 
 func is_sniper_charging() -> bool:
@@ -224,9 +243,33 @@ func _lock_model_to(target: Variant) -> void:
 		player.set_target(target)
 
 
+## "dir" ist hier die reine Schuss-/Blickrichtung (-Camera-Z). VFX.spawn()/
+## _aim() orientieren aber nach der PROJEKT-Konvention "+Z ist vorne" (siehe
+## primary_hitbox.gd swing_vfx-Kommentar) - deshalb hier NEGIERT uebergeben,
+## sonst zeigt der Muendungsblitz sichtbar rueckwaerts, obwohl der Raycast
+## selbst (der "dir" unnegiert bekommt) korrekt in Blickrichtung feuert.
+## Sichtbarer Muendungsblitz-bis-Trefferpunkt-Streifen, kurz aufblitzend und
+## sofort wieder weg (BeamVisual.create()/update() einmalig statt jeden
+## Frame, siehe Winters Dauerstrahl fuer den Unterschied). Vorher hatte
+## Giselle GAR KEINE sichtbare Flugbahn - nur Muendungsfunke und Einschlag,
+## ohne Verbindung dazwischen wirkten ihre Schuesse kraftlos (Rueckmeldung
+## "sieht sehr schwach aus").
+func _spawn_tracer(origin: Vector3, endpoint: Vector3, radius_scale: float, life: float) -> void:
+	var data: CharacterData = PartyManager.get_active_data()
+	var color: Color = data.attack_color if data else Color(1.0, 0.85, 0.4)
+	var beam: Dictionary = BeamVisual.create(self, color, radius_scale)
+	if beam.is_empty():
+		return
+	BeamVisual.update(beam, origin, endpoint, 0.0)
+	get_tree().create_timer(life).timeout.connect(func() -> void:
+		BeamVisual.free_beam(beam)
+	)
+
+
 func _spawn_muzzle_vfx(pos: Vector3, dir: Vector3) -> void:
+	var vfx_dir: Vector3 = -dir
 	var data: CharacterData = PartyManager.get_active_data()
 	if data != null:
-		VFX.spawn_dual_tinted(MUZZLE_VFX_SCENE, pos, data.attack_color, data.attack_color_secondary, dir)
+		VFX.spawn_dual_tinted(MUZZLE_VFX_SCENE, pos, data.attack_color, data.attack_color_secondary, vfx_dir)
 	else:
-		VFX.spawn(MUZZLE_VFX_SCENE, pos, dir)
+		VFX.spawn(MUZZLE_VFX_SCENE, pos, vfx_dir)

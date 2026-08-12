@@ -20,47 +20,31 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Riecht nach 1994*
 
-## Effekt
-
-Kill-Heal: Toetest du einen Gegner, der unter Blutung, Brand oder Saeure leidet, hast du 15 % Chance auf +0,5 Leben.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `mosquito_spray` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.28 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Wenn du einen Gegner eliminierst, der unter einem Schaden-über-Zeit-Effekt (burn oder acid) leidet, besteht eine Chance von 15 %, dass du sofort +0,5 HP regenerierst.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_MOSQUITO_SPRAY`, Variable `mosquito`)
+## Visueller Effekt (VFX)
+Ein kleiner gruener Heilungs-Puls über dem Spieler beim Auslösen des Kill-Heals auf DoT-belegten Feinden.
+
+## Status-Effekte
+Loest keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[storm_lighter|Sturmfeuerzeug]] – Belegt Gegnergruppen mit 3s burn-DoT für verlaessliche Heil-Triggers bei Kills.
+- [[hand_vacuum|Alter Handstaubsauger]] – Feuert acid-Strahl ab; Kills an Säure-Zielen aktivieren die 15 % Heilchance.
+- [[chili_oil|Omas Scharfes Chili-Oel]] – Traegt acid (3s) auf brennende Ziele auf und erhoeht so die DoT-Abdeckung.
+
+## Empfohlen für
+- [[winter|Winter]] – Synergiert hervorragend mit DoT-orientierten Builds.
+- [[ningning|Ningning]] – Stabile Heilungsquelle bei flaechendeckendem Statuseinsatz.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

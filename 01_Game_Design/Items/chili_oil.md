@@ -13,54 +13,38 @@ has_stat_modifiers: false
 status_effects: ["acid"]
 reacts_to_status: ["burn"]
 synergizes_with: []
-tags: [item, "item/passive", "rarity/epic"]
+tags: [item, "item/passive", "rarity/epic", "applies/acid"]
 ---
 
 # Omas Scharfes Chili-Oel
 
 > *Ein Tropfen reicht*
 
-## Effekt
-
-Treffer auf brennende Gegner loesen Saeure-Spritzer auf alle umliegenden Gegner aus.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[acid]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- [[burn]] — setzt den Effekt voraus, loest ihn aber nicht selbst aus
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `chili_oil` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MELEE |
-| Rarity | EPIC |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.31 |
+| Seltenheit | EPIC |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Treffer auf brennende Gegner (burn) lösen verheerende Säure-Spritzer aus, die auf alle umstehenden Feinde ueberspringen und Saeureschaden (acid 3s DoT) anrichten.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_CHILI_OIL`, Variable `chili`)
+## Visueller Effekt (VFX)
+Eine feurige orange-gruene Funken-Explosion beim Treffen brennender Ziele.
+
+## Status-Effekte
+- [[acid|Säure (3s DoT)]]
+
+## Synergiert gut mit
+- [[storm_lighter|Sturmfeuerzeug]] – Liefert den noetigen burn-Status (3s), um bei jedem Schlag Säure-Spritzer (acid 3s) auszuloesen.
+- [[hand_vacuum|Alter Handstaubsauger]] – Saugt die durch Chili-Oel erzeugten Saeurespritzer auf und verschiesst sie als maechtigen Strahl.
+- [[mosquito_spray|Mueckenspray der Tante]] – Erhoeht die Heilchancen durch Kombination von burn und acid auf Gegnern.
+
+## Empfohlen für
+- **Karina**: Perfekt für verheerenden Flaechenschaden mitten in gegnerischen Horden.
+- **Giselle**: Kombiniert Elementareffekte für extrem hohe Schadensspitzen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

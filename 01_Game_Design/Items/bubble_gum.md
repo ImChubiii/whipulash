@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["slow"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare"]
+tags: [item, "item/passive", "rarity/rare", "applies/slow"]
 ---
 
 # Riesige Kaugummiblase
 
 > *Groesser als der Kopf*
 
-## Effekt
-
-Beim Stillstehen baut sich eine Blase auf. Nimmst du Schaden, platzt sie und verlangsamt Gegner ringsum massiv.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[slow]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `bubble_gum` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | DEFENSE |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.36 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Baut beim Stillstehen eine schützende Blase auf. Platzt die Blase bei erlittenem Schaden, werden Gegner in der Nähe massiv verlangsamt (`slow` -50 % Bewegungstempo für 4s).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_BUBBLE_GUM`, Variable `bubble`)
+## Visueller Effekt (VFX)
+Eine rosa Blase umhüllt den Spieler, die beim Platzen einen Staubring (`DUST_RING`) erzeugt.
+
+## Status-Effekte
+- [[slow|Verlangsamung (-50% Tempo, 4s)]]
+
+## Synergiert gut mit
+- [[copper_wire|Kupferdraht-Spule]] – Ein Dash durch die um -50 % verlangsamten Gegner setzt diese sofort in Brand (`burn` DoT).
+- [[rice_pudding|Überkochter Milchreis]] – Kombiniert den Schildaufbau (bis 15 % Max-HP) beim Stillstehen mit dem Blasen-Schutz.
+
+## Empfohlen für
+- **Winter**: Schützt beim stationären Feuern vor heranstürmenden Gegnern.
+- **Ningning**: Verschafft wertvolle Reaktionszeit, wenn Gegner zu nahe kommen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

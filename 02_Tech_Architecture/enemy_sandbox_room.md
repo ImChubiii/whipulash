@@ -9,9 +9,9 @@ tags: [architecture, debug-tool]
 Admin/Debug-Autoload: ein isolierter Raum, in dem jeder Gegnertyp — die drei
 Level-Generator-Gegner ([[fighter]]/[[stinger]]/[[colossus]], per
 `scene.instantiate()`) UND die sechs [[custom_enemy_base]]-Prototypen (per
-`ClassName.new()`, da sie keine `.tscn` haben) — frei und beliebig oft ueber
+`ClassName.new()`, da sie keine `.tscn` haben) — frei und beliebig oft über
 Interact-Bodenplatten gespawnt werden kann. Kein Teil des normalen Spiels;
-Zugang ausschliesslich ueber das vierte Teleport-Pad in `debug_teleporter.gd`.
+Zugang ausschliesslich über das vierte Teleport-Pad in `debug_teleporter.gd`.
 
 **Das ist Stand jetzt der EINZIGE Ort, an dem die sechs neuen Gegnertypen
 ueberhaupt spawnen** — sie stecken in keiner `resources/enemies/es_*.tres`-
@@ -22,7 +22,7 @@ Spawn-Tabelle und sind damit nicht Teil des [[level_generator]]-Threat-Budgets.
 Lazy-Bau beim ersten Betreten, Stilllegung (`PROCESS_MODE_DISABLED`) bei
 Abwesenheit, Rueckweg-Pad — identisch zu `item_test_room.gd`. Zwei Reihen
 Spawn-Pads: Reihe 0 die drei normalen Level-Gegner, Reihe 1 (weiter hinten,
-damit ein kreisender Divebomber/Plasmastrahl-Bot nicht sofort ueber der
+damit ein kreisender Divebomber/Plasmastrahl-Bot nicht sofort über der
 vorderen Reihe haengt) die sechs neuen Typen.
 
 Gespawnte Gegner haengen direkt unter der aktuellen Szene (wie normale

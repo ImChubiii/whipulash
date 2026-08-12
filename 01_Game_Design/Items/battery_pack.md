@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["stun"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare"]
+tags: [item, "item/passive", "rarity/rare", "applies/acid"]
 ---
 
 # Ausgelaufene Flachbatterie
 
 > *Klebt an den Fingern*
 
-## Effekt
-
-Betreten von Saeure/Limonade entlaedt einen Stromschlag: nahe Gegner werden betaeubt.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[stun]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `battery_pack` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | DEFENSE |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.32 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Beim Betreten von Säure- oder Limonadenflächen entlädt das Item einen Stromschlag, der nahe Gegner für 1,5 Sekunden betäubt (`stun`).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_BATTERY_PACK`, Variable `battery`)
+## Visueller Effekt (VFX)
+Ein blaues Aufblitzen (`FLASH_BLUE`) begleitet von gelben Funken um den Spieler beim Betreten von Säure.
+
+## Status-Effekte
+- [[stun|Betäubung (1.5s)]]
+
+## Synergiert gut mit
+- [[acid_boots|Saeurefeste Stiefel]] – Erlaubt risikofreies Durchwaten von Säure (75 % Schadensreduktion, 0 % Slow), um 1,5s Betäubungen auszulösen.
+- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den 1,5s betäubten (`stun`) Gegnern heilen +1 HP und erzeugen raumweite Schockwellen.
+
+## Empfohlen für
+- **Karina**: Nutzt Betäubungen im Nahkampf, um feindliche Gruppen sofort zu kontrollieren.
+- **Ningning**: Verbindet Flächenbeherrschung mit effektiver gegnerischer Handlungsunfähigkeit.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

@@ -20,47 +20,29 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *Pumpt dich auf*
 
-## Effekt
-
-Wirft ein Beacon, das dir Tempo und Angriffskraft verleiht, solange du in seiner Naehe bleibst.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `stim_beacon` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | EPIC |
+| Seltenheit | EPIC |
 | Cooldown | 15.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.34 |
 
-## Quelle
+## Effekt
+Wirft ein Gerät auf den Boden. Spieler in dessen Nähe erhalten deutlich erhöhtes Angriffs- und Bewegungstempo.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_STIM_BEACON`, Variable `stim_beacon`)
+## Visueller Effekt (VFX)
+Ein kleines Metalldepot landet am Boden und erzeugt ein leuchtend gelbes Energiefeld.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[tight_pants|Omas Enge Hosen]] – Kombiniert das erhöhte Bewegungstempo aus dem Energiefeld mit den +20 % Basis-Tempo für rasantes Maneuvrieren.
+- [[brimstone_horns|Hoellenfeuer-Hoerner]] – Das erhöhte Tempo aus der Stim-Zone erleichtert das sofortige Erreichen der Ramm-Schwelle.
+
+## Empfohlen für
+Stationäre Schadensausteiler und Areal-Verteidigungs-Strategien.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

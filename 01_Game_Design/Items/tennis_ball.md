@@ -20,47 +20,29 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Kommt immer zurueck*
 
-## Effekt
-
-Jeder Dash feuert einen Tennisball nach vorn, der Gegner auf Distanz zurueckstoesst. Blutende Getroffene bluten wieder von vorn.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `tennis_ball` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MOVEMENT |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.19 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Jeder Dash feuert einen Tennisball ab, der Gegner zurückstößt (Pushback). Trifft der Tennisball einen Gegner mit Blutung (`bleed`), wird die verbleibende Blutungsdauer vollständig aufgefrischt.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_TENNIS_BALL`, Variable `tennis`)
+## Visueller Effekt (VFX)
+Ein gelbes Projektil fliegt bei jedem Dash in Blickrichtung nach vorne.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[rusty_cleaver|Rostiges Beil]] – Der abgefeuerte Tennisball frischt die Dauer der 30 % Chance Blutung (`bleed`) auf Distanz kontinuierlich auf.
+- [[tight_pants|Omas Enge Hosen]] – Die +20 % Bewegungstempo ermöglichen häufigere Dashes und somit eine konstante Tennisball-Salve mit Pushback.
+
+## Empfohlen für
+Bewegliche Charaktere mit Fokus auf Blutungsschaden und Abstandskontrolle.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

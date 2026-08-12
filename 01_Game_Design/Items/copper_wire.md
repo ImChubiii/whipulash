@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["burn"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare"]
+tags: [item, "item/passive", "rarity/rare", "applies/burn"]
 ---
 
 # Kupferdraht-Spule
 
 > *Isolierung? War mal.*
 
-## Effekt
-
-Ein Dash durch verlangsamte oder festgenagelte Gegner setzt sie sofort in Brand.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[burn]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `copper_wire` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MOVEMENT |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.37 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Ein Dash durch verlangsamte (`slow`) oder festgenagelte (`rooted`) Gegner setzt diese sofort in Brand (`burn` DoT - Thermoschock).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_COPPER_WIRE`, Variable `copper`)
+## Visueller Effekt (VFX)
+Bei der Auslösung am Ziel entstehen gelbe Funken (`SPARK_YELLOW`) und ein roter Treffer-Flash (`roter Hit-Flash`).
+
+## Status-Effekte
+- [[burn|Brand (DoT)]]
+
+## Synergiert gut mit
+- [[chewing_gum|Kaugummi unter dem Schuh]] – Jeder Dash hinterlässt eine verlangsamende Spur, sodass Folge-Dashes den Brand-Thermoschock direkt auslösen.
+- [[bubble_gum|Riesige Kaugummiblase]] – Nach dem Blasenzerplatzen sind nahe Gegner um -50 % verlangsamt und lassen sich mühelos per Dash entzünden.
+
+## Empfohlen für
+- **Winter**: Belohnt agile Spielweise und ständigen Einsatz von Ausweichschritten.
+- **Karina**: Ermöglicht schnelles Entzünden feindlicher Reihen im Vorbeidash.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

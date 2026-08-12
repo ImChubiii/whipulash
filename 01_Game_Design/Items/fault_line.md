@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["stun"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic"]
+tags: [item, "item/active", "rarity/epic", "applies/stun"]
 ---
 
 # Verwerfungslinie
 
 > *Riss im Boden*
 
-## Effekt
-
-Ein seismischer Riss laeuft geradeaus vor dir und betaeubt jeden Gegner, den er durchquert.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[stun]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `fault_line` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | EPIC |
+| Seltenheit | EPIC |
 | Cooldown | 12.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.29 |
 
-## Quelle
+## Effekt
+Erzeugt eine seismische Erschütterungszone in gerader Linie durch den Raum. Alle getroffenen Gegner erleiden Schaden und werden betäubt (`stun`).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_FAULT_LINE`, Variable `fault_line`)
+## Visueller Effekt (VFX)
+Der Boden reißt auf und hinterlässt gold-braune seismische Spuren entlang der Ausbreitungslinie.
+
+## Status-Effekte
+- [[stun|Betaeubt]]
+
+## Synergiert gut mit
+- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den in gerader Linie betäubten (`stun`) Gegnern heilen +1 HP und lösen Schockwellen aus.
+- [[disco_ball|Disco-Kugel-Anhaenger]] – Betäubte (`stun`) Gegner in der Erschütterungszone erleiden +25 % mehr Schaden.
+
+## Empfohlen für
+- [[karina|Karina]] – Ermoeglicht das Betaeuben ganzer Gegnergruppen in einer Linie vor dem Nahkampf.
+- [[winter|Winter]] – Stoppt anstuerkende Feinde zuverlaessig auf Distanz.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

@@ -13,55 +13,38 @@ has_stat_modifiers: false
 status_effects: ["silenced", "slow"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/legendary"]
+tags: [item, "item/active", "rarity/legendary", "applies/slow"]
 ---
 
 # Anbruch der Nacht
 
 > *Durch Mauern hindurch*
 
-## Effekt
-
-Eine Welle, die durch Waende dringt und alle Gegner im Raum verlangsamt und stumm schaltet.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[silenced]]
-- [[slow]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `nightfall` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | LEGENDARY |
+| Seltenheit | LEGENDARY |
 | Cooldown | 18.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.33 |
 
-## Quelle
+## Effekt
+Entfesselt eine Welle durch Wände hindurch, die Gegner taub macht (`silenced`), verlangsamt (`slow`) und ihnen Verfallschaden zufügt.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_NIGHTFALL`, Variable `nightfall`)
+## Visueller Effekt (VFX)
+Eine tiefschwarze Nebelwelle übersät mit alten Runen zieht durch das gesamte Kampfareal.
+
+## Status-Effekte
+- [[slow|Verlangsamt]]
+- [[silenced|Stummgeschaltet]]
+
+## Synergiert gut mit
+- [[copper_wire|Kupferdraht-Spule]] – Ein Dash durch die verlangsamten (`slow`) Gegner setzt diese sofort in Brand (`burn` DoT).
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an den durch die Nebelwelle verlangsamten/stummgeschalteten Gegnern gewähren +0,5 HP Heilung und verlängern Buffs um 1s.
+
+## Empfohlen für
+- [[giselle|Giselle]] – Verschafft vollständige Kontrolle über unuebersichtliche Räume.
+- [[winter|Winter]] – Entschaerft gefährliche Fernkampf-Gegner hinter Deckungen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

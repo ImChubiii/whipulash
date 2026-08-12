@@ -7,36 +7,27 @@ is_damage_over_time: true
 heavy_duration: ""
 synergies: ["extend_for_gum"]
 triggered_by_items: ["holy_oil", "stiletto_heels", "chili_oil", "hand_vacuum", "seize", "snake_bite"]
-tags: [status-effect]
+tags: [status-effect, type/dot]
 ---
 
 # acid
 
-ACID — Saeure-DoT aus Limonade, Pfuetzen und dem Handstaubsauger.
+> *Der Gegner wird von ätzender Säure überzogen und erleidet kontinuierlich Schaden über Zeit.*
 
 ## Werte
-
 | Feld | Wert |
 |---|---|
-| Dauer (Standard) | 3.0 s |
+| Dauer | 3.0 s |
+| Typ | DOT |
 | Tick-Intervall | 0.5 s |
-| Schaden/Tick | 4.0 |
-| Heavy-Variante | — |
+| Schaden pro Tick | 4.0 |
+| Damage over Time | Ja |
+| Heavy-Dauer | — |
 
+## Wirkung
+Acid verursacht über eine Dauer von 3,0 Sekunden alle 0,5 Sekunden 4,0 Schaden am betroffenen Ziel. Betroffene Gegner werden visuell durch eine gelblich-grüne Säureauflage eingefärbt. Erneutes Auftragen verlängert den Effekt auf das Maximum der Restdauer, während Kaugummi-Effekte die Wirkungsdauer zusätzlich um 50 % verlängern können.
 
-## Zusatzwerte
-
-| Konstante | Wert |
-|---|---|
-| `TINT_STRENGTH` | 0.35 |
-| `GUM_EXTENSION_FACTOR` | 0.50 |
-
-## Synergien
-
-- `extend_for_gum()`
-
-## Ausgeloest von (Items)
-
+## Ausgeloest von
 - [[holy_oil]]
 - [[stiletto_heels]]
 - [[chili_oil]]
@@ -44,25 +35,19 @@ ACID — Saeure-DoT aus Limonade, Pfuetzen und dem Handstaubsauger.
 - [[seize]]
 - [[snake_bite]]
 
-## Wird abgefragt von (Items, ohne es auszuloesen)
+## Synergiert mit
+- [[chewing_gum]] / Kaugummi-Items (verlängert Säuredauer um 50 % via `extend_for_gum`)
+- [[slow]] (hält Gegner länger in Säurepfützen fest)
+- [[vulnerable]] (erhöht den Schaden jedes einzelnen Säure-Ticks)
 
-- —
-
-## Gegner-Interaktion
-
-- Zaehlt in `enemy_ai.gd` als `DOT_EFFECT_IDS`-Eintrag: tickt automatisch Schaden auf **alle** Gegner ([[fighter]], [[stinger]], [[colossus]], sowie ueber [[custom_enemy_base]] auch die sechs Sandbox-Prototypen).
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
-
-## Laufzeit
-
-Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
-`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
-altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
-`extend_all()`.
-
-## Quelle
-
-`scripts/status_effects/acid.gd`
+## Alle Status-Effekte
+- [[acid]] — Säure-Schaden über Zeit (DOT)
+- [[burn]] — Feuer-Schaden über Zeit (DOT)
+- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
+- [[confused]] — Zulfällige Angriffsrichtung (Crowd Control)
+- [[rooted]] — Bewegungsunfähig (Crowd Control)
+- [[shield]] — Schutzschild für Einheiten (Buff)
+- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
+- [[slow]] — Verlangsamte Bewegung (Crowd Control)
+- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
+- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)

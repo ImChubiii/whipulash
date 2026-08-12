@@ -33,6 +33,8 @@ const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
 @export var laser_range: float = 25.0
 @export var laser_max_charge: float = 10.0
 @export var laser_recharge_time: float = 5.0
+@export var aim_assist_angle_deg: float = 5.0
+@export var aim_assist_strength: float = 0.5
 
 var _laser_energy: float = 10.0
 var _laser_tick_timer: float = 0.0
@@ -90,8 +92,11 @@ func _perform_primary() -> void:
 func _attach_plasma_trail(bolt: Node3D, color: Color) -> void:
 	var particles := GPUParticles3D.new()
 	particles.emitting = true
-	particles.amount = 20
-	particles.lifetime = 0.4
+	# Angehoben (Rueckmeldung "sieht schwach aus"): mehr, groessere Partikel
+	# und ein eigenes Licht am Bolt selbst (unten) sollen ihn aus der
+	# gesamten Kampfdistanz klar als staerkere Faehigkeit lesbar machen.
+	particles.amount = 32
+	particles.lifetime = 0.5
 	particles.local_coords = false
 	particles.one_shot = false
 
@@ -99,27 +104,34 @@ func _attach_plasma_trail(bolt: Node3D, color: Color) -> void:
 	mat.direction = Vector3.ZERO
 	mat.spread = 180.0
 	mat.gravity = Vector3.ZERO
-	mat.initial_velocity_min = 0.4
-	mat.initial_velocity_max = 1.4
-	mat.scale_min = 0.12
-	mat.scale_max = 0.28
+	mat.initial_velocity_min = 0.5
+	mat.initial_velocity_max = 1.8
+	mat.scale_min = 0.16
+	mat.scale_max = 0.4
 	mat.color = color
 	particles.process_material = mat
 
 	var mesh := SphereMesh.new()
-	mesh.radius = 0.1
-	mesh.height = 0.2
+	mesh.radius = 0.14
+	mesh.height = 0.28
 	var mesh_mat := StandardMaterial3D.new()
 	mesh_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh_mat.albedo_color = color
 	mesh_mat.emission_enabled = true
 	mesh_mat.emission = color
-	mesh_mat.emission_energy_multiplier = 2.5
+	mesh_mat.emission_energy_multiplier = 3.2
 	mesh_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh.material = mesh_mat
 	particles.draw_pass_1 = mesh
 
 	bolt.add_child(particles)
+
+	var light := OmniLight3D.new()
+	light.light_color = color
+	light.light_energy = 1.6
+	light.omni_range = 4.5
+	light.shadow_enabled = false
+	bolt.add_child(light)
 
 
 ## origin ist die Abschusspositon (NICHT die aktuelle Bolt-Position - der
@@ -145,7 +157,11 @@ func _on_plasma_strike(target: Node3D, origin: Vector3, dmg: float) -> void:
 	if pull_dir.length_squared() > 0.01 and target.has_method("apply_knockback"):
 		target.apply_knockback(pull_dir.normalized() * plasma_pull_strength)
 
-	VFX.spawn(HIT_VFX_SCENE, target.global_position + Vector3.UP, Vector3.UP)
+	var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, target.global_position + Vector3.UP, Vector3.UP)
+	if spark:
+		spark.scale *= 1.7
+	if player and player.has_method("shake_camera"):
+		player.shake_camera(0.15)
 	_lock_model_to(target)
 
 
@@ -191,7 +207,9 @@ func _update_laser(delta: float) -> void:
 	# Camera3D.global_transform.basis.z zeigt IMMER hinter die Kamera (Godot-
 	# Grundregel: jede Kamera blickt entlang ihres lokalen -Z) - negiert ergibt
 	# das die tatsaechliche Blickrichtung, siehe combat_giselle.gd.
-	var dir: Vector3 = -_camera.global_transform.basis.z
+	var dir: Vector3 = EnemyQuery.aim_assisted_direction(
+		origin, -_camera.global_transform.basis.z, laser_range, aim_assist_angle_deg, aim_assist_strength
+	)
 
 	_laser_tick_timer -= delta
 	var do_damage: bool = _laser_tick_timer <= 0.0
@@ -206,13 +224,23 @@ func _update_laser(delta: float) -> void:
 	if do_damage:
 		_laser_tick_timer = laser_tick_interval
 		if result["hit"]:
-			VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
+			var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
+			if spark:
+				spark.scale *= 1.4
 			_lock_model_to(result["target"])
+			# Leichtes Dauer-Rattern statt eines einzelnen Shakes - passt
+			# besser zu einem Dauerstrahl als ein einmaliger Ausschlag und
+			# macht spuerbar, dass der Strahl laufend Schaden macht statt
+			# nur huebsch auszusehen (Rueckmeldung "sieht schwach aus").
+			if player and player.has_method("shake_camera"):
+				player.shake_camera(0.06)
 
 	if _laser_beam.is_empty():
 		var data: CharacterData = PartyManager.get_active_data()
 		var color: Color = data.attack_color if data else Color(0.5, 0.9, 1.0)
-		_laser_beam = BeamVisual.create(self, color, 0.7)
+		# Deutlich dicker als vorher (0.7 -> 1.3) - ein duenner Strahl liest
+		# sich als schwacher Laserpointer statt als "Heavy Laser Stream".
+		_laser_beam = BeamVisual.create(self, color, 1.3)
 
 	BeamVisual.update(_laser_beam, origin, result["position"], delta)
 

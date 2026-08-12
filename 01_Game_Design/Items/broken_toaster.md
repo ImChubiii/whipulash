@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Bitte nicht mit der Gabel*
 
-## Effekt
-
-Wenn du getroffen wirst, stossen Funken alle Nahkampf-Gegner zurueck. Brennende Gegner nehmen dabei sofort doppelten Feuerschaden.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `broken_toaster` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | DEFENSE |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.14 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Wird der Spieler getroffen, spruehen elektrische Funken auf nahe Nahkampf-Gegner und stoessen sie zurueck. Brennende Ziele (burn) erleiden dabei sofort den doppelten Tick-Schaden ihres Feuerschadens.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_BROKEN_TOASTER`, Variable `toaster`)
+## Visueller Effekt (VFX)
+Ein rasanter gelber Funken-Burst (`SPARK_YELLOW-Burst`) rund um den Spieler bei Erhalt von Schaden.
+
+## Status-Effekte
+Loest keine eigenen Status-Effekte aus.
+
+## Synergiert gut mit
+- [[storm_lighter|Sturmfeuerzeug]] – Setzt Angreifer in Brand (3s burn), sodass die Toaster-Funken ihren Tick-Schaden verdoppeln.
+- [[spicy_ramen|Scharfe Instant-Nudeln]] – Belegt Gegner mit 4s burn für verdoppelten Feuerschaden bei Treffern.
+
+## Empfohlen für
+- **Karina**: Hervorragende Defensive gegen dichte Gegnergruppen im Nahkampf.
+- **Ningning**: Hilft dabei, bedraengende Nahkämpfer auf Abstand zu halten.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

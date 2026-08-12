@@ -7,37 +7,27 @@ is_damage_over_time: true
 heavy_duration: ""
 synergies: ["detonate", "thermal_shock"]
 triggered_by_items: ["hairspray", "copper_wire", "storm_lighter", "spicy_ramen", "incendiary", "blaze", "hot_hands"]
-tags: [status-effect]
+tags: [status-effect, type/dot]
 ---
 
 # burn
 
-BURN — Feuer-DoT. Der Gegner leuchtet rot/orange, solange er brennt.
+> *Der Gegner steht lichterloh in Flammen und erleidet schweren Brandschaden über Zeit.*
 
 ## Werte
-
 | Feld | Wert |
 |---|---|
-| Dauer (Standard) | 3.0 s |
+| Dauer | 3.0 s |
+| Typ | DOT |
 | Tick-Intervall | 0.75 s |
-| Schaden/Tick | 6.0 |
-| Heavy-Variante | — |
+| Schaden pro Tick | 6.0 |
+| Damage over Time | Ja |
+| Heavy-Dauer | — |
 
+## Wirkung
+Burn fügt dem Ziel über eine Dauer von 3,0 Sekunden alle 0,75 Sekunden 6,0 Feuerschaden zu. Währen des Effekts leuchtet der betroffene Gegner kräftig rot-orange. Der verbleibende Brandschaden kann durch Detonationen sofort explosionsartig ausgelöst oder durch Kälteeffekte für einen Thermoschock verbraucht werden.
 
-## Zusatzwerte
-
-| Konstante | Wert |
-|---|---|
-| `TINT_STRENGTH` | 0.45 |
-| `DETONATE_MULTIPLIER` | 2.0 |
-
-## Synergien
-
-- `detonate()`
-- `thermal_shock()`
-
-## Ausgeloest von (Items)
-
+## Ausgeloest von
 - [[hairspray]]
 - [[copper_wire]]
 - [[storm_lighter]]
@@ -46,26 +36,20 @@ BURN — Feuer-DoT. Der Gegner leuchtet rot/orange, solange er brennt.
 - [[blaze]]
 - [[hot_hands]]
 
-## Wird abgefragt von (Items, ohne es auszuloesen)
+## Synergiert mit
+- [[chili_oil]] (löst zusätzliche Angriffe gegen bereits brennende Gegner aus)
+- `detonate` (verdoppelt den verbleibenden Brandschaden sofort als Detonations-Schaden)
+- Kälte-Effekten für `thermal_shock` (Thermal-Schock-Explosion)
+- [[vulnerable]] (verstärkt jeden Schadens-Tick erheblich)
 
-- [[chili_oil]] — Effekt greift nur, wenn dieser Status bereits aktiv ist
-
-## Gegner-Interaktion
-
-- Zaehlt in `enemy_ai.gd` als `DOT_EFFECT_IDS`-Eintrag: tickt automatisch Schaden auf **alle** Gegner ([[fighter]], [[stinger]], [[colossus]], sowie ueber [[custom_enemy_base]] auch die sechs Sandbox-Prototypen).
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
-- [[2026-08-04_678339b_featdebug_ui_combat_teleporter-system_boss-hp-mult|2026-08-04 — feat(debug, ui, combat): Teleporter-System, Boss-HP-Multi-Targeting, Popup-Positionierung und Despawn-Fixes]]
-
-## Laufzeit
-
-Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
-`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
-altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
-`extend_all()`.
-
-## Quelle
-
-`scripts/status_effects/burn.gd`
+## Alle Status-Effekte
+- [[acid]] — Säure-Schaden über Zeit (DOT)
+- [[burn]] — Feuer-Schaden über Zeit (DOT)
+- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
+- [[confused]] — Zufällige Angriffsrichtung (Crowd Control)
+- [[rooted]] — Bewegungsunfähig (Crowd Control)
+- [[shield]] — Schutzschild für Einheiten (Buff)
+- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
+- [[slow]] — Verlangsamte Bewegung (Crowd Control)
+- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
+- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)

@@ -13,55 +13,38 @@ has_stat_modifiers: false
 status_effects: ["confused", "silenced"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare"]
+tags: [item, "item/active", "rarity/rare", "applies/confused"]
 ---
 
 # Paranoia
 
 > *Sie sind ueberall*
 
-## Effekt
-
-Eine schwaechere Welle durch Waende hindurch, die Gegner kurz verwirrt und stumm schaltet.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[confused]]
-- [[silenced]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `paranoia` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
+| Seltenheit | RARE |
 | Cooldown | 9.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.37 |
 
-## Quelle
+## Effekt
+Sendet einen Schatten-Impuls aus, der durch Wände dringt. Getroffene Gegner erleiden Verwirrung (`confused`) und werden stumm geschaltet (`silenced`).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_PARANOIA`, Variable `paranoia`)
+## Visueller Effekt (VFX)
+Ein dunkler, lila-schwarzer Projektil-Schatten gleitet durch den Raum und durchdringt Wände.
+
+## Status-Effekte
+- [[confused|Verwirrt]]
+- [[silenced|Stummgeschaltet]]
+
+## Synergiert gut mit
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an den verwirrten/stummgeschalteten Gegnern gewähren +0,5 HP Heilung und verlängern Buffs um 1s.
+- [[prowler|Schatten-Pirscher]] – Liefert eine zweite Welle von Verwirrungs- und Verstummen-Effekten durch Hindernisse.
+
+## Empfohlen für
+- [[giselle|Giselle]] – Schnell einsetzbarer Stoer-Effekt aus sicherer Position.
+- [[ningning|Ningning]] – Haelt feindliche Fähigkeiten verlaesslich auf Distanz.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

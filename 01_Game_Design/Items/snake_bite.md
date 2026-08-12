@@ -13,55 +13,37 @@ has_stat_modifiers: false
 status_effects: ["acid", "vulnerable"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare"]
+tags: [item, "item/active", "rarity/rare", "applies/acid"]
 ---
 
 # Schlangenbiss
 
 > *Gift wirkt langsam, aber sicher*
 
-## Effekt
-
-Legt eine Saeurepfuetze ab. Gegner darin sind verwundbar und nehmen erhoehten Schaden.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[acid]]
-- [[vulnerable]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `snake_bite` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
+| Seltenheit | RARE |
 | Cooldown | 10.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.38 |
 
-## Quelle
+## Effekt
+Kapsel-Einschlag hinterlässt eine Säurepfütze am Boden (`acid`), die betroffene Feinde extrem anfällig für nachfolgenden Schaden macht.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_SNAKE_BITE`, Variable `snake_bite`)
+## Visueller Effekt (VFX)
+Eine leuchtend grüne Säurelache bildet sich am Ort des Kapsel-Einschlags.
+
+## Status-Effekte
+- [[acid|Säure]]
+- [[vulnerable|Verwundbar]]
+
+## Synergiert gut mit
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an den in der Säurelache geschwächten (`acid`) Gegnern heilen +0,5 HP und verlängern Buffs um 1s.
+- [[chewing_gum|Kaugummi unter dem Schuh]] – Verlängert die Dauer des Säure-Effekts (`acid`) der Pfütze um +50 %.
+
+## Empfohlen für
+Taktische Spieler und Bosskämpfer, die Schadensphasen optimal vorbereiten wollen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["charm"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare"]
+tags: [item, "item/active", "rarity/rare", "applies/confused"]
 ---
 
 # Spruehdose aus dem Tunnel
 
 > *Kunst ist, was Kunst macht*
 
-## Effekt
-
-Huellt die Umgebung in eine Farbwolke: Gegner darin sind 5 s verwirrt und treffen sich gegenseitig.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[charm]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `graffiti_can` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
+| Seltenheit | RARE |
 | Cooldown | 11.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.13 |
 
-## Quelle
+## Effekt
+Sprueht eine dichte Farbnebelwolke aus, die gegnerische Orientierung raubt und sie für 5 Sekunden verwirrt (confused 5s). Verwirrte Gegner erleiden durch Dashes garantierten kritischen Schaden. Cooldown: 11,0 Sekunden.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_GRAFFITI_CAN`, Variable `graffiti`)
+## Visueller Effekt (VFX)
+Eine aufquellende bunte Neon-Farbwolke in leuchtenden Sprayfarben.
+
+## Status-Effekte
+- [[confused|Verwirrt / Orientierungslos (5s)]]
+
+## Synergiert gut mit
+- [[jumper_cables|Papas Starthilfekabel]] – Dash durch verwirrte Gegner verursacht verheerenden kritischen Schaden.
+- [[walkman|Walkman (kaputt)]] – Ergaenzt die Raumkontrolle durch zusätzliche Verwirrung (confused 4s).
+
+## Empfohlen für
+- [[giselle|Giselle]] – Erzeugt Chaos in Gegnermassen und verschafft wertvolle Zeit.
+- [[winter|Winter]] – Kontrolliert dichte Gegnergruppen im Nahbereich.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

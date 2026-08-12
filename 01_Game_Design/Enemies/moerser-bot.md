@@ -1,48 +1,42 @@
 ---
-id: "moerser-bot"
-display_name: "Moerser-Bot"
+id: "mörser-bot"
+display_name: "Mörser-Bot"
 class_name: "MortarBot"
 tier: sandbox
 role: "Stationaer · Fernkampf (Wurfparabel, Flaechenschaden)"
 base_hp: 90.0
 status_effects: []
-tags: [enemy, "enemy/sandbox"]
+tags: [enemy, "enemy/sandbox", role/ranged, role/stationary]
 ---
 
-# Moerser-Bot
+# Mörser-Bot
 
-> Stationaer · Fernkampf (Wurfparabel, Flaechenschaden)
+> *Ein unbeweglicher Artillerie-Bot, der Sprenggeschosse in einer Wurfparabel hageln lässt und dich zur staendigen Bewegung zwingt.*
 
-**Sandbox-Prototyp:** spawnt Stand jetzt ausschliesslich im
-[[enemy_sandbox_room]] (Debug-Teleporter), noch nicht Teil der
-[[level_generator]]-Threat-Budget-Tabellen — zaehlt also noch nicht zum
-Raum-Clear und hat keinen `threat_cost`. Baut wie alle sechs neuen Typen auf
-[[custom_enemy_base]] statt auf `enemy_ai.gd` auf.
-
-## Mechanik
-
-Bewegt sich nie. Feuert alle `fire_interval` Sekunden eine zweiphasige Wurfparabel (Aufstieg dann Fall) auf die AKTUELLE Spielerposition zum Schusszeitpunkt, bodenprojiziert. Der rote Telegraph-Ring erscheint sofort schwach und wird waehrend der gesamten Flugzeit kraeftiger, bleibt aber exakt an der urspruenglichen Zielposition stehen - Schaden liest beim Einschlag die TELEGRAPH-Position, nicht die aktuelle Spielerposition (gleiche Regel wie Orbitalschlag/[[lockdown]], siehe dortiger Bugfix in item_behaviours.gd).
-
-## Balancing (roh aus `scripts/enemies/mortar_bot.gd`)
-
-| Wert | Betrag |
+## Übersicht
+| Feld | Wert |
 |---|---|
-| Basis-HP | 90 |
-| Feuerintervall (s) | 3.6 |
-| Flugzeit Geschoss (s) | 1.3 |
-| Wurfhoehe (Bogen) | 8 |
-| Explosionsradius | 4.2 |
-| Schaden | 22 |
-| Erkennungsreichweite | 45 |
+| Typ | Stationaer / Fernkämpfer |
+| Gefahr | Mittel |
+| HP | 90.0 |
+| Schaden | 22.0 |
+| Geschwindigkeit | 0.0 |
 
-## Status-Effekte (ausgeloest)
+## Verhalten
+Der Mörser-Bot bewegt sich keinen Millimeter. Er feuert regelmäßig (alle 3.6s) Projektile in einem hohen Bogen genau auf die Position, an der du beim Schuss standest. Der Einschlag wird durch einen roten Ring am Boden fruehzeitig angekuendigt.
 
-- — (reiner Schaden/Knockback, kein Status-Effekt)
+## Tipps & Schwachstellen
+- Achte auf den roten Telegraph-Ring! Solange du nicht stehen bleibst, treffen seine Schuesse immer ins Leere.
+- Da er stationaer ist, kannst du ihn ideal aus sicherer Deckung oder aus grosser Distanz ausschalten.
+- Nutze das lange Feuerintervall, um zwischen seinen Schuesse ungestraft anzugreifen.
 
-## Erwaehnt in DevLogs
+## Wirksame Status-Effekte
+| Status | Wirkung |
+|---|---|
+| [[burn\|Brand]] | Schaden über Zeit |
+| [[acid\|Säure]] | Schaden über Zeit |
+| [[stun\|Betäubung]] | Handlungsunfaehig |
+| [[silenced\|Stille]] | Sperrt Angriffe |
 
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
-
-## Quelle
-
-`scripts/enemies/mortar_bot.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+## Verwandt
+- [[_MOC_Enemies|Alle Gegner]] . [[custom_enemy_base|Basisklasse]] . [[enemy_models|Modelle]]

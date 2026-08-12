@@ -33,12 +33,12 @@ Damit diese Gegner mit dem Rest des Spiels kompatibel sind:
 Leere, siehe `StatusEffectBase.apply_raw()`) und `_build()` (Subklasse baut
 Mesh/Collision/Timer).
 
-Tod laeuft ueber `_on_died()` -> `_teardown(true)` (mit Treffer-VFX);
+Tod laeuft über `_on_died()` -> `_teardown(true)` (mit Treffer-VFX);
 Verschwinden ohne Kampf (Support-Typen wie [[schild-drohne]]/
-[[plasmastrahl-bot]], siehe deren `_despawn_if_room_clear()`) ueber
-`despawn()` -> `_teardown(false)`. Beide raeumen Kollision, Statuseffekte und
+[[plasmastrahl-bot]], siehe deren `_despawn_if_room_clear()`) über
+`despawn()` -> `_teardown(false)`. Beide räumen Kollision, Statuseffekte und
 Subklassen-Sondereffekte auf (`_cleanup_effects()` — WICHTIG: wird auch von
-aussen ueber `enemy_sandbox_room.gd::_clear_enemies()` als Zwangsentfernung
+aussen über `enemy_sandbox_room.gd::_clear_enemies()` als Zwangsentfernung
 aufgerufen, bei der `Health.died` NICHT feuert; ohne den expliziten Aufruf
 blieben Beams/Telegraphs bis zu ihrem eigenen Timeout einsam in der Luft
 haengen).
@@ -47,15 +47,15 @@ haengen).
 
 `_on_status_effect_applied()`/`_on_status_effect_expired()` reagieren generisch
 auf `id == "shield"`: +25 % Maximal-HP, groesseres Modell, blau schwankende
-Aura. Identische Werte/Logik wie in `enemy_ai.gd` fuer Fighter/Stinger/
+Aura. Identische Werte/Logik wie in `enemy_ai.gd` für Fighter/Stinger/
 Colossus — beide lesen dieselben `StatusShield`-Konstanten. Siehe [[shield]].
 
 ## Geteilte Bau-Helfer
 
 `_make_unshaded_material()`, `_add_box_collision()`, `_project_to_ground()`
-(Raycast senkrecht nach unten — Einschlaege/Pfuetzen sollen auf dem Boden
+(Raycast senkrecht nach unten — Einschlaege/Pfützen sollen auf dem Boden
 liegen, nicht auf roher Spieler-Y-Hoehe bei einem Sprung) sowie
-`_create_beam_visual()`/`_update_beam_visual()`/`_free_beam_visual()` fuer
+`_create_beam_visual()`/`_update_beam_visual()`/`_free_beam_visual()` für
 lesbare Energiestrahlen (Kern + Glow + laufender Puls) — genutzt von
 [[schild-drohne]] und [[plasmastrahl-bot]].
 

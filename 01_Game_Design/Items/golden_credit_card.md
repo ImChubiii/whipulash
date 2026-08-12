@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/uncommon"]
 
 > *Limit? Welches Limit?*
 
-## Effekt
-
-+2 % Schaden je 10 Muenzen im Beutel, bis maximal +50 %.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `golden_credit_card` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | UTILITY |
-| Rarity | UNCOMMON |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.26 |
+| Seltenheit | UNCOMMON |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Erhoeht deinen angerichteten Schaden um +2 % für je 10 Muenzen im Beutel (bis zu einem Maximum von +50 % Bonusschaden bei 250 Muenzen).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_GOLDEN_CREDIT_CARD`, Variable `card`)
+## Visueller Effekt (VFX)
+Gelbe Funken-Effekte (`SPARK_YELLOW`) und ein goldenes Glitzern um den Charakter beim Einsammeln von Muenzen und Verursachen von Bonusschaden.
+
+## Status-Effekte
+Loest keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[cursed_die|Verfluchter Glueckswuerfel]] – Erzeugt durch Drop-Verwandlungen zusätzliche Muenzen im Raum.
+- [[blood_pact|Das Blutpakt]] – Kombiniert den prozentualen Muenz-Schadensbonus (max. +50 %) mit dem flat +40 % Schadensbonus.
+
+## Empfohlen für
+- [[giselle|Giselle]] – Profitiert stark von hoher Schadensskalierung auf Distanz.
+- [[karina|Karina]] – Maximiert den Nahkampfschaden in spaeteren Etagen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

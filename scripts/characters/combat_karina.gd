@@ -25,8 +25,10 @@ const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
 @export var stance_max_duration: float = 10.0
 @export var stance_reentry_cooldown: float = 1.0
 @export var acid_aura_radius: float = 3.0
-@export var acid_tick_interval: float = 0.4
-@export var acid_damage_per_tick: float = 15.0
+## Auf Rueckmeldung ("7 Schaden, sehr schneller Tick") von 15/0.4s umgestellt
+## - 70 statt vorher 37.5 DPS, deutlich schneller lesbares Tick-Feedback.
+@export var acid_tick_interval: float = 0.1
+@export var acid_damage_per_tick: float = 7.0
 @export var acid_effect_duration: float = 2.0
 
 ## --- Secondary "Phantom Execute" ---------------------------------------------
@@ -39,9 +41,20 @@ const STANCE_MODIFIER_SOURCE: String = "karina_acid_rush"
 ## GeometryInstance3D.transparency (0=deckend, 1=unsichtbar) statt einzelne
 ## Material-Alpha-Werte umzubauen - funktioniert unabhaengig davon, welches
 ## Material das importierte Modell mitbringt, kein Material-Duplizieren
-## noetig.
-const STEALTH_MESH_TRANSPARENCY: float = 0.95
+## noetig. Auf Rueckmeldung ("Deckkraft auf 4%") von 0.95 auf 0.96 (100%-4%)
+## angehoben.
+const STEALTH_MESH_TRANSPARENCY: float = 0.96
 const STEALTH_TOUCH_CHECK_INTERVAL: float = 0.15
+## Motion-Blur-Trail (GhostTrail, siehe combat_base.gd) waehrend Phantom
+## Execute auf 50% Staerke - deutlich ueber dem sehr dezenten Lauf-Trail-
+## Default, siehe Rueckmeldung "motion blur trail auf 50%".
+const STEALTH_TRAIL_ALPHA: float = 0.5
+
+## "4x ihrer Groesse" fuer die Entladungs-Explosion beim Verlassen von
+## Phantom Execute - CHARACTER_SIZE_ESTIMATE ist eine grobe Kapselgroesse
+## als Basis, da keine exakte Charaktergroesse als Property existiert.
+const DECLOAK_EXPLOSION_SIZE_MULTIPLIER: float = 4.0
+const CHARACTER_SIZE_ESTIMATE: float = 2.0
 
 var _stance_active: bool = false
 var _acid_tick_timer: float = 0.0
@@ -49,10 +62,19 @@ var _acid_tick_timer: float = 0.0
 var _stealth_active: bool = false
 var _stealth_touch_timer: float = 0.0
 var _marked_enemy_ids: Array[int] = []
+## Array[Dictionary{beam: Dictionary (BeamVisual), from_id: int, to_id: int}]
+## - Kettenverbindungen zwischen aufeinanderfolgend markierten Gegnern.
+var _mark_beams: Array[Dictionary] = []
 
 var _health: Health = null
 var _meshes: Array[MeshInstance3D] = []
 var _aura_visual: MeshInstance3D = null
+var _aura_pulse_tween: Tween = null
+## Urspruenglicher running_alpha-Wert des GhostTrail, VOR Phantom Execute -
+## wird beim Betreten hochgesetzt (siehe STEALTH_TRAIL_ALPHA) und beim
+## Verlassen exakt hierauf zurueckgesetzt statt auf einen fest verdrahteten
+## Wert, falls der Trail char-spezifisch abweichend konfiguriert ist.
+var _default_trail_alpha: float = 0.015
 
 
 func _init() -> void:
@@ -64,6 +86,8 @@ func setup(owner_player: CharacterBody3D) -> void:
 	_health = player.get_node_or_null("Health") as Health
 	var model: Node = player.get_node_or_null("CharacterModel")
 	_meshes = _collect_mesh_instances(model) if model else []
+	if ghost_trail:
+		_default_trail_alpha = ghost_trail.running_alpha
 
 
 # ============================================================================
@@ -133,13 +157,21 @@ func _spawn_aura_visual(color: Color) -> void:
 	mat.albedo_color = color
 	mat.emission_enabled = true
 	mat.emission = color
-	mat.emission_energy_multiplier = 1.4
+	# Angehoben (Rueckmeldung "sieht schwach aus"): kraeftigeres Leuchten,
+	# damit die Aura auch aus Kampfdistanz klar als aktiver Effekt auffaellt.
+	mat.emission_energy_multiplier = 2.2
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color.a = 0.55
+	mat.albedo_color.a = 0.7
 	ring.material_override = mat
 	get_tree().current_scene.add_child(ring)
 	ring.global_position = player.global_position + Vector3.UP * 0.05
 	_aura_visual = ring
+
+	# Dauerhafte Rotation, damit die Aura als AKTIVER Effekt liest statt als
+	# ruhendes Boden-Decal.
+	var spin: Tween = ring.create_tween()
+	spin.set_loops()
+	spin.tween_property(ring, "rotation:y", TAU, 3.0).from(0.0).set_trans(Tween.TRANS_LINEAR)
 
 
 func _free_aura_visual() -> void:
@@ -154,9 +186,41 @@ func _tick_acid_aura(delta: float) -> void:
 		return
 	_acid_tick_timer = acid_tick_interval
 
+	# Kein DOT-Tick im Spiel spawnt normalerweise eine Schadenszahl (siehe
+	# custom_enemy_base.gd/enemy_ai.gd::_on_status_effect_ticked() - ruft
+	# take_damage() direkt auf, ohne Zahl) - fuer Karina wird das hier
+	# explizit nachgezogen, da die Aura sonst komplett stumm ist. Nicht 1:1
+	# mit dem tatsaechlichen internen Tick-Timer des StatusEffectManagers
+	# synchron, aber nah genug (gleiches Intervall) fuer klares Feedback.
+	var dns: PackedScene = primary_hitbox.damage_number_scene if primary_hitbox else null
+	var hit_anyone: bool = false
+
 	for enemy: Node3D in EnemyQuery.enemies_within(player.global_position, acid_aura_radius):
 		if enemy.has_method("apply_status_effect"):
+			hit_anyone = true
 			enemy.apply_status_effect("acid", acid_effect_duration, acid_damage_per_tick, player, acid_tick_interval)
+			if dns != null:
+				var number: Node = dns.instantiate()
+				get_tree().current_scene.add_child(number)
+				(number as Node3D).global_position = enemy.global_position + Vector3(0.0, 1.8, 0.0)
+				if number.has_method("show_damage"):
+					number.show_damage(acid_damage_per_tick)
+
+	# Kurzer Aufblitz-Puls am Aura-Ring, wenn sie GERADE tatsaechlich etwas
+	# trifft - macht bei den schnellen 0.1s-Ticks (siehe acid_tick_interval)
+	# lesbar, dass die Aura wirkt, ohne bei jedem einzelnen Tick eine neue
+	# VFX-Szene abzufeuern (waere bei 10 Ticks/s reine Bildschirm-Unruhe).
+	# Eigener, EXPLIZIT gekillter Tween statt eines neuen pro Tick: die
+	# Pulsdauer (0.15s) ist laenger als das Tick-Intervall (0.1s) - ohne das
+	# Killen wuerden sich mehrere Scale-Tweens ueberlappen und gegeneinander
+	# ruckeln.
+	if hit_anyone and _aura_visual and is_instance_valid(_aura_visual):
+		if _aura_pulse_tween != null and _aura_pulse_tween.is_valid():
+			_aura_pulse_tween.kill()
+		_aura_visual.scale = Vector3.ONE * 1.25
+		_aura_pulse_tween = _aura_visual.create_tween()
+		_aura_pulse_tween.tween_property(_aura_visual, "scale", Vector3.ONE, 0.15) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 ## BUGFIX "Cooldown-Ring spinnt": der geerbte primary_cooldown (0.4s, fuer
@@ -195,6 +259,7 @@ func _start_stealth() -> void:
 	_secondary_timer = stealth_max_duration
 	_stealth_touch_timer = 0.0
 	_marked_enemy_ids.clear()
+	_clear_mark_beams()
 
 	# Defensive Neubeschaffung, falls setup() vor der vollstaendigen
 	# Instanziierung von CharacterModel/Health gelaufen sein sollte - kostet
@@ -211,6 +276,10 @@ func _start_stealth() -> void:
 	for mesh: MeshInstance3D in _meshes:
 		mesh.transparency = STEALTH_MESH_TRANSPARENCY
 
+	if ghost_trail:
+		ghost_trail.running_alpha = STEALTH_TRAIL_ALPHA
+		ghost_trail.set_running(true)
+
 	_spawn_stealth_toggle_vfx()
 
 
@@ -218,6 +287,12 @@ func _tick_stealth(delta: float, force_end: bool) -> void:
 	if force_end or _secondary_timer <= 0.0:
 		_end_stealth()
 		return
+
+	# Jeden Frame, NICHT hinter dem Beruehrungs-Timer unten - sonst wuerden
+	# die Verbindungslinien zwischen markierten Gegnern nur alle
+	# STEALTH_TOUCH_CHECK_INTERVAL Sekunden nachziehen und sichtbar ruckeln,
+	# waehrend sich Gegner dazwischen weiterbewegen.
+	_update_mark_beams(delta)
 
 	_stealth_touch_timer -= delta
 	if _stealth_touch_timer > 0.0:
@@ -227,25 +302,96 @@ func _tick_stealth(delta: float, force_end: bool) -> void:
 	for enemy: Node3D in EnemyQuery.enemies_within(player.global_position, stealth_touch_radius):
 		var id: int = enemy.get_instance_id()
 		if not _marked_enemy_ids.has(id):
+			# Verbindet den NEU markierten Gegner mit dem zuletzt markierten -
+			# eine Kette statt aller Paare (N Verbindungen statt N*(N-1)/2),
+			# bleibt dadurch auch bei vielen Markierungen lesbar. Siehe
+			# Rueckmeldung "verbindet Gegner miteinander, damit man besser
+			# erkennt wann ein Gegner gehittet wurde".
+			if not _marked_enemy_ids.is_empty():
+				_connect_marked_enemies(_marked_enemy_ids[_marked_enemy_ids.size() - 1], id)
 			_marked_enemy_ids.append(id)
 			_spawn_mark_vfx(enemy)
 
 
+func _connect_marked_enemies(from_id: int, to_id: int) -> void:
+	var data: CharacterData = PartyManager.get_active_data()
+	var color: Color = data.attack_color_secondary if data else Color(1.0, 0.3, 0.7)
+	_mark_beams.append({
+		"beam": BeamVisual.create(self, color, 0.8),
+		"from_id": from_id,
+		"to_id": to_id,
+	})
+
+
+## Laeuft jeden Frame waehrend Phantom Execute aktiv ist - haelt die Ketten-
+## Verbindungen an den aktuellen Positionen der (ggf. sich bewegenden)
+## markierten Gegner fest. Ungueltig gewordene Enden (Gegner in dem Fenster
+## gestorben) werden uebersprungen statt die Verbindung zu entfernen - sie
+## verschwindet ohnehin spaetestens bei der naechsten _clear_mark_beams().
+func _update_mark_beams(delta: float) -> void:
+	for entry: Dictionary in _mark_beams:
+		var from_obj: Object = instance_from_id(entry["from_id"])
+		var to_obj: Object = instance_from_id(entry["to_id"])
+		if from_obj == null or not is_instance_valid(from_obj) or not (from_obj is Node3D):
+			continue
+		if to_obj == null or not is_instance_valid(to_obj) or not (to_obj is Node3D):
+			continue
+		BeamVisual.update(
+			entry["beam"],
+			(from_obj as Node3D).global_position + Vector3.UP,
+			(to_obj as Node3D).global_position + Vector3.UP,
+			delta
+		)
+
+
+func _clear_mark_beams() -> void:
+	for entry: Dictionary in _mark_beams:
+		BeamVisual.free_beam(entry["beam"])
+	_mark_beams.clear()
+
+
 func _end_stealth() -> void:
 	_stealth_active = false
+	_clear_mark_beams()
 
 	if _health:
 		_health.clear_invulnerable()
 	for mesh: MeshInstance3D in _meshes:
 		mesh.transparency = 0.0
 
+	if ghost_trail:
+		ghost_trail.set_running(false)
+		ghost_trail.running_alpha = _default_trail_alpha
+
 	_spawn_stealth_toggle_vfx()
+	_spawn_decloak_explosion()
 	_detonate()
 	# Erst JETZT, nach der Detonation, startet der Cooldown - waere er schon
 	# in _start_stealth() gesetzt worden, liefe er waehrend der gesamten
 	# Stealth-Dauer schon mit statt erst danach, siehe Spec ("Cooldown NACH
 	# der Deaktivierung").
 	_secondary_timer = stealth_reentry_cooldown
+
+
+## "Beim Verlassen von Secondary entsteht zusaetzlich eine Explosion, 4x
+## ihrer Groesse, mit demselben Effekt wie bei Bomben" - instanziiert
+## deshalb woertlich eine echte Bomb-Instanz (scripts/bomb.gd) an Karinas
+## Position und zuendet sie sofort per trigger_now(), statt deren komplette
+## VFX-Kaskade (Feuerball/Kern/Schockwelle/Ring/Splitter/Licht/Brandfleck)
+## hier zu duplizieren. damages_player = false: die Detonation soll ihr
+## Abgang sein, nicht ein Strafschaden gegen sich selbst, direkt nachdem
+## ihre Unverwundbarkeit endet.
+func _spawn_decloak_explosion() -> void:
+	if player == null:
+		return
+	var bomb := Bomb.new()
+	bomb.explosion_radius = CHARACTER_SIZE_ESTIMATE * DECLOAK_EXPLOSION_SIZE_MULTIPLIER
+	bomb.damage *= _damage_multiplier()
+	bomb.damages_player = false
+	bomb.thrower = player
+	get_tree().current_scene.add_child(bomb)
+	bomb.global_position = player.global_position
+	bomb.trigger_now()
 
 
 ## BUGFIX "Cooldown-Ring spinnt" (Secondary-Variante, siehe

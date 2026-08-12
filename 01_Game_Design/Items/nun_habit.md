@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Leiden hat seinen Lohn*
 
-## Effekt
-
-Wenn du Schaden nimmst: 25 % Chance, dass ein aktives Item sofort wieder aufgeladen ist.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `nun_habit` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.24 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Erleidet der Spieler Schaden, besteht eine Chance von 25 %, dass die Abklingzeit eines ausgeruesteten Aktiv-Items sofort vollständig zurueckgesetzt / aufgeladen wird.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_NUN_HABIT`, Variable `nun`)
+## Visueller Effekt (VFX)
+Ein sakraler weisser Aufblitz-Effekt (`FLASH_WHITE`) über dem Charakter bei Schadensnahme.
+
+## Status-Effekte
+Loest keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[jumper_cables|Papas Starthilfekabel]] – Laedt die raumgebundenen Dash-Aufladungen sofort nach Treffern wieder auf.
+- [[storm_lighter|Sturmfeuerzeug]] / [[boombox|Alte Ghettoblaster-Box]] – Stellt maechtige Aktiv-Fähigkeiten bei Feindkontakt augenblicklich wieder bereit.
+
+## Empfohlen für
+- [[karina|Karina]] – Nahkämpfer nehmen haeufig Treffer ein und profitieren stark von Cooldown-Resets.
+- [[winter|Winter]] – Verwandelt erlittenen Schaden in sofortige Konterfaehigkeiten.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

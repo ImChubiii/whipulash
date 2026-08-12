@@ -30,6 +30,21 @@ func _init() -> void:
 	utility_cooldown = 0.8
 
 
+func setup(owner_player: CharacterBody3D) -> void:
+	super.setup(owner_player)
+	# Zusaetzlich zum automatischen Kamera-Shake aus combat_base.gd::
+	# _on_hit_landed() (der fuer JEDEN Treffer gleich stark ausfaellt) - ein
+	# kurzer Hit-Stop + kraeftigerer Shake NUR fuer den Haymaker, damit sich
+	# der wuchtige Finisher spuerbar staerker anfuehlt als der schnelle Jab
+	# (Rueckmeldung "sieht schwach aus").
+	if secondary_hitbox:
+		secondary_hitbox.hit_landed.connect(_on_haymaker_hit)
+
+
+func _on_haymaker_hit(_target: Node) -> void:
+	Juice.impact(0.5, Juice.DURATION_HEAVY)
+
+
 ## Windup VOR der Hitbox-Aktivierung (Telegraphing) - der einzige Unterschied
 ## zum Standardverhalten aus CombatBase._perform_secondary(), das die Hitbox
 ## sofort aktiviert. Der Ghost-Trail-Burst aus _do_secondary() startet

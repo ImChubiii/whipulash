@@ -13,54 +13,38 @@ has_stat_modifiers: false
 status_effects: ["acid"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic"]
+tags: [item, "item/active", "rarity/epic", "applies/acid"]
 ---
 
 # Alter Handstaubsauger
 
 > *Beutel seit Jahren nicht gewechselt*
 
-## Effekt
-
-Saugt 2,5 s lang Gegner im Kegel zu dir heran. Saugt dabei Saeure vom Boden auf und feuert sie als Strahl zurueck.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[acid]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `hand_vacuum` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | EPIC |
+| Seltenheit | EPIC |
 | Cooldown | 6.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.5 |
 
-## Quelle
+## Effekt
+Saugt Gegner im kegelfoermigen Bereich vor dir an. Befindet sich Säure auf dem Boden, wird diese aufgesaugt und als dicker Säure-Strahl abgefeuert, der getroffene Gegner mit Säure-DoT (acid) belegt. Cooldown: 6,0 Sekunden.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_HAND_VACUUM`, Variable `vacuum`)
+## Visueller Effekt (VFX)
+Ein rotierender gruener Windkegel beim Ansaugen, gefolgt von einem dicken gruenen Säure-Strahl beim Abfeuern.
+
+## Status-Effekte
+- [[acid|Säure (DoT)]]
+
+## Synergiert gut mit
+- [[chili_oil|Omas Scharfes Chili-Oel]] – Treffer auf brennende Gegner lösen Säure-Spritzer (acid 3s) aus, die der Staubsauger aufsaugen und wiederverwenden kann.
+- [[pepper_mill|Omas Pfeffermuehle]] – Verlaengert den durch den Saeurestrahl aufgetragenen acid-DoT um +3s.
+- [[mosquito_spray|Mueckenspray der Tante]] – Gewaehrt eine 15 % Chance auf +0.5 HP Heilung beim Kills von Gegnern unter dem acid-DoT.
+
+## Empfohlen für
+- [[karina|Karina]] – Zieht Feinde direkt in Nahkampfreichweite.
+- [[winter|Winter]] – Perfekt zur Massenkontrolle und Neu-Positionierung von Gegnergruppen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

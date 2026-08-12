@@ -235,9 +235,18 @@ var ceiling_texture: Texture2D = null
 ## in einem Standard-48x48-Raum.
 @export var prop_density: float = 10.0
 ## Mindestabstand einer Requisite zu Tueren/Pfeilern/Gegner-Spawnpunkten,
-## damit nichts optisch mit ihnen ueberlappt oder eine Tuer verdeckt.
-@export var prop_clearance: float = 3.5
+## damit nichts optisch mit ihnen ueberlappt oder eine Tuer verdeckt. Auch
+## der Mindestabstand ZWISCHEN Haufen selbst (siehe _build_props()).
+## Vergroessert (Rueckmeldung "Requisiten allgemein mehr ausspreizen").
+@export var prop_clearance: float = 5.0
 @export var prop_wall_inset: float = 2.2
+
+## --- Wandmontierte Requisiten (Fackeln, Baenner, Regale, Schwert+Schild) ---
+## Angehoben (Rueckmeldung "Wand-Requisiten koennen noch weiter hoch gehen").
+@export var wall_prop_height: float = 2.3
+@export var wall_prop_inset: float = 0.35
+## Vergroessert (Rueckmeldung "Requisiten allgemein mehr ausspreizen").
+@export var wall_prop_spacing: float = 5.5
 
 ## --- Rampen / Hoehenunterschiede --------------------------------------
 ## Dicke des Rampen-Keils UNTER seiner Lauf-Flaeche. Frueher fest 1.0 -
@@ -468,10 +477,24 @@ func _ready() -> void:
 		_build_door_lintels()
 	if wall_cap_enabled:
 		_build_wall_caps()
-	if build_room_lights:
-		_build_room_lights()
+	# build_room_lights/_build_room_lights() bewusst NICHT mehr aufgerufen -
+	# Fackeln/Kerzen (Teil von _build_wall_decor()/_build_candles() unten)
+	# ersetzen die alten flachen Decken-Punktlichter komplett, siehe deren
+	# Kopfkommentar. Die Funktion bleibt unten stehen, falls sie doch mal
+	# wieder gebraucht wird, wird aber aus _ready() nicht mehr erreicht.
 	if build_props:
+		# Reihenfolge wichtig: _build_props() legt den "Props"-Container an
+		# UND bricht fruehzeitig ab, falls er schon existiert (Idempotenz-
+		# Schutz) - muss deshalb zuerst laufen, sonst wuerde eine der
+		# folgenden Funktionen ihn zuerst anlegen und _build_props() liefe
+		# nie. _build_tables() vor _build_near_table_props(), weil letztere
+		# die von ersterer gesammelten Tischpositionen braucht.
 		_build_props()
+		_build_tables()
+		_build_near_table_props()
+		_build_wall_decor()
+		_build_banners()
+		_build_candles()
 
 
 func _exit_tree() -> void:
@@ -589,15 +612,80 @@ func _build_room_lights() -> void:
 			container.add_child(light)
 
 
-const PROPS_SCENE: PackedScene = preload("res://assets/environments/fps_dungeon_extras/scene.gltf")
-const PROP_SHADER: Shader = preload("res://shaders/psx.gdshader")
-## Nur STANDALONE Requisiten aus dem Pack - "cratepieces"/"piece*"/"lock"/
-## "lower" sind Bruchstuecke bzw. Unterteile anderer Objekte, "LMGshell"/
-## "grenadiershell" sind Munitionshuelsen (zu klein/unauffaellig als
-## Raumdeko).
-const PROP_NAMES: PackedStringArray = [
-	"crate", "crate_1", "barrel", "chest", "ammobox", "healthbox", "chair",
+# ============================================================================
+# KAYKIT DUNGEON PACK - ersetzt das fps_dungeon_extras-Requisitenset komplett.
+# ============================================================================
+# Anders als fps_dungeon_extras (EIN Sketchfab-Export mit vielen benannten
+# Unterknoten, siehe alte _instance_random_prop()) liefert KayKit JEDE
+# Requisite als eigene .gltf-Datei - _load_kaykit() laedt/cached sie darum
+# per Dateiname statt per find_child() auf eine gemeinsame Szene.
+const KAYKIT_DIR: String = "res://assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/"
+
+## Normale Boden-Requisiten - laufen weiterhin ueber die bestehende
+## Haufen-Platzierung entlang der Waende (_build_props()/_build_prop_cluster()
+## unten, unveraendert).
+const FLOOR_PROP_FILES: PackedStringArray = [
+	"trunk_large_A", "trunk_large_B", "trunk_large_C",
+	"trunk_medium_A", "trunk_medium_B", "trunk_medium_C",
+	"trunk_small_A", "trunk_small_B", "trunk_small_C",
+	"stool", "stool",
+	"keg", "keg_decorated",
+	"coin", "coin_stack_small", "coin_stack_medium", "coin_stack_large",
+	"crates_stacked",
+	"chest", "chest_gold",
+	"chair", "chair",
+	"box_large", "box_small", "box_small_decorated", "box_stacked",
+	"bed_decorated", "bed_floor", "bed_frame",
+	"barrel_large", "barrel_large_decorated", "barrel_small", "barrel_small_stack",
 ]
+
+## Liegen ueberwiegend NEBEN platzierten Tischen (siehe _build_near_table_
+## props()), sind aber NICHT exklusiv dort - siehe Verwendung dort.
+const NEAR_TABLE_PROP_FILES: PackedStringArray = [
+	"plate", "plate_food_A", "plate_food_B", "plate_small", "plate_stack",
+	"bottle_A_brown", "bottle_A_green", "bottle_A_labeled_brown", "bottle_A_labeled_green",
+	"bottle_B_brown", "bottle_B_green", "bottle_C_brown", "bottle_C_green",
+]
+
+## Einzeln verteilt, NICHT geclustert wie die Requisiten oben - siehe
+## _build_tables().
+const TABLE_FILES: PackedStringArray = [
+	"table_long", "table_long_broken", "table_long_decorated_A", "table_long_decorated_C",
+	"table_long_tablecloth", "table_long_tablecloth_decorated_A",
+	"table_medium", "table_medium_broken", "table_medium_decorated_A",
+	"table_medium_tablecloth", "table_medium_tablecloth_decorated_B",
+	"table_small", "table_small_decorated_A", "table_small_decorated_B",
+]
+
+## Wandmontiert statt Boden - siehe _wall_mount_points()/_build_wall_decor().
+const WALL_PROP_FILES: PackedStringArray = [
+	"sword_shield", "sword_shield_broken", "sword_shield_gold",
+	"shelf_large", "shelf_small", "shelf_small_candles",
+]
+
+const TORCH_FILE: String = "torch_mounted"
+const CANDLE_FILES: PackedStringArray = ["candle_lit", "candle_thin_lit", "candle_triple"]
+
+## Banner-Baustil x Farbe, siehe _build_banners() - PRO WAND wird EINE
+## Farbe gewaehlt, der Baustil variiert innerhalb dieser Wand.
+const BANNER_STYLES: PackedStringArray = ["", "patternA_", "patternB_", "patternC_", "shield_", "thin_", "triple_"]
+const BANNER_COLORS: PackedStringArray = ["blue", "brown", "green", "red", "white", "yellow"]
+
+static var _kaykit_cache: Dictionary = {}
+
+
+## static Cache statt @onready/const-Preload: mit ueber 60 einzelnen Dateien
+## waere eine feste Preload-Liste unhandlich, und ein statischer Cache
+## teilen sich ALLE RoomInstance-Exemplare (jede Datei wird hoechstens
+## einmal pro Spielsitzung von der Platte geladen, nicht pro Raum).
+func _load_kaykit(file_name: String) -> PackedScene:
+	if _kaykit_cache.has(file_name):
+		return _kaykit_cache[file_name]
+	var scene: PackedScene = load(KAYKIT_DIR + file_name + ".gltf") as PackedScene
+	_kaykit_cache[file_name] = scene
+	if scene == null:
+		push_warning("RoomInstance: KayKit-Asset nicht gefunden: %s" % file_name)
+	return scene
 
 ## Wie viele Requisiten an JEDEM Ablageplatz zusammen abgestellt werden -
 ## Rueckmeldung: einzelne, weit verstreute Objekte wirken wie zufaellig
@@ -607,7 +695,8 @@ const PROP_CLUSTER_MAX: int = 5
 ## Wie weit die einzelnen Requisiten eines Haufens vom Ablageplatz-Zentrum
 ## abweichen koennen - genug Spielraum, dass die Ueberlappungs-Vermeidung
 ## unten (_find_cluster_offset()) auch fuer 5 Objekte noch Platz findet.
-const PROP_CLUSTER_SPREAD: float = 2.0
+## Vergroessert (Rueckmeldung "Requisiten allgemein mehr ausspreizen").
+const PROP_CLUSTER_SPREAD: float = 3.2
 ## Mindestabstand (zusaetzlich zu den beiden Footprint-Radien) zwischen
 ## zwei Requisiten IM SELBEN Haufen, damit sich ihre Meshes nicht sichtbar
 ## durchdringen.
@@ -771,38 +860,334 @@ func _collect_prop_candidates() -> Array[Vector3]:
 	return filtered
 
 
-## Instanziiert das GESAMTE Asset-Pack-Scene (Sketchfab-Export mit vielen
-## Objekten in einer Datei), zieht sich per reparent() NUR den gewuenschten
-## Requisiten-Teilbaum heraus (keep_global_transform=true erhaelt dessen
-## Ausrichtung/Skalierung aus der Originaldatei) und wirft den Rest wieder
-## weg. root muss dafuer kurz selbst im Baum haengen - global_position/
-## reparent() liefern vor add_child() keine gueltigen Werte (siehe
-## _attach_to_world() in item_behaviours.gd fuer denselben Hinweis).
-## Der Asset-Pack ist offenbar in cm statt Godot-Metern modelliert -
-## keep_global_transform uebernimmt diese Originalskalierung 1:1, die
-## Requisiten kamen dadurch ~50x zu gross im Spiel an. Nachtraeglich mit
-## festem Faktor herunterskaliert statt die Ursache (Import-Settings der
-## .gltf) anzufassen, damit dieselbe Korrektur unabhaengig davon greift, ob
-## irgendwann noch weitere Objekte aus demselben Pack dazukommen.
-const PROP_IMPORT_SCALE: float = 1.0 / 50.0
+## KayKit liefert JEDE Requisite als eigene, bereits fertig skalierte .gltf-
+## Datei (anders als das alte cm-skalierte fps_dungeon_extras-Set) - deshalb
+## hier ohne Nachskalierung instanziiert. Falls die Groesse im Editor doch
+## nicht passt, ist PROP_IMPORT_SCALE unten der Ansatzpunkt.
+const PROP_IMPORT_SCALE: float = 1.0
 
 
-func _instance_random_prop(container: Node3D) -> Node3D:
-	var root: Node = PROPS_SCENE.instantiate()
-	container.add_child(root)
-
-	var prop_name: String = PROP_NAMES[randi() % PROP_NAMES.size()]
-	var found: Node = root.find_child(prop_name, true, false)
-	if found == null or not (found is Node3D):
-		root.queue_free()
+func _instance_random_prop(container: Node3D, pool: PackedStringArray = FLOOR_PROP_FILES) -> Node3D:
+	if pool.is_empty():
 		return null
-
-	var prop := found as Node3D
-	prop.reparent(container, true)
-	root.queue_free()
+	var scene: PackedScene = _load_kaykit(pool[randi() % pool.size()])
+	if scene == null:
+		return null
+	var prop: Node3D = scene.instantiate() as Node3D
+	if prop == null:
+		return null
+	container.add_child(prop)
 	prop.scale *= PROP_IMPORT_SCALE
 	_psxify_prop_materials(prop)
 	return prop
+
+
+# ============================================================================
+# TISCHE - einzeln verteilt, bewusst NICHT ueber die Haufen-Clusterung oben
+# (Rueckmeldung: "verteilt aber nicht in Cluster nebeneinander").
+# ============================================================================
+var _table_positions: Array[Vector3] = []
+
+
+func _build_tables() -> void:
+	_table_positions.clear()
+	var candidates: Array[Vector3] = _collect_prop_candidates()
+	if candidates.is_empty():
+		return
+	candidates.shuffle()
+
+	var area_factor: float = (room_footprint.x * room_footprint.y) / (48.0 * 48.0)
+	var table_count: int = clampi(int(round(2.0 * area_factor)), 0, candidates.size())
+	if table_count <= 0:
+		return
+
+	var container: Node3D = _props_container()
+
+	# Deutlich groesserer Mindestabstand als beim Requisiten-Cluster - Tische
+	# sollen sichtbar EINZELN im Raum stehen statt wie ein Haufen Kleinkram.
+	var min_spacing: float = prop_clearance * 2.2
+	for pos: Vector3 in candidates:
+		if _table_positions.size() >= table_count:
+			break
+		var too_close: bool = false
+		for other: Vector3 in _table_positions:
+			if pos.distance_to(other) < min_spacing:
+				too_close = true
+				break
+		if too_close:
+			continue
+
+		var table: Node3D = _instance_random_prop(container, TABLE_FILES)
+		if table == null:
+			continue
+		var local_aabb: AABB = _prop_local_aabb(table)
+		table.position = pos
+		table.rotation.y = randf() * TAU
+		_ground_prop(table, pos.y, local_aabb)
+		_table_positions.append(table.position)
+
+
+## Plate/Bottle liegen MEISTENS neben Tischen (nicht Pflicht, siehe
+## Rueckmeldung) - ein bis zwei Stueck in kurzem Abstand pro platziertem
+## Tisch, per Wahrscheinlichkeit ausgelassen statt an jedem Tisch garantiert.
+const NEAR_TABLE_CHANCE: float = 0.65
+const NEAR_TABLE_OFFSET_MIN: float = 0.6
+const NEAR_TABLE_OFFSET_MAX: float = 1.4
+
+
+func _build_near_table_props() -> void:
+	if _table_positions.is_empty():
+		return
+	var container: Node3D = _props_container()
+
+	for table_pos: Vector3 in _table_positions:
+		if randf() > NEAR_TABLE_CHANCE:
+			continue
+		var count: int = randi_range(1, 2)
+		for i: int in range(count):
+			var prop: Node3D = _instance_random_prop(container, NEAR_TABLE_PROP_FILES)
+			if prop == null:
+				continue
+			var angle: float = randf() * TAU
+			var dist: float = randf_range(NEAR_TABLE_OFFSET_MIN, NEAR_TABLE_OFFSET_MAX)
+			var offset := Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+			var local_aabb: AABB = _prop_local_aabb(prop)
+			prop.position = table_pos + offset
+			prop.rotation.y = randf() * TAU
+			_ground_prop(prop, table_pos.y, local_aabb)
+
+
+func _props_container() -> Node3D:
+	var container: Node3D = get_node_or_null("Props")
+	if container == null:
+		container = Node3D.new()
+		container.name = "Props"
+		add_child(container)
+	return container
+
+
+# ============================================================================
+# WANDMONTIERTE REQUISITEN - Fackeln, Baenner, Regale, Schwert+Schild.
+# ============================================================================
+## Punkte entlang aller 4 Waende in fester Hoehe (wall_prop_height), mit
+## Tuer-Abstand analog _collect_prop_candidates(). "rotation_y" dreht die
+## Requisite so, dass ihre (projektweite Konvention: +Z) Vorderseite in den
+## Raum zeigt - ueber dieselbe atan2(normal.x, normal.z)-Formel wie
+## enemy_ai.gd/custom_enemy_base.gd fuer Modell-Ausrichtung. "side" (0..3)
+## gruppiert Punkte pro Wand fuer die Banner-Farbwahl (_build_banners()).
+func _wall_mount_points() -> Array[Dictionary]:
+	var half_x: float = room_footprint.x * 0.5 - wall_prop_inset
+	var half_z: float = room_footprint.y * 0.5 - wall_prop_inset
+	if half_x <= 0.0 or half_z <= 0.0:
+		return []
+
+	var door_avoid: Array[Vector3] = []
+	for marker: Marker3D in exit_points.values():
+		if is_instance_valid(marker):
+			var flat: Vector3 = marker.position
+			flat.y = 0.0
+			door_avoid.append(flat)
+	var door_clearance: float = wall_prop_spacing * 0.5 + PROP_DOOR_CLEARANCE_BONUS
+
+	var sides: Array[Dictionary] = [
+		{"axis": "x", "fixed": -half_z, "from": -half_x, "to": half_x, "normal": Vector3.BACK},
+		{"axis": "x", "fixed": half_z, "from": -half_x, "to": half_x, "normal": Vector3.FORWARD},
+		{"axis": "z", "fixed": -half_x, "from": -half_z, "to": half_z, "normal": Vector3.RIGHT},
+		{"axis": "z", "fixed": half_x, "from": -half_z, "to": half_z, "normal": Vector3.LEFT},
+	]
+
+	var points: Array[Dictionary] = []
+	for side_index: int in range(sides.size()):
+		var side: Dictionary = sides[side_index]
+		var normal: Vector3 = side["normal"]
+		var rot_y: float = atan2(normal.x, normal.z)
+		var t: float = float(side["from"]) + wall_prop_spacing * 0.5
+		var to_edge: float = float(side["to"]) - wall_prop_spacing * 0.5
+		while t <= to_edge:
+			var pos: Vector3
+			if side["axis"] == "x":
+				pos = Vector3(t, wall_prop_height, side["fixed"])
+			else:
+				pos = Vector3(side["fixed"], wall_prop_height, t)
+
+			var flat_pos: Vector3 = pos
+			flat_pos.y = 0.0
+			var blocked: bool = false
+			for a: Vector3 in door_avoid:
+				if a.distance_to(flat_pos) < door_clearance:
+					blocked = true
+					break
+			if not blocked:
+				points.append({"position": pos, "rotation_y": rot_y, "side": side_index})
+			t += wall_prop_spacing
+	return points
+
+
+func _place_wall_prop(container: Node3D, entry: Dictionary, file_name: String) -> Node3D:
+	var scene: PackedScene = _load_kaykit(file_name)
+	if scene == null:
+		return null
+	var prop: Node3D = scene.instantiate() as Node3D
+	if prop == null:
+		return null
+	container.add_child(prop)
+	prop.scale *= PROP_IMPORT_SCALE
+	_psxify_prop_materials(prop)
+	prop.position = entry["position"]
+	prop.rotation.y = entry["rotation_y"]
+	return prop
+
+
+## Nur ein Teil der Wandpunkte wird ueberhaupt belegt - sonst wirkt jede
+## Wand komplett zugestellt statt gezielt dekoriert.
+const WALL_PROP_FILL_CHANCE: float = 0.55
+
+
+func _build_wall_decor() -> void:
+	var points: Array[Dictionary] = _wall_mount_points()
+	if points.is_empty():
+		return
+	points.shuffle()
+
+	var container: Node3D = _props_container()
+
+	for entry: Dictionary in points:
+		if randf() > WALL_PROP_FILL_CHANCE:
+			continue
+		if randi() % 3 == 0:
+			_place_torch(container, entry)
+		else:
+			_place_wall_prop(container, entry, WALL_PROP_FILES[randi() % WALL_PROP_FILES.size()])
+
+
+# ============================================================================
+# FACKELN / KERZEN - ersetzen die bisherigen Raum-Deckenlichter komplett
+# (siehe _ready(): _build_room_lights() wird nicht mehr aufgerufen).
+# ============================================================================
+const TORCH_LIGHT_COLOR: Color = Color(1.0, 0.55, 0.2)
+const TORCH_LIGHT_ENERGY: float = 1.8
+const TORCH_LIGHT_RANGE: float = 9.0
+const CANDLE_LIGHT_ENERGY: float = 0.9
+const CANDLE_LIGHT_RANGE: float = 4.0
+
+
+func _place_torch(container: Node3D, entry: Dictionary) -> void:
+	var torch: Node3D = _place_wall_prop(container, entry, TORCH_FILE)
+	if torch == null:
+		return
+	_attach_fire_light_and_particles(torch, TORCH_LIGHT_ENERGY, TORCH_LIGHT_RANGE, Vector3.UP * 0.25)
+
+
+## Kleine, warm-orangene Punktflamme (Licht + Partikel) - ersetzt die alten
+## flachen Deckenlichter (Rueckmeldung: "Fackeln sollen die bisherigen
+## Lichtquellen ersetzen"). local_offset ist relativ zur Requisite selbst
+## (z.B. Fackelkopf-Hoehe), damit Licht/Partikel nicht im Modell versinken.
+func _attach_fire_light_and_particles(target: Node3D, energy: float, range_m: float, local_offset: Vector3) -> void:
+	var light := OmniLight3D.new()
+	light.light_color = TORCH_LIGHT_COLOR
+	light.light_energy = energy
+	light.omni_range = range_m
+	light.shadow_enabled = false
+	light.position = local_offset
+	target.add_child(light)
+
+	var particles := GPUParticles3D.new()
+	particles.emitting = true
+	particles.amount = 10
+	particles.lifetime = 0.6
+	particles.local_coords = true
+	particles.position = local_offset
+
+	var mat := ParticleProcessMaterial.new()
+	mat.direction = Vector3.UP
+	mat.spread = 12.0
+	mat.gravity = Vector3(0.0, 1.2, 0.0)
+	mat.initial_velocity_min = 0.3
+	mat.initial_velocity_max = 0.7
+	mat.scale_min = 0.08
+	mat.scale_max = 0.18
+	mat.color = TORCH_LIGHT_COLOR
+	particles.process_material = mat
+
+	var flame_mesh := SphereMesh.new()
+	flame_mesh.radius = 0.06
+	flame_mesh.height = 0.12
+	var flame_mat := StandardMaterial3D.new()
+	flame_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	flame_mat.albedo_color = TORCH_LIGHT_COLOR
+	flame_mat.emission_enabled = true
+	flame_mat.emission = TORCH_LIGHT_COLOR
+	flame_mat.emission_energy_multiplier = 3.0
+	flame_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	flame_mesh.material = flame_mat
+	particles.draw_pass_1 = flame_mesh
+
+	target.add_child(particles)
+
+
+func _build_candles() -> void:
+	var candidates: Array[Vector3] = _collect_prop_candidates()
+	if candidates.is_empty():
+		return
+	candidates.shuffle()
+
+	var area_factor: float = (room_footprint.x * room_footprint.y) / (48.0 * 48.0)
+	var candle_count: int = clampi(int(round(3.0 * area_factor)), 0, candidates.size())
+	if candle_count <= 0:
+		return
+
+	var container: Node3D = _props_container()
+
+	for i: int in range(candle_count):
+		var candle: Node3D = _instance_random_prop(container, CANDLE_FILES)
+		if candle == null:
+			continue
+		var local_aabb: AABB = _prop_local_aabb(candle)
+		candle.position = candidates[i]
+		candle.rotation.y = randf() * TAU
+		_ground_prop(candle, candidates[i].y, local_aabb)
+		var flame_height: float = local_aabb.size.y * candle.scale.y * 0.8
+		_attach_fire_light_and_particles(candle, CANDLE_LIGHT_ENERGY, CANDLE_LIGHT_RANGE, Vector3.UP * flame_height)
+
+
+# ============================================================================
+# BAENNER - eine Farbe pro Wand, Baustil variiert innerhalb dieser Wand
+# (Rueckmeldung: "immer die gleiche Farbe... als Muster wenn es geht
+# variieren, damit es nicht immer gleich aussieht").
+# ============================================================================
+const BANNER_MIN_PER_WALL: int = 2
+const BANNER_MAX_PER_WALL: int = 3
+const BANNER_WALL_CHANCE: float = 0.6
+
+
+func _build_banners() -> void:
+	var points: Array[Dictionary] = _wall_mount_points()
+	if points.is_empty():
+		return
+
+	var by_side: Dictionary = {}
+	for entry: Dictionary in points:
+		var side: int = entry["side"]
+		if not by_side.has(side):
+			by_side[side] = []
+		(by_side[side] as Array).append(entry)
+
+	var container: Node3D = _props_container()
+
+	for side: Variant in by_side.keys():
+		if randf() > BANNER_WALL_CHANCE:
+			continue
+		var side_points: Array = by_side[side]
+		if side_points.is_empty():
+			continue
+		side_points.shuffle()
+
+		var color: String = BANNER_COLORS[randi() % BANNER_COLORS.size()]
+		var count: int = mini(randi_range(BANNER_MIN_PER_WALL, BANNER_MAX_PER_WALL), side_points.size())
+		for i: int in range(count):
+			var entry: Dictionary = side_points[i]
+			var style: String = BANNER_STYLES[randi() % BANNER_STYLES.size()]
+			_place_wall_prop(container, entry, "banner_%s%s" % [style, color])
 
 
 ## BUGFIX "Requisiten sind schwarz/texturlos": das importierte .gltf bringt
@@ -811,10 +1196,18 @@ func _instance_random_prop(container: Node3D) -> Node3D:
 ## exakt dasselbe Verfahren fuer .glb-Importe). In den dunklen Raumecken, in
 ## denen Requisiten bevorzugt stehen (siehe prop_wall_inset), rendert ein
 ## normal beleuchtetes Material praktisch schwarz, weil dieses Spiel fast
-## ausschliesslich mit dem gemeinsamen UNSHADED PSX-Shader arbeitet statt
-## mit Godots Beleuchtung. Fix: Albedo-Textur/-Farbe aus dem Original
-## uebernehmen, aber ueber denselben unshaded Shader wie der Rest des Spiels
-## rendern - dadurch immer voll sichtbar, unabhaengig vom Umgebungslicht.
+## ausschliesslich mit ungeshadeten Materialien statt mit Godots Beleuchtung
+## arbeitet. Fix: Albedo-Textur/-Farbe aus dem Original uebernehmen, aber
+## unshaded rendern - dadurch immer voll sichtbar, unabhaengig vom
+## Umgebungslicht.
+##
+## BEWUSST StandardMaterial3D statt PROP_SHADER (der gemeinsame PSX-Shader
+## mit Vertex-Snap/-Jitter und hart auf filter_nearest gesetzter Textur) -
+## Rueckmeldung "weniger Pixel-Effekt bei den Requisiten": StandardMaterial3D
+## nutzt ohne weitere Einstellung Godots normale weiche (lineare) Textur-
+## filterung und hat keinen Vertex-Jitter, macht die KayKit-Requisiten also
+## sichtbar glatter als der Rest des PSX-Looks, ohne den gemeinsamen Shader
+## (der ueberall sonst im Spiel bewusst so bleiben soll) selbst anzufassen.
 func _psxify_prop_materials(node: Node3D) -> void:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
@@ -823,16 +1216,13 @@ func _psxify_prop_materials(node: Node3D) -> void:
 				var source: Material = mi.get_surface_override_material(surface)
 				if source == null:
 					source = mi.get_active_material(surface)
-				var shader_mat := ShaderMaterial.new()
-				shader_mat.shader = PROP_SHADER
+				var mat := StandardMaterial3D.new()
+				mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 				if source is BaseMaterial3D:
 					var base: BaseMaterial3D = source as BaseMaterial3D
-					if base.albedo_texture != null:
-						shader_mat.set_shader_parameter("albedo_texture", base.albedo_texture)
-					shader_mat.set_shader_parameter("albedo_color", base.albedo_color)
-				else:
-					shader_mat.set_shader_parameter("albedo_color", Color.WHITE)
-				mi.set_surface_override_material(surface, shader_mat)
+					mat.albedo_texture = base.albedo_texture
+					mat.albedo_color = base.albedo_color
+				mi.set_surface_override_material(surface, mat)
 	for child: Node in node.get_children():
 		if child is Node3D:
 			_psxify_prop_materials(child as Node3D)

@@ -11,7 +11,7 @@ tags: [devlog]
 
 Dash-Schaden (combat_base.gd, damage_number.gd)
 - Dash verursacht 20 Schaden, aber NUR beim Durchqueren eines Gegners.
-  Erkennung ueber den Vorzeichenwechsel entlang der Dash-Achse statt ueber
+  Erkennung über den Vorzeichenwechsel entlang der Dash-Achse statt über
   eine Area3D: ein body_entered-Hitbox haette schon beim Antippen oder beim
   Stehenbleiben vor dem Gegner ausgeloest.
 - Trefferfenster im Inspector einstellbar (dash_hit_radius,
@@ -33,16 +33,16 @@ FOV-Regler (settings_manager.gd, settings_menu.gd, player_base.gd)
 
 Lava-Schaden (lemonade.gd)
 - Fix: Eintrittsschaden hing am Betreten des Trigger-Volumens. Beim Sprung
-  von oben sind die Fuesse da noch ueber der Oberflaeche, der erste Treffer
+  von oben sind die Fuesse da noch über der Oberflaeche, der erste Treffer
   kam deshalb erst nach vollen tick_interval Sekunden. Haengt jetzt am
   Uebergang "Fuesse durchstossen die Oberflaeche".
 - Gameplay von _process nach _physics_process verschoben.
-- predict_falling_entry rechnet die Fallstrecke des naechsten Schritts vor.
+- predict_falling_entry rechnet die Fallstrecke des nächsten Schritts vor.
 
 Rampen (room_instance.gd, enemy_ai.gd)
 - configure_slope zieht Waende, Decke, Tuerstuerze, Minimap-Platten und die
   Trigger-Volumen auf das neue Hoehenband. Vorher schaute man am hohen Ende
-  ueber die Wand und am tiefen Ende unter ihr hindurch.
+  über die Wand und am tiefen Ende unter ihr hindurch.
 - Rampe ist ein massiver Keil statt einer 1 m duennen Platte.
 - Spawn-Marker werden per Raycast auf den echten Boden gesetzt. Sie lagen
   fest auf y = 0.5 und steckten auf einer Rampe im Collider - Godots

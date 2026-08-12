@@ -20,47 +20,29 @@ tags: [item, "item/passive", "rarity/legendary"]
 
 > *Aus dem Faschingsladen*
 
-## Effekt
-
-Kill-Heal: Kills an Gegnern mit einem aktiven Statuseffekt heilen garantiert +0,5 Leben.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `vampire_teeth` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | UTILITY |
-| Rarity | LEGENDARY |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.29 |
+| Seltenheit | LEGENDARY |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Kill-Heal: Kills an Gegnern, die unter irgendeinem Statuseffekt stehen, heilen dich um +0,5 HP und verlängern deine aktiven Buffs um +1 Sekunde. Funktioniert mit ALLEN Statuseffekten im Spiel.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_VAMPIRE_TEETH`, Variable `vampire`)
+## Visueller Effekt (VFX)
+Ein rotes Aufblitzen (`FLASH_RED`) erscheint auf dem Bildschirm bei Auslösung des Kill-Heals.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[rusty_cleaver|Rostiges Beil]] – Jeder Kill an blutenden (`bleed`) Gegnern gewährt +0,5 HP Heilung und +1s Buff-Verlängerung.
+- [[stiletto_heels|Mamas Stoeckelschuhe]] – Durch großflächige Säure- (`acid`) und Verlangsamungs-Spuren (`slow`) lässt sich der +0,5 HP Kill-Heal mühelos an Gegnergruppen triggern.
+
+## Empfohlen für
+Statuseffekt-fokussierte Builds, die sich im Kampf kontinuierlich heilen wollen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

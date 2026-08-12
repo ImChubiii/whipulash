@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["burn"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic"]
+tags: [item, "item/active", "rarity/epic", "applies/burn"]
 ---
 
 # Feuerwand
 
 > *Nichts kommt durch*
 
-## Effekt
-
-Legt eine Reihe brennender Flaechen vor dir ab, die Gegner darin fortlaufend verbrennen.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[burn]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `blaze` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | EPIC |
-| Cooldown | 12.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.16 |
+| Seltenheit | EPIC |
+| Cooldown | 12 s |
 
-## Quelle
+## Effekt
+Erzeugt eine lange Feuerwand. Die Feuerwand blockiert die Sicht der Gegner, fügt durchquerenden Gegnern Schaden zu (`burn`) und heilt den Spieler beim Hindurchlaufen.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_BLAZE`, Variable `blaze`)
+## Visueller Effekt (VFX)
+Eine lodernde, orangerote Flammenwand entsteht am gewählten Standort.
+
+## Status-Effekte
+- [[burn|Brand]]
+
+## Synergiert gut mit
+- [[copper_wire|Kupferdraht-Spule]] – Verlangsamte Gegner, die in die Feuerwand getrieben werden, erleiden massiven kumulativen Brandschaden.
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an brennenden Gegnern heilen zusätzlich +0,5 HP und verlängern Buffs um 1s.
+
+## Empfohlen für
+- **Ningning**: Ideal zum Versperren von Korridoren und Kontrolle großer Wellen.
+- **Winter**: Zwingt Gegner in die Flammen, um Distanzangriffe vorzubereiten.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

@@ -13,54 +13,36 @@ has_stat_modifiers: false
 status_effects: ["stun"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/legendary"]
+tags: [item, "item/active", "rarity/legendary", "applies/stun"]
 ---
 
 # Donnergrollen
 
 > *Der Boden bebt*
 
-## Effekt
-
-Eine gewaltige Schockwelle betaeubt und stoesst alle nahen Gegner zurueck.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[stun]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `rolling_thunder` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | LEGENDARY |
+| Seltenheit | LEGENDARY |
 | Cooldown | 18.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.30 |
 
-## Quelle
+## Effekt
+Entfesselt eine massive Kaskade aus Erdbebenwellen, die Gegner in die Luft wirft und langanhaltend betäubt (`stun`).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_ROLLING_THUNDER`, Variable `rolling_thunder`)
+## Visueller Effekt (VFX)
+Eine breite Schockwelle bricht hervor und reißt den Boden im Ausbreitungsgebiet auf.
+
+## Status-Effekte
+- [[stun|Langanhaltende Betäubung]]
+
+## Synergiert gut mit
+- [[disco_ball|Disco-Kugel-Anhaenger]] – Betäubte (`stun`) Gegner erleiden +25 % mehr Schaden aus allen Schadensquellen.
+- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an langanhaltend betäubten Gegnern gewähren +1 HP Heilung und entladen Raum-Schockwellen.
+
+## Empfohlen für
+Crowd-Control-Builds und Nahkämpfer, die inmitten von Gegnermassen Platz und Atemlunge benötigen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

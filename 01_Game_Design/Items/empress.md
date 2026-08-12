@@ -20,47 +20,30 @@ tags: [item, "item/active", "rarity/legendary"]
 
 > *Regiert das Schlachtfeld*
 
-## Effekt
-
-Erhoeht dein Tempo drastisch. Waehrend der Wirkung setzen Kills die Abklingzeit deines Aktiv-Items zurueck und machen dich kurz unsichtbar.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `empress` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | MOVEMENT |
-| Rarity | LEGENDARY |
-| Cooldown | 20.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.23 |
+| Seltenheit | LEGENDARY |
+| Cooldown | 20 s |
 
-## Quelle
+## Effekt
+Gewährt drastisch erhöhtes Bewegungstempo. Kills während der Wirkungsdauer erneuern sofort alle Abklingzeiten (Reset der 20s Cooldowns) und machen den Spieler für kurze Zeit unsichtbar.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_EMPRESS`, Variable `empress`)
+## Visueller Effekt (VFX)
+Ein roter Aura-Glow umhüllt den Spieler, begleitet von einem dunklen Screen-Overlay während der Unsichtbarkeit.
+
+## Status-Effekte
+Löst keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[brimstone_horns|Hoellenfeuer-Hoerner]] – Das drastisch erhöhte Tempo verwandelt jeden Anlauf in eine verheerende Ramm-Attacke mit Kontaktschaden.
+- [[blade_storm|Klingensturm]] – Erlaubt kontinuierliche Reset-Ketten der 14s/20s Abklingzeiten bei jedem erzielten Kill.
+
+## Empfohlen für
+- **Giselle**: Verwandelt das Schlachtfeld in eine hochdynamische Jagdzone.
+- **Karina**: Perfekt für blitzschnelles Untertauchen und Neupositionieren nach Kills.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

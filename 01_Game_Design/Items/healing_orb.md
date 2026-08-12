@@ -20,47 +20,30 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *Warmes Licht*
 
-## Effekt
-
-Heilt dich sofort um einen Teil deines Maximal-Lebens und dann ueber 4 s weiter.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `healing_orb` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | DEFENSE |
-| Rarity | EPIC |
+| Seltenheit | EPIC |
 | Cooldown | 16.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.41 |
 
-## Quelle
+## Effekt
+Aktiviert einen Heilungs-Orb, der den Spieler über Zeit stark regeneriert.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_HEALING_ORB`, Variable `healing_orb`)
+## Visueller Effekt (VFX)
+Ein grünes, strahlendes Lichtband umhüllt den Spieler während der Heilung über Zeit.
+
+## Status-Effekte
+Loest keine aus.
+
+## Synergiert gut mit
+- [[plastic_halo|Plastik-Heiligenschein]] – Kombiniert die zeitbasierte starke Heilung mit +1 Max-HP Kapazität und 10 % Kill-Heal Chance.
+- [[rice_pudding|Überkochter Milchreis]] – Gewährt während der Regeneration zusätzlichen Schildschutz (bis zu 15 % Max-HP) beim Stillstehen.
+
+## Empfohlen für
+- [[karina|Karina]] – Essenzieller Lebensretter in heftigen Nahkaempfen.
+- [[winter|Winter]] – Unverzichtbar in langen Fights und Bosskämpfen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

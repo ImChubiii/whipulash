@@ -7,60 +7,66 @@ speed: 20.0
 max_health: 70.0
 primary_cooldown: 0.0
 secondary_cooldown: 0.0
-tags: [character]
+tags: [character, role/assassin, difficulty/advanced]
 ---
 
 # Karina
 
-## Basiswerte
+> *Eine blitzschnelle Assassine, die mit Säure-Aura und tödlicher Unsichtbarkeit Chaos stiftet.*
 
-| Wert | Betrag |
+## Übersicht
+| Feld | Wert |
 |---|---|
+| Rolle | Assassine |
+| Spielstil | Tödliche Hit-and-Run-Taktiken mit Säureschaden und spektakulären Detonationen aus dem Schatten heraus. |
+| Schwierigkeit | Fortgeschritten |
 | Move-Speed | 20.0 |
 | Max. HP | 70.0 |
-| Primary-Basis-Cooldown | 0.0 s |
-| Secondary-Basis-Cooldown | 0.0 s |
+| Primaer | Acid Rush Mode (Cooldown: 0.0s) |
+| Sekundaer | Phantom Execute (Cooldown: 5.0s) |
 
-## Mechanik
+## Fähigkeiten
 
-**Acid Rush Mode (Primary):** KEIN klassischer Schlag - Primary IST die Stance. Gehalten: +Move-Speed (ueber `PlayerStats.add_modifier()`, nicht direkt geschrieben), alle Gegner in der Praesenz-Aura bekommen per `EnemyQuery.enemies_within()` wiederholt den [[acid]]-Statuseffekt aufgefrischt. `_primary_timer` wird zweckentfremdet: zaehlt waehrend der Stance die Restzeit runter, danach die kurze Wiedereintritts-Sperre - der bestehende Cooldown-Ring im HUD zeigt dadurch beides ohne HUD-Aenderung. **Phantom Execute (Secondary):** Toggle statt Halten - aktiviert Unsichtbarkeit (`GeometryInstance3D.transparency`) und volle Unverwundbarkeit (`Health.set_invulnerable_permanent()`). Beruehrte Gegner werden per Instanz-ID markiert; Deaktivierung (manuell oder nach Ablauf) detoniert alle markierten Gegner gleichzeitig - der Cooldown startet ERST nach dieser Detonation, nicht beim Aktivieren.
+### Acid Rush Mode
+**Wie benutzen:** LMB halten
+Statt normal zu schlagen, aktivierst du eine Haltung (Stance). Solange du die Taste hältst, bist du extrem schnell (+Speed) und hüllst dich in eine Säure-Aura, die nahe Gegner kontinuierlich verätzt.
 
-## Balancing
+### Phantom Execute
+**Wie benutzen:** RMB druecken
+Werde komplett unsichtbar und unverwundbar! Berühre Gegner im Vorbeirennen, um sie zu markieren. Wenn du wieder sichtbar wirst (manuell oder nach Ablauf), detonieren alle markierten Gegner gleichzeitig für massiven Schaden.
 
+### ⚡ Dash
+Kurze Ausweichrolle — druecke Shift. Kein Cooldown-Timer, aber kurze Animationsdauer. Unvermeidbar-Frames waehrend des Dashens.
+
+## Balancing auf einen Blick
 | Wert | Betrag |
 |---|---|
-| Acid Rush - Speed-Bonus | +20% |
-| Acid Rush - Aura-Radius | 3 m |
-| Acid Rush - Schaden/Tick | 15 (alle 0.4 s) |
-| Acid Rush - Max. Dauer | 10 s |
-| Acid Rush - Wiedereintritts-Sperre | 1.0 s |
-| Phantom Execute - Max. Dauer | 5 s |
-| Phantom Execute - Beruehrungsradius | 1.6 m |
-| Phantom Execute - Detonationsschaden | 220 (an ALLEN markierten Gegnern) |
-| Phantom Execute - Cooldown | 5.0 s (startet nach Detonation) |
-| Phantom Execute - Wirkung | toetet [[fighter]] (100 HP) und [[stinger]] (25 HP), laesst [[colossus]] (400 HP) bei 45% HP |
+| Acid Rush Speed | Erhoehtes Speed-Cap |
+| Phantom Detonation Cooldown | 5.0s (startet nach Detonation) |
 
-## Verwandt
+## Tipps & Tricks
+- **Vorsicht ist geboten**: Du bist mit 70 HP sehr zerbrechlich. Nutze Phantom Execute unbedingt als defensives Tool oder um sicher zu markieren.
+- **Ausweichen leicht gemacht**: Acid Rush Mode erhöht deinen Move-Speed enorm. Nutze das, um Angriffen flink auszuweichen.
+- **Kettenreaktion**: Markiere so viele Gegner wie möglich im Phantom-Modus, um den maximalen AoE-Detonationsschaden herauszuholen!
+- **Synergiert mit Gegnern**: Schnelle Gegner wie Stinger koennen ausgetrickst werden.
 
-- [[combat_base]] — Basisklasse, stellt Cooldown-/Combo-/Hit-Lock-/Dash-
-  System bereit; `scripts/characters/combat_karina.gd` ueberschreibt nur Primary/Secondary.
-  Utility (Dash) und die zwei aktiven Item-Slots (Q/E) bleiben fuer alle vier
-  Charaktere geteilt und unveraendert.
-- [[player_base]] — Schwester-Komponente ("Combat" vs. player_base direkt am
-  Charakter), definiert Move-Speed/HP-Basiswerte in `scenes/characters/char_karina.tscn`.
-- [[acid]] — Statuseffekt hinter Acid Rush Mode, geteilt mit [[lemonade]] und [[saeure-sprinkler]].
-- [[fighter]], [[stinger]], [[colossus]] — HP-Referenzen fuer die Phantom-Execute-Balancing (siehe oben).
+## Empfohlene Items
+> Empfehlungen basieren auf dem Spielstil — nur Items aus der 84er-Liste verwenden!
 
-Siehe [[_MOC_Characters]] fuer den vollstaendigen Ueberblick aller vier
-Charaktere.
+- [[roller_skates|Roller Skates]] — Dash-Treffer machen Gegner confused.
+- [[copper_wire|Copper Wire]] — Dash durch langsame oder gerootete Gegner verursacht Burn.
+- [[tight_pants|Tight Pants]] — Gibt +20% Speed und ein Vorbeigehen an Gegnern loest einen Tritt aus.
+- [[empress|Empress]] — Kills laden diese Fähigkeit ab und geben dir mehr Unsichtbarkeit.
+- [[prowler|Prowler]] — Ein Schatten folgt Gegnern auf dem Fuss.
+- [[chewing_gum|Chewing Gum]] — Dein Dash hinterlaesst eine Slow-Spur.
 
-## Erwaehnt in DevLogs
+## Gut gegen diese Gegner
+- [[fighter|Fighter]] — Leicht im Hit & Run zu besiegen.
+- [[stinger|Stinger]] — Koennen mit der Unsichtbarkeit ausgetrickst werden.
+- [[colossus|Colossus]] — Gut zu markieren für massiven AoE-Schaden.
 
-- [[2026-08-10_baeb020_featvfxuiitemslevelgen_ghost-trail-system_main-men|2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes]]
-- [[2026-07-28_2642172_featitems_aktive_items_auf_qe-slots_umgestellt|2026-07-28 — feat(items): aktive Items auf Q/E-Slots umgestellt]]
-- [[2026-07-24_d86f02e_refactorplayer_split_player_system_into_per-charac|2026-07-24 — refactor(player): split player system into per-character scenes with shared base classes]]
-- [[2026-07-24_b39a97d_refactorplayer_split_player_system_into_per-charac|2026-07-24 — refactor(player): split player system into per-character scenes with shared base classes]]
+## Alle Charaktere
+[[ningning|Ningning]] . [[giselle|Giselle]] . [[karina|Karina]] . [[winter|Winter]]
 
-## Quelle
-
-`scenes/characters/char_karina.tscn`, `resources/char_3.tres`, `scripts/characters/combat_karina.gd`
+## Schnellnavigation
+[[_MOC_Items|Items]] . [[_MOC_Enemies|Gegner]] . [[_MOC_Rooms|Räume]] . [[_MOC_Status_Effects|Status-Effekte]] . [[HOME|Startseite]]

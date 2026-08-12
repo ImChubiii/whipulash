@@ -20,47 +20,31 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Unterschrieben, nicht gelesen*
 
-## Effekt
-
-+40 % Schaden. Jeder 5. Treffer kostet dich selbst 0,5 Leben.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `blood_pact` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MELEE |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.11 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Gewaehrt einen dauerhaften Schadensbonus von +40 %. Im Gegenzug opfert jeder fuenfte Treffer auf einen Gegner 0,5 eigene Lebenspunkte (HP).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_BLOOD_PACT`, Variable `pact`)
+## Visueller Effekt (VFX)
+Ein dramatischer roter Bildschirmblitz (`FLASH_RED`) bei jedem 5. Treffer, wenn die 0,5 HP geopfert werden.
+
+## Status-Effekte
+Loest keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[devil_outfit|Teufelchen-Outfit]] – Der HP-Verlust bringt den Spieler rasch unter 50 % HP für zusätzliche +50 % Schaden.
+- [[handball_pads|Handball-Schulterpolster]] – Verhindert toedlichen Schaden (1 HP Ueberleben), falls der HP-Verlust den Spieler in Bedraengnis bringt.
+- [[mosquito_spray|Mueckenspray der Tante]] – Kompensiert den HP-Verlust durch DoT-Kill-Heals (+0.5 HP).
+
+## Empfohlen für
+- **Karina**: Hohes Risiko für enormen Nahkampf-Schadensausstoss.
+- **Giselle**: Erhoeht den Schaden für schnelle Kill-Combos drastisch.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

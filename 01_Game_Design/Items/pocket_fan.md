@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["slow"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/uncommon"]
+tags: [item, "item/active", "rarity/uncommon", "applies/slow"]
 ---
 
 # USB-Mini-Ventilator
 
 > *5V, aber mit Haltung*
 
-## Effekt
-
-Ein Windstoss nach vorn verlangsamt Gegner 3 s lang und ueberträgt ihre laufenden Schaden-ueber-Zeit-Effekte auf Nachbarn.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[slow]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `pocket_fan` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | UNCOMMON |
+| Seltenheit | UNCOMMON |
 | Cooldown | 7.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.12 |
 
-## Quelle
+## Effekt
+Erzeugt einen starken Windstoss nach vorne, der getroffene Gegner 3 Sekunden lang verlangsamt (slow 3s). Laeuft auf einem getroffenen Gegner ein aktiver DoT-Effekt (burn, acid), wird dieser auf alle umstehenden Gegner uebertragen. Cooldown: 7,0 Sekunden.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_POCKET_FAN`, Variable `fan`)
+## Visueller Effekt (VFX)
+Schnell vorwaerts stroemende weisse Windlinien und Luftwirbel.
+
+## Status-Effekte
+- [[slow|Verlangsamt (3s)]]
+
+## Synergiert gut mit
+- [[storm_lighter|Sturmfeuerzeug]] – Uebertraegt den 3s burn-DoT auf ganze Gegnergruppen.
+- [[chili_oil|Omas Scharfes Chili-Oel]] – Uebertraegt durch Spritzer entstandenen acid-DoT auf benachbarte Ziele.
+
+## Empfohlen für
+- [[ningning|Ningning]] – Starke Synergien beim Verteilen von Statuseffekten im Raum.
+- [[giselle|Giselle]] – Haelt stuerzende Gegner auf Distanz.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

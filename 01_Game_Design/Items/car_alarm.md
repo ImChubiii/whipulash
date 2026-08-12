@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["silenced"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/uncommon"]
+tags: [item, "item/passive", "rarity/uncommon", "applies/silenced"]
 ---
 
 # Alarmanlage vom Parkplatz
 
 > *WIIIU WIIIU WIIIU*
 
-## Effekt
-
-Nimmst du Schaden, werden alle Gegner im Raum stummgeschaltet.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[silenced]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `car_alarm` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | DEFENSE |
-| Rarity | UNCOMMON |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.33 |
+| Seltenheit | UNCOMMON |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Bei erlittenem Schaden am Spieler werden alle Gegner im gesamten Raum für 3 Sekunden stumm geschaltet (`silenced` 3s, raumweit).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_CAR_ALARM`, Variable `alarm`)
+## Visueller Effekt (VFX)
+Eine kreisförmige Schallwelle breitet sich vom Spieler aus über den gesamten Raum aus.
+
+## Status-Effekte
+- [[silenced|Verstummt (3s, raumweit)]]
+
+## Synergiert gut mit
+- [[vampire_teeth|Plastik-Vampirgebiss]] – Gegner, die durch den 3s Verstummen-Effekt beeinträchtigt sind, gewähren bei Kills +0,5 HP Heilung.
+- [[plastic_halo|Plastik-Heiligenschein]] – Kombiniert die 3s Raum-Stummschaltung nach Schaden mit +1 Max-HP als Sicherheitsnetz.
+
+## Empfohlen für
+- **Karina**: Neutralisiert gegnerische Spezialfähigkeiten, wenn sie Treffer einstecken muss.
+- **Giselle**: Raumweite Entlastung in brenzligen Raumsituationen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

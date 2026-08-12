@@ -77,7 +77,7 @@ Exactly **one** active `CharacterBody3D` exists at a time. Switching characters 
 ### Enemies — two parallel systems
 
 - **`scripts/enemies/enemy_ai.gd`** (`EnemyAI`, `CharacterBody3D`, states `IDLE/CHASE/ATTACK`): the three level-generator enemies (Fighter, Stinger, Colossus). Imported robot mesh, chase/attack state machine, per-instance speed variance so packs don't move in lockstep.
-- **`scripts/enemies/custom_enemy_base.gd`**: an intentionally *separate* base (NOT inheriting `EnemyAI`) for six newer, simpler enemy types (turret/flyer archetypes built from primitive meshes, no run animation) — `moerser-bot`, `saeure-sprinkler`, `magnet-kern`, `divebomber`, `schild-drohne`, `plasmastrahl-bot`. Lifecycle: `_ready()` → `_configure()` → `_build_health()` → `_build_status_effects()` → `_build()`; teardown via `_on_died()`/`despawn()` → `_teardown()`.
+- **`scripts/enemies/custom_enemy_base.gd`**: an intentionally *separate* base (NOT inheriting `EnemyAI`) for six newer, simpler enemy types (turret/flyer archetypes built from primitive meshes, no run animation) — `mörser-bot`, `säure-sprinkler`, `magnet-kern`, `divebomber`, `schild-drohne`, `plasmastrahl-bot`. Lifecycle: `_ready()` → `_configure()` → `_build_health()` → `_build_status_effects()` → `_build()`; teardown via `_on_died()`/`despawn()` → `_teardown()`.
   - **These six are not yet in `level_generator.gd`'s threat-budget spawn tables** — the *only* place they currently spawn is `scripts/enemy_sandbox_room.gd` (the debug sandbox), via `ClassName.new()` since they have no `.tscn`.
   - To interoperate with the rest of the game both systems must independently satisfy: group `"enemies"` (how items/bombs/homing-bolts find targets), `collision_layer = 4` (matches `PrimaryHitbox.collision_mask`), and a child node literally named `"Health"` (found via `find_child`).
   - Forced removal (e.g. `enemy_sandbox_room.gd`'s "clear enemies" pad) must call `_cleanup_effects()` explicitly — `queue_free()` does not fire `Health.died`, so anything relying on that signal (beams, telegraphs) would otherwise leak until its own timeout.
@@ -104,3 +104,7 @@ See `02_Tech_Architecture/custom_enemy_base.md` and `enemy_sandbox_room.md` for 
 ### Design docs vs. code
 
 `01_Game_Design/` (Items, Enemies, Rooms, Status_Effects) documents *balance intent*; `02_Tech_Architecture/` documents *implementation rationale* per key script, cross-linked via `[[wikilinks]]`. When changing balancing numbers or adding items/enemies/rooms, prefer updating the source file (`item_catalog.gd`, `es_*.tres`, `rd_*.tres`, `status_effects/*.gd`) and then regenerating the vault — the vault content is derived, not authored by hand (frontmatter and structural sections at least; some prose sections are hand-maintained, see `wiki_sync.py` docstring).
+
+
+## Verwandte Seiten
+- [[HOME]]

@@ -20,47 +20,30 @@ tags: [item, "item/passive", "rarity/legendary"]
 
 > *Die Limonade beisst nicht mehr*
 
-## Effekt
-
-75 % weniger Schaden durch saure Limonade und keine Verlangsamung mehr beim Durchwaten.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `acid_boots` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | DEFENSE |
-| Rarity | LEGENDARY |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.7 |
+| Seltenheit | LEGENDARY |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Reduziert den erlittenen Schaden durch Säure/Limonade um 75 % und hebt jegliche Verlangsamung (`slow`) beim Durchwaten von Säurepfützen komplett auf.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_ACID_BOOTS`, Variable `boots`)
+## Visueller Effekt (VFX)
+Grüne Säurespritzer prallen beim Betreten von Limonadenpfützen schützend von den Stiefeln ab.
+
+## Status-Effekte
+Löst keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[stiletto_heels|Mamas Stoeckelschuhe]] – Erlaubt es, schadlos durch die eigenen hinterlassenen Säurepfützen zu laufen (75 % Schadensreduktion, 0 % Verlangsamung).
+- [[battery_pack|Ausgelaufene Flachbatterie]] – Betreten von Säure entlädt Stromschläge (1,5s `stun`), während man selbst 75 % weniger Schaden nimmt.
+
+## Empfohlen für
+- **Karina**: Profitiert im Nahkampf enorm von uneingeschränkter Mobilität auf säurebedeckten Schlachtfeldern.
+- **Giselle**: Kann Säurezonen sicher durchqueren, um Distanz zu Gegnern zu wahren.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

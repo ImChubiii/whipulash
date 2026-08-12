@@ -1,7 +1,7 @@
 ---
 id: "ice_bag"
 name: "Gefrierbeutel voll Eis"
-subtitle: "Fuer die Schwellung"
+subtitle: "Für die Schwellung"
 kind: PASSIVE
 category: MELEE
 rarity: RARE
@@ -18,49 +18,32 @@ tags: [item, "item/passive", "rarity/rare"]
 
 # Gefrierbeutel voll Eis
 
-> *Fuer die Schwellung*
+> *Für die Schwellung*
 
-## Effekt
-
-15 % Chance, einen Gegner 2 s lang um 40 % zu verlangsamen. Trifft es einen brennenden Gegner, entlaedt der Thermoschock den gesamten Restbrand auf einen Schlag.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[slow]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `ice_bag` |
-| Kind | PASSIVE |
+| Art | PASSIVE |
 | Kategorie | MELEE |
-| Rarity | RARE |
-| Cooldown | — |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 2.21 |
+| Seltenheit | RARE |
+| Cooldown | Passiv - kein Cooldown |
 
-## Quelle
+## Effekt
+Treffer besitzen eine Chance von 15 %, den Gegner stark zu verlangsamen (slow, -40 % Bewegungstempo). Trifft ein Angriff einen brennenden Gegner (burn), wird ein Thermoschock ausgeloest, der den verbleibenden Brandschaden sofort komplett in vollen Direktschaden umwandelt.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_ICE_BAG`, Variable `ice`)
+## Visueller Effekt (VFX)
+Ein kuehler blauer Bildschirmblitz (`FLASH_BLUE`) zusammen mit umherspritzenden Eissplittern bei Treffern.
+
+## Status-Effekte
+- [[slow|Starke Verlangsamung (-40 % Tempo)]]
+
+## Synergiert gut mit
+- [[storm_lighter|Sturmfeuerzeug]] – Zuendet Gegner mit 3s burn-DoT an, den das Eispaket sofort per Thermoschock als Direktschaden entlaedt.
+- [[spicy_ramen|Scharfe Instant-Nudeln]] – Wandelt den 4s burn-DoT blitzschnell in extremen Einzelschaden um.
+
+## Empfohlen für
+- [[karina|Karina]] – Hervorragende Nahkampf-Verstaerkung in Kombination mit Feuer-Elementen.
+- [[winter|Winter]] – Gute Crowd-Control-Ergaenzung im Nahkampf.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

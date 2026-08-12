@@ -13,54 +13,37 @@ has_stat_modifiers: false
 status_effects: ["silenced"]
 reacts_to_status: ["silenced"]
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic"]
+tags: [item, "item/active", "rarity/epic", "applies/silenced"]
 ---
 
 # Alte Ghettoblaster-Box
 
 > *Bass, der Waende einreisst*
 
-## Effekt
-
-Sendet eine 4 s lange Basswelle: zerstoert Projektile und schaltet Gegner in Reichweite stumm. Stumme Gegner erleiden +30 % Nahkampfschaden.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[silenced]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- [[silenced]] — setzt den Effekt voraus, loest ihn aber nicht selbst aus
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `boombox` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | DEFENSE |
-| Rarity | EPIC |
-| Cooldown | 9.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.10 |
+| Seltenheit | EPIC |
+| Cooldown | 9 s |
 
-## Quelle
+## Effekt
+Erzeugt für 4 Sekunden langanhaltende Basswellen im Raum, die feindliche Projektile zerstören und Gegner für 4 Sekunden stummschalten (silenced 4s). Stummgeschaltete Gegner erleiden +30 % zusätzlichen Nahkampfschaden. Cooldown: 9,0 Sekunden.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_BOOMBOX`, Variable `boombox`)
+## Visueller Effekt (VFX)
+Pulsierende ringfoermige Basswellen am Boden, schwebende Noten-Partikel um den Ghettoblaster.
+
+## Status-Effekte
+- [[silenced|Stummgeschaltet (4s)]]
+
+## Synergiert gut mit
+- [[blood_pact|Das Blutpakt]] – Verursacht +40 % Schaden, was zusammen mit den +30 % Nahkampfschaden gegen stumme Gegner zu gigantischem Nahkampfschaden fuehrt.
+- [[pepper_mill|Omas Pfeffermuehle]] – Schaltet Gegner ebenfalls stumm (silenced 2s), um das Zeitfenster für den +30 % Nahkampfschaden zu vergroessern.
+
+## Empfohlen für
+- **Karina**: Perfektes Instrument, um Nahkampf-Combos schadensfrei einzuleiten.
+- **Giselle**: Schuetzt vor gefährlichen Geschosssalven im Getuemmel.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

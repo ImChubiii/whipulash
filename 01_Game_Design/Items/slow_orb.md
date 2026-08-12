@@ -13,54 +13,36 @@ has_stat_modifiers: false
 status_effects: ["slow"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare"]
+tags: [item, "item/active", "rarity/rare", "applies/slow"]
 ---
 
 # Frost-Orb
 
 > *Kuehler Kopf*
 
-## Effekt
-
-Legt eine Eisflaeche vor dir ab, die Gegner darin stark verlangsamt.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- [[slow]]
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- —
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `slow_orb` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
+| Seltenheit | RARE |
 | Cooldown | 9.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.40 |
 
-## Quelle
+## Effekt
+Schießt eine Kugel ab, die das Aufprall-Areal mit verlangsamendem Eis bedeckt und getroffene Gegner verlangsamt (`slow`).
 
-`scripts/items/item_catalog.gd` (Konstante `ID_SLOW_ORB`, Variable `slow_orb`)
+## Visueller Effekt (VFX)
+Ein grün-blauer Kristallteppich breitet sich am Aufprallort auf dem Boden aus.
+
+## Status-Effekte
+- [[slow|Verlangsamung]]
+
+## Synergiert gut mit
+- [[copper_wire|Kupferdraht-Spule]] – Ein Dash durch den grün-blauen Kristallteppich entzündet die verlangsamten Gegner (`burn` DoT).
+- [[stiletto_heels|Mamas Stoeckelschuhe]] – Verdoppelt die Verlangsamung und fügt Säureschaden (`acid`) auf dem Feld hinzu.
+
+## Empfohlen für
+Fernkämpfer und Kiting-Builds, die Angreifer auf Distanz halten müssen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]

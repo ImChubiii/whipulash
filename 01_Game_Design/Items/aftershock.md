@@ -20,47 +20,30 @@ tags: [item, "item/active", "rarity/rare"]
 
 > *Verzoegerte Wucht*
 
-## Effekt
-
-Feuert eine Energieladung geradeaus, die am ersten Treffer oder maximaler Reichweite explodiert.
-
-## Status-Effekte
-
-Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
-`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
-
-- —
-
-## Reagiert auf (ohne selbst auszuloesen)
-
-Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
-ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
-
-- —
-
-## Synergien
-
-Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
-dieses Items ODER umgekehrt):
-
-- —
-
-## Erwaehnt in DevLogs
-
-- [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
-
-## Metadaten
-
+## Info
 | Feld | Wert |
 |---|---|
-| ID | `aftershock` |
-| Kind | ACTIVE |
+| Art | ACTIVE |
 | Kategorie | UTILITY |
-| Rarity | RARE |
-| Cooldown | 10.0 s |
-| Charge (Raeume) | — |
-| Design-Doc-Ref | 1.28 |
+| Seltenheit | RARE |
+| Cooldown | 10 s |
 
-## Quelle
+## Effekt
+Lädt eine Ladung an einer Wand auf, die auf der Rückseite der Wand eine schwere Explosion auslöst.
 
-`scripts/items/item_catalog.gd` (Konstante `ID_AFTERSHOCK`, Variable `aftershock`)
+## Visueller Effekt (VFX)
+Ein goldener Energiestrahl trift auf die Wand, gefolgt von feurigen Erschütterungsringen auf der Rückseite.
+
+## Status-Effekte
+Löst keine Status-Effekte aus.
+
+## Synergiert gut mit
+- [[super_glue|Ausgelaufener Sekundenkleber]] – Hält Gegner hinter der Wand 2s lang fest, damit die Rückseiten-Explosion voll trifft.
+- [[alarmbot|Alarm-Bot]] – Zielverdopplung des Schadens verstärkt die schwere Wand-Explosion um das Zweifache.
+
+## Empfohlen für
+- **Winter**: Hervorragende Ergänzung für Fernkampf-Builds, um Gegnergruppen aus sicherer Distanz auszuschalten.
+- **Ningning**: Eignet sich perfekt zur Beherrschung eng bemessener Raumzonen.
+
+## Alle Items
+[[_MOC_Items|Item-Übersicht]]
