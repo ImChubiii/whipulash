@@ -38,3 +38,6 @@ Thumbs.db
 .DS_Store
 *.log
 *.tmp
+
+# Ignore Large Game Exports
+Game Export/

@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# git-crypt
+04_Chat_Prompts/** filter=git-crypt diff=git-crypt
+05_Gedanken/** filter=git-crypt diff=git-crypt
