@@ -234,14 +234,21 @@ func _get_effective_primary_cooldown() -> float:
 
 
 # ============================================================================
-# Phantom Execute - Toggle statt Halten: aktiviert per just_pressed, bleibt
-# aktiv bis erneutem just_pressed ODER Ablauf von stealth_max_duration. Ruft
-# NIE _do_secondary() auf, da der Cooldown erst NACH der Detonation starten
-# soll, nicht beim Aktivieren.
+# Phantom Execute - Halten statt Toggle: aktiviert per just_pressed, bleibt
+# aktiv solange RMB gehalten wird und endet (inkl. Detonation) SOFORT beim
+# Loslassen, oder frueher bei Ablauf von stealth_max_duration. Ruft NIE
+# _do_secondary() auf, da der Cooldown erst NACH der Detonation starten soll,
+# nicht beim Aktivieren.
+#
+# BUGFIX "muss nach dem Loslassen nochmal RMB druecken, damit die Explosion
+# stattfindet": war urspruenglich ein Toggle (erneutes just_pressed beendet
+# die Tarnung) - dadurch blieb man nach dem Loslassen unsichtbar stehen, bis
+# man RMB ein zweites Mal drueckte. Jetzt beendet das simple Loslassen
+# (nicht mehr gedrueckt) die Tarnung direkt und loest die Explosion sofort aus.
 # ============================================================================
 func _poll_secondary_input(delta: float) -> void:
 	if _stealth_active:
-		_tick_stealth(delta, Input.is_action_just_pressed("attack_secondary"))
+		_tick_stealth(delta, not Input.is_action_pressed("attack_secondary"))
 		return
 
 	if Input.is_action_just_pressed("attack_secondary") and _secondary_timer <= 0.0:

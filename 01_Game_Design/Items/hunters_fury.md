@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/legendary"]
 
 > *Durch alles hindurch*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | LEGENDARY |
-| Cooldown | 16.0 s |
-
 ## Effekt
-Feuert 3 gigantische Energie-Impulse ab, die sämtliche Wände und Hindernisse komplett ignorieren.
 
-## Visueller Effekt (VFX)
-Drachenartige Energie-Salven in strahlend blauem Licht schießen durch die Map.
+Feuert drei Energiestrahlen geradeaus ab, die Waende durchdringen und alle getroffenen Gegner schwer verletzen.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[super_glue|Ausgelaufener Sekundenkleber]] – Fixiert Gegner 2s lang am Boden, damit alle 3 Energie-Impulse durch Wände hindurch voll treffen.
-- [[protein_shake|Proteinshake aus den 90ern]] – Erhöht den massiven Schaden der durchdringenden Strahlen zusätzlich um +25 %.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[giselle|Giselle]] – Ideal, um Gegner aus sicherer Deckung durch Waende hindurch zu eliminieren.
-- [[winter|Winter]] – Vernichtender Raum-Clearer für Korridore und Raumzentren.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `hunters_fury` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | LEGENDARY |
+| Cooldown | 16.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.27 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_HUNTERS_FURY`, Variable `hunters_fury`)

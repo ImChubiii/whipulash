@@ -148,6 +148,18 @@ const ID_NANOSWARM: String = "nanoswarm"
 const ID_ALARMBOT: String = "alarmbot"
 const ID_LOCKDOWN: String = "lockdown"
 
+# --- Schulhof-Items (Nr. 84-93) ---------------------------------------------
+const ID_POCKET_CALCULATOR: String = "pocket_calculator"
+const ID_JUMP_ROPE: String = "jump_rope"
+const ID_SET_SQUARE: String = "set_square"
+const ID_CHALK_ERASER: String = "chalk_eraser"
+const ID_EMPTY_ENERGY_CAN: String = "empty_energy_can"
+const ID_OLD_COMPASS: String = "old_compass"
+const ID_TANGLED_YOYO: String = "tangled_yoyo"
+const ID_BROKEN_PENCIL: String = "broken_pencil"
+const ID_PAINTBOX: String = "paintbox"
+const ID_FORGOTTEN_GYM_BAG: String = "forgotten_gym_bag"
+
 
 ## Liefert alle Items als Array. Reihenfolge = Reihenfolge im Design-Dokument.
 static func build_all() -> Array[ItemData]:
@@ -419,6 +431,7 @@ static func build_all() -> Array[ItemData]:
 	# STAT_COOLDOWN wirkt als Teiler auf die Angriffszeit (siehe
 	# PlayerStats.get_attack_speed) — 0.909 entspricht +10 % Tempo.
 	needles.stat_modifiers = { PlayerStats.STAT_COOLDOWN: {"mul": 0.909} }
+	needles.synergy_tags = ["crit"]
 	items.append(needles)
 
 	# --- 16. Teufelchen-Outfit -------------------------------------------
@@ -518,6 +531,7 @@ static func build_all() -> Array[ItemData]:
 		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.EPIC,
 		44, "2.31"
 	)
+	chili.synergy_tags = ["burn", "acid"]
 	items.append(chili)
 
 	# --- 45. Ausgelaufene Flachbatterie -------------------------------------
@@ -584,6 +598,7 @@ static func build_all() -> Array[ItemData]:
 		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.RARE,
 		50, "2.37"
 	)
+	copper.synergy_tags = ["burn", "movement"]
 	items.append(copper)
 
 	# --- 21. Papp-Wahrsagerbrett ------------------------------------------
@@ -650,6 +665,7 @@ static func build_all() -> Array[ItemData]:
 		ItemData.Kind.ACTIVE, ItemData.Category.UTILITY, ItemData.Rarity.EPIC,
 		5, "1.5"
 	)
+	vacuum.synergy_tags = ["acid"]
 	vacuum.cooldown_seconds = 6.0
 	items.append(vacuum)
 
@@ -902,6 +918,7 @@ static func build_all() -> Array[ItemData]:
 		53, "1.16"
 	)
 	blaze.cooldown_seconds = 12.0
+	blaze.synergy_tags = ["burn"]
 	items.append(blaze)
 
 	var hot_hands := ItemData.create(
@@ -1052,6 +1069,100 @@ static func build_all() -> Array[ItemData]:
 	)
 	lockdown.cooldown_seconds = 26.0
 	items.append(lockdown)
+
+	# ########################################################################
+	# SCHULHOF-ITEMS (Nr. 84-93) — reines Stat-Zeug ohne Konditionen steht
+	# unten direkt in stat_modifiers; alles mit Bedingung/Timer/VFX steht in
+	# item_behaviours.gd (siehe dortige Abschnitte "Schulhof-Items").
+	# ########################################################################
+	var calculator := ItemData.create(
+		ID_POCKET_CALCULATOR, "Taschenrechner", "Rechnet die Trefferchance aus",
+		"+3% Krit-Chance.",
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.COMMON,
+		84, "2.39"
+	)
+	calculator.stat_modifiers = { PlayerStats.STAT_CRIT_CHANCE: {"add": 0.03} }
+	calculator.synergy_tags = ["crit"]
+	items.append(calculator)
+
+	var jump_rope := ItemData.create(
+		ID_JUMP_ROPE, "Springseil", "Immer in Bewegung",
+		"-5% Dash-Cooldown.",
+		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.COMMON,
+		85, "2.40"
+	)
+	jump_rope.stat_modifiers = { PlayerStats.STAT_DASH_COOLDOWN: {"mul": 0.95} }
+	jump_rope.synergy_tags = ["movement"]
+	items.append(jump_rope)
+
+	var set_square := ItemData.create(
+		ID_SET_SQUARE, "Geodreieck", "Immer im rechten Winkel",
+		"+15% Trefferflaeche.",
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.UNCOMMON,
+		86, "2.41"
+	)
+	set_square.stat_modifiers = { PlayerStats.STAT_PROJECTILE_HITBOX: {"mul": 1.15} }
+	items.append(set_square)
+
+	var chalk_eraser := ItemData.create(
+		ID_CHALK_ERASER, "Tafel-Schwamm", "Wischt es einfach weg",
+		"Reduziert die Dauer von Brand und Saeure auf dir um 50%.",
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.UNCOMMON,
+		87, "2.42"
+	)
+	items.append(chalk_eraser)
+
+	var energy_can := ItemData.create(
+		ID_EMPTY_ENERGY_CAN, "Leere Energy-Dose", "Der Zucker wirkt nach",
+		"+20% Lauftempo fuer 1.5s nach dem Dashen.",
+		ItemData.Kind.PASSIVE, ItemData.Category.MOVEMENT, ItemData.Rarity.COMMON,
+		88, "2.43"
+	)
+	energy_can.synergy_tags = ["movement"]
+	items.append(energy_can)
+
+	var old_compass := ItemData.create(
+		ID_OLD_COMPASS, "Alter Zirkel", "Zieht groessere Kreise",
+		"+25% Nahkampf-Reichweite.",
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.UNCOMMON,
+		89, "2.44"
+	)
+	old_compass.stat_modifiers = { PlayerStats.STAT_MELEE_RANGE: {"mul": 1.25} }
+	items.append(old_compass)
+
+	var yoyo := ItemData.create(
+		ID_TANGLED_YOYO, "Verheddertes Jo-Jo", "Kommt von weit her zurueck",
+		"+30% Schaden auf maximaler Schuss-Reichweite.",
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.UNCOMMON,
+		90, "2.45"
+	)
+	items.append(yoyo)
+
+	var pencil := ItemData.create(
+		ID_BROKEN_PENCIL, "Zerbrochener Bleistift", "Schreibt trotzdem noch",
+		"+15% Grundschaden, aber 10% Chance, bei einem Gegentreffer Drops zu verlieren.",
+		ItemData.Kind.PASSIVE, ItemData.Category.MELEE, ItemData.Rarity.UNCOMMON,
+		91, "2.46"
+	)
+	pencil.stat_modifiers = { PlayerStats.STAT_DAMAGE: {"mul": 1.15} }
+	items.append(pencil)
+
+	var paintbox := ItemData.create(
+		ID_PAINTBOX, "Tuschkasten", "Bunter als der Rest",
+		"Schuesse leuchten in zufaelligen Farben. +5 Max-HP.",
+		ItemData.Kind.PASSIVE, ItemData.Category.UTILITY, ItemData.Rarity.COMMON,
+		92, "2.47"
+	)
+	paintbox.stat_modifiers = { PlayerStats.STAT_MAX_HEALTH: {"add": 5.0} }
+	items.append(paintbox)
+
+	var gym_bag := ItemData.create(
+		ID_FORGOTTEN_GYM_BAG, "Vergessener Turnbeutel", "Riecht nach Ueberleben",
+		"100% Immun gegen Verlangsamung.",
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.UNCOMMON,
+		93, "2.48"
+	)
+	items.append(gym_bag)
 
 	return items
 

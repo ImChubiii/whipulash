@@ -13,38 +13,55 @@ has_stat_modifiers: false
 status_effects: ["acid", "slow"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/epic", "applies/slow"]
+tags: [item, "item/passive", "rarity/epic"]
 ---
 
 # Heiliges Oel
 
 > *Hinterlasse eine Spur*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MOVEMENT |
-| Seltenheit | EPIC |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Hinterlässt beim Laufen kontinuierlich Ölpfützen auf dem Boden. Gegner, die hineintreten, erleiden Schaden über Zeit (`acid`) und werden verlangsamt (`slow`).
 
-## Visueller Effekt (VFX)
-Erzeugt beim Gehen ein am Boden liegendes Pfützen-Mesh mit blubbernden Öl-Blasen (`OIL_BUBBLES`).
+Hinterlaesst beim Laufen eine Pfuetze. Gegner darin erleiden Schaden und werden 25 % verlangsamt.
 
 ## Status-Effekte
-- [[acid|Säure]]
-- [[slow|Verlangsamt]]
 
-## Synergiert gut mit
-- [[tight_pants|Omas Enge Hosen]] – +20 % Bewegungstempo hinterlässt eine längere Ölspur in kürzerer Zeit.
-- [[chewing_gum|Kaugummi unter dem Schuh]] – Verlängert den Säure-Effekt (`acid`) der Ölpfützen um +50 %.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Perfekt für hochmobile Charaktere, die staendig in Bewegung bleiben.
-- [[giselle|Giselle]] – Haelt Verfolger auf Distanz, waehrend man kitet.
+- [[acid]]
+- [[slow]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `holy_oil` |
+| Kind | PASSIVE |
+| Kategorie | MOVEMENT |
+| Rarity | EPIC |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.5 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_HOLY_OIL`, Variable `oil`)

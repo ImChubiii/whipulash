@@ -13,38 +13,55 @@ has_stat_modifiers: false
 status_effects: ["confused", "silenced"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare", "applies/confused"]
+tags: [item, "item/active", "rarity/rare"]
 ---
 
 # Paranoia
 
 > *Sie sind ueberall*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | 9.0 s |
-
 ## Effekt
-Sendet einen Schatten-Impuls aus, der durch Wände dringt. Getroffene Gegner erleiden Verwirrung (`confused`) und werden stumm geschaltet (`silenced`).
 
-## Visueller Effekt (VFX)
-Ein dunkler, lila-schwarzer Projektil-Schatten gleitet durch den Raum und durchdringt Wände.
+Eine schwaechere Welle durch Waende hindurch, die Gegner kurz verwirrt und stumm schaltet.
 
 ## Status-Effekte
-- [[confused|Verwirrt]]
-- [[silenced|Stummgeschaltet]]
 
-## Synergiert gut mit
-- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an den verwirrten/stummgeschalteten Gegnern gewähren +0,5 HP Heilung und verlängern Buffs um 1s.
-- [[prowler|Schatten-Pirscher]] – Liefert eine zweite Welle von Verwirrungs- und Verstummen-Effekten durch Hindernisse.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[giselle|Giselle]] – Schnell einsetzbarer Stoer-Effekt aus sicherer Position.
-- [[ningning|Ningning]] – Haelt feindliche Fähigkeiten verlaesslich auf Distanz.
+- [[confused]]
+- [[silenced]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `paranoia` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | 9.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.37 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_PARANOIA`, Variable `paranoia`)

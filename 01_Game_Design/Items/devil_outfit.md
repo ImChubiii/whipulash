@@ -20,30 +20,47 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Rote Augen, schlechte Laune*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MELEE |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Fallen die eigenen Lebenspunkte unter 50 % HP, erhoeht sich der verursachte Schaden permanent um +50 %.
 
-## Visueller Effekt (VFX)
-Ein dauerhafter roter Glow (Aura), der den Charakter umhuellt, sobald die HP unter 50 % fallen.
+Unter 50 % Leben: +50 % Schaden. Dein Modell gluent dabei dauerhaft rot.
 
 ## Status-Effekte
-Loest keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[blood_pact|Das Blutpakt]] – Treffer opfern HP (jeder 5. Treffer kostet 0.5 HP), was den Spieler schnell unter 50 % HP bringt, um die +50 % Schadenssteigerung zu aktivieren.
-- [[handball_pads|Handball-Schulterpolster]] – Faengt toedlichen Schaden einmal pro Raum auf (1 HP), sodass man sicher unter 50 % HP weiterkaempfen kann.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Karina**: Perfekt für risikofreudige High-Risk-High-Reward Nahkampf-Builds.
-- **Giselle**: Nutzt den massiven Schadensschub in kniffligen Situationen zum Befreiungsschlag.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `devil_outfit` |
+| Kind | PASSIVE |
+| Kategorie | MELEE |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.23 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_DEVIL_OUTFIT`, Variable `devil`)

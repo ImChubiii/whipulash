@@ -20,30 +20,47 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Ramm sie!*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MOVEMENT |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Löst bei hoher Bewegungstempo-Schwelle beim Hineinlaufen in Gegner eine automatische Ramm-Attacke aus, die Kontaktschaden verursacht und Ziele mit starkem Rückstoß fortschleudert.
 
-## Visueller Effekt (VFX)
-Beim Aufprall der Ramm-Attacke wird ein feuriger Treffer-Funke (`HIT_SPARK`) ausgelöst.
+Wer mit hohem Tempo in einen Gegner laeuft, loest eine Ramm-Attacke aus: hoher Kontaktschaden und Rueckstoss.
 
 ## Status-Effekte
-Löst keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[tight_pants|Omas Enge Hosen]] – +20 % Bewegungstempo erleichtert das Erreichen der für die Ramm-Attacke benötigten Tempo-Schwelle.
-- [[empress|Kaiserin]] – Das drastisch erhöhte Tempo verwandelt jeden Anlauf in eine kontinuierliche Ramm-Attacke.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Karina**: Belohnt ihren aggressiven, bewegungsreichen Kampfstil.
-- **Winter**: Bietet ein starkes Nahkampf-Instrument bei schnellen Repositionierungen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `brimstone_horns` |
+| Kind | PASSIVE |
+| Kategorie | MOVEMENT |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.4 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_BRIMSTONE_HORNS`, Variable `horns`)

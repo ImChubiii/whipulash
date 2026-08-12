@@ -39,6 +39,10 @@ enum Kind { NORMAL, CRIT, DASH, ITEM }
 @export var item_outline_color: Color = Color(0.55, 0.0, 0.65, 1.0)
 @export var horizontal_stretch: float = 3  # >1.0 = breiter, <1.0 = schmaler
 
+## Kritische Treffer poppen groesser auf als normaler Schaden - der einzige
+## Unterschied zur reinen Farbe, der auch im Vorbeirennen sofort auffaellt.
+@export var crit_scale: float = 1.5
+
 func _ready() -> void:
 	# Sinnvolle Defaults direkt im Code, damit man im Editor nichts
 	# vergessen kann — Billboard sorgt dafür, dass die Zahl immer zur
@@ -60,8 +64,11 @@ func show_damage(amount: float, is_crit: bool = false) -> void:
 
 
 ## Bequemer Einzeiler fuer den Dash - spart dem Aufrufer den Enum-Import.
+## Bewusst Kind.NORMAL statt Kind.DASH: Dash-Schaden soll optisch NICHT von
+## normalem Treffer-Schaden zu unterscheiden sein (siehe Design-Dokument
+## 05_Gedanken/02_Game_Design_Blueprint.md, Abschnitt "Dash-Schaden").
 func show_dash_damage(amount: float) -> void:
-	show_damage_kind(amount, Kind.DASH)
+	show_damage_kind(amount, Kind.NORMAL)
 
 
 ## Bequemer Einzeiler fuer Item-/Passiv-Schaden - siehe item_behaviours.gd.
@@ -76,6 +83,7 @@ func show_damage_kind(amount: float, kind: int) -> void:
 		Kind.CRIT:
 			modulate = crit_color
 			outline_modulate = crit_outline_color
+			scale = Vector3(horizontal_stretch, 1.0, 1.0) * crit_scale
 		Kind.DASH:
 			modulate = dash_color
 			outline_modulate = dash_outline_color

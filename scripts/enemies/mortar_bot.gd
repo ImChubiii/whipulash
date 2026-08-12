@@ -21,14 +21,20 @@ class_name MortarBot
 const DUST_RING_SCENE: PackedScene = preload("res://scenes/vfx/dust_ring.tscn")
 const SPARK_YELLOW_SCENE: PackedScene = preload("res://scenes/vfx/spark_yellow.tscn")
 
-const VISUAL_SCALE: float = 1.5
+## War 1.5 - Rueckmeldung "jeder Gegner ausser Magnet soll 3x groesser sein"
+## (1.5 * 3 = 4.5).
+const VISUAL_SCALE: float = 4.5
 ## Wie schnell sich der Moerser-Bot zum Spieler dreht (rad/s) - langsam
 ## genug, dass die Drehung als sichtbares "Zielen" wirkt statt als Snap.
 const TURN_SPEED: float = 1.2
 
 var fire_interval: float = 3.6
 var flight_time: float = 1.3
-var arc_height: float = 8.0
+## War 8.0 - in einem 14 Units hohen Kampfraum kratzte der Geschossbogen
+## damit fast an der Decke ("Rueckmeldung: Moerser-Geschosse zu weit oben in
+## der Luft"). Niedrigerer Bogen bleibt als Parabel klar lesbar, wirkt aber
+## nicht mehr wie ein Steilfeuer bis unters Dach.
+var arc_height: float = 4.0
 var blast_radius: float = 4.2
 var damage: float = 22.0
 var detect_range: float = 45.0
@@ -81,7 +87,27 @@ func _build_visual() -> void:
 	visual_root.add_child(light)
 
 
+## Fallhoehe pro Sekunde, mit der ein leicht ueber dem Boden gespawnter
+## Moerser-Bot einsinkt - dieselbe Groessenordnung wie player_base.gd's
+## Schwerkraft. Bewusst KEIN staendiges Schweben/Anheben, nur ein Absinken:
+## der Bot bewegt sich sonst nie, move_and_slide() haette ohne das keinen
+## Grund, jemals aufgerufen zu werden, und is_on_floor() bliebe immer false.
+const SETTLE_GRAVITY: float = 40.0
+
+
 func _physics_process(delta: float) -> void:
+	# BUGFIX "manche Moerser haengen noch etwas in der Luft": der Bot bewegt
+	# sich nie und ruft deshalb nie move_and_slide() auf - ein Spawn-Marker,
+	# der (z.B. in einer geneigten oder mehrzelligen Raum-Vorlage) nicht exakt
+	# auf Bodenhoehe liegt, blieb dadurch fuer immer stehen, wo er gespawnt
+	# wurde, statt sich wie jeder andere Koerper auf den echten Boden
+	# abzusetzen.
+	if not is_on_floor():
+		velocity.y -= SETTLE_GRAVITY * delta
+		move_and_slide()
+	elif velocity.y != 0.0:
+		velocity.y = 0.0
+
 	var player: CharacterBody3D = _find_player()
 	if player == null:
 		return

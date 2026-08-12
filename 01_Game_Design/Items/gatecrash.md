@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *Hier lang, dann zurueck*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | MOVEMENT |
-| Seltenheit | EPIC |
-| Cooldown | 12.0 s |
-
 ## Effekt
-Sendet einen Teleport-Anker aus. Der Spieler kann sich auf Knopfdruck augenblicklich zum Ankerpunkt teleportieren.
 
-## Visueller Effekt (VFX)
-Ein schwebender dunkelblauer Energieball bewegt sich nach vorne.
+Erste Nutzung wirft einen Anker. Zweite Nutzung teleportiert dich sofort dorthin zurueck.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut with
-- [[paint_shells|Streugranaten]] – Teleport-Anker vorausschicken, vorstürmen, Granaten entladen und auf Knopfdruck sicher zurückteleportieren.
-- [[tight_pants|Omas Enge Hosen]] – Nutzt die +20 % Bewegungstempo vor und nach der Teleportation für hochmobiles Ausweichen.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Erlaubt aggressive Hit-and-Run-Taktiken im Nahkampf.
-- [[ningning|Ningning]] – Hervorragende Fluchtmoeglichkeit bei brenzligen Raumkonstellationen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `gatecrash` |
+| Kind | ACTIVE |
+| Kategorie | MOVEMENT |
+| Rarity | EPIC |
+| Cooldown | 12.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.25 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_GATECRASH`, Variable `gatecrash`)

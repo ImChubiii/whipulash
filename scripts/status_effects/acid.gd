@@ -29,6 +29,13 @@ const TINT_STRENGTH: float = 0.35
 ## Anteil ihrer RESTdauer.
 const GUM_EXTENSION_FACTOR: float = 0.50
 
+## Saeure legt die Ruestung bloss statt viel eigenen Schaden zu machen:
+## waehrend sie aktiv ist, nimmt das Ziel von JEDER Quelle 20% mehr Schaden.
+## Wird in Health.take_damage() gelesen (siehe dort) statt hier selbst
+## angewendet, weil Health die einzige Stelle ist, durch die wirklich JEDER
+## Treffer laeuft.
+const VULNERABILITY_MULTIPLIER: float = 1.2
+
 
 static func apply(
 		target: Node,

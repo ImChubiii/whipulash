@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *Kommst du hier nicht vorbei*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | DEFENSE |
-| Seltenheit | EPIC |
-| Cooldown | 14 s |
-
 ## Effekt
-Platziert eine temporäre, unpassierbare Kristallwand am Zielort, die gegnerische Laufwege sowie Projektile blockiert.
 
-## Visueller Effekt (VFX)
-Eine jade-grün schimmernde Kristallwand richtet sich aus dem Boden auf.
+Errichtet eine kurzlebige, undurchdringliche Eiswand vor dir - blockiert Gegner und Geschosse.
 
 ## Status-Effekte
-Löst keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[rice_pudding|Überkochter Milchreis]] – Ermöglicht das gefahrlose Stehenbleiben hinter der Kristallwand, um bis zu 15 % Schild aufzubauen.
-- [[blaze|Feuerwand]] – Schneidet Gegnern den Fluchtweg ab und zwingt sie in schädliche Zonen.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Ningning**: Ideal zum Erstellen taktischer Chokepoints und zum Schutz des Teams.
-- **Winter**: Schafft sicheren Freiraum für Angriffe aus der Distanz.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `barrier_orb` |
+| Kind | ACTIVE |
+| Kategorie | DEFENSE |
+| Rarity | EPIC |
+| Cooldown | 14.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.39 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_BARRIER_ORB`, Variable `barrier_orb`)

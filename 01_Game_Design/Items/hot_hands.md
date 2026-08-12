@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["burn"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare", "applies/burn"]
+tags: [item, "item/active", "rarity/rare"]
 ---
 
 # Heisse Haende
 
 > *Direkt aus dem Ofen*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | 6.0 s |
-
 ## Effekt
-Wirft einen feurigen Feuerball, der am Boden explodiert und eine langanhaltende Heizzone hinterlässt. Wendet Brand (`burn`) auf getroffene Gegner an.
 
-## Visueller Effekt (VFX)
-Eine feurige Lache in brodelnder Magma-Optik breitet sich am Aufprallort aus.
+Schleudert einen Feuerball, der bei Einschlag sofort Schaden macht und Gegner in Brand setzt.
 
 ## Status-Effekte
-- [[burn|Brand]]
 
-## Synergiert gut mit
-- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an in der Heizzone brennenden Gegnern gewähren +0,5 HP Heilung und verlängern Buffs um 1s.
-- [[copper_wire|Kupferdraht-Spule]] – Erleichtert das Entzünden verlangsamter Feinde in Kombination mit der Heizzone.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[winter|Winter]] – Ergaenzt Distanzangriffe um verlaesslichen Brandschaden.
-- [[giselle|Giselle]] – Schnell einsetzbare Fernkampf-Option mit kurzer Abklingzeit.
+- [[burn]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `hot_hands` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | 6.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.17 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_HOT_HANDS`, Variable `hot_hands`)

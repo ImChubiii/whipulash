@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *Unsichtbar, bis es zu spaet ist*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | EPIC |
-| Cooldown | 10.0 s |
-
 ## Effekt
-Wirft eine unsichtbare Granate. Entfesselt bei Auslösung durch nahende Gegner einen extrem schädlichen Nanobot-Schwarm im Zielgebiet.
 
-## Visueller Effekt (VFX)
-Eine gelbe Scheibe wird geworfen; bei Auslösung entfaltet sich eine gelb schimmernde Sphäre.
+Legt eine unsichtbare Mine ab, die sich nach kurzer Zeit scharf macht und beim naechsten Gegner in der Naehe explodiert.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[super_glue|Ausgelaufener Sekundenkleber]] – Fixiert Gegner 2s lang im Bereich der gelben Sphäre für maximalen Schaden.
-- [[fakeout|Koeder]] – Lockt Gegner zielgerichtet in die unsichtbare gelbe Scheibe.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[giselle|Giselle]] – Perfekte Fallensteller-Taktik vor dem Kampfbeginn.
-- [[ningning|Ningning]] – Sichert Engpaesse und Chokepoints ab.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `nanoswarm` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | EPIC |
+| Cooldown | 10.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.42 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_NANOSWARM`, Variable `nanoswarm`)

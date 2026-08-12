@@ -65,6 +65,12 @@ height = 0.001
 [node name="Dummy" type="CharacterBody3D" unique_id=786565251]
 collision_layer = 4
 floor_snap_length = 0.4
+# War versehentlich 3,3,3 (volle Rueckmeldungs-Vorgabe "3x groesser") - bei
+# 6 Units Rohhoehe waeren das 18 Units, hoeher als die Decke eines normalen
+# 14 Units hohen Kampfraums (siehe rd_combat_*.tres). 1.85 laesst den Fighter
+# spuerbar groesser wirken (6 -> 11.1 Units) und behaelt trotzdem ~2.9 Units
+# Deckenabstand.
+scale = Vector3(1.85, 1.85, 1.85)
 script = ExtResource("1_w4gkx")
 move_speed = 8.0
 detection_range = 90.0
@@ -141,7 +147,7 @@ mesh = SubResource("CylinderMesh_fva3d")
 path_desired_distance = 1.5
 target_desired_distance = 3.0
 path_height_offset = 0.3
-height = 6.0
-radius = 1.5
+height = 11.1
+radius = 2.775
 
 

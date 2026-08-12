@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["slow"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare", "applies/slow"]
+tags: [item, "item/passive", "rarity/rare"]
 ---
 
 # Kaugummi unter dem Schuh
 
 > *Da war doch was am Absatz*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MOVEMENT |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Jeder Dash hinterlässt eine klebrige Spur auf dem Boden, die Gegner verlangsamt (`slow`). Verlängert die Dauer von Säure-Effekten (`acid`) auf Gegnern zusätzlich um +50 %.
 
-## Visueller Effekt (VFX)
-Hinterlässt am Boden klebrige Pfützen zusammen mit einem grünen Trail-Effekt während des Dashes (`gruener Dash-Trail`).
+Jeder Dash hinterlaesst eine klebrige Spur: Gegner darin werden 1,5 s verlangsamt. Steht ein Gegner in Saeure, haelt die Saeure 50 % laenger.
 
 ## Status-Effekte
-- [[slow|Verlangsamung]]
 
-## Synergiert gut mit
-- [[stiletto_heels|Mamas Stoeckelschuhe]] – Verlängert die Dauer des von Stöckelschuhen erzeugten Säure-Effekts (`acid`) um +50 %.
-- [[copper_wire|Kupferdraht-Spule]] – Zündet verlangsamte Gegner beim Durchdashing an und fügt Thermoschock-DoT zu.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Winter**: Hält Gegner auf Abstand durch ständige Klebrigkeit nach Dashing.
-- **Karina**: Erleichtert das Kiten und Verfolgen mobiler Feinde.
+- [[slow]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `chewing_gum` |
+| Kind | PASSIVE |
+| Kategorie | MOVEMENT |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.13 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_CHEWING_GUM`, Variable `gum`)

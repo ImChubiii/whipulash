@@ -7,7 +7,7 @@
 render_priority = 0
 shader = ExtResource("1_boss")
 shader_parameter/albedo_texture = ExtResource("2_boss")
-shader_parameter/albedo_color = Color(0.47058824, 0.14117648, 0.09803922, 1)
+shader_parameter/albedo_color = Color(0.28235294, 0.08470588, 0.05882353, 1)
 shader_parameter/snap_resolution = 4.0
 shader_parameter/vertex_jitter_strength = 0.0
 shader_parameter/alpha_multiplier = 1.0

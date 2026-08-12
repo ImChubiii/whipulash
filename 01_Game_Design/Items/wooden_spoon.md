@@ -20,29 +20,47 @@ tags: [item, "item/passive", "rarity/uncommon"]
 
 > *Schlag die Hitze zurueck*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MELEE |
-| Seltenheit | UNCOMMON |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Erfolgreiche Treffer an Gegnern gewaehren 1,5x Bewegungstempo und 0,75 Sekunden lang vollständige Unverwundbarkeit.
 
-## Visueller Effekt (VFX)
-Bei jedem Treffer entsteht ein Staubring (`DUST_RING`) um den Spieler.
+Ein Treffer auf einen Gegner gibt 0,75 s lang 1,5x Tempo und Unverwundbarkeit.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[rusty_cleaver|Rostiges Beil]] - Das 1,5x Tempo ermoeglicht schnelle Trefferfolgen für die 30% Chance auf Blutung (DoT).
-- [[tight_pants|Omas Enge Hosen]] - Kombiniert das 1,5x Tempo mit den +20% Bewegungsgeschwindigkeit für extrem rasche Vorbeilaeufe und Tritt-Ausloesung (0,5x Schaden).
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Aggressive Nahkämpfer, die furchtlos im Getümmel angreifen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-07-27_0c0e515_feat_treasure_room_items_hud_overhaul_balancing_mu|2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `wooden_spoon` |
+| Kind | PASSIVE |
+| Kategorie | MELEE |
+| Rarity | UNCOMMON |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.1 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_WOODEN_SPOON`, Variable `spoon`)

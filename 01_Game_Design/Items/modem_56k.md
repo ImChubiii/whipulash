@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["silenced"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/epic", "applies/silenced"]
+tags: [item, "item/passive", "rarity/epic"]
 ---
 
 # Altes Modulations-Modem
 
 > *Kshhh-pshhh-diiing*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MELEE |
-| Seltenheit | EPIC |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Jeder 10. Schlag schaltet den getroffenen Gegner stumm (silenced). Zudem verursacht jeder Treffer garantierten kritischen Zusatzschaden gegen betaeubte (stunned) Gegner.
 
-## Visueller Effekt (VFX)
-Ein pulsierender blauer Schallring, der sich beim 10. Treffer kreisfoermig vom Ziel ausbreitet.
+Jeder 10. Schlag sendet eine Einwahl-Welle: Gegner koennen 1 s lang keine Spezialangriffe starten. Betaeubte Gegner nehmen kritischen Zusatzschaden.
 
 ## Status-Effekte
-- [[silenced|Stummgeschaltet (beim 10. Schlag)]]
 
-## Synergiert gut mit
-- [[jumper_cables|Papas Starthilfekabel]] – Betaeubt Gegner per Dash (stun 2s), wodurch das Modem kritischen Schaden garantiert.
-- [[knitting_needles|Omas Stricknadeln]] – Erhoeht die Angriffsgeschwindigkeit um +10 %, um den 10. Schlag schneller zu erreichen.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Hohe Schlagfrequenz loest den Effekt laufend aus.
-- [[winter|Winter]] – Gute Schadensspitze in Kombination mit Betäubungen.
+- [[silenced]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `modem_56k` |
+| Kind | PASSIVE |
+| Kategorie | MELEE |
+| Rarity | EPIC |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.16 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_MODEM_56K`, Variable `modem`)

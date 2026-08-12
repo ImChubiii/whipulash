@@ -222,7 +222,13 @@ func _spawn_pedestal(room: RoomInstance) -> void:
 		push_warning("[Treasure] Raum %s: kein Item verfuegbar — Sockel uebersprungen." % room.grid_position)
 		return
 
-	var pedestal := TreasurePedestal.create(item)
+	# Blutzoll-Raeume (Blueprint Nr. 5): SacrificePedestal statt des normalen
+	# Sockels - identische Optik/Interaktion, kostet aber HP beim Nehmen.
+	var pedestal: TreasurePedestal
+	if bool(room.get("is_sacrifice_room")):
+		pedestal = SacrificePedestal.create(item)
+	else:
+		pedestal = TreasurePedestal.create(item)
 	room.add_child(pedestal)
 	pedestal.global_position = _find_spawn_position(room)
 	pedestal.item_taken.connect(_on_item_taken)
@@ -347,7 +353,36 @@ func _pick_item(room: RoomInstance) -> ItemData:
 		return null
 
 	var rng: RandomNumberGenerator = _make_rng(room)
-	return pool[rng.randi_range(0, pool.size() - 1)]
+	return _weighted_pick(pool, items, rng)
+
+
+## Gewichtete Auswahl statt Gleichverteilung: Grundgewicht 1.0 pro Item, plus
+## Synergie-Bonus aus bereits aufgesammelten Items (ItemManager.
+## get_synergy_weight() - Blueprint Nr. 6, "Item-Synergie Wahrscheinlichkeiten").
+## Ohne jeden Bonus (frischer Run, keine getaggten Items) ist total_weight
+## einfach pool.size() und das Ergebnis entspricht der alten Gleichverteilung.
+func _weighted_pick(pool: Array[ItemData], items: Node, rng: RandomNumberGenerator) -> ItemData:
+	# Hub-Upgrade (Blueprint "Meta-Progression"): additiver Bonus auf JEDEN
+	# Kandidaten, unabhaengig von Tags - Synergie- und Meta-Bonus stapeln sich.
+	var meta_bonus: float = SaveGame.get_item_weight_bonus()
+
+	var weights: Array[float] = []
+	var total_weight: float = 0.0
+	for data: ItemData in pool:
+		var weight: float = 1.0 + float(items.get_synergy_weight(data.synergy_tags)) + meta_bonus
+		weights.append(weight)
+		total_weight += weight
+
+	if total_weight <= 0.0:
+		return pool[rng.randi_range(0, pool.size() - 1)]
+
+	var roll: float = rng.randf() * total_weight
+	var acc: float = 0.0
+	for i in range(pool.size()):
+		acc += weights[i]
+		if roll <= acc:
+			return pool[i]
+	return pool[pool.size() - 1]
 
 
 func _make_rng(room: RoomInstance) -> RandomNumberGenerator:

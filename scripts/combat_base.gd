@@ -107,7 +107,13 @@ class_name CombatBase
 ## unnoetig viel. dash_hit_vertical_offset verschiebt das Fenster zusaetzlich
 ## als Ganzes, falls eure Kapselmasse abweichen.
 @export var dash_hit_height_up: float = 2.0
-@export var dash_hit_height_down: float = 3.0
+## War 3.0 - lag damit fast exakt am Scheitelpunkt eines normalen Sprungs
+## (jump_velocity=13.0, gravity=40.0 in player_base.gd -> ~2.1 Einheiten
+## Sprunghoehe + ~0.9 Kapsel-zu-Fuesse-Versatz = ~3.0). Rueckmeldung "sollte
+## beim Springen trotzdem alle Gegner hitten": ein Dash im/nach dem Sprung
+## fiel dadurch schon bei normaler Sprunghoehe knapp aus dem Fenster. Deutlich
+## grosszuegiger, damit ein Sprung-Dash zuverlaessig auch Bodengegner trifft.
+@export var dash_hit_height_down: float = 6.0
 @export var dash_hit_vertical_offset: float = -0.5
 
 ## 0 = unbegrenzt (Standard). Nur setzen, wenn ein Dash bewusst hoechstens
@@ -169,6 +175,10 @@ signal ability_e_used
 signal combo_changed(count: int)
 ## Feuert, wenn ein Gegner DURCHdasht wurde - fuer VFX/Sound/HUD.
 signal dash_hit_landed(target: Node)
+## Feuert JEDEN Dash, unabhaengig davon, ob er einen Gegner getroffen hat -
+## anders als dash_hit_landed. Fuer Effekte wie die Leere Energy-Dose, die
+## an das Dashen selbst haengen, nicht an dessen Treffer.
+signal dash_ended
 # Generisches Signal fuers HUD: slot ist 0..4
 signal cooldown_started(slot: int, duration: float)
 
@@ -545,6 +555,7 @@ func get_dash_velocity(delta: float) -> Vector3:
 		# ein paralleler Timer waere dann zu frueh fertig.
 		if dash_trail:
 			dash_trail.emitting = false
+		dash_ended.emit()
 		return Vector3.ZERO
 
 	return _dash_direction * dash_speed

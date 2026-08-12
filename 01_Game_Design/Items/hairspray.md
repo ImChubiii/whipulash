@@ -13,38 +13,55 @@ has_stat_modifiers: false
 status_effects: ["burn", "slow"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare", "applies/burn"]
+tags: [item, "item/passive", "rarity/rare"]
 ---
 
 # Mutters Haarspray
 
 > *FCKW-frei, angeblich*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Deine Angriffe erzeugen Spruehwolken, die gegnerische Angriffstelegraphs um 0,5 Sekunden verlaengern. Kommt die Wolke mit Feuer in Kontakt, loest dies eine feurige burn-Welle aus, die Feinde entzuendet.
 
-## Visueller Effekt (VFX)
-Eine stehende gelb-gruene Wolke um Gegner, die bei Feuerkontakt mit einer orangen Explosion zündet.
+Schlaege erzeugen eine Spruehwolke: Gegner darin brauchen 0,5 s laenger fuer ihre Angriffe. Trifft die Wolke Feuer, explodiert sie.
 
 ## Status-Effekte
-- [[slow|Verzoegerter Telegraph (+0.5s)]]
-- [[burn|Brenn-Welle (bei Feuerkontakt)]]
 
-## Synergiert gut mit
-- [[storm_lighter|Sturmfeuerzeug]] – Zuendet die Spruehwolke sofort mit dem 90-Grad-Feuerbogen an.
-- [[spicy_ramen|Scharfe Instant-Nudeln]] – Loest die feurige burn-Welle im Flammenkegel aus.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Sehr effektiv bei schnellen Nahkampfserien.
-- [[ningning|Ningning]] – Erhoeht die Crowd-Control und den Flaechenschaden.
+- [[burn]]
+- [[slow]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `hairspray` |
+| Kind | PASSIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.15 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_HAIRSPRAY`, Variable `spray`)

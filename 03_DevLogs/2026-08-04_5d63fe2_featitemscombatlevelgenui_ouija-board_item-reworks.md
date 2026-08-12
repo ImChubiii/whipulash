@@ -13,7 +13,7 @@ Item-System:
 - Neues Item "Papp-Wahrsagerbrett": 20% Chance auf Nahkampftreffer, einen
   Rachegeist (revenge_ghost.gd) gegen Gegner im blinden Fleck zu beschwoeren
 - Rostiger Dachnagel: unterbricht jetzt den Telegraph des Ziels und blockiert
-  Knockback vollständig, solange "rooted" aktiv ist
+  Knockback vollstaendig, solange "rooted" aktiv ist
 - Omas Enge Hosen: Tritt loest jetzt auch bei abruptem Richtungswechsel aus
   und stoesst ~4m zurueck statt nur kosmetisch zu sein
 - Mamas Stoeckelschuhe: jeder 3. Schritt loest eine Mikro-Stun-Schockwelle aus
@@ -25,7 +25,7 @@ Item-System:
 
 Party & Combat:
 - Last-Stand-System: stirbt der aktive Charakter, uebernimmt automatisch der
-  nächste lebende (HP auf max. 20%), statt sofort den Death-Screen zu zeigen
+  naechste lebende (HP auf max. 20%), statt sofort den Death-Screen zu zeigen
 - Boss-HP-Leiste von einem gemeinsamen Pool-Balken auf 3 individuelle,
   synchron mitlaufende Balken umgebaut
 - EnemyAI: sanfte Zickzack-Kurven mit Lean-Telegraphing statt Teleport-Dash,
@@ -40,12 +40,12 @@ Level-Generation:
 UI/HUD:
 - Low-HP-Vignette bei <= 20% HP
 - Item-Karte: Layout-Fix (Spacer stahl die Haelfte der Titelzeile) + Entity-ID
-- Tutorial-Hologramm lässt sich per [F] vergroessern (analog Minimap-Zoom)
+- Tutorial-Hologramm laesst sich per [F] vergroessern (analog Minimap-Zoom)
 - Veralteter "[C]"-Ladehinweis aus der Vor-Q/E-Zeit entfernt
 
 Bugfixes:
 - Debug-Teleporter-Pads erscheinen nach einem Neustart nicht mehr, weil das
-  Autoload nie den neuen LevelGenerator fand (jetzt über node_added)
+  Autoload nie den neuen LevelGenerator fand (jetzt ueber node_added)
 - Restart-Haltezeit: 1.0s beim ersten Mal, 0.5s bei jedem weiteren in der
   laufenden Sitzung
 

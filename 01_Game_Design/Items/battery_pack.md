@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["stun"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare", "applies/acid"]
+tags: [item, "item/passive", "rarity/rare"]
 ---
 
 # Ausgelaufene Flachbatterie
 
 > *Klebt an den Fingern*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | DEFENSE |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Beim Betreten von Säure- oder Limonadenflächen entlädt das Item einen Stromschlag, der nahe Gegner für 1,5 Sekunden betäubt (`stun`).
 
-## Visueller Effekt (VFX)
-Ein blaues Aufblitzen (`FLASH_BLUE`) begleitet von gelben Funken um den Spieler beim Betreten von Säure.
+Betreten von Saeure/Limonade entlaedt einen Stromschlag: nahe Gegner werden betaeubt.
 
 ## Status-Effekte
-- [[stun|Betäubung (1.5s)]]
 
-## Synergiert gut mit
-- [[acid_boots|Saeurefeste Stiefel]] – Erlaubt risikofreies Durchwaten von Säure (75 % Schadensreduktion, 0 % Slow), um 1,5s Betäubungen auszulösen.
-- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den 1,5s betäubten (`stun`) Gegnern heilen +1 HP und erzeugen raumweite Schockwellen.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Karina**: Nutzt Betäubungen im Nahkampf, um feindliche Gruppen sofort zu kontrollieren.
-- **Ningning**: Verbindet Flächenbeherrschung mit effektiver gegnerischer Handlungsunfähigkeit.
+- [[stun]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `battery_pack` |
+| Kind | PASSIVE |
+| Kategorie | DEFENSE |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.32 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_BATTERY_PACK`, Variable `battery`)

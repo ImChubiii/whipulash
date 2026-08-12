@@ -49,6 +49,13 @@ class_name EnemySpawnEntry
 ## schieben und sofort auseinanderdriften.
 @export var min_spawn_spacing: float = 0.0
 
+## Teurer/gefaehrlicher Gegnertyp (Colossus, Schild-Drohne, ...). Ab Stage 4
+## kauft RoomInstance._roll_enemy_mix() Elite-Eintraege zuerst, bevor der
+## Rest des Budgets mit billigen Gegnern aufgefuellt wird - sonst ertrinkt
+## das steigende Budget im Lategame nur in immer mehr Stingern/Fightern statt
+## in mehr Bedrohung.
+@export var is_elite: bool = false
+
 func is_allowed(stage: int, room_height: float) -> bool:
 	if scene == null:
 		return false

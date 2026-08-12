@@ -65,6 +65,12 @@ height = 0.001
 [node name="TankDummy" type="CharacterBody3D" unique_id=786565251]
 collision_layer = 4
 floor_snap_length = 0.5
+# Rueckmeldung "jeder Gegner ausser Magnet 3x groesser", gedeckelt aufs
+# Rauminnere: Colossus spawnt nur in Bossraeumen (24 Units hoch, siehe
+# rd_boss_01.tres/min_room_height). Bei 12 Units Rohhoehe waeren volle 3x
+# (36 Units) hoeher als jeder Raum im Spiel. 1.6x (19.2 Units) laesst ihn
+# spuerbar groesser wirken und behaelt ~4.8 Units Deckenabstand.
+scale = Vector3(1.6, 1.6, 1.6)
 script = ExtResource("1_p7a36")
 move_speed = 5.5
 speed_variance = 0.08
@@ -170,7 +176,7 @@ mesh = SubResource("CylinderMesh_fva3d")
 path_desired_distance = 2.0
 target_desired_distance = 4.0
 path_height_offset = 0.5
-radius = 3.0
-height = 12.0
+radius = 4.8
+height = 19.2
 
 

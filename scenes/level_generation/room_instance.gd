@@ -74,6 +74,12 @@ enum DoorState {
 @export var room_footprint: Vector2 = Vector2(48.0, 48.0)
 @export var room_height: float = 14.0
 
+## Blueprint Nr. 5 "Blutzoll": ein Schatzraum-Template mit dieser Flagge
+## bekommt von treasure_manager.gd einen SacrificePedestal statt eines
+## normalen TreasurePedestal - sonst identisches Verhalten. Default false,
+## harmlos fuer alle anderen Raeume.
+@export var is_sacrifice_room: bool = false
+
 ## --- Kampfraum-Aktivierung / Anti-Baiting -----------------------------
 ## FRUEHER: Der EntryTrigger war fast so gross wie der ganze Raum
 ## (footprint - entry_trigger_inset mit inset = 3.0). Er feuerte damit
@@ -2211,6 +2217,34 @@ func _roll_enemy_mix() -> Array[EnemySpawnEntry]:
 			result.append(e)
 			used_count[e] = used_count.get(e, 0) + 1
 			budget -= e.threat_cost
+
+	# Ab Stage 4 zuerst Elite-Gegner kaufen (Colossus, Schild-Drohne, ...),
+	# bevor der Rest des Budgets mit billigen Gegnern aufgefuellt wird -
+	# sonst ertrinkt ein wachsendes Lategame-Budget nur in immer mehr
+	# Stingern/Fightern statt in mehr echter Bedrohung.
+	if _pending_stage > 3:
+		var elite_guard: int = 0
+		while budget > 0 and result.size() < enemy_spawn_points.size() and elite_guard < 16:
+			elite_guard += 1
+			var affordable_elites: Array[EnemySpawnEntry] = []
+			for e in _pending_entries:
+				if not e.is_elite:
+					continue
+				if e.threat_cost > budget:
+					continue
+				if used_count.get(e, 0) >= e.max_per_room:
+					continue
+				if used_count.size() >= MAX_DISTINCT_ENEMY_TYPES and not used_count.has(e):
+					continue
+				affordable_elites.append(e)
+
+			if affordable_elites.is_empty():
+				break
+
+			var chosen_elite: EnemySpawnEntry = _weighted_pick_entry(affordable_elites)
+			result.append(chosen_elite)
+			used_count[chosen_elite] = used_count.get(chosen_elite, 0) + 1
+			budget -= chosen_elite.threat_cost
 
 	while budget > 0 and result.size() < enemy_spawn_points.size() and guard < 64:
 		guard += 1

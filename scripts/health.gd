@@ -104,7 +104,15 @@ func take_damage(amount: float, source: Node3D = null) -> void:
 	if is_invulnerable():
 		return
 
-	var effective: float = amount * maxf(incoming_damage_multiplier, 0.0)
+	var multiplier: float = maxf(incoming_damage_multiplier, 0.0)
+	# Saeure legt die Ruestung bloss: waehrend "acid" aktiv ist, kommt JEDE
+	# Schadensquelle mit +20% an (siehe StatusAcid.VULNERABILITY_MULTIPLIER).
+	# get_parent() statt eines gespeicherten Owner-Felds, weil Health IMMER
+	# als direktes Kind des Akteurs haengt (Spieler wie Gegner).
+	if StatusAcid.active(get_parent()):
+		multiplier *= StatusAcid.VULNERABILITY_MULTIPLIER
+
+	var effective: float = amount * multiplier
 	if effective <= 0.0:
 		return
 

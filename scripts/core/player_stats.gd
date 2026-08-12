@@ -45,6 +45,21 @@ const STAT_PICKUP_RANGE: String = "pickup_range"
 const STAT_HAZARD_RESIST: String = "hazard_resist"
 ## Multiplikator auf ALLEN ankommenden Schaden.
 const STAT_ARMOR: String = "armor"
+## Additive Wahrscheinlichkeit (0.0-1.0) fuer einen kritischen Treffer in
+## primary_hitbox.gd - siehe CRIT_DAMAGE_MULTIPLIER dort. Startet bei 0.0,
+## NICHT bei 1.0 wie die reinen Multiplikator-Stats (siehe _default_base).
+const STAT_CRIT_CHANCE: String = "crit_chance"
+## Multiplikator NUR auf den Utility-Cooldown (Dash) - getrennt von
+## STAT_COOLDOWN, das Primary/Secondary betrifft. Springseil.
+const STAT_DASH_COOLDOWN: String = "dash_cooldown"
+## Multiplikator auf die Groesse (scale) der Nahkampf-Hitbox. Alter Zirkel.
+const STAT_MELEE_RANGE: String = "melee_range"
+## Multiplikator auf die Groesse (scale) der Fernkampf-Hitbox. Geodreieck.
+## Beide Range-Stats wirken zusammen multiplikativ auf dieselben Hitbox-
+## Nodes (siehe apply()) - im Projekt gibt es keine getrennten Projektil-
+## Hitboxen, "Nahkampf" und "Fernkampf" sind hier beide ganz normale
+## Hitbox-Instanzen (siehe CLAUDE.md: Hitbox bedient beide Faelle gleich).
+const STAT_PROJECTILE_HITBOX: String = "projectile_hitbox"
 
 const ALL_STATS: PackedStringArray = [
 	STAT_MAX_HEALTH,
@@ -55,6 +70,10 @@ const ALL_STATS: PackedStringArray = [
 	STAT_PICKUP_RANGE,
 	STAT_HAZARD_RESIST,
 	STAT_ARMOR,
+	STAT_CRIT_CHANCE,
+	STAT_DASH_COOLDOWN,
+	STAT_MELEE_RANGE,
+	STAT_PROJECTILE_HITBOX,
 ]
 
 ## Anzeigenamen fuers HUD. Steht hier und nicht im Panel, damit ein neues
@@ -67,6 +86,9 @@ const STAT_LABELS: Dictionary = {
 	STAT_PICKUP_RANGE: "Magnet",
 	STAT_ARMOR: "Ruestung",
 	STAT_HAZARD_RESIST: "Hitzeschutz",
+	STAT_CRIT_CHANCE: "Krit-Chance",
+	STAT_DASH_COOLDOWN: "Dash-Tempo",
+	STAT_MELEE_RANGE: "Reichweite",
 }
 
 @export var debug_logging: bool = false
@@ -80,6 +102,9 @@ var _base_dash_damage: float = 12.0
 var _base_primary_cooldown: float = 0.4
 var _base_secondary_cooldown: float = 3.0
 var _base_pickup_range: float = 2.2
+var _base_utility_cooldown: float = 0.8
+var _base_primary_hitbox_scale: Vector3 = Vector3.ONE
+var _base_secondary_hitbox_scale: Vector3 = Vector3.ONE
 
 # --- Modifikatoren: source_id -> { stat -> { "add": float, "mul": float } } ---
 var _modifiers: Dictionary = {}
@@ -125,6 +150,11 @@ func bind_to_player(player: CharacterBody3D) -> void:
 		_base_dash_damage = _combat.dash_damage
 		_base_primary_cooldown = _combat.primary_cooldown
 		_base_secondary_cooldown = _combat.secondary_cooldown
+		_base_utility_cooldown = _combat.utility_cooldown
+	if _primary_hitbox:
+		_base_primary_hitbox_scale = _primary_hitbox.scale
+	if _secondary_hitbox:
+		_base_secondary_hitbox_scale = _secondary_hitbox.scale
 
 	_debug("An '%s' gebunden. Basis: speed=%.1f hp=%.0f dmg=%.0f/%.0f" % [
 		_player.name, _base_move_speed, _base_max_health,
@@ -208,6 +238,8 @@ func _default_base(stat: String) -> float:
 			return _base_pickup_range
 		STAT_LUCK:
 			return 0.0
+		STAT_CRIT_CHANCE:
+			return 0.0
 	# Alles Uebrige sind reine Faktoren und starten bei 1.0.
 	return 1.0
 
@@ -262,16 +294,22 @@ func apply() -> void:
 		_health.incoming_damage_multiplier = float(_cached[STAT_ARMOR])
 
 	var damage_mul: float = float(_cached[STAT_DAMAGE])
+	# Reichweite: beide Range-Stats wirken multiplikativ auf dieselbe Hitbox-
+	# Groesse (siehe STAT_PROJECTILE_HITBOX-Kommentar oben).
+	var range_mul: float = float(_cached[STAT_MELEE_RANGE]) * float(_cached[STAT_PROJECTILE_HITBOX])
 	if _primary_hitbox:
 		_primary_hitbox.damage = _base_primary_damage * damage_mul
+		_primary_hitbox.scale = _base_primary_hitbox_scale * range_mul
 	if _secondary_hitbox:
 		_secondary_hitbox.damage = _base_secondary_damage * damage_mul
+		_secondary_hitbox.scale = _base_secondary_hitbox_scale * range_mul
 
 	if _combat:
 		_combat.dash_damage = _base_dash_damage * damage_mul
 		var cd_mul: float = float(_cached[STAT_COOLDOWN])
 		_combat.primary_cooldown = _base_primary_cooldown * cd_mul
 		_combat.secondary_cooldown = _base_secondary_cooldown * cd_mul
+		_combat.utility_cooldown = _base_utility_cooldown * float(_cached[STAT_DASH_COOLDOWN])
 
 	stats_changed.emit()
 

@@ -44,6 +44,29 @@ def write_md(path: Path, content: str) -> None:
     path.write_text(content.rstrip() + "\n", encoding="utf-8")
 
 
+def extract_alternative_names(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    content = path.read_text(encoding="utf-8")
+    if not content.startswith("---"):
+        return {}
+    
+    parts = content.split("---", 2)
+    if len(parts) < 3:
+        return {}
+        
+    frontmatter = parts[1]
+    tags_to_extract = ["alternative_names", "alternative_names_primary", "alternative_names_secondary"]
+    result = {}
+    
+    for line in frontmatter.strip().split('\n'):
+        for tag in tags_to_extract:
+            if line.startswith(f"{tag}:"):
+                result[tag] = line.split(":", 1)[1].strip()
+                
+    return result
+
+
 def slugify(text: str) -> str:
     text = text.strip().lower()
     text = re.sub(r"[^a-z0-9äöüß_\- ]", "", text)
@@ -741,9 +764,13 @@ def write_enemy_notes(enemies: list[dict],
                        entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Enemies"
     for e in enemies:
+        file_path = out_dir / f"{slugify(e['display_name'])}.md"
+        alt_names = extract_alternative_names(file_path).get("alternative_names", "[]")
+        
         body = f"""---
 id: {yaml_escape(slugify(e['display_name']))}
 display_name: {yaml_escape(e['display_name'])}
+alternative_names: {alt_names}
 threat_cost: {e['threat_cost']}
 base_hp: {e['base_hp']}
 move_speed: {e['move_speed']}
@@ -988,6 +1015,9 @@ def write_custom_enemy_notes(enemies: list[dict],
                               entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Enemies"
     for e in enemies:
+        file_path = out_dir / f"{e['id']}.md"
+        alt_names = extract_alternative_names(file_path).get("alternative_names", "[]")
+        
         stats_rows = "\n".join(
             f"| {STAT_LABELS.get(name, name)} | {value:g} |"
             for name, _typ, value in e["stats"]
@@ -1000,6 +1030,7 @@ def write_custom_enemy_notes(enemies: list[dict],
 id: {yaml_escape(e['id'])}
 display_name: {yaml_escape(e['display_name'])}
 class_name: {yaml_escape(e['class_name'])}
+alternative_names: {alt_names}
 tier: sandbox
 role: {yaml_escape(e['role'])}
 base_hp: {e['max_health']}
@@ -1234,13 +1265,22 @@ def write_character_notes(characters: list[dict],
                            entity_mentions: dict[tuple[str, str], list[dict]] | None = None) -> None:
     out_dir = PROJECT_ROOT / "01_Game_Design/Characters"
     for ch in characters:
+        file_path = out_dir / f"{ch['id']}.md"
+        extracted = extract_alternative_names(file_path)
+        alt_names = extracted.get("alternative_names", "[]")
+        alt_primary = extracted.get("alternative_names_primary", "[]")
+        alt_secondary = extracted.get("alternative_names_secondary", "[]")
+        
         balancing_rows = "\n".join(f"| {label} | {value} |" for label, value in CHARACTER_BALANCING.get(ch["id"], []))
         related_lines = "\n".join(f"- {line}" for line in CHARACTER_RELATED.get(ch["id"], []))
         body = f"""---
 id: {yaml_escape(ch['id'])}
 display_name: {yaml_escape(ch['display_name'])}
+alternative_names: {alt_names}
 name_primary: {yaml_escape(ch['name_primary'])}
+alternative_names_primary: {alt_primary}
 name_secondary: {yaml_escape(ch['name_secondary'])}
+alternative_names_secondary: {alt_secondary}
 speed: {ch['speed']}
 max_health: {ch['max_health']}
 primary_cooldown: {ch['primary_cooldown']}

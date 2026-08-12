@@ -7,27 +7,37 @@ is_damage_over_time: false
 heavy_duration: "2.0"
 synergies: ["amount_on"]
 triggered_by_items: ["holy_oil", "chewing_gum", "hairspray", "ice_bag", "stiletto_heels", "bubble_gum", "pocket_fan", "slow_orb", "nightfall"]
-tags: [status-effect, type/cc]
+tags: [status-effect]
 ---
 
 # slow
 
-> *Die Bewegungsgeschwindigkeit des Gegners wird drastisch verringert, sodass er kaum noch vorankommt.*
+SLOW — prozentuale Verlangsamung.
 
 ## Werte
+
 | Feld | Wert |
 |---|---|
-| Dauer | 1.5 s |
-| Typ | Crowd Control |
+| Dauer (Standard) | 1.5 s |
 | Tick-Intervall | — |
-| Schaden pro Tick | — |
-| Damage over Time | Nein |
-| Heavy-Dauer | 2.0 s |
+| Schaden/Tick | — |
+| Heavy-Variante | 2.0 |
 
-## Wirkung
-Slow verringert die Laufgeschwindigkeit des Ziels standardmäßig um 25 % (in der Heavy-Variante um 40 % über 2,0 Sekunden). Betroffene Einheiten färben sich leicht bläulich ein. Der Effekt verschafft dem Spieler wertvollen Raum, um Abstand zu schnellen Feinden zu gewinnen.
 
-## Ausgeloest von
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `DEFAULT_AMOUNT` | 0.25 |
+| `HEAVY_AMOUNT` | 0.40 |
+| `TINT_STRENGTH` | 0.28 |
+
+## Synergien
+
+- `amount_on()`
+
+## Ausgeloest von (Items)
+
 - [[holy_oil]]
 - [[chewing_gum]]
 - [[hairspray]]
@@ -38,18 +48,25 @@ Slow verringert die Laufgeschwindigkeit des Ziels standardmäßig um 25 % (in de
 - [[slow_orb]]
 - [[nightfall]]
 
-## Synergiert mit
-- [[acid]] und [[burn]] (hält Feinde länger in schädlichen Schadenszonen)
-- [[rooted]] für gestaffelte Bewegungskontrolle im Kampf
+## Wird abgefragt von (Items, ohne es auszuloesen)
 
-## Alle Status-Effekte
-- [[acid]] — Säure-Schaden über Zeit (DOT)
-- [[burn]] — Feuer-Schaden über Zeit (DOT)
-- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
-- [[confused]] — Zufällige Angriffsrichtung (Crowd Control)
-- [[rooted]] — Bewegungsunfähig (Crowd Control)
-- [[shield]] — Schutzschild für Einheiten (Buff)
-- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
-- [[slow]] — Verlangsamte Bewegung (Crowd Control)
-- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
-- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)
+- —
+
+## Gegner-Interaktion
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+
+## Laufzeit
+
+Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
+`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
+altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
+`extend_all()`.
+
+## Quelle
+
+`scripts/status_effects/slow.gd`

@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["burn"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic", "applies/burn"]
+tags: [item, "item/active", "rarity/epic"]
 ---
 
 # Sturmfeuerzeug
 
 > *Haelt jedem Wind stand*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | MELEE |
-| Seltenheit | EPIC |
-| Cooldown | 3.0 s |
-
 ## Effekt
-Feuert einen 90-Grad-Feuerbogen direkt nach vorne ab, der 3x Schaden verursacht und alle getroffenen Gegner 3 Sekunden lang mit einem Brandschaden-über-Zeit-Effekt (burn DoT) belegt. Sehr kurzer Cooldown von 3,0 Sekunden.
 
-## Visueller Effekt (VFX)
-Gelbe Funken-Partikel (`SPARK_YELLOW`) kombiniert mit einem faecherfoermigen orange-roten Feuer-Burst entlang des 90-Grad-Bogens.
+Spuckt einen 90-Grad-Feuerbogen nach vorn: dreifacher Schaden, Gegner brennen 3 s lang nach.
 
 ## Status-Effekte
-- [[burn|Brennen (3s DoT)]]
 
-## Synergiert gut mit
-- [[whipped_cream|Spruehsahne-Dose]] – Loescht den aufgetragenen 3s burn-DoT ab und verursacht augenblicklich massiven Detonationsschaden.
-- [[chili_oil|Omas Scharfes Chili-Oel]] – Treffer auf die durch das Sturmfeuerzeug brennenden Gegner lösen Säure-Spritzer (acid 3s DoT) aus.
-- [[ice_bag|Gefrierbeutel voll Eis]] – Wandelt den 3s burn-DoT durch Thermoschock sofort in vollen Direktschaden um.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Feuer-Builds und Nahkämpfer mit hohem Aktivierungs-Intervall.
+- [[burn]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `storm_lighter` |
+| Kind | ACTIVE |
+| Kategorie | MELEE |
+| Rarity | EPIC |
+| Cooldown | 3.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.2 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_STORM_LIGHTER`, Variable `lighter`)

@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["stun"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic", "applies/stun"]
+tags: [item, "item/active", "rarity/epic"]
 ---
 
 # Papas Starthilfekabel
 
 > *Zisch & Zap*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | MOVEMENT |
-| Seltenheit | EPIC |
-| Cooldown | 2 Räume Aufladung |
-
 ## Effekt
-Fuehrt einen sofortigen, blitzschnellen Dash nach vorne aus. Alle durchquerte Gegner erleiden hohen elektrischen Schaden und werden 2 Sekunden lang betaeubt (stun). Laedt sich nach 2 gesaeuberten Räumen wieder auf.
 
-## Visueller Effekt (VFX)
-Gelbe Funken-Partikel (`SPARK_YELLOW`) entlang der Dash-Trajektorie gepaart mit einem raumweiten blauen Bildschirm-Blitz (`FLASH_BLUE`) bei der Entladung.
+Sofortiger Dash nach vorne. Durchquerte Gegner nehmen hohen Schaden und werden 2 s betaeubt.
 
 ## Status-Effekte
-- [[stun|Betaeubt (2s)]]
 
-## Synergiert gut mit
-- [[megaphone|Megafon aus der Schule]] – Nutzt die 2s Betäubung (`stun`) durch den Dash für dreifachen Schrei-Schaden.
-- [[modem_56k|Altes Modulations-Modem]] – Verursacht garantierten kritischen Zusatzschaden gegen die 2s lang betaeubten Ziele.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Perfekter Initiator, um mitten in Gegnergruppen zu dashen.
-- [[ningning|Ningning]] – Schneller Ausweich- und Angriffsmove in einem.
+- [[stun]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `jumper_cables` |
+| Kind | ACTIVE |
+| Kategorie | MOVEMENT |
+| Rarity | EPIC |
+| Cooldown | — |
+| Charge (Raeume) | 2 |
+| Design-Doc-Ref | 1.1 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_JUMPER_CABLES`, Variable `cables`)

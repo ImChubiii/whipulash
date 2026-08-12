@@ -90,6 +90,13 @@ var bombs: int = START_BOMBS
 var inventory: Array[ItemData] = []
 var catalog: Array[ItemData] = []
 
+## Item-Synergie (Blueprint Nr. 6): tag -> kumulierter Drop-Gewichts-Bonus.
+## Steigt additiv bei jedem aufgesammelten Item, das den Tag traegt - siehe
+## _register_synergy_tags() und get_synergy_weight(). Gelesen von
+## TreasureManager._pick_item() beim Wuerfeln der Schatzraum-Items.
+const SYNERGY_WEIGHT_PER_TAG: float = 0.15
+var _synergy_tag_bonus: Dictionary = {}
+
 ## Index 0 = Q, Index 1 = E. null = Slot frei.
 var active_items: Array[ItemData] = [null, null]
 
@@ -273,10 +280,25 @@ func add_item(item: ItemData) -> bool:
 		_equip_active_item(item)
 
 	_apply_item_stats(item, inventory.size() - 1)
+	_register_synergy_tags(item)
 
 	item_added.emit(item)
 	inventory_changed.emit()
 	return true
+
+
+func _register_synergy_tags(item: ItemData) -> void:
+	for tag: String in item.synergy_tags:
+		_synergy_tag_bonus[tag] = float(_synergy_tag_bonus.get(tag, 0.0)) + SYNERGY_WEIGHT_PER_TAG
+
+
+## Summierter Gewichts-Bonus fuer ein Item mit den gegebenen Tags - additiv
+## auf das normale Grundgewicht 1.0 der Gleichverteilung im Schatzraum-Pool.
+func get_synergy_weight(tags: PackedStringArray) -> float:
+	var bonus: float = 0.0
+	for tag: String in tags:
+		bonus += float(_synergy_tag_bonus.get(tag, 0.0))
+	return bonus
 
 
 ## Weist ein neu aufgesammeltes aktives Item dem ersten freien Slot zu

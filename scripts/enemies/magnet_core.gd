@@ -46,6 +46,19 @@ func _configure() -> void:
 	max_health = 160.0
 
 
+## Rueckmeldung "zieht trotz tot noch an": _physics_process() stoppt zwar
+## sofort ueber set_physics_process(false) in _teardown() (siehe
+## custom_enemy_base.gd), der LETZTE Sog-Impuls klingt aber ueber
+## knockback_friction noch bis zu ~1,6s nach - genau das fuehlt sich wie
+## "zieht immer noch" an, obwohl der Kern schon tot ist. Sofortiges Kappen
+## hier behebt das, ohne die generische Knockback-Physik anzufassen.
+func _on_died() -> void:
+	var player: CharacterBody3D = _find_player()
+	if player != null and player.has_method("clear_knockback"):
+		player.clear_knockback()
+	await super._on_died()
+
+
 func _build() -> void:
 	_build_visual()
 	_add_box_collision(Vector3(1.8, 2.0, 1.8) * VISUAL_SCALE, Vector3(0.0, 1.0, 0.0) * VISUAL_SCALE)

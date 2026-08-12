@@ -7,27 +7,37 @@ is_damage_over_time: false
 heavy_duration: ""
 synergies: ["damage_multiplier_against"]
 triggered_by_items: ["jumper_cables", "stiletto_heels", "battery_pack", "shock_bolt", "rolling_thunder", "fault_line", "lockdown"]
-tags: [status-effect, type/cc]
+tags: [status-effect]
 ---
 
 # stun
 
-> *Der Gegner wird komplett betäubt und kann weder laufen noch angreifen.*
+STUN — vollstaendige Handlungsunfaehigkeit.
 
 ## Werte
+
 | Feld | Wert |
 |---|---|
-| Dauer | 2.0 s |
-| Typ | Crowd Control |
+| Dauer (Standard) | 2.0 s |
 | Tick-Intervall | — |
-| Schaden pro Tick | — |
-| Damage over Time | Nein |
-| Heavy-Dauer | — |
+| Schaden/Tick | — |
+| Heavy-Variante | — |
 
-## Wirkung
-Stun versetzt das Ziel für 2,0 Sekunden in vollständige Handlungsunfähigkeit. Fortbewegung und Angriffe aller Gegnerklassen werden komplett unterbunden, während die Einheit kräftig gelb aufleuchtet. Zudem gewährt der Betäubungszustand bei bestimmten Waffen und Items massive Schadens- und Krit-Multiplikatoren (z. B. Megaphone 3.0x Schaden, Modem 56k 1.75x Krit).
 
-## Ausgeloest von
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `TINT_STRENGTH` | 0.40 |
+| `MEGAPHONE_DAMAGE_MULTIPLIER` | 3.0 |
+| `MODEM_CRIT_MULTIPLIER` | 1.75 |
+
+## Synergien
+
+- `damage_multiplier_against()`
+
+## Ausgeloest von (Items)
+
 - [[jumper_cables]]
 - [[stiletto_heels]]
 - [[battery_pack]]
@@ -36,18 +46,27 @@ Stun versetzt das Ziel für 2,0 Sekunden in vollständige Handlungsunfähigkeit.
 - [[fault_line]]
 - [[lockdown]]
 
-## Synergiert mit
-- [[confused]] (nutzt den Verwirrungs-Stun-Schadensbonus von +25 %)
-- [[vulnerable]] für maximalen Schadensausstoß während der Gegner gelähmt ist
+## Wird abgefragt von (Items, ohne es auszuloesen)
 
-## Alle Status-Effekte
-- [[acid]] — Säure-Schaden über Zeit (DOT)
-- [[burn]] — Feuer-Schaden über Zeit (DOT)
-- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
-- [[confused]] — Zufällige Angriffsrichtung (Crowd Control)
-- [[rooted]] — Bewegungsunfähig (Crowd Control)
-- [[shield]] — Schutzschild für Einheiten (Buff)
-- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
-- [[slow]] — Verlangsamte Bewegung (Crowd Control)
-- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
-- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)
+- —
+
+## Gegner-Interaktion
+
+- Sperrt in `enemy_ai.gd::is_attack_locked()` den Angriff **aller** Gegner ([[fighter]], [[stinger]], [[colossus]]).
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+- [[2026-07-26_61765de_feat_combat-tuning_hud-overhaul_anti-baiting_sieg-|2026-07-26 — feat: Combat-Tuning, HUD-Overhaul, Anti-Baiting, Sieg-Trophäe, Menü-Fixes, Türsystem-Debugging]]
+- [[2026-07-25_905d144_feat_level-generation-polish_minimap-overhaul_haza|2026-07-25 — feat: Level-Generation-Polish, Minimap-Overhaul, Hazard/Door-Fixes, Atmosphäre]]
+
+## Laufzeit
+
+Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
+`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
+altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
+`extend_all()`.
+
+## Quelle
+
+`scripts/status_effects/stun.gd`

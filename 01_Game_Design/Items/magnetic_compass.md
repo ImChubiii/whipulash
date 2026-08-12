@@ -20,30 +20,47 @@ tags: [item, "item/passive", "rarity/uncommon"]
 
 > *Alles kommt zu dir*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | DEFENSE |
-| Seltenheit | UNCOMMON |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Erzeugt eine passive Aura, die fallen gelassene Münzen, Herzen und Bomben im Umkreis von 6 Metern automatisch zum Spieler heranzieht.
 
-## Visueller Effekt (VFX)
-Münzen, Herzen und Bomben im Radius von 6m schweben mit einer magnetischen Anziehungslinie direkt auf den Spieler zu.
+Zieht Muenzen, Herzen und abgelegte Bomben im Umkreis von 6 m automatisch an.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut with
-- [[plastic_halo|Plastik-Heiligenschein]] – Zieht durch den 10 % Kill-Chance dropende Herzhälften (+0,5 HP) im 6m-Radius sofort an.
-- [[tight_pants|Omas Enge Hosen]] – Ermöglicht mit +20 % Bewegungstempo ein blitzschnelles Abgrasen des Raumes kombiniert mit der 6m-Anziehung.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[giselle|Giselle]] – Sammelt Beute aus der Distanz ein, ohne in Gefahr zu geraten.
-- [[karina|Karina]] – Haelt den Spielfluss aufrecht und sichert schnell alle Drops.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `magnetic_compass` |
+| Kind | PASSIVE |
+| Kategorie | DEFENSE |
+| Rarity | UNCOMMON |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.6 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_MAGNETIC_COMPASS`, Variable `compass`)

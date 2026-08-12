@@ -13,38 +13,55 @@ has_stat_modifiers: false
 status_effects: ["confused", "silenced"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic", "applies/confused"]
+tags: [item, "item/active", "rarity/epic"]
 ---
 
 # Schatten-Pirscher
 
 > *Laeuft unter dem Radar*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | EPIC |
-| Cooldown | 15.0 s |
-
 ## Effekt
-Schickt ein Schattenwesen aus, das Gegner bei Kontakt erblinden (erzeugt Verwirrung `confused`) und taub macht (erzeugt Verstummen `silenced`).
 
-## Visueller Effekt (VFX)
-Eine schwarze Schattengestalt huscht über das Kampffeld direkt auf das Ziel zu.
+Entsendet einen Schattenwolf, der von Gegner zu Gegner hetzt und sie kurz verwirrt und stumm schaltet.
 
 ## Status-Effekte
-- [[confused|Verwirrt]]
-- [[silenced|Stummgeschaltet]]
 
-## Synergiert gut mit
-- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an den durch das Schattenwesen erblindeten/tauben Gegnern gewähren +0,5 HP Heilung und verlängern Buffs um 1s.
-- [[paranoia|Paranoia]] – Verdoppelt die Raumbeherrschung durch kombinierte Verwirrungs- (`confused`) und Verstummen-Impulse (`silenced`).
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[giselle|Giselle]] – Bietet flexible gegneruebergreifende Raumkontrolle.
-- [[ningning|Ningning]] – Stoert weit verstreute Gegnergruppen effektiv.
+- [[confused]]
+- [[silenced]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `prowler` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | EPIC |
+| Cooldown | 15.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.31 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_PROWLER`, Variable `prowler`)

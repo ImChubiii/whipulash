@@ -20,30 +20,47 @@ tags: [item, "item/passive", "rarity/legendary"]
 
 > *Die Limonade beisst nicht mehr*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | DEFENSE |
-| Seltenheit | LEGENDARY |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Reduziert den erlittenen Schaden durch Säure/Limonade um 75 % und hebt jegliche Verlangsamung (`slow`) beim Durchwaten von Säurepfützen komplett auf.
 
-## Visueller Effekt (VFX)
-Grüne Säurespritzer prallen beim Betreten von Limonadenpfützen schützend von den Stiefeln ab.
+75 % weniger Schaden durch saure Limonade und keine Verlangsamung mehr beim Durchwaten.
 
 ## Status-Effekte
-Löst keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[stiletto_heels|Mamas Stoeckelschuhe]] – Erlaubt es, schadlos durch die eigenen hinterlassenen Säurepfützen zu laufen (75 % Schadensreduktion, 0 % Verlangsamung).
-- [[battery_pack|Ausgelaufene Flachbatterie]] – Betreten von Säure entlädt Stromschläge (1,5s `stun`), während man selbst 75 % weniger Schaden nimmt.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Karina**: Profitiert im Nahkampf enorm von uneingeschränkter Mobilität auf säurebedeckten Schlachtfeldern.
-- **Giselle**: Kann Säurezonen sicher durchqueren, um Distanz zu Gegnern zu wahren.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `acid_boots` |
+| Kind | PASSIVE |
+| Kategorie | DEFENSE |
+| Rarity | LEGENDARY |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.7 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_ACID_BOOTS`, Variable `boots`)

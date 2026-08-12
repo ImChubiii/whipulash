@@ -20,29 +20,47 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *Automatische Unterstuetzung*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | EPIC |
-| Cooldown | 20.0 s |
-
 ## Effekt
-Platziert einen automatischen Geschützturm, der eigenständig nahestehende Gegner im Sichtbereich beschießt.
 
-## Visueller Effekt (VFX)
-Ein gelb-grauer Stativ-Turm wird auf dem Boden platziert und dreht sich zu Zielobjekten.
+Stellt einen freundlichen Geschuetzturm auf, der automatisch auf nahe Gegner feuert.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[super_glue|Ausgelaufener Sekundenkleber]] – Hält Gegner 2s lang im Schussfeld des Stativ-Turms fest.
-- [[stim_beacon|Stim-Beacon]] – Erhöht das Angriffs- und Bewegungstempo des Spielers beim gemeinsamen Verteidigen der Turmposition.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Taktiker und Begleiter-Builds, die Unterzahl-Situationen ausgleichen wollen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `turret` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | EPIC |
+| Cooldown | 20.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.44 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_TURRET`, Variable `turret_item`)

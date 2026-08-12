@@ -13,36 +13,55 @@ has_stat_modifiers: false
 status_effects: ["rooted"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare", "applies/rooted"]
+tags: [item, "item/passive", "rarity/rare"]
 ---
 
 # Rostiger Dachnagel
 
 > *Festgenagelt*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MELEE |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Gewährt eine 25 % Chance bei Treffern, den Gegner für 1,5 Sekunden festzunageln (`rooted`). Festgenagelte Gegner können sich 1,5s lang nicht bewegen.
 
-## Visueller Effekt (VFX)
-Bei der Auslösung entstehen ein Staubring (`DUST_RING`) und Trefferfunken (`HIT_SPARK`) am getroffenen Ziel.
+25 % Chance, einen getroffenen Gegner 1,5 s lang festzunageln: er kann sich nicht mehr bewegen, sein Angriff wird sofort unterbrochen, und er ist gegen Rueckstoss immun.
 
 ## Status-Effekte
-- [[rooted|Festgenagelt]]
 
-## Synergiert gut mit
-- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den mit 25 % Chance festgenagelten (`rooted`) Gegnern heilen +1 HP und erzeugen eine Schockwelle.
-- [[rusty_cleaver|Rostiges Beil]] – Fixiert Ziele 1,5s lang für gefahrlose Treffer zur Auslösung von Blutung (`bleed`).
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Nahkämpfer mit hoher Angriffsrate, die einzelne schwere Gegner im Zaum halten wollen.
+- [[rooted]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
+- [[2026-08-04_5d63fe2_featitemscombatlevelgenui_ouija-board_item-reworks|2026-08-04 — feat(items,combat,levelgen,ui): Ouija-Board, Item-Reworks, Last-Stand, Boss-HP-Balken, diverse Bugfixes]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `roof_nail` |
+| Kind | PASSIVE |
+| Kategorie | MELEE |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.12 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_ROOF_NAIL`, Variable `nail`)

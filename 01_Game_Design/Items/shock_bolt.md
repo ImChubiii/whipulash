@@ -20,29 +20,47 @@ tags: [item, "item/active", "rarity/uncommon"]
 
 > *Kurzschluss garantiert*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | UNCOMMON |
-| Cooldown | 7.0 s |
-
 ## Effekt
-Feuert ein schnelles Projektil ab, das bei Aufprall eine starke Stromexplosion auslöst und getroffene Gegner betäubt (`stun`).
 
-## Visueller Effekt (VFX)
-Ein Projektil-Pfeil mit blauen Blitzen saust nach vorne und explodiert am Zielpunkt in einem zuckenden Stromfeld.
+Feuert einen Energiebolzen ab, der den ersten getroffenen Gegner betaeubt.
 
 ## Status-Effekte
-- [[stun|Betäubung]]
 
-## Synergiert gut mit
-- [[disco_ball|Disco-Kugel-Anhaenger]] – Durch die Stromexplosion betäubte (`stun`) Gegner erleiden +25 % mehr Schaden.
-- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den betäubten (`stun`) Gegnern gewähren +1 HP Heilung und entladen raumweite Schockwellen.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Präzise Spieler, die gezielt Elite-Gegner oder Boss-Mechaniken unterbrechen möchten.
+- [[stun]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `shock_bolt` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | UNCOMMON |
+| Cooldown | 7.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.26 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_SHOCK_BOLT`, Variable `shock_bolt`)

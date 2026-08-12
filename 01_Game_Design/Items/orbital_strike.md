@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/legendary"]
 
 > *Einschlag in 3... 2... 1...*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | LEGENDARY |
-| Cooldown | 22.0 s |
-
 ## Effekt
-Fordert nach einer kurzen Verzögerung einen massiven Laserangriff aus dem Orbit auf die gewählte Zielposition an.
 
-## Visueller Effekt (VFX)
-Ein riesiger vertikaler, orange leuchtender Energiestrahl schlägt vom Himmel auf den Boden ein.
+Markiert die Stelle vor dir - nach kurzer Verzoegerung schlaegt ein gewaltiger Strahl ein und verwuestet den Bereich.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[super_glue|Ausgelaufener Sekundenkleber]] – Hält Gegnergruppen 2s lang fest, damit sie dem verzögerten Laserangriff nicht ausweichen können.
-- [[fault_line|Verwerfungslinie]] – Betäubt (`stun`) Gegner in der Zielzone vor dem Einschlag des Orbitallasers.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[winter|Winter]] – Maximale Vernichtungskraft gegen Bosse und grosse Gegnergruppen.
-- [[giselle|Giselle]] – Perfekt in Verbindung mit Verlangsamungs- und Fixierungseffekten.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `orbital_strike` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | LEGENDARY |
+| Cooldown | 22.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.36 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_ORBITAL_STRIKE`, Variable `orbital_strike`)

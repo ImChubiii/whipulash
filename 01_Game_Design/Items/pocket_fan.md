@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["slow"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/uncommon", "applies/slow"]
+tags: [item, "item/active", "rarity/uncommon"]
 ---
 
 # USB-Mini-Ventilator
 
 > *5V, aber mit Haltung*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | UNCOMMON |
-| Cooldown | 7.0 s |
-
 ## Effekt
-Erzeugt einen starken Windstoss nach vorne, der getroffene Gegner 3 Sekunden lang verlangsamt (slow 3s). Laeuft auf einem getroffenen Gegner ein aktiver DoT-Effekt (burn, acid), wird dieser auf alle umstehenden Gegner uebertragen. Cooldown: 7,0 Sekunden.
 
-## Visueller Effekt (VFX)
-Schnell vorwaerts stroemende weisse Windlinien und Luftwirbel.
+Ein Windstoss nach vorn verlangsamt Gegner 3 s lang und ueberträgt ihre laufenden Schaden-ueber-Zeit-Effekte auf Nachbarn.
 
 ## Status-Effekte
-- [[slow|Verlangsamt (3s)]]
 
-## Synergiert gut mit
-- [[storm_lighter|Sturmfeuerzeug]] – Uebertraegt den 3s burn-DoT auf ganze Gegnergruppen.
-- [[chili_oil|Omas Scharfes Chili-Oel]] – Uebertraegt durch Spritzer entstandenen acid-DoT auf benachbarte Ziele.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[ningning|Ningning]] – Starke Synergien beim Verteilen von Statuseffekten im Raum.
-- [[giselle|Giselle]] – Haelt stuerzende Gegner auf Distanz.
+- [[slow]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `pocket_fan` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | UNCOMMON |
+| Cooldown | 7.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.12 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_POCKET_FAN`, Variable `fan`)

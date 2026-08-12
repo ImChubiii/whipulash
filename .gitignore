@@ -18,6 +18,5 @@ mono_crash.*.json
 graphify-out/
 .aider*
 
-# Private working notes, not meant for the repo
-/04_Chat_Prompts/
-/05_Gedanken/
+# Private working notes
+# (Removed 04 and 05 so they are tracked)

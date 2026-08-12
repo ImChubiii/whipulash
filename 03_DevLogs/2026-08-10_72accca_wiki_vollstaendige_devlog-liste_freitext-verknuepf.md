@@ -3,11 +3,11 @@ commit: "72accca7e001d02f607ff4878a59e60f5459e804"
 short_hash: "72accca"
 date: 2026-08-10
 author: "ImChubiii"
-subject: "Wiki: vollständige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt"
+subject: "Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt"
 tags: [devlog]
 ---
 
-# 2026-08-10 — Wiki: vollständige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt
+# 2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt
 
 - 03_DevLogs/_MOC_DevLogs.md: chronologische Gesamtliste WIRKLICH aller
   Commits (nach Monat gruppiert), nicht nur die juengsten 20 wie im

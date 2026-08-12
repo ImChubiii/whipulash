@@ -20,29 +20,47 @@ tags: [item, "item/passive", "rarity/common"]
 
 > *Schwere Hiebe*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MELEE |
-| Seltenheit | COMMON |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Gewährt eine 30 % Chance bei Treffern, dem Ziel den Status-Effekt Blutung (`bleed` DoT) zuzufügen. Die Trefferchance steigt in Kombination mit Stricknadeln auf 50 %.
 
-## Visueller Effekt (VFX)
-Bei Treffern entstehen Funken an der Aufprallstelle (`HIT_SPARK`).
+30 % Chance, Bluten zuzufuegen: 4 s lang jede Sekunde Schaden.
 
 ## Status-Effekte
-- [[bleed|Blutung]]
 
-## Synergiert gut mit
-- [[knitting_needles|Omas Stricknadeln]] - Erhöht die Blutungschance von 30 % auf 50 % und verstärkt den DoT-Schaden.
-- [[tennis_ball|Tennisball an der Schnur]] - Frischt die Dauer des ausgelösten Blutungseffekts bei Projektiltreffern auf.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Einsteiger und Nahkämpfer, die früh im Spiel auf konstanten Schaden über Zeit (DoT) setzen möchten.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- [[knitting_needles]] — *Omas Stricknadeln*
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `rusty_cleaver` |
+| Kind | PASSIVE |
+| Kategorie | MELEE |
+| Rarity | COMMON |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.2 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_RUSTY_CLEAVER`, Variable `cleaver`)

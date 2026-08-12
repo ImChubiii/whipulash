@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["burn"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare", "applies/burn"]
+tags: [item, "item/passive", "rarity/rare"]
 ---
 
 # Kupferdraht-Spule
 
 > *Isolierung? War mal.*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MOVEMENT |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Ein Dash durch verlangsamte (`slow`) oder festgenagelte (`rooted`) Gegner setzt diese sofort in Brand (`burn` DoT - Thermoschock).
 
-## Visueller Effekt (VFX)
-Bei der Auslösung am Ziel entstehen gelbe Funken (`SPARK_YELLOW`) und ein roter Treffer-Flash (`roter Hit-Flash`).
+Ein Dash durch verlangsamte oder festgenagelte Gegner setzt sie sofort in Brand.
 
 ## Status-Effekte
-- [[burn|Brand (DoT)]]
 
-## Synergiert gut mit
-- [[chewing_gum|Kaugummi unter dem Schuh]] – Jeder Dash hinterlässt eine verlangsamende Spur, sodass Folge-Dashes den Brand-Thermoschock direkt auslösen.
-- [[bubble_gum|Riesige Kaugummiblase]] – Nach dem Blasenzerplatzen sind nahe Gegner um -50 % verlangsamt und lassen sich mühelos per Dash entzünden.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Winter**: Belohnt agile Spielweise und ständigen Einsatz von Ausweichschritten.
-- **Karina**: Ermöglicht schnelles Entzünden feindlicher Reihen im Vorbeidash.
+- [[burn]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `copper_wire` |
+| Kind | PASSIVE |
+| Kategorie | MOVEMENT |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.37 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_COPPER_WIRE`, Variable `copper`)

@@ -20,31 +20,47 @@ tags: [item, "item/passive", "rarity/epic"]
 
 > *Die Katze ist woanders*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | UTILITY |
-| Seltenheit | EPIC |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Markiert automatisch den stärksten Gegner im Raum (hoechste HP), wodurch dieser +15 % erhoehten Schaden erleidet. Zudem springen 50 % aller auf das markierte Ziel wirkenden DoTs (burn, acid) auf umstehende Gegner über.
 
-## Visueller Effekt (VFX)
-Ein duenner roter Laserstrahl, der vom Spieler ausgeht und einen leuchtenden roten Zielpunkt auf dem stärksten Gegner projiziert.
+Markiert dauerhaft den Gegner mit den meisten Lebenspunkten: +15 % Schaden gegen ihn. Erleidet er Schaden ueber Zeit, springt die Haelfte davon auf umstehende Gegner ueber.
 
 ## Status-Effekte
-Loest keine direkt aus (uebertraegt bestehende DoTs).
 
-## Synergiert gut mit
-- [[storm_lighter|Sturmfeuerzeug]] – Traegt 3s burn-DoT auf das Hauptziel auf, wovon 50 % auf umstehende Feinde ueberstrahlen.
-- [[hand_vacuum|Alter Handstaubsauger]] – Traegt acid-DoT auf, der zu 50 % auf Umstehende ueberspringt.
-- [[library_book|Schulbibliotheks-Buch]] – Bringt den stärksten Gegner dank +15 % Schaden schneller unter die 20 % Exekutions-Schwelle.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[giselle|Giselle]] – Exzellent gegen Bosse und zaehe Elitemonster.
-- [[winter|Winter]] – Hilft beim schnellen Saeubern von Räumen mit einem starken Anfuehrer.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `laser_pointer` |
+| Kind | PASSIVE |
+| Kategorie | UTILITY |
+| Rarity | EPIC |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.17 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_LASER_POINTER`, Variable `laser`)

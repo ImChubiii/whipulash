@@ -31,6 +31,14 @@ func apply_knockback(impulse: Vector3) -> void:
 	_knockback_velocity.z += impulse.z
 	velocity.y += impulse.y
 
+## Kappt sofort JEDEN noch abklingenden Knockback-Puffer, statt ihn ueber
+## knockback_friction auslaufen zu lassen. Fuer Quellen, die beim Wegfallen
+## sofort aufhoeren muessen zu wirken (z.B. Magnet-Kern: stirbt er waehrend
+## der Spieler gerade herangezogen wird, soll der Sog in DIESEM Frame enden,
+## nicht noch bis zu ~1,6s an Restimpuls auslaufen lassen).
+func clear_knockback() -> void:
+	_knockback_velocity = Vector3.ZERO
+
 # --- Kamera-Zoom per Mausrad ---
 @export var zoom_min: float = 3
 @export var zoom_max: float = 20.0
@@ -159,7 +167,19 @@ func apply_status_effect(id: String, duration: float, magnitude: float = 1.0, so
 	if id == "stun":
 		apply_stun(duration)
 		return
-	status_effects.apply_effect(id, duration, magnitude, source, tick_interval)
+
+	# Vergessener Turnbeutel: 100% Immunitaet gegen "slow" - HIER geprueft,
+	# weil das die EINE Stelle ist, durch die jeder ankommende Effekt auf
+	# dem Spieler laeuft (Hazards, Gegner-Angriffe, alles).
+	if id == "slow" and Items.has_item(ItemCatalog.ID_FORGOTTEN_GYM_BAG):
+		return
+
+	var effective_duration: float = duration
+	# Tafel-Schwamm: gegnerische Brand-/Saeuredauer auf dem Spieler halbiert.
+	if (id == "burn" or id == "acid") and Items.has_item(ItemCatalog.ID_CHALK_ERASER):
+		effective_duration *= 0.5
+
+	status_effects.apply_effect(id, effective_duration, magnitude, source, tick_interval)
 
 func has_status_effect(id: String) -> bool:
 	return status_effects.has_effect(id)

@@ -63,6 +63,10 @@ height = 0.001
 [node name="ScoutDummy" type="CharacterBody3D" unique_id=786565251]
 collision_layer = 4
 floor_snap_length = 0.29
+# Rueckmeldung "jeder Gegner ausser Magnet 3x groesser": Stinger ist mit
+# 1.2 Units Rohhoehe klein genug, dass 3x (3.6 Units) in jedem Raum
+# problemlos passt - anders als Fighter/Colossus, siehe deren Kommentare.
+scale = Vector3(3, 3, 3)
 script = ExtResource("1_p4blw")
 move_speed = 15.0
 speed_variance = 0.16
@@ -135,6 +139,6 @@ mesh = SubResource("CylinderMesh_fva3d")
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=2082225921]
 target_desired_distance = 1.5
 path_height_offset = 0.2
-height = 2.0
+height = 6.0
 
 

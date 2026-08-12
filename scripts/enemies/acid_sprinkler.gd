@@ -16,6 +16,12 @@ const ACID_TICK_INTERVAL: float = 0.5
 const ACID_DAMAGE_PER_TICK: float = 5.0
 const ACID_DURATION: float = 3.0
 
+## Rueckmeldung "jeder Gegner ausser Magnet soll 3x groesser sein". Anders
+## als mortar_bot.gd/etc. hatte dieser Gegner bisher gar keinen eigenen
+## Skalierungsfaktor (Meshe direkt in Rohgroesse gebaut) - jetzt nachgeruestet,
+## gleiches Muster wie die anderen CustomEnemyBase-Gegner.
+const VISUAL_SCALE: float = 3.0
+
 var fire_interval: float = 2.6
 var flight_time: float = 0.7
 var puddle_radius: float = 2.6
@@ -36,7 +42,8 @@ func _configure() -> void:
 
 func _build() -> void:
 	_build_visual()
-	_add_box_collision(Vector3(1.6, 1.8, 1.6), Vector3(0.0, 0.9, 0.0))
+	visual_root.scale = Vector3.ONE * VISUAL_SCALE
+	_add_box_collision(Vector3(1.6, 1.8, 1.6) * VISUAL_SCALE, Vector3(0.0, 0.9, 0.0) * VISUAL_SCALE)
 	_cooldown = fire_interval * randf_range(0.3, 1.0)
 
 

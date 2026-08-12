@@ -18,7 +18,9 @@ class_name ShieldDrone
 # reiner Support, kein Ziel im eigentlichen Sinn. Wird der Raum trotzdem
 # leergeraeumt (alle "echten" Gegner tot), verschwindet sie von selbst.
 
-const VISUAL_SCALE: float = 1.5
+## War 1.5 - Rueckmeldung "jeder Gegner ausser Magnet soll 3x groesser sein"
+## (1.5 * 3 = 4.5).
+const VISUAL_SCALE: float = 4.5
 const MAX_SHIELDED: int = 3
 const RESCAN_INTERVAL: float = 1.0
 const SHIELD_REFRESH_INTERVAL: float = 0.5

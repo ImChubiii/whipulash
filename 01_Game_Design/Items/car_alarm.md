@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["silenced"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/uncommon", "applies/silenced"]
+tags: [item, "item/passive", "rarity/uncommon"]
 ---
 
 # Alarmanlage vom Parkplatz
 
 > *WIIIU WIIIU WIIIU*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | DEFENSE |
-| Seltenheit | UNCOMMON |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Bei erlittenem Schaden am Spieler werden alle Gegner im gesamten Raum für 3 Sekunden stumm geschaltet (`silenced` 3s, raumweit).
 
-## Visueller Effekt (VFX)
-Eine kreisförmige Schallwelle breitet sich vom Spieler aus über den gesamten Raum aus.
+Nimmst du Schaden, werden alle Gegner im Raum stummgeschaltet.
 
 ## Status-Effekte
-- [[silenced|Verstummt (3s, raumweit)]]
 
-## Synergiert gut mit
-- [[vampire_teeth|Plastik-Vampirgebiss]] – Gegner, die durch den 3s Verstummen-Effekt beeinträchtigt sind, gewähren bei Kills +0,5 HP Heilung.
-- [[plastic_halo|Plastik-Heiligenschein]] – Kombiniert die 3s Raum-Stummschaltung nach Schaden mit +1 Max-HP als Sicherheitsnetz.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Karina**: Neutralisiert gegnerische Spezialfähigkeiten, wenn sie Treffer einstecken muss.
-- **Giselle**: Raumweite Entlastung in brenzligen Raumsituationen.
+- [[silenced]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `car_alarm` |
+| Kind | PASSIVE |
+| Kategorie | DEFENSE |
+| Rarity | UNCOMMON |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.33 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_CAR_ALARM`, Variable `alarm`)

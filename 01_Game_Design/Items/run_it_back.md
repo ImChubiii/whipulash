@@ -20,29 +20,47 @@ tags: [item, "item/active", "rarity/legendary"]
 
 > *Zweite Chance*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | DEFENSE |
-| Seltenheit | LEGENDARY |
-| Cooldown | 25.0 s |
-
 ## Effekt
-Platziert eine Markierung am Boden. Stirbt der Spieler während der Aktivheitsdauer, spawnt er augenblicklich am Marker mit voller Gesundheit (100 % HP).
 
-## Visueller Effekt (VFX)
-Der Spieler brennt während der Wirkungsdauer in leuchtendem Orange.
+Setzt eine Marke an deiner Position. Wuerdest du sterben, wirst du stattdessen dorthin zurueckgeholt und teilweise geheilt.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[rice_pudding|Überkochter Milchreis]] – Ermöglicht das schutzschirmunterstützte Stehenbleiben (bis 15 % Max-HP Schild) direkt nach dem Respawn.
-- [[plastic_halo|Plastik-Heiligenschein]] – Kombiniert den vollen Respawn-Heal mit +1 Max-HP Kapazität.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Risikofreudige Spieler und Glass-Cannon-Builds, die maximale Rückendeckung bei Bosskämpfen suchen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `run_it_back` |
+| Kind | ACTIVE |
+| Kategorie | DEFENSE |
+| Rarity | LEGENDARY |
+| Cooldown | 25.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.18 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_RUN_IT_BACK`, Variable `run_it_back`)

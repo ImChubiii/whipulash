@@ -23,7 +23,9 @@ const HEALTH_THRESHOLD: float = 0.20
 ## und pulse_strength 0.35 konnte bis auf ~32% der ohnehin schon gedeckelten
 ## Deckkraft abfallen - das las sich als schwaches Rosa statt als Rot.
 @export var vignette_color: Color = Color(0.75, 0.01, 0.01, 1.0)
-@export_range(0.0, 1.0) var max_opacity: float = 0.78
+## War 0.78 - Rueckmeldung "sollte weniger Deckkraft haben": verdeckte bei
+## niedrigem Leben zu viel vom eigentlichen Kampf-Sichtfeld.
+@export_range(0.0, 1.0) var max_opacity: float = 0.45
 @export var pulse_speed: float = 2.6
 @export_range(0.0, 1.0) var pulse_strength: float = 0.2
 @export var fade_time: float = 0.35

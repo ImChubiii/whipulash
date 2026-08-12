@@ -11,7 +11,9 @@ class_name PlasmaBeamBot
 # Spieler beim Feuern stand - wer nicht seitlich ausweicht, steht laenger
 # im Feuer und sammelt burn-Ticks.
 
-const VISUAL_SCALE: float = 1.5
+## War 1.5 - Rueckmeldung "jeder Gegner ausser Magnet soll 3x groesser sein"
+## (1.5 * 3 = 4.5).
+const VISUAL_SCALE: float = 4.5
 const BURN_TICK_INTERVAL: float = 0.4
 const BURN_DAMAGE_PER_TICK: float = 5.0
 const BURN_DURATION: float = 2.5

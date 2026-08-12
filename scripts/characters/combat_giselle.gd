@@ -23,10 +23,20 @@ const MUZZLE_VFX_SCENE: PackedScene = preload("res://scenes/vfx/spark_yellow.tsc
 const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
 
 ## --- Primary "Uzi Spray" -------------------------------------------------
-@export var uzi_magazine_size: int = 25
+@export var uzi_magazine_size: int = 40
 @export var uzi_reload_time: float = 1.0
 @export var uzi_damage: float = 7.0
 @export var uzi_range: float = 40.0
+## Rework "Auto-Target" (Rueckmeldung: "man sollte nur in die Richtung
+## schauen, damit die Uzi die Gegner erkennt und selber drauf schiesst"):
+## Blickkegel-Halbwinkel, in dem sich die Uzi selbst ihr Ziel sucht (siehe
+## EnemyQuery.best_target_in_cone()) - deutlich weiter als der praezise
+## Aim-Assist unten, weil hier kein Zielen mehr noetig sein soll, nur noch
+## grobes Hinschauen.
+@export var uzi_target_cone_deg: float = 35.0
+## Farbe/Groesse des ESP-Markers ueber dem gerade automatisch anvisierten
+## Ziel - siehe _build_esp_marker().
+@export var uzi_esp_color: Color = Color(1.0, 0.15, 0.1)
 
 ## --- Secondary "Sniper Burst" ---------------------------------------------
 @export var sniper_shot_count: int = 3
@@ -40,12 +50,19 @@ const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
 @export var sniper_zoom_in_time: float = 0.5
 @export var sniper_zoom_out_time: float = 0.35
 
-## --- Aim-Assist (beide Waffen) ----------------------------------------------
-@export var aim_assist_angle_deg: float = 5.0
+## --- Aim-Assist (Sniper) ----------------------------------------------------
+## Nur noch fuer den Sniper: die Uzi hat seit dem Auto-Target-Rework ihr
+## eigenes uzi_target_cone_deg (harter Lock statt weichem Assist, siehe oben).
+## Rueckmeldung "RMB soll einen soft aim assist haben": Winkel von 5 auf 10
+## Grad angehoben, damit er ueberhaupt spuerbar greift - strength bleibt bei
+## 0.5 (weich, kein harter Lock wie bei der Uzi).
+@export var aim_assist_angle_deg: float = 10.0
 @export var aim_assist_strength: float = 0.5
 
-var _uzi_ammo: int = 25
+var _uzi_ammo: int = 40
 var _uzi_reloading: bool = false
+var _uzi_locked_target: Node3D = null
+var _uzi_esp_marker: Label3D = null
 
 var _sniper_charging: bool = false
 var _camera: Camera3D = null
@@ -73,23 +90,26 @@ func setup(owner_player: CharacterBody3D) -> void:
 # Uzi Spray - haelt Halten von LMB, feuert ueber das UNVERAENDERTE
 # _poll_primary_input()/_do_primary() aus combat_base.gd jeden Frame erneut,
 # solange der (sehr kurze) primary_cooldown abgelaufen ist.
+#
+# REWORK "Auto-Target" (Rueckmeldung): frueher ein enger, praeziser Aim-
+# Assist auf die reine Kamera-Blickrichtung (5 Grad Kegel, sanft eingeblendet
+# per Slerp) - jetzt sucht sich die Uzi selbst den besten Gegner in einem
+# breiten Blickkegel (uzi_target_cone_deg) und feuert DIREKT auf ihn, nicht
+# mehr auf die rohe Blickrichtung. Ohne Ziel im Kegel faellt sie auf die
+# alte reine Blickrichtung zurueck, damit LMB nie komplett ins Leere geht.
 # ============================================================================
 func _perform_primary() -> void:
 	if _camera == null or _spring_arm == null:
 		return
 
 	var origin: Vector3 = _camera.global_position
-	# Bewusst OHNE jeglichen Zufalls-Jitter auf "dir" - die Spec verlangt
-	# "extrem hohe Genauigkeit, Schuesse verreissen nicht", ein Streuwinkel
-	# wuerde genau das kaputt machen.
 	# Camera3D.global_transform.basis.z zeigt IMMER hinter die Kamera (Godot-
 	# Grundregel: jede Kamera blickt entlang ihres lokalen -Z) - negiert ergibt
-	# das die tatsaechliche Blickrichtung. Bewusst ueber die Camera3D selbst
-	# statt SpringArm3D berechnet, damit hier keine Annahme ueber gleiche
-	# Rotation zwischen beiden Nodes mehr noetig ist.
-	var dir: Vector3 = EnemyQuery.aim_assisted_direction(
-		origin, -_camera.global_transform.basis.z, uzi_range, aim_assist_angle_deg, aim_assist_strength
-	)
+	# das die tatsaechliche Blickrichtung.
+	var look_dir: Vector3 = -_camera.global_transform.basis.z
+	var target: Node3D = _resolve_uzi_target(origin, look_dir)
+	var dir: Vector3 = ((target.global_position + Vector3.UP) - origin).normalized() if target != null else look_dir
+	_update_uzi_esp(target)
 
 	var dns: PackedScene = primary_hitbox.damage_number_scene if primary_hitbox else null
 	var result: Dictionary = Hitscan.fire(self, origin, dir, uzi_range, uzi_damage * _damage_multiplier(), player, dns)
@@ -110,6 +130,63 @@ func _perform_primary() -> void:
 		_primary_timer = uzi_reload_time
 
 
+## Sticky Targeting - gleicher Grund wie combat_winter.gd::
+## _resolve_laser_target(): ohne das koennte das gewaehlte Ziel bei mehreren
+## nah beieinander stehenden Gegnern von Schuss zu Schuss wechseln.
+func _resolve_uzi_target(origin: Vector3, look_dir: Vector3) -> Node3D:
+	if _uzi_locked_target != null and is_instance_valid(_uzi_locked_target):
+		var health: Node = _uzi_locked_target.find_child("Health", true, false)
+		var alive: bool = health != null and health is Health and (health as Health).is_alive()
+		var to_target: Vector3 = (_uzi_locked_target.global_position + Vector3.UP) - origin
+		var in_range: bool = to_target.length() <= uzi_range
+		var in_cone: bool = to_target.length_squared() > 0.0001 \
+			and look_dir.angle_to(to_target.normalized()) <= deg_to_rad(uzi_target_cone_deg * 1.5)
+		if alive and in_range and in_cone:
+			return _uzi_locked_target
+
+	return EnemyQuery.best_target_in_cone(origin, look_dir, uzi_range, uzi_target_cone_deg)
+
+
+## Haelt einen einzelnen Label3D-Marker (billboard + no_depth_test, gleiches
+## Muster wie damage_number.gd) ueber dem gerade automatisch anvisierten
+## Ziel fest - das ist das in der Rueckmeldung verlangte "ESP" auf den
+## beschossenen Gegner. no_depth_test sorgt dafuer, dass er auch durch
+## Gegner/Deckung hindurch klar lesbar bleibt, nicht nur durch Waende.
+func _update_uzi_esp(target: Node3D) -> void:
+	if target == _uzi_locked_target and target != null and is_instance_valid(target):
+		if _uzi_esp_marker != null and is_instance_valid(_uzi_esp_marker):
+			_uzi_esp_marker.global_position = target.global_position + Vector3.UP * 2.2
+		return
+
+	_clear_uzi_esp()
+	_uzi_locked_target = target
+	if target == null or not is_instance_valid(target):
+		return
+
+	_uzi_esp_marker = _build_esp_marker()
+	get_tree().current_scene.add_child(_uzi_esp_marker)
+	_uzi_esp_marker.global_position = target.global_position + Vector3.UP * 2.2
+
+
+func _clear_uzi_esp() -> void:
+	if _uzi_esp_marker != null and is_instance_valid(_uzi_esp_marker):
+		_uzi_esp_marker.queue_free()
+	_uzi_esp_marker = null
+	_uzi_locked_target = null
+
+
+func _build_esp_marker() -> Label3D:
+	var label := Label3D.new()
+	label.text = "◆"
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.font_size = 72
+	label.outline_size = 14
+	label.modulate = uzi_esp_color
+	label.outline_modulate = Color(uzi_esp_color.r * 0.2, uzi_esp_color.g * 0.2, uzi_esp_color.b * 0.2, 0.9)
+	return label
+
+
 ## Waehrend des Nachladens gilt der feste Reload-Cooldown statt des
 ## kombo-reduzierten Basis-Cooldowns - sonst wuerde get_primary_cooldown_
 ## percent() (HUD-Ring) durch den winzigen primary_cooldown teilen und einen
@@ -124,6 +201,8 @@ func _process(delta: float) -> void:
 	super._process(delta)
 	if _uzi_reloading and _primary_timer <= 0.0:
 		_uzi_reloading = false
+	if _uzi_locked_target != null and not Input.is_action_pressed("attack_primary"):
+		_clear_uzi_esp()
 
 
 func get_uzi_ammo_remaining() -> int:
@@ -132,6 +211,15 @@ func get_uzi_ammo_remaining() -> int:
 
 func get_uzi_magazine_size() -> int:
 	return uzi_magazine_size
+
+
+## _uzi_esp_marker haengt unter current_scene, NICHT unter diesem Combat-Node
+## (siehe _build_esp_marker()/_update_uzi_esp()) - ueberlebt einen
+## Charakterwechsel also nicht automatisch. Explizit aufraeumen, sonst bleibt
+## ein verwaister Marker in der Szene stehen, falls LMB genau beim Wechsel
+## gehalten wurde.
+func _exit_tree() -> void:
+	_clear_uzi_esp()
 
 
 # ============================================================================

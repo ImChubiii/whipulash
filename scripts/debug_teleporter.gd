@@ -16,6 +16,11 @@ extends Node
 ## frei und beliebig oft spawnen, ohne einen echten Run zu starten. Auf der
 ## -Z-Achse, damit es sich nicht mit den anderen drei Pads ueberlappt.
 @export var pad_offset_sandbox: Vector3 = Vector3(0.0, -2.2, -6.0)
+## Fuenftes Pad: teleportiert in den Meta-Progression-Hub (siehe
+## scripts/hub_room.gd) - Drops-Shop fuer das persistente Item-Gewicht-
+## Upgrade. Auf der +X-Achse, damit es sich nicht mit den anderen vier
+## Pads ueberlappt.
+@export var pad_offset_hub: Vector3 = Vector3(10.0, -2.2, 6.0)
 @export var interact_action: StringName = &"interact"
 @export var only_in_debug_build: bool = false # Auf false, damit es garantiert im Editor & Build erscheint
 
@@ -23,15 +28,18 @@ var _boss_pad: Area3D
 var _treasure_pad: Area3D
 var _item_test_pad: Area3D
 var _sandbox_pad: Area3D
+var _hub_pad: Area3D
 var _boss_label: Label3D
 var _treasure_label: Label3D
 var _item_test_label: Label3D
 var _sandbox_label: Label3D
+var _hub_label: Label3D
 
 var _player_in_boss: bool = false
 var _player_in_treasure: bool = false
 var _player_in_item_test: bool = false
 var _player_in_sandbox: bool = false
+var _player_in_hub: bool = false
 var _boss_grid: Vector2i = Vector2i(-999, -999)
 var _treasure_grid: Vector2i = Vector2i(-999, -999)
 
@@ -132,6 +140,12 @@ func _setup_pads() -> void:
 	_sandbox_pad.body_exited.connect(func(b): if _is_player(b): _player_in_sandbox = false; _update_labels())
 	start_room.add_child(_sandbox_pad)
 
+	_hub_pad = _create_pad("HubTeleportPad", Color(0.85, 0.65, 0.15, 0.6), base_pos + pad_offset_hub)
+	_hub_label = _create_label(_hub_pad, "[ HUB / DROPS-SHOP ]")
+	_hub_pad.body_entered.connect(func(b): if _is_player(b): _player_in_hub = true; _update_labels())
+	_hub_pad.body_exited.connect(func(b): if _is_player(b): _player_in_hub = false; _update_labels())
+	start_room.add_child(_hub_pad)
+
 	print("[Teleporter] Pads erfolgreich im Startraum platziert!")
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -149,6 +163,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		ItemTestRoom.teleport_player_in()
 	elif _player_in_sandbox:
 		EnemySandboxRoom.teleport_player_in()
+	elif _player_in_hub:
+		HubRoom.teleport_player_in()
 
 func _teleport_player_to_grid(target_grid: Vector2i) -> void:
 	var level_gen := get_tree().get_first_node_in_group("level_generator") as LevelGenerator
@@ -224,6 +240,9 @@ func _update_labels() -> void:
 	if _sandbox_label:
 		_sandbox_label.text = "[F / E] GEGNER-SANDBOX" if _player_in_sandbox else "[ GEGNER-SANDBOX ]"
 
+	if _hub_label:
+		_hub_label.text = "[F / E] HUB / DROPS-SHOP" if _player_in_hub else "[ HUB / DROPS-SHOP ]"
+
 func _is_player(body: Node) -> bool:
 	return body.is_in_group(PartyManager.PLAYER_GROUP)
 
@@ -232,3 +251,4 @@ func _cleanup() -> void:
 	if is_instance_valid(_treasure_pad): _treasure_pad.queue_free()
 	if is_instance_valid(_item_test_pad): _item_test_pad.queue_free()
 	if is_instance_valid(_sandbox_pad): _sandbox_pad.queue_free()
+	if is_instance_valid(_hub_pad): _hub_pad.queue_free()

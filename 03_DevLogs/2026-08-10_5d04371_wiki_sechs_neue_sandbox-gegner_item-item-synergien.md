@@ -11,23 +11,23 @@ tags: [devlog]
 
 generate_vault.py erweitert statt die Notizen nur von Hand nachzupflegen:
 
-- Sechs neue, bisher unerfasste Gegnertypen (Mörser-Bot, Säure-Sprinkler,
+- Sechs neue, bisher unerfasste Gegnertypen (Moerser-Bot, Saeure-Sprinkler,
   Magnet-Kern, Divebomber, Schild-Drohne, Plasmastrahl-Bot) aus den reinen
   Code-Dateien unter scripts/enemies/ geparst (kein .tres/.tscn vorhanden,
   daher eigener Parser gegenueber Modul-Scope-var-Deklarationen). Klar als
   "Sandbox-Prototyp" (nur EnemySandboxRoom) von den drei Threat-Budget-
   Gegnern (Fighter/Stinger/Colossus) unterschieden.
 - Neuer Status-Effekt "shield" (scripts/status_effects/shield.gd) samt
-  generischer "Zusatzwerte"-Tabelle für Nicht-Standard-Konstanten.
+  generischer "Zusatzwerte"-Tabelle fuer Nicht-Standard-Konstanten.
 - Item<->Item-Synergien und die Umkehr-Richtung "reagiert auf Status, ohne
   ihn auszuloesen" jetzt codeverifiziert aus item_behaviours.gd extrahiert
   (vorher leeres "Synergien"-Feld in jeder Notiz).
 - Zwei neue Architektur-Notizen (custom_enemy_base.gd, enemy_sandbox_room.gd)
-  für den zweiten, parallelen Gegner-Unterbau.
+  fuer den zweiten, parallelen Gegner-Unterbau.
 - Statische MOC-Gruppierungsseiten (Items nach Kategorie/Rarity/Kind, Gegner
-  nach Tier/Rolle, Räume nach Typ, Status-Effekte nach Klasse) - lesbar auch
+  nach Tier/Rolle, Raeume nach Typ, Status-Effekte nach Klasse) - lesbar auch
   ohne Dataview-Plugin.
-- Bugfix: Banner-Kommentar-Regex für Statuseffekt-Synopsen unterstuetzte nur
+- Bugfix: Banner-Kommentar-Regex fuer Statuseffekt-Synopsen unterstuetzte nur
   einzeilige Beschreibungen; shield.gd ist zweizeilig.
 
 ## Erwaehnte Entitaeten

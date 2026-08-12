@@ -1,6 +1,6 @@
 ---
 id: "rice_pudding"
-name: "Überkochter Milchreis"
+name: "Ueberkochter Milchreis"
 subtitle: "Steht seit Dienstag auf dem Herd"
 kind: PASSIVE
 category: DEFENSE
@@ -16,33 +16,51 @@ synergizes_with: []
 tags: [item, "item/passive", "rarity/epic"]
 ---
 
-# Überkochter Milchreis
+# Ueberkochter Milchreis
 
 > *Steht seit Dienstag auf dem Herd*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | DEFENSE |
-| Seltenheit | EPIC |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Baut beim Stillstehen schrittweise einen Schutzschild bis zu maximal 15 % deiner Max-HP auf. Solange das Item ausgerüstet ist, bist du vollkommen immun gegen Säure (`acid`) und sämtliche Boden-Hazards.
 
-## Visueller Effekt (VFX)
-Eine sanfte weiße Schild-Aura umgibt den Spieler beim Stillstehen.
+Stehen bleiben baut einen Schild auf (bis 15 % deiner Maximal-HP). Solange der Schild haelt, bist du komplett immun gegen Saeure und Boden-Hazards.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[stiletto_heels|Mamas Stoeckelschuhe]] – Durch die Immunität gegen Säure (`acid`) und Boden-Hazards kann gefahrlos auf eigenen Säurespuren gestanden werden, um bis zu 15 % Schild aufzubauen.
-- [[acid_boots|Saeurefeste Stiefel]] – Maximale Reduktion und Absicherung gegen jegliche Flächenschaden-Quellen.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Defensive Charaktere und Fernkämpfer, die aus einer sicheren, stationären Position Schaden austeilen möchten.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `rice_pudding` |
+| Kind | PASSIVE |
+| Kategorie | DEFENSE |
+| Rarity | EPIC |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.18 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_RICE_PUDDING`, Variable `rice`)

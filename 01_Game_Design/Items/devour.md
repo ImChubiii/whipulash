@@ -20,30 +20,47 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Nimmt, was uebrig bleibt*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Zieht automatisch Lebensenergie aus besiegten Gegnern ab und regeneriert Gesundheit für den Spieler.
 
-## Visueller Effekt (VFX)
-Ein lila Energiestrahl fließt von der Leiche des besiegten Gegners direkt zum Spieler.
+Passiv: Toetest du einen Gegner, heilst du sofort um einen kleinen Teil deines Maximal-Lebens.
 
 ## Status-Effekte
-Löst keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[vampire_teeth|Plastik-Vampirgebiss]] – Kombiniert die Energieabsorption mit garantierten +0,5 HP Kill-Heals an Status-betroffenen Gegnern.
-- [[executioner_hood|Scharfrichter-Kapuze]] – Ergänzt die Lebensenergie-Absorption um +1 HP Heilung und Raum-Schockwellen bei Betäubungs-Kills.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Karina**: Essenziell für Sustain mitten im gegnerischen Ansturm.
-- **Giselle**: Garantiert konstante Regeneration beim schnellen Durchqueren von Räumen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `devour` |
+| Kind | PASSIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.38 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_DEVOUR`, Variable `devour`)

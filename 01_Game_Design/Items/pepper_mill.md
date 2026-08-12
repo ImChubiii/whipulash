@@ -13,38 +13,54 @@ has_stat_modifiers: false
 status_effects: ["silenced"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic", "applies/silenced"]
+tags: [item, "item/active", "rarity/epic"]
 ---
 
 # Omas Pfeffermuehle
 
 > *Immer zu viel*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | EPIC |
-| Cooldown | 8.0 s |
-
 ## Effekt
-Erzeugt eine dichte Pfefferwolke vor dir. Gegner darin koennen 2 Sekunden lang nicht angreifen (silenced). Zudem verlaengert die Wolke alle aktuell auf den Gegnern aktiven DoT-Effekte (burn, acid) um +3 Sekunden. Cooldown: 8,0 Sekunden.
 
-## Visueller Effekt (VFX)
-Eine aufquellende graue Pulverwolke, begleitet von einer pulsierenden Nies-Aura um betroffene Gegner.
+Erzeugt eine Pfefferwolke: Gegner niesen und koennen 2 s nicht angreifen. Alle laufenden Schaden-ueber-Zeit-Effekte halten 3 s laenger.
 
 ## Status-Effekte
-- [[silenced|Stummgeschaltet (2s)]]
 
-## Synergiert gut mit
-- [[storm_lighter|Sturmfeuerzeug]] – Verlaengert den 3s burn-DoT des Sturmfeuerzeugs um +3s auf insgesamt 6s Brenndauer.
-- [[hand_vacuum|Alter Handstaubsauger]] – Verlaengert den aufgetragenen acid-DoT um +3s.
-- [[boombox|Alte Ghettoblaster-Box]] – Hält Gegner im silenced-Zustand, in dem sie +30 % Nahkampfschaden erleiden.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[winter|Winter]] – Perfekte Ergaenzung für DoT-orientierte Schadens-Builds.
-- [[giselle|Giselle]] – Verlaessliche Nahbereichs-Abwehr.
+- [[silenced]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `pepper_mill` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | EPIC |
+| Cooldown | 8.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.6 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_PEPPER_MILL`, Variable `pepper`)

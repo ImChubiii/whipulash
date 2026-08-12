@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["charm"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare", "applies/confused"]
+tags: [item, "item/active", "rarity/rare"]
 ---
 
 # Spruehdose aus dem Tunnel
 
 > *Kunst ist, was Kunst macht*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | 11.0 s |
-
 ## Effekt
-Sprueht eine dichte Farbnebelwolke aus, die gegnerische Orientierung raubt und sie für 5 Sekunden verwirrt (confused 5s). Verwirrte Gegner erleiden durch Dashes garantierten kritischen Schaden. Cooldown: 11,0 Sekunden.
 
-## Visueller Effekt (VFX)
-Eine aufquellende bunte Neon-Farbwolke in leuchtenden Sprayfarben.
+Huellt die Umgebung in eine Farbwolke: Gegner darin sind 5 s verwirrt und treffen sich gegenseitig.
 
 ## Status-Effekte
-- [[confused|Verwirrt / Orientierungslos (5s)]]
 
-## Synergiert gut mit
-- [[jumper_cables|Papas Starthilfekabel]] – Dash durch verwirrte Gegner verursacht verheerenden kritischen Schaden.
-- [[walkman|Walkman (kaputt)]] – Ergaenzt die Raumkontrolle durch zusätzliche Verwirrung (confused 4s).
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[giselle|Giselle]] – Erzeugt Chaos in Gegnermassen und verschafft wertvolle Zeit.
-- [[winter|Winter]] – Kontrolliert dichte Gegnergruppen im Nahbereich.
+- [[charm]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `graffiti_can` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | 11.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.13 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_GRAFFITI_CAN`, Variable `graffiti`)

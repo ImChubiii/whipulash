@@ -7,27 +7,35 @@ is_damage_over_time: false
 heavy_duration: ""
 synergies: []
 triggered_by_items: ["modem_56k", "car_alarm", "pepper_mill", "megaphone", "boombox", "prowler", "nightfall", "paranoia", "lockdown"]
-tags: [status-effect, type/cc]
+tags: [status-effect]
 ---
 
 # silenced
 
-> *Der Gegner wird stummgeschaltet: Spezialangriffe und Angriffs-Telegraphs werden sofort blockiert.*
+SILENCED — keine Spezialangriffe, keine Telegraphs.
 
 ## Werte
+
 | Feld | Wert |
 |---|---|
-| Dauer | 1.0 s |
-| Typ | Crowd Control |
+| Dauer (Standard) | 1.0 s |
 | Tick-Intervall | — |
-| Schaden pro Tick | — |
-| Damage over Time | Nein |
-| Heavy-Dauer | — |
+| Schaden/Tick | — |
+| Heavy-Variante | — |
 
-## Wirkung
-Silenced unterbricht für 1,0 Sekunde das Ausführen von Spezialangriffen und sperrt die Angriffsführung aller Gegnerklassen. Betroffene Ziele dunkeln optisch ab und können während der Dauer keine gefährlichen Angriffs-Telegraphs starten.
 
-## Ausgeloest von
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `TINT_STRENGTH` | 0.30 |
+
+## Synergien
+
+- —
+
+## Ausgeloest von (Items)
+
 - [[modem_56k]]
 - [[car_alarm]]
 - [[pepper_mill]]
@@ -38,18 +46,25 @@ Silenced unterbricht für 1,0 Sekunde das Ausführen von Spezialangriffen und sp
 - [[paranoia]]
 - [[lockdown]]
 
-## Synergiert mit
-- [[boombox]] (löst Spezialboni aus, wenn das Ziel bereits stummgeschaltet ist)
-- [[stun]] & [[confused]] für eine vollständige Neutralisierung gefährlicher Elite-Gegner
+## Wird abgefragt von (Items, ohne es auszuloesen)
 
-## Alle Status-Effekte
-- [[acid]] — Säure-Schaden über Zeit (DOT)
-- [[burn]] — Feuer-Schaden über Zeit (DOT)
-- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
-- [[confused]] — Zufällige Angriffsrichtung (Crowd Control)
-- [[rooted]] — Bewegungsunfähig (Crowd Control)
-- [[shield]] — Schutzschild für Einheiten (Buff)
-- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
-- [[slow]] — Verlangsamte Bewegung (Crowd Control)
-- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
-- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)
+- [[boombox]] — Effekt greift nur, wenn dieser Status bereits aktiv ist
+
+## Gegner-Interaktion
+
+- Sperrt in `enemy_ai.gd::is_attack_locked()` den Angriff **aller** Gegner ([[fighter]], [[stinger]], [[colossus]]).
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+
+## Laufzeit
+
+Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
+`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
+altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
+`extend_all()`.
+
+## Quelle
+
+`scripts/status_effects/silenced.gd`

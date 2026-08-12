@@ -20,27 +20,49 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Etwas antwortet*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MELEE |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Erfolgreiche Nahkampftreffer haben eine 20 % Chance, einen Rachegeist zu beschwoeren. Der Geist sucht gezielt nach Gegnern, die hinter dir stehen oder sich ausserhalb deiner normalen Nahkampfreichweite befinden.
+
+Nahkampftreffer haben 20 % Chance, einen Rachegeist zu beschwoeren. Er visiert gezielt Gegner an, die hinter dir oder ausserhalb deiner Nahkampf-Reichweite stehen.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[knitting_needles|Omas Stricknadeln]] – Hohe Angriffsgeschwindigkeit erzeugt kontinuierlich neue Rachegeister.
-- [[protein_shake|Proteinshake aus den 90ern]] – Kompensiert die verringerte Reichweite durch suchende Geister.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Bietet hervorragende Absicherung gegen Flankenangriffe im Nahkampf.
-- [[winter|Winter]] – Unterstuetzt Nahkampfattacken durch automatische Zusatzangriffe.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-05_603fc49_feat_massive_gameplay-erweiterung_47_neue_items_ma|2026-08-05 — feat: Massive Gameplay-Erweiterung, 47 neue Items & Main Menu Rework]]
+- [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
+- [[2026-08-04_5d63fe2_featitemscombatlevelgenui_ouija-board_item-reworks|2026-08-04 — feat(items,combat,levelgen,ui): Ouija-Board, Item-Reworks, Last-Stand, Boss-HP-Balken, diverse Bugfixes]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `ouija_board` |
+| Kind | PASSIVE |
+| Kategorie | MELEE |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | — |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_OUIJA_BOARD`, Variable `ouija`)

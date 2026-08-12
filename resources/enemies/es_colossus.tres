@@ -12,3 +12,4 @@ max_per_room = 3
 min_room_height = 20.0
 guaranteed_count = 3
 min_spawn_spacing = 11.0
+is_elite = true

@@ -16,9 +16,9 @@ Secondary/Utility tatsaechlich TUN, ueberschreibt jeder Charakter individuell.
 `_process()` ruft pro Frame zwei ueberschreibbare virtuelle Methoden auf,
 `_poll_primary_input(delta)`/`_poll_secondary_input(delta)` — Standard-
 verhalten: gehaltene Taste feuert erneut, sobald der jeweilige Cooldown
-abgelaufen ist (passt für klassische Nahkampf-/Dauerfeuer-Fähigkeiten wie
+abgelaufen ist (passt fuer klassische Nahkampf-/Dauerfeuer-Faehigkeiten wie
 [[ningning]]s Quick Jab oder [[giselle]]s Uzi Spray unveraendert).
-Fähigkeiten, die nicht ins "gehalten -> feuert" Schema passen, über-
+Faehigkeiten, die nicht ins "gehalten -> feuert" Schema passen, ueber-
 schreiben NUR diese eine Methode statt `_process()` komplett zu duplizieren:
 
 - [[giselle]]s Sniper Burst laedt bei gedrueckter Taste (Kamera-FOV-Zoom) und
@@ -28,9 +28,9 @@ schreiben NUR diese eine Methode statt `_process()` komplett zu duplizieren:
   Energiezelle/Batterie statt eines Timers.
 - [[karina]]s Acid Rush Mode (Primary) und Phantom Execute (Secondary) sind
   reine Halte-/Toggle-Zustaende ohne klassischen Hitbox-Treffer — Primary
-  IST bei ihr die gesamte Fähigkeit, kein zusätzlicher Schlag.
+  IST bei ihr die gesamte Faehigkeit, kein zusaetzlicher Schlag.
 
-WICHTIG für jede Ueberschreibung: `_primary_timer`/`_secondary_timer` werden
+WICHTIG fuer jede Ueberschreibung: `_primary_timer`/`_secondary_timer` werden
 schon WEITER OBEN im selben `_process()`-Durchlauf heruntergezaehlt, bevor die
 Poll-Methoden aufgerufen werden — eine Ueberschreibung darf sie nur LESEN und
 bei Zustandswechseln neu SETZEN, nie ein zweites Mal dekrementieren.
@@ -46,16 +46,16 @@ der Combo und flippt nur bei Zielwechsel.
 ## Dash-Schaden
 
 Reines Durchqueren loest Schaden aus, kein Antippen und kein Davorstehen-
-bleiben — erkannt über den Vorzeichenwechsel der Gegnerposition entlang der
-Dash-Achse (`_dash_along()`), nicht über ein simples `body_entered`.
+bleiben — erkannt ueber den Vorzeichenwechsel der Gegnerposition entlang der
+Dash-Achse (`_dash_along()`), nicht ueber ein simples `body_entered`.
 
 ## Q/E = aktive Item-Slots
 
-Seit "PHASE 5" lösen Q/E IMMER das aktive Item im jeweiligen Slot aus
-(`Items.use_active_item()`), keine charakterspezifischen Fähigkeiten mehr —
+Seit "PHASE 5" loesen Q/E IMMER das aktive Item im jeweiligen Slot aus
+(`Items.use_active_item()`), keine charakterspezifischen Faehigkeiten mehr —
 siehe [[party_manager]]/`item_manager.gd`. Die alten zeitbasierten Cooldown-
 Getter (`get_ability_q_cooldown_percent()`) liefern seitdem die Item-Ladung
-(Räume statt Sekunden), das HUD selbst musste dafuer nicht angefasst werden.
+(Raeume statt Sekunden), das HUD selbst musste dafuer nicht angefasst werden.
 
 ## Verwandt
 

@@ -103,3 +103,39 @@ static func aim_assisted_direction(
 
 	var to_best: Vector3 = ((best.global_position + Vector3.UP) - origin).normalized()
 	return flat_dir.slerp(to_best, strength).normalized()
+
+
+## Bester Gegner in einem Blickkegel: kleinste Winkelabweichung zur reinen
+## Blickrichtung gewinnt, nicht die Distanz - "wer am meisten mittig im
+## Fadenkreuz steht" statt "wer am naechsten dran ist". Gleiche Kandidaten-
+## Suche wie aim_assisted_direction(), gibt aber das Ziel selbst zurueck statt
+## nur eine korrigierte Richtung - fuer echtes Auto-Target (Giselles Uzi-
+## Rework: "nur grob hinschauen, die Waffe erledigt den Rest").
+static func best_target_in_cone(
+		origin: Vector3, dir: Vector3, max_range: float, max_angle_deg: float = 35.0
+) -> Node3D:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or dir.length_squared() < 0.0001:
+		return null
+
+	var flat_dir: Vector3 = dir.normalized()
+	var best: Node3D = null
+	var best_angle: float = deg_to_rad(max_angle_deg)
+
+	for node: Node in tree.get_nodes_in_group("enemies"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		var enemy: Node3D = node as Node3D
+		var to_enemy: Vector3 = (enemy.global_position + Vector3.UP) - origin
+		if to_enemy.length_squared() < 0.0001 or to_enemy.length() > max_range:
+			continue
+		var health: Node = enemy.find_child("Health", true, false)
+		if health == null or not (health is Health) or not (health as Health).is_alive():
+			continue
+
+		var angle: float = flat_dir.angle_to(to_enemy.normalized())
+		if angle < best_angle:
+			best_angle = angle
+			best = enemy
+
+	return best

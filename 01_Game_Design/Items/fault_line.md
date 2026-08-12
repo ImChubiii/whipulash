@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["stun"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/epic", "applies/stun"]
+tags: [item, "item/active", "rarity/epic"]
 ---
 
 # Verwerfungslinie
 
 > *Riss im Boden*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | EPIC |
-| Cooldown | 12.0 s |
-
 ## Effekt
-Erzeugt eine seismische Erschütterungszone in gerader Linie durch den Raum. Alle getroffenen Gegner erleiden Schaden und werden betäubt (`stun`).
 
-## Visueller Effekt (VFX)
-Der Boden reißt auf und hinterlässt gold-braune seismische Spuren entlang der Ausbreitungslinie.
+Ein seismischer Riss laeuft geradeaus vor dir und betaeubt jeden Gegner, den er durchquert.
 
 ## Status-Effekte
-- [[stun|Betaeubt]]
 
-## Synergiert gut mit
-- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den in gerader Linie betäubten (`stun`) Gegnern heilen +1 HP und lösen Schockwellen aus.
-- [[disco_ball|Disco-Kugel-Anhaenger]] – Betäubte (`stun`) Gegner in der Erschütterungszone erleiden +25 % mehr Schaden.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Ermoeglicht das Betaeuben ganzer Gegnergruppen in einer Linie vor dem Nahkampf.
-- [[winter|Winter]] – Stoppt anstuerkende Feinde zuverlaessig auf Distanz.
+- [[stun]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `fault_line` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | EPIC |
+| Cooldown | 12.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.29 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_FAULT_LINE`, Variable `fault_line`)

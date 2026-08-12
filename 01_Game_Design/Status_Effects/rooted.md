@@ -7,44 +7,63 @@ is_damage_over_time: false
 heavy_duration: ""
 synergies: ["_play_vfx"]
 triggered_by_items: ["roof_nail", "super_glue", "whipped_cream", "seize"]
-tags: [status-effect, type/cc]
+tags: [status-effect]
 ---
 
 # rooted
 
-> *Der Gegner wird am Boden festgenagelt und kann sich nicht bewegen, bleibt aber angriffsfähig.*
+ROOTED — festgenagelt. Bewegung gesperrt, Angriffe weiterhin erlaubt.
 
 ## Werte
+
 | Feld | Wert |
 |---|---|
-| Dauer | 1.5 s |
-| Typ | Crowd Control |
+| Dauer (Standard) | 1.5 s |
 | Tick-Intervall | — |
-| Schaden pro Tick | — |
-| Damage over Time | Nein |
-| Heavy-Dauer | — |
+| Schaden/Tick | — |
+| Heavy-Variante | — |
 
-## Wirkung
-Rooted sperrt für 1,5 Sekunden jegliche Fortbewegung des Gegners. Im Gegensatz zu Stun kann der festgenagelte Gegner jedoch weiterhin angreifen, wenn der Spieler in Reichweite steht. Sichtbare Kennzeichen sind eine leichte Abdunklung sowie Staubringe am Boden des Ziels.
 
-## Ausgeloest von
+## Zusatzwerte
+
+| Konstante | Wert |
+|---|---|
+| `TINT_STRENGTH` | 0.30 |
+| `DUST_RING_COUNT` | 2 |
+| `DUST_RING_SPREAD` | 0.45 |
+
+## Synergien
+
+- `_play_vfx()`
+
+## Ausgeloest von (Items)
+
 - [[roof_nail]]
 - [[super_glue]]
 - [[whipped_cream]]
 - [[seize]]
 
-## Synergiert mit
-- Fernkampfwaffen und Distanz-Items, um Feinde außerhalb ihrer Nahkampf-Reichweite festzuheben
-- [[acid]] und [[burn]], um festgehaltene Einheiten in schädlichen Effektzonen zu halten
+## Wird abgefragt von (Items, ohne es auszuloesen)
 
-## Alle Status-Effekte
-- [[acid]] — Säure-Schaden über Zeit (DOT)
-- [[burn]] — Feuer-Schaden über Zeit (DOT)
-- [[charm]] — Gegner kämpfen für den Spieler (Spezial)
-- [[confused]] — Zufällige Angriffsrichtung (Crowd Control)
-- [[rooted]] — Bewegungsunfähig (Crowd Control)
-- [[shield]] — Schutzschild für Einheiten (Buff)
-- [[silenced]] — Angriffe & Spezialfähigkeiten blockiert (Crowd Control)
-- [[slow]] — Verlangsamte Bewegung (Crowd Control)
-- [[stun]] — Vollständige Handlungsunfähigkeit (Crowd Control)
-- [[vulnerable]] — Erhöht erlittenen Schaden (Debuff)
+- —
+
+## Gegner-Interaktion
+
+- Bewusst NICHT in `is_attack_locked()`: `rooted` sperrt nur die Bewegung, nicht den Angriff — Abgrenzung zu `stun`.
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_5d63fe2_featitemscombatlevelgenui_ouija-board_item-reworks|2026-08-04 — feat(items,combat,levelgen,ui): Ouija-Board, Item-Reworks, Last-Stand, Boss-HP-Balken, diverse Bugfixes]]
+- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+- [[2026-08-04_678339b_featdebug_ui_combat_teleporter-system_boss-hp-mult|2026-08-04 — feat(debug, ui, combat): Teleporter-System, Boss-HP-Multi-Targeting, Popup-Positionierung und Despawn-Fixes]]
+
+## Laufzeit
+
+Verwaltet ueber `StatusEffectManager` (`scripts/status_effects/status_effect_manager.gd`).
+`apply_effect()` verlaengert NICHT automatisch — es nimmt das Maximum aus
+altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
+`extend_all()`.
+
+## Quelle
+
+`scripts/status_effects/rooted.gd`

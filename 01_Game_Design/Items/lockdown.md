@@ -13,38 +13,55 @@ has_stat_modifiers: false
 status_effects: ["silenced", "stun"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/legendary", "applies/stun"]
+tags: [item, "item/active", "rarity/legendary"]
 ---
 
 # Lockdown
 
 > *Alles steht still*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | LEGENDARY |
-| Cooldown | 26.0 s |
-
 ## Effekt
-Nach einer langen Ladezeit werden alle Gegner in einem riesigen Radius entwaffnet, eingefroren und raumweit betäubt (`stun`) sowie stumm geschaltet (`silenced`).
 
-## Visueller Effekt (VFX)
-Eine gelbe Säule baut sich auf und erzeugt ein großes transparentes Kuppelfeld über den Raum.
+Nach kurzem Aufladen betaeubt und schaltet eine gewaltige Druckwelle alle Gegner im Raum stumm.
 
 ## Status-Effekte
-- [[stun|Betaeubt (raumweit)]]
-- [[silenced|Stummgeschaltet (raumweit)]]
 
-## Synergiert gut mit
-- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den im Kuppelfeld betäubten (`stun`) Gegnern heilen +1 HP und erzeugen Schockwellen.
-- [[disco_ball|Disco-Kugel-Anhaenger]] – Betäubte (`stun`) Gegner im riesigen Radius erleiden +25 % mehr Schaden.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Verschafft volle Kontrolle im Nahkampfgetuemmel.
-- [[winter|Winter]] – Stoppt den gesamten Raum für ungestoerte Schadensphasen.
+- [[silenced]]
+- [[stun]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `lockdown` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | LEGENDARY |
+| Cooldown | 26.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.45 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_LOCKDOWN`, Variable `lockdown`)

@@ -11,3 +11,4 @@ weight = 2.0
 threat_cost = 4
 max_per_room = 2
 min_spawn_spacing = 5.0
+is_elite = true

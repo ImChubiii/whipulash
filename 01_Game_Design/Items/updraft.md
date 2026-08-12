@@ -20,29 +20,47 @@ tags: [item, "item/active", "rarity/uncommon"]
 
 > *Nach oben, immer nach oben*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | MOVEMENT |
-| Seltenheit | UNCOMMON |
-| Cooldown | 8.0 s |
-
 ## Effekt
-Katapultiert den Spieler extrem hoch in die Luft. Ideal zum Ausweichen, Überqueren von Hindernissen oder Neupositionieren in brenzligen Situationen.
 
-## Visueller Effekt (VFX)
-Weiß-blaue Luftwirbel steigen unter den Füßen des Spielers auf.
+Schleudert dich mit einem starken Aufwind senkrecht nach oben - perfekt, um Abgruende oder Angriffe zu ueberspringen.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[stiletto_heels|Mamas Stoeckelschuhe]] – Katapultiert den Spieler steil nach oben, während am Absprungpunkt Säurepfützen zurückbleiben.
-- [[brimstone_horns|Hoellenfeuer-Hoerner]] – Erlaubt es, nach der vertikalen Landung direkt mit hohem Tempo in Gegner hineinzurammen.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Spieler, die maximale vertikale Mobilität und Flexibilität suchen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `updraft` |
+| Kind | ACTIVE |
+| Kategorie | MOVEMENT |
+| Rarity | UNCOMMON |
+| Cooldown | 8.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.14 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_UPDRAFT`, Variable `updraft`)

@@ -2,18 +2,29 @@
 tags: [moc, devlogs]
 ---
 
-# MOC — Alle DevLogs (78 Commits)
+# MOC — Alle DevLogs (89 Commits)
 
 Jeder Commit in der `main`-Historie dieses Repos, chronologisch nach Monat
 gruppiert (neuester Monat zuerst). Das Dashboard zeigt nur die juengsten 20 —
-diese Seite ist die vollständige Liste.
+diese Seite ist die vollstaendige Liste.
 
-### 2026-08 (23)
+### 2026-08 (34)
 
+- [[2026-08-12_e458c87_docs_add_concrete_godot_implementation_hints_for_c|2026-08-12 — docs: add concrete Godot implementation hints for Claude to all blueprint ideas]]
+- [[2026-08-12_0201145_docs_correct_sequential_numbering_for_schulhof_ite|2026-08-12 — docs: correct sequential numbering for Schulhof items in blueprint]]
+- [[2026-08-12_7e2352c_docs_add_dash_damage_visual_feedback_concept_to_bl|2026-08-12 — docs: add dash damage visual feedback concept to blueprint]]
+- [[2026-08-12_ef1f5c2_docs_adjust_item_table_formatting_for_item_db_comp|2026-08-12 — docs: adjust item table formatting for Item DB compatibility]]
+- [[2026-08-12_892303c_docs_add_crit_damage_visual_feedback_concept_to_bl|2026-08-12 — docs: add crit damage visual feedback concept to blueprint]]
+- [[2026-08-12_a929cc8_docs_fix_encoding_of_newly_added_schulhof_items_in|2026-08-12 — docs: fix encoding of newly added Schulhof items in blueprint]]
+- [[2026-08-12_45f01d1_docs_fix_corrupted_game_design_blueprint_and_appen|2026-08-12 — docs: fix corrupted game design blueprint and append 26 new basis items]]
+- [[2026-08-12_d92384f_docs_fully_restore_05_gedanken_contents_and_re-app|2026-08-12 — docs: fully restore 05_Gedanken contents and re-apply structure]]
+- [[2026-08-12_ed60512_docs_restore_and_track_04_chat_prompts_and_05_geda|2026-08-12 — docs: restore and track 04_Chat_Prompts and 05_Gedanken folders]]
+- [[2026-08-12_c19780a_docswiki_overhaul_of_game_design_docs_item_balance|2026-08-12 — docs(wiki): overhaul of game design docs, item balance & graph view]]
+- [[2026-08-11_0bd63e1_feat_character-specific_combat_kits_for_all_4_hero|2026-08-11 — feat: character-specific combat kits for all 4 heroes + bugfixes]]
 - [[2026-08-11_69742bf_update_room_and_enemy_documentation_to_reflect_san|2026-08-11 — Update room and enemy documentation to reflect sandbox status and new co]]
 - [[2026-08-11_bf671c8_fix_finalize_room_clearance_logic_and_polish_enemy|2026-08-11 — fix: finalize room clearance logic and polish enemy visuals]]
 - [[2026-08-11_4879445_update_documentation_and_ignore_aider_files|2026-08-11 — Update documentation and ignore aider files]]
-- [[2026-08-10_72accca_wiki_vollstaendige_devlog-liste_freitext-verknuepf|2026-08-10 — Wiki: vollständige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt]]
+- [[2026-08-10_72accca_wiki_vollstaendige_devlog-liste_freitext-verknuepf|2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt]]
 - [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
 - [[2026-08-10_5a37c20_obsidian-vault_ins_repo_aufnehmen|2026-08-10 — Obsidian-Vault ins Repo aufnehmen]]
 - [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
@@ -27,7 +38,7 @@ diese Seite ist die vollständige Liste.
 - [[2026-08-05_603fc49_feat_massive_gameplay-erweiterung_47_neue_items_ma|2026-08-05 — feat: Massive Gameplay-Erweiterung, 47 neue Items & Main Menu Rework]]
 - [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
 - [[2026-08-04_5d63fe2_featitemscombatlevelgenui_ouija-board_item-reworks|2026-08-04 — feat(items,combat,levelgen,ui): Ouija-Board, Item-Reworks, Last-Stand, Boss-HP-Balken, diverse Bugfixes]]
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Räume, Etagen-Progression]]
+- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
 - [[2026-08-04_7e551ae_add_run_management_exportbat_and_remove_legacy_exp|2026-08-04 — Add run_management_export.bat and remove legacy exporters]]
 - [[2026-08-04_678339b_featdebug_ui_combat_teleporter-system_boss-hp-mult|2026-08-04 — feat(debug, ui, combat): Teleporter-System, Boss-HP-Multi-Targeting, Popup-Positionierung und Despawn-Fixes]]
 - [[2026-08-01_336b15e_fix_kamera-drill_zurueckgesetzt_motion-blur-featur|2026-08-01 — Fix Kamera-Drill zurückgesetzt, Motion-Blur-Feature verworfen]]

@@ -20,30 +20,48 @@ tags: [item, "item/active", "rarity/rare"]
 
 > *Neu wuerfeln kostet dich etwas*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | 10 s |
-
 ## Effekt
-Wandelt saemtliche im aktuellen Raum herumliegenden Beute-Drops sofort in zufaellige andere Drops um. Loest keine Status-Effekte aus. Cooldown: 10 Sekunden.
 
-## Visueller Effekt (VFX)
-Gelbe Funkenspruehe (`SPARK_YELLOW`), die exakt auf den Positionen der umgewandelten Drops aufleuchten.
+Wandelt alle herumliegenden Drops im Raum in zufaellige andere Drops um.
 
 ## Status-Effekte
-Loest keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[golden_credit_card|Goldene Kreditkarte]] – Wandelt unbenoetigte Drops in Muenzen um, um den Schadensbonus (+2 % pro 10 Coins, max. +50 %) gezielt aufzubauen.
-- [[nun_habit|Nonnen-Kutte]] – Erleidet der Spieler Schaden, besteht eine 25 % Chance, den 10s Cooldown des Wuerfels sofort zu resetten.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Giselle**: Maximiert Beuteeffizienz und Item-Glueck im Run.
-- **Ningning**: Hilft unpassende Drops in wertvollere Ressourcen umzuwandeln.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
+- [[2026-08-04_5d63fe2_featitemscombatlevelgenui_ouija-board_item-reworks|2026-08-04 — feat(items,combat,levelgen,ui): Ouija-Board, Item-Reworks, Last-Stand, Boss-HP-Balken, diverse Bugfixes]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `cursed_die` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | 10.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.4 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_CURSED_DIE`, Variable `cursed`)

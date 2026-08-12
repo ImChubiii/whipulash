@@ -20,29 +20,47 @@ tags: [item, "item/active", "rarity/legendary"]
 
 > *Grosses Finale*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | LEGENDARY |
-| Cooldown | 20.0 s |
-
 ## Effekt
-Feuert eine gewaltige Salve ab, die massiven Flächenschaden verursacht und alle getroffenen Gegner mit extremem Knockback fortschleudert.
 
-## Visueller Effekt (VFX)
-Ein riesiger Raketenwerfer wird abgefeuert, der eine feurige Rauchspur hinterlässt.
+Feuert eine gewaltige Rakete geradeaus ab, die bei Einschlag massiven Flaechenschaden und starken Rueckstoss verursacht.
 
 ## Status-Effekte
-Loest keine aus.
 
-## Synergiert gut mit
-- [[super_glue|Ausgelaufener Sekundenkleber]] – Fixiert Gegnergruppen 2s lang an Ort und Stelle für maximale Treffersicherheit der Rakete.
-- [[stim_beacon|Stim-Beacon]] – Erhoeht Angriffs- und Bewegungstempo zur optimalen Ausrichtung des massiven Raketenschusses.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Burst-Damage-Builds und Damage-Dealer, die ganze Gegnergruppen mit einem Schlag auslöschen möchten.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `showstopper` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | LEGENDARY |
+| Cooldown | 20.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.21 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_SHOWSTOPPER`, Variable `showstopper`)

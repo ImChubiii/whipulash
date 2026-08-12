@@ -20,30 +20,47 @@ tags: [item, "item/passive", "rarity/rare"]
 
 > *Zwei rechts, eine durch*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | MELEE |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Erhoeht die Angriffsgeschwindigkeit permanent um +10 %. Kritische Treffer durchdringen gegnerische Ruestung vollständig. Zudem wird die Ausloesechance für Blutungseffekte (bleed) von 30 % auf 50 % angehoben.
 
-## Visueller Effekt (VFX)
-Schnelle, silberne Nadelstich-Spuren bei jedem Angriff und ein metallischer Ruestungsbrecher-Effekt bei kritischen Treffern.
++10 % Angriffsgeschwindigkeit, kritische Treffer ignorieren Ruestung. Die Blutungs-Chance im Nahkampf steigt von 30 % auf 50 %.
 
 ## Status-Effekte
-Loest keine eigenen Status-Effekte aus (erhoeht Blutungschance von 30 % auf 50 %).
 
-## Synergiert gut mit
-- [[modem_56k|Altes Modulations-Modem]] – +10 % Angriffsgeschwindigkeit hilft dabei, den 10. Schlag für Stummschaltung rascher auszufuehren.
-- [[blood_pact|Das Blutpakt]] – Skaliert die erhoehte Angriffsgeschwindigkeit mit dem +40 % Schadensbonus.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Absoluter Pflichtkauf für aggressive Nahkampf-Builds.
-- [[winter|Winter]] – Verstaerkt Nahkampfangriffe durch Ruestungsbypass.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- [[rusty_cleaver]] — *Rostiges Beil*
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `knitting_needles` |
+| Kind | PASSIVE |
+| Kategorie | MELEE |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.22 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_KNITTING_NEEDLES`, Variable `needles`)

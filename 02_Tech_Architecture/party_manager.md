@@ -41,11 +41,11 @@ Zeiger. Damit ist `player == null` → `false`, aber `is_instance_valid(player)`
 (`register_spawn_point()`, `setup_party()`, `_spawn_active_character()`
 pruefen alle auf `player == null`).
 
-Nach jedem Neustart hielt `PartyManager` also eine "Leiche", hielt sich für
+Nach jedem Neustart hielt `PartyManager` also eine "Leiche", hielt sich fuer
 bereits bespielt und spawnte keinen neuen Charakter — sichtbar als "Bild baut
 sich neu auf, aber man kann sich nicht bewegen".
 
-**Fix:** Jede Lebend-Pruefung laeuft jetzt über `has_player()` bzw.
+**Fix:** Jede Lebend-Pruefung laeuft jetzt ueber `has_player()` bzw.
 `is_instance_valid()`. `notify_scene_reset()` raeumt vor einem Szenenwechsel
 bewusst auf (aufgerufen aus `run_restart.gd`, dem einzigen Neustart-Pfad).
 

@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/epic"]
 
 > *RUHE JETZT*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | MELEE |
-| Seltenheit | EPIC |
-| Cooldown | 5.0 s |
-
 ## Effekt
-Stoesst einen lautstarken Schrei ab, der gegnerische Aktionen unterbricht, Schaden verursacht und Ziele stummschaltet (silenced). Gegen bereits betaeubte (stunned) Gegner richtet der Schrei 3x Schaden (dreifachen Schaden) an. Cooldown: 5,0 Sekunden.
 
-## Visueller Effekt (VFX)
-Ein sich nach vorne oeffnender oranger Schallkegel mit Druckwellen-Visualisierung.
+Ein Schrei nach vorn unterbricht Gegner und verursacht Schaden. Gegen bereits betaeubte Gegner dreifacher Schaden.
 
 ## Status-Effekte
-- [[silenced|Stummgeschaltet]]
 
-## Synergiert gut mit
-- [[jumper_cables|Papas Starthilfekabel]] – Dash betaeubt Gegner (stun 2s), woraufhin das Megafon 3x Schaden anrichtet.
-- [[modem_56k|Altes Modulations-Modem]] – Ergaenzt Stummschaltung (silenced) und profitiert von Betaeuerungskombos.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[karina|Karina]] – Perfekt für Nahkämpfer mit Betaeuerungskombinationen.
-- [[winter|Winter]] – Stoert gegnerische Angriffe im Nahbereich verlaesslich.
+- [[silenced]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `megaphone` |
+| Kind | ACTIVE |
+| Kategorie | MELEE |
+| Rarity | EPIC |
+| Cooldown | 5.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.8 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_MEGAPHONE`, Variable `megaphone`)

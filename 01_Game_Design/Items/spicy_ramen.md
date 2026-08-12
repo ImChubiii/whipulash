@@ -13,36 +13,54 @@ has_stat_modifiers: false
 status_effects: ["burn"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare", "applies/burn"]
+tags: [item, "item/active", "rarity/rare"]
 ---
 
 # Scharfe Instant-Nudeln
 
 > *Achtung: wirklich scharf*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | MELEE |
-| Seltenheit | RARE |
-| Cooldown | 9.0 s |
-
 ## Effekt
-Spuckt für 2,5 Sekunden einen breiten Flammenkegel aus, der gegnerische Angriffs-Telegraphs sofort abbricht und getroffene Feinde 4 Sekunden lang brennen lässt (burn 4s DoT). Wandelt Saeurelachen (acid) bei Kontakt sofort in eine verheerende Explosion um. Cooldown: 9,0 Sekunden.
 
-## Visueller Effekt (VFX)
-Ein flackernder oranger Flammenkegel, der sich faecherfoermig vor dem Spieler ausdehnt.
+Speit einen breiten Flammenkegel, der Telegraphs sofort abbricht und Gegner 4 s lang brennen laesst.
 
 ## Status-Effekte
-- [[burn|Brennen (4s DoT)]]
 
-## Synergiert gut mit
-- [[hand_vacuum|Alter Handstaubsauger]] / [[chili_oil|Omas Scharfes Chili-Oel]] – Liefert Saeurelachen (acid), die bei Flammenkontakt explodieren.
-- [[whipped_cream|Spruehsahne-Dose]] – Loescht den 4s burn-DoT für massiven Detonationsschaden.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Aggressive Nahkämpfer, die gegnerische Angriffe direkt im Keim ersticken wollen.
+- [[burn]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `spicy_ramen` |
+| Kind | ACTIVE |
+| Kategorie | MELEE |
+| Rarity | RARE |
+| Cooldown | 9.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.11 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_SPICY_RAMEN`, Variable `ramen`)

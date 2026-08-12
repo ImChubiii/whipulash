@@ -13,37 +13,54 @@ has_stat_modifiers: false
 status_effects: ["burn"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/active", "rarity/rare", "applies/burn"]
+tags: [item, "item/active", "rarity/rare"]
 ---
 
 # Brandsatz
 
 > *Alles brennt lichterloh*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | 10.0 s |
-
 ## Effekt
-Wirft eine Granate ab, die bei Detonation ein brennendes Napalm-Feld am Boden erzeugt. Wendet den Status-Effekt Brand (`burn` DoT) auf alle Gegner im Wirkungsbereich an.
 
-## Visueller Effekt (VFX)
-Ein feuriges rot-gelbes Flammenfeld breitet sich am Boden aus.
+Legt ein Napalm-Feld vor dir ab, das Gegner darin kontinuierlich verbrennt.
 
 ## Status-Effekte
-- [[burn|Brennen (DoT)]]
 
-## Synergiert gut mit
-- [[vampire_teeth|Plastik-Vampirgebiss]] – Kills an im Napalm-Feld brennenden (`burn`) Gegnern gewähren +0,5 HP Heilung und verlängern Buffs um 1s.
-- [[super_glue|Ausgelaufener Sekundenkleber]] – Fixiert Gegner 2s lang im Napalm-Feld für maximalen Brandschaden.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- [[winter|Winter]] – Grossartiges Area-Control-Werkzeug.
-- [[ningning|Ningning]] – Schafft Gefahrenzonen zur Kontrolle von Gegnerwellen.
+- [[burn]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `incendiary` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | 10.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.35 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_INCENDIARY`, Variable `incendiary`)

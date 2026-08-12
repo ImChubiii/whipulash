@@ -241,6 +241,22 @@ const NEEDLES_ARMOR_PIERCE: float = 1.0
 const NEEDLES_CRIT_CHANCE: float = 0.20
 const NEEDLES_CRIT_MULTIPLIER: float = 1.6
 
+# --- Schulhof-Items (Nr. 84-93) ---
+## Leere Energy-Dose: kurzer Tempo-Boost NACH dem Dashen (nicht waehrend).
+const ENERGY_CAN_BUFF_DURATION: float = 1.5
+const ENERGY_CAN_SPEED_MULTIPLIER: float = 1.2
+
+## Verheddertes Jo-Jo: Schuesse auf grosse Distanz machen mehr Schaden.
+## Feste Distanzschwelle statt der tatsaechlichen Waffenreichweite - es gibt
+## keine einheitliche "max range" pro Waffe im Projekt, ein fester Wert in
+## der Groessenordnung eines Raums approximiert "fast am Limit" gut genug.
+const YOYO_RANGE_THRESHOLD: float = 12.0
+const YOYO_DAMAGE_BONUS: float = 0.30
+
+## Zerbrochener Bleistift: Risiko-Mechanik bei Gegentreffern.
+const PENCIL_DROP_LOSS_CHANCE: float = 0.10
+const PENCIL_DROP_LOSS_AMOUNT: int = 1
+
 # --- P16. Teufelchen-Outfit ---
 const DEVIL_HEALTH_THRESHOLD: float = 0.50
 const DEVIL_DAMAGE_MULTIPLIER: float = 1.50
@@ -668,6 +684,13 @@ func _stats() -> PlayerStats:
 	return _items.stats as PlayerStats
 
 
+func _combat() -> CombatBase:
+	var player: CharacterBody3D = _player()
+	if player == null:
+		return null
+	return player.get_node_or_null("Combat") as CombatBase
+
+
 func _health_of(enemy: Node) -> Health:
 	if enemy == null or not is_instance_valid(enemy):
 		return null
@@ -919,6 +942,10 @@ func _on_player_ready(player: CharacterBody3D) -> void:
 		if not _player_health.health_changed.is_connected(_on_player_health_changed):
 			_player_health.health_changed.connect(_on_player_health_changed)
 
+	var combat: CombatBase = player.get_node_or_null("Combat") as CombatBase
+	if combat != null and not combat.dash_ended.is_connected(_on_dash_ended):
+		combat.dash_ended.connect(_on_dash_ended)
+
 	_scaled_hitboxes.clear()
 	# Der Laserstrahl haengt am alten Spieler und ist nach dem Wechsel
 	# ungueltig — sonst zeigt er ins Leere.
@@ -956,6 +983,19 @@ func _on_item_added(item: ItemData) -> void:
 	if item != null and item.id == ItemCatalog.ID_PROTEIN_SHAKE:
 		_flash_player(FLASH_GREEN)
 		_apply_protein_shake_mesh_scale()
+
+
+## Leere Energy-Dose: kurzer Tempo-Boost nach JEDEM Dash, egal ob getroffen.
+func _on_dash_ended() -> void:
+	if not _has(ItemCatalog.ID_EMPTY_ENERGY_CAN):
+		return
+	var stats: PlayerStats = _stats()
+	if stats == null:
+		return
+	stats.add_timed_modifier(
+		"buff:empty_energy_can", PlayerStats.STAT_MOVE_SPEED,
+		ENERGY_CAN_BUFF_DURATION, 0.0, ENERGY_CAN_SPEED_MULTIPLIER
+	)
 
 
 func _on_room_cleared(_room: Node) -> void:
@@ -1146,6 +1186,14 @@ func _on_player_hit_enemy(target: Node3D, hitbox: Hitbox) -> void:
 		var vuln_bonus: float = base_damage * StatusEffectBase.magnitude_of(target, "vulnerable")
 		health.take_damage(vuln_bonus, _player())
 		_spawn_item_damage_number(target, vuln_bonus)
+
+	# Nr. 90 Verheddertes Jo-Jo: Bonus-Schaden auf grosse Distanz.
+	if _has(ItemCatalog.ID_TANGLED_YOYO) and health != null and health.is_alive():
+		var yoyo_player: CharacterBody3D = _player()
+		if yoyo_player != null and yoyo_player.global_position.distance_to(target.global_position) >= YOYO_RANGE_THRESHOLD:
+			var yoyo_bonus: float = base_damage * YOYO_DAMAGE_BONUS
+			health.take_damage(yoyo_bonus, yoyo_player)
+			_spawn_item_damage_number(target, yoyo_bonus)
 
 	if was_kill:
 		if _has(ItemCatalog.ID_PLASTIC_HALO):
@@ -1600,6 +1648,14 @@ func _on_player_damaged(amount: float, source: Node3D) -> void:
 	# --- P49. Riesige Kaugummiblase: Blase platzt und verlangsamt -------
 	if _has(ItemCatalog.ID_BUBBLE_GUM) and _bubble_charge > 0.0:
 		_pop_bubble_gum()
+
+	# --- Nr. 91. Zerbrochener Bleistift: Risiko bei Gegentreffern --------
+	# "Drops" = die laufende Run-Waehrung (Items.coins), NICHT die
+	# persistente Meta-Waehrung aus der Hub-Progression - die wird nur bei
+	# Runde-Ende ausgezahlt, ein Treffer mitten im Run kann sie nicht kosten.
+	if _has(ItemCatalog.ID_BROKEN_PENCIL) and randf() < PENCIL_DROP_LOSS_CHANCE:
+		if _items.spend_coins(PENCIL_DROP_LOSS_AMOUNT):
+			_flash_player(FLASH_WHITE)
 
 	_refresh_devil_outfit()
 

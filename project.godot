@@ -39,6 +39,8 @@ Stages="*uid://buqywesge6fy4"
 GameStats="*res://scripts/game_stats.gd"
 ItemTestRoom="*res://scripts/item_test_room.gd"
 EnemySandboxRoom="*res://scripts/enemy_sandbox_room.gd"
+SaveGame="*res://scripts/save_game_manager.gd"
+HubRoom="*res://scripts/hub_room.gd"
 
 [display]
 

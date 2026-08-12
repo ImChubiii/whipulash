@@ -13,36 +13,54 @@ has_stat_modifiers: false
 status_effects: ["rooted"]
 reacts_to_status: []
 synergizes_with: []
-tags: [item, "item/passive", "rarity/rare", "applies/rooted"]
+tags: [item, "item/passive", "rarity/rare"]
 ---
 
 # Ausgelaufener Sekundenkleber
 
 > *Finger weg. Zu spaet.*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | PASSIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | Passiv - kein Cooldown |
-
 ## Effekt
-Kills hinterlassen eine klebrige Stelle am Boden, die nachfolgende Gegner für 2 Sekunden festnagelt (`rooted` 2s).
 
-## Visueller Effekt (VFX)
-Am Ort des besiegten Gegners erscheint ein klebriger weißer Fleck am Boden.
+Kills hinterlassen eine klebrige Stelle am Boden, die nachfolgende Gegner festnagelt.
 
 ## Status-Effekte
-- [[rooted|Festgenagelt (2s)]]
 
-## Synergiert gut mit
-- [[executioner_hood|Scharfrichter-Kapuze]] – Kills an den für 2 Sekunden festgenagelten (`rooted`) Gegnern heilen +1 HP und erzeugen Schockwellen.
-- [[copper_wire|Kupferdraht-Spule]] – Ein Dash durch die für 2s festgenagelten Gegner entzündet diese sofort (`burn` DoT).
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-Crowd-Control-Spezialisten, die eng verschachtelte Räume kontrollieren wollen.
+- [[rooted]]
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `super_glue` |
+| Kind | PASSIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | — |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 2.34 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_SUPER_GLUE`, Variable `glue`)

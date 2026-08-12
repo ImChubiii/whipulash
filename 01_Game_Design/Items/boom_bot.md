@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/rare"]
 
 > *Rollt, dann kracht's*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | 9 s |
-
 ## Effekt
-Fährt geradlinig nach vorne, prallt realistisch an Wänden ab und explodiert bei feindlichem Gegner-Kontakt.
 
-## Visueller Effekt (VFX)
-Ein kleiner, bunter Schrott-Roboter rollt über das Spielfeld.
+Entsendet einen kleinen Bot, der zum naechsten Gegner rollt und explodiert.
 
 ## Status-Effekte
-Löst keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[alarmbot|Alarm-Bot]] – Zielverdopplung des Schadens verstärkt die Kontaktexplosion des Boom-Bots um das Zweifache (Doppel-Schaden).
-- [[super_glue|Ausgelaufener Sekundenkleber]] – Hält Gegner 2s fest, damit der Boom-Bot verlässlich sein Ziel trifft.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Winter**: Ermöglicht Schaden um Ecken und aus sicherer Deckung heraus.
-- **Ningning**: Hilft beim Säubern von Räumen ohne Eigenrisiko.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `boom_bot` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | 9.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.19 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_BOOM_BOT`, Variable `boom_bot`)

@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/legendary"]
 
 > *Fuenffacher Schnitt*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | MELEE |
-| Seltenheit | LEGENDARY |
-| Cooldown | 14 s |
-
 ## Effekt
-Rüstet präzise Fernkampf-Waffen aus. Erzielte Kills laden das Item sofort wieder vollständig auf (Reset der 14s Abklingzeit).
 
-## Visueller Effekt (VFX)
-5 cyanblaue schwebende Dolche umkreisen den Spieler vor dem Abschuss.
+Wirft fuenf Klingen im Faecher; ein Kill mit diesem Wurf laedt das Item sofort komplett neu auf.
 
 ## Status-Effekte
-Löst keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[protein_shake|Proteinshake aus den 90ern]] – Erhöht den Schaden der Klingen um +25 %.
-- [[empress|Kaiserin]] – Verleiht hohes Bewegungstempo für präzises Anvisieren, während Kills den Reset der 14s Abklingzeit auslösen.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Giselle**: Hoher Schaden und kontinuierliches Reset-Potenzial bei präzisen Treffern.
-- **Karina**: Perfekt für aggressives Hineinspringen und sofortiges Auslöschen geschwächter Gegnergruppen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- —
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `blade_storm` |
+| Kind | ACTIVE |
+| Kategorie | MELEE |
+| Rarity | LEGENDARY |
+| Cooldown | 14.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.15 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_BLADE_STORM`, Variable `blade_storm`)

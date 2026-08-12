@@ -416,6 +416,54 @@ var _slide_cooldown: float = 0.0
 @export var knockback_friction: float = 10.0
 var _knockback_velocity: Vector3 = Vector3.ZERO
 
+# --- Stagger fuer schwere Gegner (Colossus) ---------------------------------
+# is_heavy blockt normalen Knockback komplett (siehe primary_hitbox.gd,
+# combat_base.gd, bomb.gd - die pruefen "is_heavy" VOR jedem apply_knockback-
+# Aufruf). Volle Immunitaet war im Nahkampf gegen schwere Gegner frustrierend
+# ohne Gegenspiel. Stagger ersetzt das NICHT durch normalen Knockback, sondern
+# durch ein Haltung-bricht-System: erst nach mehreren schnellen Treffern in
+# Folge gibt der Gegner kurz nach. apply_knockback() selbst prueft nur
+# "rooted", nicht is_heavy - ein Aufruf von HIER (statt von aussen) ist also
+# gueltig, ohne dass is_heavy einen Sonderfall/Bypass-Flag braucht.
+const STAGGER_HIT_THRESHOLD: int = 5
+const STAGGER_WINDOW: float = 1.2
+const STAGGER_STUN_DURATION: float = 2.0
+const STAGGER_KNOCKBACK_FORCE: float = 9.0
+
+var _stagger_hits: int = 0
+var _stagger_reset_timer: Timer
+
+func _on_damage_taken_for_stagger(amount: float, source: Node3D) -> void:
+	if amount <= 0.0 or _is_dead:
+		return
+	_stagger_hits += 1
+	if _stagger_reset_timer:
+		_stagger_reset_timer.start(STAGGER_WINDOW)
+	if _stagger_hits >= STAGGER_HIT_THRESHOLD:
+		_trigger_stagger(source)
+
+
+func _on_stagger_window_expired() -> void:
+	_stagger_hits = 0
+
+
+## Haltung bricht: kurzer Stun plus ein einmaliger Rueckstoss weg von der
+## Schadensquelle - trotz is_heavy, siehe Kommentar oben.
+func _trigger_stagger(source: Node3D) -> void:
+	_stagger_hits = 0
+	if _stagger_reset_timer:
+		_stagger_reset_timer.stop()
+	apply_stun(STAGGER_STUN_DURATION)
+
+	var push_dir: Vector3 = -global_transform.basis.z
+	if source is Node3D and is_instance_valid(source):
+		var away: Vector3 = global_position - source.global_position
+		away.y = 0.0
+		if away.length() > 0.01:
+			push_dir = away.normalized()
+	apply_knockback(push_dir * STAGGER_KNOCKBACK_FORCE + Vector3.UP * 2.0)
+
+
 func apply_knockback(impulse: Vector3) -> void:
 	# ITEM-REWORK Rostiger Dachnagel: "festgenagelt" soll auch Knockback
 	# vollstaendig blockieren, nicht nur Eigenbewegung - sonst liesse sich
@@ -962,6 +1010,12 @@ func _ready() -> void:
 		health.died.connect(_on_died)
 		health.health_changed.connect(_on_health_changed)
 		_on_health_changed(health.current_health, health.max_health)
+		if is_heavy:
+			health.damage_taken.connect(_on_damage_taken_for_stagger)
+			_stagger_reset_timer = Timer.new()
+			_stagger_reset_timer.one_shot = true
+			_stagger_reset_timer.timeout.connect(_on_stagger_window_expired)
+			add_child(_stagger_reset_timer)
 
 ## Sucht das sichtbare Modell, blendet die beiden ungenutzten Roboter aus und
 ## legt auf JEDE Surface ein eigenes PSX-ShaderMaterial.

@@ -13,6 +13,10 @@ signal hit_landed(target: Node)
 @export var damage_number_scene: PackedScene
 @export var debug_logging: bool = false
 
+## Kritische Treffer: nur Spieler-Hitboxen wuerfeln (siehe _is_player_attack),
+## sonst wuerden Gegner-Treffer versehentlich denselben Roll bekommen.
+const CRIT_DAMAGE_MULTIPLIER: float = 1.5
+
 # --- VFX ---
 ## Effekt beim Aktivieren der Hitbox (Schlag-Trail / Swoosh).
 @export var swing_vfx: PackedScene
@@ -107,8 +111,20 @@ func _on_body_entered(body: Node3D) -> void:
 	_debug("  -> TREFFER BESTÄTIGT. Schaden=%.1f, stun_duration=%.2f, status_effect_id='%s'" % [damage, stun_duration, status_effect_id])
 
 	_already_hit.append(body)
-	health.take_damage(damage, owner)
+
+	var final_damage: float = damage
+	var is_crit: bool = false
+	if _is_player_attack() and Items.stats != null:
+		var crit_chance: float = Items.stats.get_stat(PlayerStats.STAT_CRIT_CHANCE)
+		if crit_chance > 0.0 and randf() < crit_chance:
+			is_crit = true
+			final_damage *= CRIT_DAMAGE_MULTIPLIER
+
+	health.take_damage(final_damage, owner)
 	hit_landed.emit(body)
+
+	if is_crit:
+		Juice.hit_stop_light()
 
 	if stun_duration > 0.0 and body.has_method("apply_stun"):
 		body.apply_stun(stun_duration)
@@ -142,7 +158,7 @@ func _on_body_entered(body: Node3D) -> void:
 				body.velocity += impulse
 				_debug("  -> Knockback %.1f (Fallback: direkt auf velocity) auf '%s' angewendet" % [knockback_force, body.name])
 
-	_spawn_damage_number(body)
+	_spawn_damage_number(body, final_damage, is_crit)
 
 
 func _on_hit_landed_vfx(target: Node) -> void:
@@ -190,7 +206,15 @@ func _resolve_attacker_colors() -> Variant:
 	return [data.attack_color, data.attack_color_secondary]
 
 
-func _spawn_damage_number(body: Node3D) -> void:
+## true, wenn diese Hitbox gerade fuer den aktiven Spieler zuschlaegt - siehe
+## _resolve_attacker_colors() weiter oben, gleiches Prinzip (owner ist die
+## Charakter-Wurzel dank Godots automatischer Node.owner-Zuweisung).
+func _is_player_attack() -> bool:
+	return owner != null and is_instance_valid(owner) \
+		and PartyManager.has_player() and owner == PartyManager.player
+
+
+func _spawn_damage_number(body: Node3D, amount: float, is_crit: bool = false) -> void:
 	if not damage_number_scene:
 		push_warning("Hitbox: damage_number_scene ist NICHT gesetzt im Inspector!")
 		return
@@ -198,4 +222,4 @@ func _spawn_damage_number(body: Node3D) -> void:
 	var number := damage_number_scene.instantiate()
 	get_tree().current_scene.add_child(number)
 	number.global_position = body.global_position + Vector3(0, 1.8, 0)
-	number.show_damage(damage)
+	number.show_damage(amount, is_crit)

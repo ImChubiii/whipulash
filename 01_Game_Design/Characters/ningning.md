@@ -1,72 +1,64 @@
 ---
 id: "ningning"
 display_name: "Ningning"
+alternative_names: []
 name_primary: "Quick Jab"
+alternative_names_primary: []
 name_secondary: "Heavy Haymaker"
+alternative_names_secondary: []
 speed: 19.5
 max_health: 125.0
 primary_cooldown: 0.18
 secondary_cooldown: 3.0
-tags: [character, role/melee, difficulty/beginner]
+tags: [character]
 ---
 
 # Ningning
 
-> *Eine flinke Nahkämpferin, die Gegner mit schnellen Schlägen im Stunlock hält und mit wuchtigen Finishern wegstößt.*
+## Basiswerte
 
-## Übersicht
-| Feld | Wert |
-|---|---|
-| Rolle | Nahkaempferin |
-| Spielstil | Immer mitten im Geschehen! Halte Gegner in Combos gefangen und beende sie mit massiven Schlägen. |
-| Schwierigkeit | Anfaenger |
-| Move-Speed | 19.5 |
-| Max. HP | 125.0 |
-| Primaer | Quick Jab (Cooldown: 0.18s) |
-| Sekundaer | Heavy Haymaker (Cooldown: 3.0s) |
-
-## Fähigkeiten
-
-### Quick Jab
-**Wie benutzen:** LMB druecken
-Ein blitzschneller Nahkampfschlag, der deine Feinde in einem Stunlock (Betäubung) festhält. Perfekt, um eine ununterbrochene Kombo aufzubauen.
-
-### Heavy Haymaker
-**Wie benutzen:** RMB druecken
-Ein extrem wuchtiger Schlag, der sich kurz auflädt und dann massiven Schaden austeilt. Er trifft in einem großen Bereich und schleudert Feinde durch den starken Knockback-Effekt weit zurück.
-
-### ⚡ Dash
-Kurze Ausweichrolle — druecke Shift. Kein Cooldown-Timer, aber kurze Animationsdauer. Unvermeidbar-Frames waehrend des Dashens.
-
-## Balancing auf einen Blick
 | Wert | Betrag |
 |---|---|
-| Primaer Cooldown | 0.18s |
-| Sekundaer Cooldown | 3.0s |
+| Move-Speed | 19.5 |
+| Max. HP | 125.0 |
+| Primary-Basis-Cooldown | 0.18 s |
+| Secondary-Basis-Cooldown | 3.0 s |
 
-## Tipps & Tricks
-- **Unterbreche Gegner**: Nutze den Quick Jab, um gefährliche Gegner wie Stinger zu unterbrechen und wehrlos zu machen.
-- **Timing ist alles**: Der Heavy Haymaker braucht etwas Vorbereitungszeit (Windup). Plane den Schlag gut ein, um nicht getroffen zu werden!
-- **Nahkampf-Vorteil**: Mit hohem Speed und guten HP bist du der perfekte Allrounder für direkte Konfrontationen.
-- **Synergiert mit Gegnern**: Fighter sind leicht im Stunlock zu halten.
+## Mechanik
 
-## Empfohlene Items
-> Empfehlungen basieren auf dem Spielstil — nur Items aus der 84er-Liste verwenden!
+**Quick Jab (Primary):** sehr schneller, schwacher Nahkampf-Schlag mit minimalem Cooldown - haelt Gegner im Stunlock, unveraendertes Standardverhalten aus `combat_base.gd::_perform_primary()` (kurzer Hitbox-Puls). **Heavy Haymaker (Secondary):** wuchtiger Schlag mit sichtbarem Windup-Telegraph vor der Hitbox-Aktivierung, groessere Hitbox/Reichweite, Knockback, deutlich laengerer Cooldown - Combo-Finisher.
 
-- [[blood_pact|Blood Pact]] — Gewaehrt +40% Schaden, perfekt für Nahkaempfe.
-- [[devil_outfit|Devil Outfit]] — Wenn du unter 50% HP faellst, kriegst du +50% Schaden.
-- [[wooden_spoon|Wooden Spoon]] — Jeder Treffer gibt dir zusätzlich Speed und Unverwundbarkeit.
-- [[static_sock|Static Sock]] — Dein 6. Treffer loest eine starke Schockwelle aus.
-- [[executioner_hood|Executioner Hood]] — Ein Kill bei einem gestunnten oder gerooteten Gegner heilt dich.
-- [[jumper_cables|Jumper Cables]] — Dein Dash loest zusätzlich einen Stun aus.
+## Balancing
 
-## Gut gegen diese Gegner
-- [[fighter|Fighter]] — Bleiben leicht im Stunlock des Quick Jabs stecken.
-- [[stinger|Stinger]] — Koennen gut mit dem Dash umgangen und dann im Nahkampf zerstoert werden.
-- [[colossus|Colossus]] — Heavy Haymaker hilft, Abstand zu gewinnen.
+| Wert | Betrag |
+|---|---|
+| Quick Jab - Schaden | 10 |
+| Quick Jab - Cooldown | 0.18 s (Combo-Reduktion bis 50%) |
+| Heavy Haymaker - Schaden | 30 |
+| Heavy Haymaker - Knockback | 12 |
+| Heavy Haymaker - Windup | 0.35 s |
+| Heavy Haymaker - Cooldown | 3.0 s |
 
-## Alle Charaktere
-[[ningning|Ningning]] . [[giselle|Giselle]] . [[karina|Karina]] . [[winter|Winter]]
+## Verwandt
 
-## Schnellnavigation
-[[_MOC_Items|Items]] . [[_MOC_Enemies|Gegner]] . [[_MOC_Rooms|Räume]] . [[_MOC_Status_Effects|Status-Effekte]] . [[HOME|Startseite]]
+- [[combat_base]] — Basisklasse, stellt Cooldown-/Combo-/Hit-Lock-/Dash-
+  System bereit; `scripts/characters/combat_ningning.gd` ueberschreibt nur Primary/Secondary.
+  Utility (Dash) und die zwei aktiven Item-Slots (Q/E) bleiben fuer alle vier
+  Charaktere geteilt und unveraendert.
+- [[player_base]] — Schwester-Komponente ("Combat" vs. player_base direkt am
+  Charakter), definiert Move-Speed/HP-Basiswerte in `scenes/characters/char_ningning.tscn`.
+
+
+Siehe [[_MOC_Characters]] fuer den vollstaendigen Ueberblick aller vier
+Charaktere.
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_baeb020_featvfxuiitemslevelgen_ghost-trail-system_main-men|2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes]]
+- [[2026-07-28_2642172_featitems_aktive_items_auf_qe-slots_umgestellt|2026-07-28 — feat(items): aktive Items auf Q/E-Slots umgestellt]]
+- [[2026-07-24_d86f02e_refactorplayer_split_player_system_into_per-charac|2026-07-24 — refactor(player): split player system into per-character scenes with shared base classes]]
+- [[2026-07-24_b39a97d_refactorplayer_split_player_system_into_per-charac|2026-07-24 — refactor(player): split player system into per-character scenes with shared base classes]]
+
+## Quelle
+
+`scenes/characters/char_ningning.tscn`, `resources/char_1.tres`, `scripts/characters/combat_ningning.gd`

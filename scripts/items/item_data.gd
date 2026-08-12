@@ -175,6 +175,14 @@ func get_rarity_name() -> String:
 ## Wie oft dasselbe Item in einem Run maximal droppen darf. 0 = unbegrenzt.
 @export var max_stacks: int = 0
 
+## Freie Schlagworte fuer Build-Synergien (z.B. "burn", "acid", "movement",
+## "crit"). ItemManager erhoeht beim Aufsammeln eines Items mit diesen Tags
+## das Drop-Gewicht ALLER Items im Pool, die einen der Tags teilen (siehe
+## ItemManager._synergy_weight_bonus / TreasureManager._pick_item) - wer
+## einmal Feuer aufgesammelt hat, findet in Schatzraeumen eher noch mehr
+## Feuer. Rein additiv zur normalen Gleichverteilung, kein Filter.
+@export var synergy_tags: PackedStringArray = []
+
 
 ## Baut ein ItemData komplett im Code. Praktisch fuer den Katalog, damit
 ## nicht fuer jedes Item eine .tres-Datei angelegt werden muss.

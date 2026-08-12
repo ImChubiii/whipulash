@@ -20,30 +20,47 @@ tags: [item, "item/active", "rarity/rare"]
 
 > *Verzoegerte Wucht*
 
-## Info
-| Feld | Wert |
-|---|---|
-| Art | ACTIVE |
-| Kategorie | UTILITY |
-| Seltenheit | RARE |
-| Cooldown | 10 s |
-
 ## Effekt
-Lädt eine Ladung an einer Wand auf, die auf der Rückseite der Wand eine schwere Explosion auslöst.
 
-## Visueller Effekt (VFX)
-Ein goldener Energiestrahl trift auf die Wand, gefolgt von feurigen Erschütterungsringen auf der Rückseite.
+Feuert eine Energieladung geradeaus, die am ersten Treffer oder maximaler Reichweite explodiert.
 
 ## Status-Effekte
-Löst keine Status-Effekte aus.
 
-## Synergiert gut mit
-- [[super_glue|Ausgelaufener Sekundenkleber]] – Hält Gegner hinter der Wand 2s lang fest, damit die Rückseiten-Explosion voll trifft.
-- [[alarmbot|Alarm-Bot]] – Zielverdopplung des Schadens verstärkt die schwere Wand-Explosion um das Zweifache.
+Verifiziert aus `item_behaviours.gd` (Aufrufe wie `StatusX.apply()` /
+`StatusEffectBase.apply_raw()` im Code-Pfad dieses Items):
 
-## Empfohlen für
-- **Winter**: Hervorragende Ergänzung für Fernkampf-Builds, um Gegnergruppen aus sicherer Distanz auszuschalten.
-- **Ningning**: Eignet sich perfekt zur Beherrschung eng bemessener Raumzonen.
+- —
 
-## Alle Items
-[[_MOC_Items|Item-Übersicht]]
+## Reagiert auf (ohne selbst auszuloesen)
+
+Der Effekt dieses Items greift nur, wenn der Status bereits durch eine
+ANDERE Quelle aktiv ist (`StatusX.active()`-Abfrage im Code-Pfad):
+
+- —
+
+## Synergien
+
+Codeverifiziert (`ItemCatalog.ID_Y`-Referenz im aufgeloesten Effekt-Pfad
+dieses Items ODER umgekehrt):
+
+- —
+
+## Erwaehnt in DevLogs
+
+- [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
+
+## Metadaten
+
+| Feld | Wert |
+|---|---|
+| ID | `aftershock` |
+| Kind | ACTIVE |
+| Kategorie | UTILITY |
+| Rarity | RARE |
+| Cooldown | 10.0 s |
+| Charge (Raeume) | — |
+| Design-Doc-Ref | 1.28 |
+
+## Quelle
+
+`scripts/items/item_catalog.gd` (Konstante `ID_AFTERSHOCK`, Variable `aftershock`)

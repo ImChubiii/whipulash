@@ -6,7 +6,7 @@ tags: [architecture, levelgen]
 # level_generator.gd
 
 Zentrale Klasse der prozeduralen Level-Generierung. Baut ein Etagen-Layout
-aus `RoomData`-Vorlagen, platziert Gegner über ein **Threat-Budget**-System
+aus `RoomData`-Vorlagen, platziert Gegner ueber ein **Threat-Budget**-System
 (siehe `_table_for_type()` / `_budget_for_type()` / `_pick_room()`) und
 verwaltet Minimap-Fog-of-War, Bosstueren und Etagenwechsel.
 
@@ -18,9 +18,9 @@ Jeder Kampfraum bekommt ein Punktebudget; jeder Gegnertyp kostet Punkte
 wenige teure Fighter enthalten — die Schwierigkeit bleibt vergleichbar, die
 Zusammensetzung variiert.
 
-## Multi-Zellen-Räume (Phase 3.1)
+## Multi-Zellen-Raeume (Phase 3.1)
 
-Räume koennen mehr als eine Rasterzelle belegen (`footprint_cells`, z.B.
+Raeume koennen mehr als eine Rasterzelle belegen (`footprint_cells`, z.B.
 `2x1`, `1x2`, `2x2` — siehe [[combat_arena_01]], [[combat_wide_01]],
 [[combat_tall_01]]). Die Grundflaechen werden NACHGELAGERT vergeben
 (`_assign_footprints`), nicht waehrend des Baumwachstums — ein 2x2-Raum
@@ -41,17 +41,9 @@ aufzurufen.
 Etagennummer in die Layout-Ableitung ein (`"layout:<stage>"`), jede Etage
 bekommt so ein eigenes, reproduzierbares Muster. Es gibt bewusst KEIN
 `reload_current_scene()` beim Etagenwechsel — Items, PartyManager,
-PlayerStats und der Spieler-Node ueberleben, nur die Räume werden
+PlayerStats und der Spieler-Node ueberleben, nur die Raeume werden
 getauscht. Geleert werden ausschliesslich Statuseffekte, Drops, Hazards und
 Projektile der alten Etage.
-
-## Wahrscheinlichkeiten & Spawning (RNG)
-
-Das Level-Generierungs-System arbeitet mit verschiedenen Wahrscheinlichkeiten, um Runs dynamisch zu halten:
-
-- **Treasure Rooms (Schatzkammern):** Es besteht eine feste **35%-Chance**, dass eine Schatzkammer direkt an den Startraum (`START`) angrenzt. Das erlaubt schnelles Looting zu Beginn eines Runs.
-- **Raum-Gewichtung (`spawn_weight`):** Wenn der Generator einen neuen Raum auswaehlt, geschieht dies basierend auf dem `spawn_weight` (z.B. Gewicht 100 ist doppelt so wahrscheinlich wie Gewicht 50).
-- **Gegner-Gewichtung (`weight`):** Im Threat-Budget-System entscheidet das `weight` (z.B. Fighter=2.0, Stinger=3.0, Colossus=1.0) darueber, wie oft ein Gegnertyp bei ausreichendem Budget ausgewaehlt wird. Stinger spawnen z.B. 3x haeufiger als Colossus, wenn genug Budget da ist.
 
 ## Bekannte Bugfixes (Auszug)
 

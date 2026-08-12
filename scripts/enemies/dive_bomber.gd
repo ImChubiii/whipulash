@@ -38,7 +38,9 @@ var detect_range: float = 40.0
 
 ## Optisch (und, ueber die Kollisionsbox, auch spielerisch) groesser - reine
 ## Groessenanpassung, siehe visual_root.scale unten.
-const VISUAL_SCALE: float = 1.5
+## War 1.5 - Rueckmeldung "jeder Gegner ausser Magnet soll 3x groesser sein"
+## (1.5 * 3 = 4.5).
+const VISUAL_SCALE: float = 4.5
 
 var _state: State = State.HOVER
 var _bob_phase: float = 0.0
