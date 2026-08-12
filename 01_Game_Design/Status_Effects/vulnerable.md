@@ -43,7 +43,7 @@ VULNERABLE — generischer Status ohne eigene Datei. Erhoeht den Schaden, den da
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-05_603fc49_feat_massive_gameplay-erweiterung_47_neue_items_ma|2026-08-05 — feat: Massive Gameplay-Erweiterung, 47 neue Items & Main Menu Rework]]
+- [[2026-08-05_e5b4cf6_feat_massive_gameplay-erweiterung_47_neue_items_ma|2026-08-05 — feat: Massive Gameplay-Erweiterung, 47 neue Items & Main Menu Rework]]
 
 ## Laufzeit
 
@@ -58,3 +58,4 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 
 ## 🧠 Semantische Verbindungen (Graphify)
 - **referenced_by (calls)**: [[snake_bite]] (Confidence: 1.0)
+- **referenced_by (references)**: [[_MOC_Status_Effects]] (Confidence: 1.0)

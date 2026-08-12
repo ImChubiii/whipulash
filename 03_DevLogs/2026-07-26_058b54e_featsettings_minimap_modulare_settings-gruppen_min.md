@@ -72,3 +72,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `058b54e` |
 | Autor | ImChubiii |
 | Datum | 2026-07-26 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-26_058b54e_featsettings_minimap_modulare_settings-gruppen_min]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

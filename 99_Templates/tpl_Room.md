@@ -19,3 +19,6 @@ tags: [room]
 ## Quelle
 
 `resources/rooms/rd_{{id}}.tres`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[tpl_Room]] (Confidence: 1.0)

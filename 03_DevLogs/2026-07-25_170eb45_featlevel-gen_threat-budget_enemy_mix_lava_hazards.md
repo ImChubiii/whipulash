@@ -57,3 +57,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `170eb45` |
 | Autor | ImChubiii |
 | Datum | 2026-07-25 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-25_170eb45_featlevel-gen_threat-budget_enemy_mix_lava_hazards]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

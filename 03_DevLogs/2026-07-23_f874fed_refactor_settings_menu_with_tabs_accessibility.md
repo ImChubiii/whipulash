@@ -35,3 +35,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `f874fed` |
 | Autor | ImChubiii |
 | Datum | 2026-07-23 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-23_f874fed_refactor_settings_menu_with_tabs_accessibility]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

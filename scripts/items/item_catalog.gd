@@ -148,6 +148,9 @@ const ID_NANOSWARM: String = "nanoswarm"
 const ID_ALARMBOT: String = "alarmbot"
 const ID_LOCKDOWN: String = "lockdown"
 
+# --- Charakter-gebundene, unsichtbare Passiven ------------------------------
+const ID_KARINA_LIFESTEAL: String = "karina_passive_lifesteal"
+
 # --- Schulhof-Items (Nr. 84-93) ---------------------------------------------
 const ID_POCKET_CALCULATOR: String = "pocket_calculator"
 const ID_JUMP_ROPE: String = "jump_rope"
@@ -1165,6 +1168,27 @@ static func build_all() -> Array[ItemData]:
 	items.append(gym_bag)
 
 	return items
+
+
+## Karinas feste Passive "Reflexe" - bewusst NICHT Teil des build_all()-
+## Arrays oben: alles darin landet in Items.catalog, aus dem TreasureManager.
+## _pick_item() den Schatzraum-Pool zieht (siehe dortiger Kommentar) - dieses
+## Item darf dort NIE auftauchen, sonst koennte jeder Charakter es finden.
+## char_karina.gd ruft diese Funktion stattdessen direkt auf und uebergibt
+## das Ergebnis an Items.add_item(..., true) (silent=true, kein Popup).
+static func build_karina_passive_lifesteal() -> ItemData:
+	var item := ItemData.create(
+		ID_KARINA_LIFESTEAL,
+		"Karinas Reflexe",
+		"",
+		"15% Chance, bei einem Treffer 5 HP zu heilen.",
+		ItemData.Kind.PASSIVE, ItemData.Category.DEFENSE, ItemData.Rarity.COMMON
+	)
+	# max_stacks = 1: char_karina.gd versucht die Vergabe bei JEDEM Spawnen
+	# (auch nach einem Charakterwechsel zurueck zu Karina) erneut - add_item()
+	# muss doppelte Kopien selbst abweisen.
+	item.max_stacks = 1
+	return item
 
 
 ## Optionaler Zusatz-Ladepfad fuer spaetere .tres-Items. Fehlt der Ordner,

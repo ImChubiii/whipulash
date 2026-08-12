@@ -30,3 +30,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `2135fc5` |
 | Autor | ImChubiii |
 | Datum | 2026-07-21 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-21_2135fc5_fix_enemy_movement_freeze_and_enhance_ledge_detect]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

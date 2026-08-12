@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_BARRIER_ORB`, Variable `barrier_orb`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[barrier_orb]] (Confidence: 1.0)

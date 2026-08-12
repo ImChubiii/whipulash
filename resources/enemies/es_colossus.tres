@@ -7,7 +7,7 @@
 script = ExtResource("1_script")
 scene = ExtResource("2_scene")
 display_name = "Colossus"
-threat_cost = 10
+threat_cost = 15
 max_per_room = 3
 min_room_height = 20.0
 guaranteed_count = 3

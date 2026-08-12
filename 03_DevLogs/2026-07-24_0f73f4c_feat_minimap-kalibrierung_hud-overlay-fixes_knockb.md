@@ -26,3 +26,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `0f73f4c` |
 | Autor | ImChubiii |
 | Datum | 2026-07-24 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-24_0f73f4c_feat_minimap-kalibrierung_hud-overlay-fixes_knockb]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_ALARMBOT`, Variable `alarmbot`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[alarmbot]] (Confidence: 1.0)

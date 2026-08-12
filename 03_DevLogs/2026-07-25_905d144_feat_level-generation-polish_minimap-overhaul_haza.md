@@ -78,3 +78,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `905d144` |
 | Autor | ImChubiii |
 | Datum | 2026-07-25 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-25_905d144_feat_level-generation-polish_minimap-overhaul_haza]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

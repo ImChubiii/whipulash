@@ -26,3 +26,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `47222b1` |
 | Autor | ImChubiii |
 | Datum | 2026-07-21 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-21_47222b1_initial_cleanup]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

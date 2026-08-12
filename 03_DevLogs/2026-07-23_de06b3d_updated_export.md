@@ -26,3 +26,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `de06b3d` |
 | Autor | ImChubiii |
 | Datum | 2026-07-23 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-23_de06b3d_updated_export]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

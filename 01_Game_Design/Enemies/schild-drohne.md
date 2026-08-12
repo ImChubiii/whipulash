@@ -40,7 +40,7 @@ Greift nie direkt an. Schwebt in einer weichen Lissajous-Bahn und verbindet sich
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+- [[2026-08-10_bcd3e81_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
 
 ## Quelle
 

@@ -164,6 +164,10 @@ const PANTS_KNOCKBACK: float = 9.0
 const HALO_HEAL_CHANCE: float = 0.10
 const HALO_HEAL_AMOUNT: float = 0.5
 
+# --- Karinas feste Passive "Reflexe" (Lifesteal-on-Hit) ---
+const KARINA_LIFESTEAL_CHANCE: float = 0.15
+const KARINA_LIFESTEAL_AMOUNT: float = 5.0
+
 # --- P4. Das Blutpakt ---
 const PACT_HITS_PER_COST: int = 5
 const PACT_SELF_DAMAGE: float = 0.5
@@ -1395,6 +1399,33 @@ func _apply_plastic_halo(target: Node3D) -> void:
 	if player != null:
 		_spawn_vfx(HOLOGRAM_BLUE_SCENE, player.global_position + Vector3.UP * 2.2)
 	_spawn_vfx(HOLOGRAM_BLUE_SCENE, target.global_position + Vector3.UP * 1.5)
+
+
+# ----------------------------------------------------------------------------
+# Karinas feste Passive "Reflexe" — Lifesteal-Chance auf JEDEM ihrer Treffer
+# ----------------------------------------------------------------------------
+# BEWUSST NICHT ueber player_hit_enemy/_on_player_hit_enemy() oben
+# angebunden: Karinas beide Faehigkeiten (Acid Rush Aura, Phantom Execute-
+# Detonation) laufen nie ueber PrimaryHitbox/SecondaryHitbox (siehe
+# combat_karina.gd-Kopfkommentar) - das Signal wuerde fuer sie also NIE
+# feuern. Selbst wenn es das taete: am Signal-Handler oben haengt u.a.
+# Juice.hit_stop() bei JEDEM Treffer - bei Karinas bis zu 10x/Sekunde
+# tickender Acid-Aura waere das ein Dauer-Freeze-Gefuehl UND wuerde
+# versehentlich JEDEN anderen Treffer-Reaktions-Effekt im Spiel mit
+# ausloesen. combat_karina.gd ruft diese Methode deshalb DIREKT bei jedem
+# eigenen Treffer auf (Aura-Tick UND Detonation), komplett unabhaengig von
+# der generischen Hit-Pipeline.
+func try_karina_lifesteal() -> void:
+	if not _has(ItemCatalog.ID_KARINA_LIFESTEAL):
+		return
+	if _player_health == null or not _player_health.is_alive():
+		return
+	if randf() > KARINA_LIFESTEAL_CHANCE:
+		return
+	_player_health.heal(KARINA_LIFESTEAL_AMOUNT)
+	var player: CharacterBody3D = _player()
+	if player != null:
+		_spawn_vfx(HOLOGRAM_BLUE_SCENE, player.global_position + Vector3.UP * 2.2)
 
 
 # ----------------------------------------------------------------------------

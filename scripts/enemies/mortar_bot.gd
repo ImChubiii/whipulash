@@ -21,15 +21,19 @@ class_name MortarBot
 const DUST_RING_SCENE: PackedScene = preload("res://scenes/vfx/dust_ring.tscn")
 const SPARK_YELLOW_SCENE: PackedScene = preload("res://scenes/vfx/spark_yellow.tscn")
 
-## War 1.5 - Rueckmeldung "jeder Gegner ausser Magnet soll 3x groesser sein"
-## (1.5 * 3 = 4.5).
-const VISUAL_SCALE: float = 4.5
+## War 1.5, dann 4.5 ("jeder Gegner ausser Magnet soll 3x groesser sein").
+## Rueckmeldung "Moerser-Bot um 15% verkleinern" (2026-08-12): 4.5 * 0.85.
+const VISUAL_SCALE: float = 4.5 * 0.85
 ## Wie schnell sich der Moerser-Bot zum Spieler dreht (rad/s) - langsam
 ## genug, dass die Drehung als sichtbares "Zielen" wirkt statt als Snap.
 const TURN_SPEED: float = 1.2
 
 var fire_interval: float = 3.6
-var flight_time: float = 1.3
+## War 1.3 - Rueckmeldung "Geschoss fliegt zu langsam". Bestimmt (zusammen
+## mit der konstanten Flugdistanz) direkt die Geschwindigkeit: der Shell-
+## Tween in _fire_at() legt dieselbe Strecke jetzt in gut halb so viel Zeit
+## zurueck, also gut doppelt so schnell.
+var flight_time: float = 0.6
 ## War 8.0 - in einem 14 Units hohen Kampfraum kratzte der Geschossbogen
 ## damit fast an der Decke ("Rueckmeldung: Moerser-Geschosse zu weit oben in
 ## der Luft"). Niedrigerer Bogen bleibt als Parabel klar lesbar, wirkt aber
@@ -37,7 +41,12 @@ var flight_time: float = 1.3
 var arc_height: float = 4.0
 var blast_radius: float = 4.2
 var damage: float = 22.0
-var detect_range: float = 45.0
+## War 45.0 - Rueckmeldung "Detection-Range extrem stark erhoehen, damit er
+## den Spieler fast ueberall im Raum bemerkt". 500 deckt selbst den
+## groessten aktuell moeglichen Mehrzellen-Raum (2x2-footprint * room_scale)
+## komplett ab - in der Praxis heisst das "erkennt den Spieler, sobald er im
+## selben Raum steht", was genau die Absicht ist.
+var detect_range: float = 500.0
 
 var _cooldown: float = 0.0
 var _base_radius: float = 1.1

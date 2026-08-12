@@ -26,7 +26,10 @@ var fire_interval: float = 2.6
 var flight_time: float = 0.7
 var puddle_radius: float = 2.6
 var puddle_lifetime: float = 6.0
-var detect_range: float = 40.0
+## War 40.0 - Rueckmeldung "Detection-Range extrem stark erhoehen, damit er
+## den Spieler fast ueberall im Raum bemerkt" (siehe mortar_bot.gd fuer
+## dieselbe Aenderung/Begruendung).
+var detect_range: float = 500.0
 
 ## Wie schnell sich der Saeure-Sprinkler zum Spieler dreht (rad/s) - langsam
 ## genug, dass die Drehung als sichtbares "Zielen" wirkt statt als Snap.

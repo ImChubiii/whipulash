@@ -3,7 +3,7 @@ id: "boss_lemonade_flood_01"
 room_type: BOSS
 footprint_cells: "1x1"
 available_exits: ["Norden", "Sueden", "Osten", "Westen"]
-spawn_weight: 0.5
+spawn_weight: 1.0
 min_stage: 2
 unique_per_run: true
 scene_path: "scenes/rooms/boss/room_boss_lemonade_flood_01.tscn"
@@ -19,7 +19,7 @@ tags: [room, "room/boss"]
 | Typ | BOSS |
 | Grundflaeche | 1x1 Rasterzellen |
 | Tueren | Norden, Sueden, Osten, Westen |
-| Ziehgewicht | 0.5 |
+| Ziehgewicht | 1.0 |
 | Min. Etage | 2 |
 | Einmalig pro Run | Ja |
 
@@ -32,3 +32,6 @@ tags: [room, "room/boss"]
 ## Quelle
 
 `resources/rooms/rd_boss_lemonade_flood_01.tres` → `scenes/rooms/boss/room_boss_lemonade_flood_01.tscn`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[boss_lemonade_flood_01]] (Confidence: 1.0)

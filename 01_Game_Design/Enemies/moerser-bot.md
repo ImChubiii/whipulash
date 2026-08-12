@@ -30,11 +30,11 @@ Bewegt sich nie. Feuert alle `fire_interval` Sekunden eine zweiphasige Wurfparab
 |---|---|
 | Basis-HP | 90 |
 | Feuerintervall (s) | 3.6 |
-| Flugzeit Geschoss (s) | 1.3 |
+| Flugzeit Geschoss (s) | 0.6 |
 | Wurfhoehe (Bogen) | 4 |
 | Explosionsradius | 4.2 |
 | Schaden | 22 |
-| Erkennungsreichweite | 45 |
+| Erkennungsreichweite | 500 |
 
 ## Status-Effekte (ausgeloest)
 
@@ -42,7 +42,7 @@ Bewegt sich nie. Feuert alle `fire_interval` Sekunden eine zweiphasige Wurfparab
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+- [[2026-08-10_bcd3e81_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
 
 ## Quelle
 

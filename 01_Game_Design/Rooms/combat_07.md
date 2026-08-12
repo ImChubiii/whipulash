@@ -32,3 +32,6 @@ tags: [room, "room/combat"]
 ## Quelle
 
 `resources/rooms/rd_combat_07.tres` → `scenes/rooms/combat/room_combat_07.tscn`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[combat_07]] (Confidence: 1.0)

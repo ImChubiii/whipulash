@@ -26,3 +26,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `fd0eb9f` |
 | Autor | ImChubiii |
 | Datum | 2026-07-22 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-22_fd0eb9f_gridmap_asset_hinzugefuegt]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

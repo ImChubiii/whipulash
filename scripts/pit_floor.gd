@@ -411,11 +411,36 @@ func _build_void_pit(pit: Rect2, index: int) -> void:
 
 	_build_void_shaft("%sVoidShaft%d" % [GEN_PREFIX, index], pit, top, shaft_depth)
 
-	var kill_y: float = top - void_kill_depth
+	# BUGFIX "Gegner fallen manchmal in die Grube und sterben nicht, Raum
+	# bleibt gesperrt": _build_void_shaft() baut ganz unten im Schacht einen
+	# SOLIDEN Boden-Collider ("Bottom", siehe dort) - urspruenglich nur als
+	# optische Rueckwand gedacht, falls man mal bis dahin sehen sollte
+	# (Kopfkommentar: "Die Instant-Kill-Zone sitzt weit genug oben im
+	# Schacht, dass man sie nie erreicht"). Die Kill-Zone war aber nur 2
+	# Einheiten dick - ein Koerper mit genug Fallgeschwindigkeit in EINEM
+	# Physik-Schritt (starker Ruecksto0ss mit Vertikal-Komponente, oder ein
+	# groesseres Delta bei einem Frame-Hitch beim Betreten eines vollen
+	# Kampfraums) kann diese duenne Schicht komplett ueberspringen, OHNE dass
+	# body_entered je feuert - klassisches Tunneling durch einen duennen
+	# Trigger. Der Koerper faellt dann NICHT ewig weiter, sondern landet
+	# lebendig auf dem soliden Boden-Collider: unsichtbar, unerreichbar, aber
+	# fuer die Gegner-Zaehlung weiter "lebendig" - der Raum bleibt dadurch
+	# permanent verriegelt.
+	#
+	# Fix: die Kill-Zone deckt jetzt fast den GESAMTEN Rest-Schacht ab (bis
+	# knapp ueber den Boden-Collider) statt nur einer duennen Scheibe -
+	# ein Durchqueren ohne Treffer wuerde jetzt eine Geschwindigkeit
+	# brauchen, die den kompletten restlichen Schacht in einem einzigen
+	# Physik-Schritt ueberspringt, praktisch ausgeschlossen.
+	var kill_top: float = top - void_kill_depth + 1.0
+	var shaft_bottom: float = top - shaft_depth
+	var kill_bottom: float = shaft_bottom + 1.0
+	var kill_height: float = maxf(kill_top - kill_bottom, 2.0)
+	var kill_center_y: float = kill_top - kill_height * 0.5
 	_build_void_kill_zone(
 		"%sVoidKill%d" % [GEN_PREFIX, index],
-		Vector3(center_x, kill_y, center_z),
-		Vector3(pit.size.x, 2.0, pit.size.y)
+		Vector3(center_x, kill_center_y, center_z),
+		Vector3(pit.size.x, kill_height, pit.size.y)
 	)
 
 

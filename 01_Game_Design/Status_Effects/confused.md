@@ -58,7 +58,7 @@ CONFUSED — der Gegner schlaegt in die falsche Richtung.
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+- [[2026-08-04_7940cf9_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
 
 ## Laufzeit
 
@@ -79,3 +79,4 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 - **referenced_by (calls)**: [[prowler]] (Confidence: 1.0)
 - **referenced_by (calls)**: [[roller_skates]] (Confidence: 1.0)
 - **referenced_by (calls)**: [[walkman]] (Confidence: 1.0)
+- **referenced_by (references)**: [[_MOC_Status_Effects]] (Confidence: 1.0)

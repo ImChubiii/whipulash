@@ -2,64 +2,59 @@
 tags: [moc, devlogs]
 ---
 
-# MOC — Alle DevLogs (90 Commits)
+# MOC — Alle DevLogs (85 Commits)
 
 Jeder Commit in der `main`-Historie dieses Repos, chronologisch nach Monat
 gruppiert (neuester Monat zuerst). Das Dashboard zeigt nur die juengsten 20 —
 diese Seite ist die vollstaendige Liste.
 
-### 2026-08 (35)
+### 2026-08 (30)
 
-- [[2026-08-12_5f8cd6d_feat_combat_mechanics_weighted_item_drops_and_ui_t|2026-08-12 — ﻿feat: combat mechanics, weighted item drops and UI tweaks]]
-- [[2026-08-12_e458c87_docs_add_concrete_godot_implementation_hints_for_c|2026-08-12 — docs: add concrete Godot implementation hints for Claude to all blueprint ideas]]
-- [[2026-08-12_0201145_docs_correct_sequential_numbering_for_schulhof_ite|2026-08-12 — docs: correct sequential numbering for Schulhof items in blueprint]]
-- [[2026-08-12_7e2352c_docs_add_dash_damage_visual_feedback_concept_to_bl|2026-08-12 — docs: add dash damage visual feedback concept to blueprint]]
-- [[2026-08-12_ef1f5c2_docs_adjust_item_table_formatting_for_item_db_comp|2026-08-12 — docs: adjust item table formatting for Item DB compatibility]]
-- [[2026-08-12_892303c_docs_add_crit_damage_visual_feedback_concept_to_bl|2026-08-12 — docs: add crit damage visual feedback concept to blueprint]]
-- [[2026-08-12_a929cc8_docs_fix_encoding_of_newly_added_schulhof_items_in|2026-08-12 — docs: fix encoding of newly added Schulhof items in blueprint]]
-- [[2026-08-12_45f01d1_docs_fix_corrupted_game_design_blueprint_and_appen|2026-08-12 — docs: fix corrupted game design blueprint and append 26 new basis items]]
-- [[2026-08-12_d92384f_docs_fully_restore_05_gedanken_contents_and_re-app|2026-08-12 — docs: fully restore 05_Gedanken contents and re-apply structure]]
-- [[2026-08-12_ed60512_docs_restore_and_track_04_chat_prompts_and_05_geda|2026-08-12 — docs: restore and track 04_Chat_Prompts and 05_Gedanken folders]]
-- [[2026-08-12_c19780a_docswiki_overhaul_of_game_design_docs_item_balance|2026-08-12 — docs(wiki): overhaul of game design docs, item balance & graph view]]
-- [[2026-08-11_0bd63e1_feat_character-specific_combat_kits_for_all_4_hero|2026-08-11 — feat: character-specific combat kits for all 4 heroes + bugfixes]]
-- [[2026-08-11_69742bf_update_room_and_enemy_documentation_to_reflect_san|2026-08-11 — Update room and enemy documentation to reflect sandbox status and new co]]
-- [[2026-08-11_bf671c8_fix_finalize_room_clearance_logic_and_polish_enemy|2026-08-11 — fix: finalize room clearance logic and polish enemy visuals]]
-- [[2026-08-11_4879445_update_documentation_and_ignore_aider_files|2026-08-11 — Update documentation and ignore aider files]]
-- [[2026-08-10_72accca_wiki_vollstaendige_devlog-liste_freitext-verknuepf|2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt]]
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
-- [[2026-08-10_5a37c20_obsidian-vault_ins_repo_aufnehmen|2026-08-10 — Obsidian-Vault ins Repo aufnehmen]]
-- [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
-- [[2026-08-10_068148f_merge_branch_main_of_httpsgithubcomimchubiiiwhipul|2026-08-10 — Merge branch 'main' of https://github.com/ImChubiii/whipulash]]
-- [[2026-08-10_43a0d80_chore_obsidian_und_graphify-cache_ignorieren|2026-08-10 — chore: Obsidian und Graphify-Cache ignorieren]]
-- [[2026-08-10_59d71ec_merge_warp_code_und_loese_konflikte|2026-08-10 — Merge Warp Code und loese Konflikte]]
-- [[2026-08-10_baeb020_featvfxuiitemslevelgen_ghost-trail-system_main-men|2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes]]
-- [[2026-08-05_a84aef5_merge_pull_request_2_from_imchubiiimetate-pinnacle|2026-08-05 — Merge pull request #2 from ImChubiii/metate-pinnacle]]
-- [[2026-08-05_11da57c_featcore_massive_gameplay-_und_system-erweiterung_|2026-08-05 — feat(core): Massive Gameplay- und System-Erweiterung (Phase 3-5)]]
-- [[2026-08-05_fe47020_merge_pull_request_1_from_imchubiiimetate-pinnacle|2026-08-05 — Merge pull request #1 from ImChubiii/metate-pinnacle]]
-- [[2026-08-05_603fc49_feat_massive_gameplay-erweiterung_47_neue_items_ma|2026-08-05 — feat: Massive Gameplay-Erweiterung, 47 neue Items & Main Menu Rework]]
-- [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
-- [[2026-08-04_5d63fe2_featitemscombatlevelgenui_ouija-board_item-reworks|2026-08-04 — feat(items,combat,levelgen,ui): Ouija-Board, Item-Reworks, Last-Stand, Boss-HP-Balken, diverse Bugfixes]]
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
-- [[2026-08-04_7e551ae_add_run_management_exportbat_and_remove_legacy_exp|2026-08-04 — Add run_management_export.bat and remove legacy exporters]]
-- [[2026-08-04_678339b_featdebug_ui_combat_teleporter-system_boss-hp-mult|2026-08-04 — feat(debug, ui, combat): Teleporter-System, Boss-HP-Multi-Targeting, Popup-Positionierung und Despawn-Fixes]]
-- [[2026-08-01_336b15e_fix_kamera-drill_zurueckgesetzt_motion-blur-featur|2026-08-01 — Fix Kamera-Drill zurückgesetzt, Motion-Blur-Feature verworfen]]
-- [[2026-08-01_e50066f_fix_tutorial_scren|2026-08-01 — fix tutorial scren]]
-- [[2026-08-01_5d2ca05_fixrestartdoorsitemsrooms_neustart-kette_tuer-inte|2026-08-01 — fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm]]
+- [[2026-08-12_ea4bcd0_chore_encrypt_personal_notes_and_prompts|2026-08-12 — chore: encrypt personal notes and prompts]]
+- [[2026-08-12_f23c551_feat_combat_mechanics_weighted_item_drops_and_ui_t|2026-08-12 — ﻿feat: combat mechanics, weighted item drops, and UI tweaks]]
+- [[2026-08-12_fb88478_chore_add_obsidian_workspaces_and_os_temp_files_to|2026-08-12 — chore: add obsidian workspaces and OS temp files to gitignore]]
+- [[2026-08-12_3bce52a_chore_remove_obsidian_and_graphify-out_from_gitign|2026-08-12 — chore: remove .obsidian and graphify-out from gitignore to track settings]]
+- [[2026-08-12_e219233_feat_combat_mechanics_weighted_item_drops_and_ui_t|2026-08-12 — ﻿feat: combat mechanics, weighted item drops and UI tweaks]]
+- [[2026-08-12_acbe958_docswiki_overhaul_of_game_design_docs_item_balance|2026-08-12 — docs(wiki): overhaul of game design docs, item balance & graph view]]
+- [[2026-08-11_5177896_feat_character-specific_combat_kits_for_all_4_hero|2026-08-11 — feat: character-specific combat kits for all 4 heroes + bugfixes]]
+- [[2026-08-11_ea0fce8_update_room_and_enemy_documentation_to_reflect_san|2026-08-11 — Update room and enemy documentation to reflect sandbox status and new co]]
+- [[2026-08-11_0680bbe_fix_finalize_room_clearance_logic_and_polish_enemy|2026-08-11 — fix: finalize room clearance logic and polish enemy visuals]]
+- [[2026-08-11_e142e9f_update_documentation_and_ignore_aider_files|2026-08-11 — Update documentation and ignore aider files]]
+- [[2026-08-10_741d3f0_wiki_vollstaendige_devlog-liste_freitext-verknuepf|2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt]]
+- [[2026-08-10_bcd3e81_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+- [[2026-08-10_be0f304_obsidian-vault_ins_repo_aufnehmen|2026-08-10 — Obsidian-Vault ins Repo aufnehmen]]
+- [[2026-08-10_43a32e9_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_|2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position]]
+- [[2026-08-10_02e6496_merge_branch_main_of_httpsgithubcomimchubiiiwhipul|2026-08-10 — Merge branch 'main' of https://github.com/ImChubiii/whipulash]]
+- [[2026-08-10_90e61b8_chore_obsidian_und_graphify-cache_ignorieren|2026-08-10 — chore: Obsidian und Graphify-Cache ignorieren]]
+- [[2026-08-10_467caba_merge_warp_code_und_loese_konflikte|2026-08-10 — Merge Warp Code und loese Konflikte]]
+- [[2026-08-10_4b3999e_featvfxuiitemslevelgen_ghost-trail-system_main-men|2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes]]
+- [[2026-08-05_8187415_merge_pull_request_2_from_imchubiiimetate-pinnacle|2026-08-05 — Merge pull request #2 from ImChubiii/metate-pinnacle]]
+- [[2026-08-05_dabbb5d_featcore_massive_gameplay-_und_system-erweiterung_|2026-08-05 — feat(core): Massive Gameplay- und System-Erweiterung (Phase 3-5)]]
+- [[2026-08-05_b9765f6_merge_pull_request_1_from_imchubiiimetate-pinnacle|2026-08-05 — Merge pull request #1 from ImChubiii/metate-pinnacle]]
+- [[2026-08-05_e5b4cf6_feat_massive_gameplay-erweiterung_47_neue_items_ma|2026-08-05 — feat: Massive Gameplay-Erweiterung, 47 neue Items & Main Menu Rework]]
+- [[2026-08-04_c28ab95_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
+- [[2026-08-04_e9b2b1f_featitemscombatlevelgenui_ouija-board_item-reworks|2026-08-04 — feat(items,combat,levelgen,ui): Ouija-Board, Item-Reworks, Last-Stand, Boss-HP-Balken, diverse Bugfixes]]
+- [[2026-08-04_7940cf9_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+- [[2026-08-04_9e59d70_add_run_management_exportbat_and_remove_legacy_exp|2026-08-04 — Add run_management_export.bat and remove legacy exporters]]
+- [[2026-08-04_199136e_featdebug_ui_combat_teleporter-system_boss-hp-mult|2026-08-04 — feat(debug, ui, combat): Teleporter-System, Boss-HP-Multi-Targeting, Popup-Positionierung und Despawn-Fixes]]
+- [[2026-08-01_c555d99_fix_kamera-drill_zurueckgesetzt_motion-blur-featur|2026-08-01 — Fix Kamera-Drill zurückgesetzt, Motion-Blur-Feature verworfen]]
+- [[2026-08-01_93c1622_fix_tutorial_scren|2026-08-01 — fix tutorial scren]]
+- [[2026-08-01_3bbac00_fixrestartdoorsitemsrooms_neustart-kette_tuer-inte|2026-08-01 — fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm]]
 
 ### 2026-07 (55)
 
-- [[2026-07-28_976bf0c_hud_fix|2026-07-28 — HUD fix]]
-- [[2026-07-28_2642172_featitems_aktive_items_auf_qe-slots_umgestellt|2026-07-28 — feat(items): aktive Items auf Q/E-Slots umgestellt]]
-- [[2026-07-28_ae734fd_fix_windowed_position_persistence_on_first_run|2026-07-28 — Fix windowed position persistence on first run]]
-- [[2026-07-28_b6f176f_add_particles|2026-07-28 — add particles]]
-- [[2026-07-28_499c162_refactor_reorganize_project_structure_and_normaliz|2026-07-28 — refactor: reorganize project structure and normalize res:// paths]]
-- [[2026-07-28_17b4f89_featenemy_integrate_3d_robot_models_and_procedural|2026-07-28 — feat(enemy): integrate 3D robot models and procedural combat animation]]
-- [[2026-07-27_0c0e515_feat_treasure_room_items_hud_overhaul_balancing_mu|2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes]]
-- [[2026-07-26_161c399_feat_stat-system_loot-drops_bomben_items_und_game_|2026-07-26 — feat: Stat-System, Loot-Drops, Bomben, Items und Game Juice]]
-- [[2026-07-26_fc23274_feat_dash-schaden_fov-regler_und_rampen-lava-fixes|2026-07-26 — feat: Dash-Schaden, FOV-Regler und Rampen-/Lava-Fixes]]
-- [[2026-07-26_a9c7565_add_whiplash_game_export_files|2026-07-26 — Add Whiplash game export files]]
-- [[2026-07-26_1b638b9_add_commit_export_batch_and_generated_log|2026-07-26 — Add commit export batch and generated log]]
-- [[2026-07-26_b73510d_expand_readme_with_game_details_and_controls|2026-07-26 — Expand README with game details and controls]]
+- [[2026-07-28_c2ad883_hud_fix|2026-07-28 — HUD fix]]
+- [[2026-07-28_ea34fe3_featitems_aktive_items_auf_qe-slots_umgestellt|2026-07-28 — feat(items): aktive Items auf Q/E-Slots umgestellt]]
+- [[2026-07-28_1f5b78d_fix_windowed_position_persistence_on_first_run|2026-07-28 — Fix windowed position persistence on first run]]
+- [[2026-07-28_f8773ab_add_particles|2026-07-28 — add particles]]
+- [[2026-07-28_0743a3e_refactor_reorganize_project_structure_and_normaliz|2026-07-28 — refactor: reorganize project structure and normalize res:// paths]]
+- [[2026-07-28_cdefce2_featenemy_integrate_3d_robot_models_and_procedural|2026-07-28 — feat(enemy): integrate 3D robot models and procedural combat animation]]
+- [[2026-07-27_f88829f_feat_treasure_room_items_hud_overhaul_balancing_mu|2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes]]
+- [[2026-07-26_ec9ce70_feat_stat-system_loot-drops_bomben_items_und_game_|2026-07-26 — feat: Stat-System, Loot-Drops, Bomben, Items und Game Juice]]
+- [[2026-07-26_843fa45_feat_dash-schaden_fov-regler_und_rampen-lava-fixes|2026-07-26 — feat: Dash-Schaden, FOV-Regler und Rampen-/Lava-Fixes]]
+- [[2026-07-26_95fdcfd_add_whiplash_game_export_files|2026-07-26 — Add Whiplash game export files]]
+- [[2026-07-26_4a6c9c9_add_commit_export_batch_and_generated_log|2026-07-26 — Add commit export batch and generated log]]
+- [[2026-07-26_0144b33_expand_readme_with_game_details_and_controls|2026-07-26 — Expand README with game details and controls]]
 - [[2026-07-26_2ddf360_fixlevelgenaicamera_tueren_raumgeometrie_gegnerver|2026-07-26 — fix(levelgen,ai,camera): Tueren, Raumgeometrie, Gegnerverhalten und Kamera]]
 - [[2026-07-26_058b54e_featsettings_minimap_modulare_settings-gruppen_min|2026-07-26 — feat(settings, minimap): modulare Settings-Gruppen, Minimap-Konfiguration, Cursor-Zoom & Bugfixes]]
 - [[2026-07-26_61765de_feat_combat-tuning_hud-overhaul_anti-baiting_sieg-|2026-07-26 — feat: Combat-Tuning, HUD-Overhaul, Anti-Baiting, Sieg-Trophäe, Menü-Fixes, Türsystem-Debugging]]
@@ -103,3 +98,91 @@ diese Seite ist die vollstaendige Liste.
 - [[2026-07-21_9b46c89_test|2026-07-21 — test]]
 - [[2026-07-21_3b6606e_d|2026-07-21 — d]]
 - [[2026-07-21_d66210d_initial_commit|2026-07-21 — Initial commit]]
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[_MOC_DevLogs]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_0d3ad30_fix_enemy_movement_freeze_and_enhance_ledge_detect]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_2135fc5_fix_enemy_movement_freeze_and_enhance_ledge_detect]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_25431a4_bereinigung]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_3b6606e_d]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_47222b1_initial_cleanup]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_4d89da8_test]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_4f3425d_fix_player_launching_out_of_buoyancy_zones]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_9b46c89_test]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_aa290a7_bereinigung]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_b403b2c_fix_player_launching_out_of_buoyancy_zones]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-21_d66210d_initial_commit]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-22_0bbeb99_fix_settings_tabs]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-22_3b06fb5_fix_settings_tabs]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-22_802fffe_add_navmesh_pathfinding_and_fix_physics_bugs]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-22_9e71cfc_featui_add_settings_menu_with_sensitivity_volume_f]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-22_b53088c_featui_add_settings_menu_with_sensitivity_volume_f]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-22_d744e07_add_navmesh_pathfinding_and_fix_physics_bugs]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-22_d9052ed_gridmap_asset_hinzugefuegt]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-22_fd0eb9f_gridmap_asset_hinzugefuegt]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_0887d72_feathud_add_full_party_hud_with_abilities_minimap_]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_15c8712_feathud_add_full_party_hud_with_abilities_minimap_]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_606156f_add_map]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_9305498_fix_reassign_area3d_script_to_correct_parent_node]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_b0d96b3_add_map]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_d76e823_refactor_settings_menu_with_tabs_accessibility]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_d7e8cf7_fix_reassign_area3d_script_to_correct_parent_node]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_d9bde60_updated_export]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_de06b3d_updated_export]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-23_f874fed_refactor_settings_menu_with_tabs_accessibility]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-24_0f73f4c_feat_minimap-kalibrierung_hud-overlay-fixes_knockb]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-24_772c314_feat_minimap-kalibrierung_hud-overlay-fixes_knockb]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-24_b39a97d_refactorplayer_split_player_system_into_per-charac]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-24_d86f02e_refactorplayer_split_player_system_into_per-charac]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-25_170eb45_featlevel-gen_threat-budget_enemy_mix_lava_hazards]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-25_44c639b_fixlevel-generation_dynamisches_spawningtuer-syste]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-25_66b3f05_featlevel-gen_threat-budget_enemy_mix_lava_hazards]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-25_70c307e_featminimap_add_player_direction_arrow]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-25_905d144_feat_level-generation-polish_minimap-overhaul_haza]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-25_aea81f1_fixlevel-generation_dynamisches_spawningtuer-syste]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-25_f8455e0_merge_branch_main_of_httpsgithubcomimchubiiiwhipul]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-26_0144b33_expand_readme_with_game_details_and_controls]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-26_058b54e_featsettings_minimap_modulare_settings-gruppen_min]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-26_2ddf360_fixlevelgenaicamera_tueren_raumgeometrie_gegnerver]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-26_4a6c9c9_add_commit_export_batch_and_generated_log]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-26_61765de_feat_combat-tuning_hud-overhaul_anti-baiting_sieg-]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-26_843fa45_feat_dash-schaden_fov-regler_und_rampen-lava-fixes]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-26_95fdcfd_add_whiplash_game_export_files]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-26_ec9ce70_feat_stat-system_loot-drops_bomben_items_und_game_]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-27_f88829f_feat_treasure_room_items_hud_overhaul_balancing_mu]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-28_0743a3e_refactor_reorganize_project_structure_and_normaliz]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-28_1f5b78d_fix_windowed_position_persistence_on_first_run]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-28_c2ad883_hud_fix]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-28_cdefce2_featenemy_integrate_3d_robot_models_and_procedural]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-28_ea34fe3_featitems_aktive_items_auf_qe-slots_umgestellt]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-07-28_f8773ab_add_particles]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-01_3bbac00_fixrestartdoorsitemsrooms_neustart-kette_tuer-inte]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-01_93c1622_fix_tutorial_scren]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-01_c555d99_fix_kamera-drill_zurueckgesetzt_motion-blur-featur]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-04_199136e_featdebug_ui_combat_teleporter-system_boss-hp-mult]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-04_7940cf9_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-04_9e59d70_add_run_management_exportbat_and_remove_legacy_exp]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-04_c28ab95_featitems_ai_ui_levelgen_party-revive_item-reworks]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-04_e9b2b1f_featitemscombatlevelgenui_ouija-board_item-reworks]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-05_8187415_merge_pull_request_2_from_imchubiiimetate-pinnacle]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-05_b9765f6_merge_pull_request_1_from_imchubiiimetate-pinnacle]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-05_dabbb5d_featcore_massive_gameplay-_und_system-erweiterung_]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-05_e5b4cf6_feat_massive_gameplay-erweiterung_47_neue_items_ma]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-10_02e6496_merge_branch_main_of_httpsgithubcomimchubiiiwhipul]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-10_43a32e9_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-10_467caba_merge_warp_code_und_loese_konflikte]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-10_4b3999e_featvfxuiitemslevelgen_ghost-trail-system_main-men]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-10_741d3f0_wiki_vollstaendige_devlog-liste_freitext-verknuepf]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-10_90e61b8_chore_obsidian_und_graphify-cache_ignorieren]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-10_bcd3e81_wiki_sechs_neue_sandbox-gegner_item-item-synergien]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-10_be0f304_obsidian-vault_ins_repo_aufnehmen]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-11_0680bbe_fix_finalize_room_clearance_logic_and_polish_enemy]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-11_5177896_feat_character-specific_combat_kits_for_all_4_hero]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-11_e142e9f_update_documentation_and_ignore_aider_files]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-11_ea0fce8_update_room_and_enemy_documentation_to_reflect_san]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-12_3bce52a_chore_remove_obsidian_and_graphify-out_from_gitign]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-12_acbe958_docswiki_overhaul_of_game_design_docs_item_balance]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-12_e219233_feat_combat_mechanics_weighted_item_drops_and_ui_t]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-12_ea4bcd0_chore_encrypt_personal_notes_and_prompts]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-12_f23c551_feat_combat_mechanics_weighted_item_drops_and_ui_t]] (Confidence: 1.0)
+- **referenced_by (references)**: [[2026-08-12_fb88478_chore_add_obsidian_workspaces_and_os_temp_files_to]] (Confidence: 1.0)

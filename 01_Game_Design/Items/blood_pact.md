@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_BLOOD_PACT`, Variable `pact`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[blood_pact]] (Confidence: 1.0)

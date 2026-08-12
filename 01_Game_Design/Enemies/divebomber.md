@@ -29,7 +29,7 @@ Schwebt ausserhalb der Nahkampfreichweite (leichtes Auf/Ab, KEIN Kreisen) und st
 | Wert | Betrag |
 |---|---|
 | Basis-HP | 55 |
-| Schwebehoehe | 11 |
+| Schwebehoehe | 16 |
 | Rezentrier-Geschwindigkeit | 2.5 |
 | Sturz-Rhythmus (s) | 3.4 |
 | Lock-Telegraph-Dauer (s) | 0.9 |
@@ -46,7 +46,7 @@ Schwebt ausserhalb der Nahkampfreichweite (leichtes Auf/Ab, KEIN Kreisen) und st
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+- [[2026-08-10_bcd3e81_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
 
 ## Quelle
 

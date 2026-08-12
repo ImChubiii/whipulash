@@ -25,3 +25,6 @@ tags: [status-effect]
 ## Quelle
 
 `scripts/status_effects/{{id}}.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[tpl_StatusEffect]] (Confidence: 1.0)

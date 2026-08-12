@@ -26,3 +26,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `d744e07` |
 | Autor | ImChubiii |
 | Datum | 2026-07-22 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-22_d744e07_add_navmesh_pathfinding_and_fix_physics_bugs]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

@@ -128,7 +128,15 @@ func _process(delta: float) -> void:
 func _strike() -> void:
 	if _target != null and is_instance_valid(_target):
 		_struck_ids.append(_target.get_instance_id())
-		_on_strike.call(_target)
+		# BUGFIX "Crash beim Charakterwechsel waehrend Winters Plasma fliegt":
+		# _on_strike ist eine Closure, die an den abfeuernden Combat-Node
+		# gebunden ist (siehe combat_winter.gd::_perform_primary()). Der Bolt
+		# selbst haengt unabhaengig unter current_scene und ueberlebt einen
+		# Charakterwechsel - der gebundene Combat-Node aber nicht (party_manager.gd
+		# switch_to() queue_free()'t ihn sofort). Ohne is_valid()-Check landete
+		# der Aufruf auf einer bereits freigegebenen Instanz.
+		if _on_strike.is_valid():
+			_on_strike.call(_target)
 
 	if not _retarget:
 		_dissipate()

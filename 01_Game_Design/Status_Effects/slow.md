@@ -58,7 +58,7 @@ SLOW — prozentuale Verlangsamung.
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+- [[2026-08-04_7940cf9_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
 
 ## Laufzeit
 
@@ -81,3 +81,4 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 - **referenced_by (calls)**: [[pocket_fan]] (Confidence: 1.0)
 - **referenced_by (calls)**: [[slow_orb]] (Confidence: 1.0)
 - **referenced_by (calls)**: [[stiletto_heels]] (Confidence: 1.0)
+- **referenced_by (references)**: [[_MOC_Status_Effects]] (Confidence: 1.0)

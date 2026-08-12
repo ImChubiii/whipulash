@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_BLAZE`, Variable `blaze`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[blaze]] (Confidence: 1.0)

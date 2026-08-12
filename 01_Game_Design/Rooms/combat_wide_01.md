@@ -32,3 +32,6 @@ Multi-Zellen-Raum: hat nur die Ausgaenge seiner Ankerzelle (RoomInstance._doors_
 ## Quelle
 
 `resources/rooms/rd_combat_wide_01.tres` → `scenes/rooms/combat/room_combat_wide_01.tscn`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[combat_wide_01]] (Confidence: 1.0)

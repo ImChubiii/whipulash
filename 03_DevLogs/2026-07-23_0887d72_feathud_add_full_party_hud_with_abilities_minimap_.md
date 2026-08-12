@@ -46,3 +46,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `0887d72` |
 | Autor | ImChubiii |
 | Datum | 2026-07-23 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-23_0887d72_feathud_add_full_party_hud_with_abilities_minimap_]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

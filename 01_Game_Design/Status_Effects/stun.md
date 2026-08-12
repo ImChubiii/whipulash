@@ -56,7 +56,7 @@ STUN — vollstaendige Handlungsunfaehigkeit.
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+- [[2026-08-04_7940cf9_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
 - [[2026-07-26_61765de_feat_combat-tuning_hud-overhaul_anti-baiting_sieg-|2026-07-26 — feat: Combat-Tuning, HUD-Overhaul, Anti-Baiting, Sieg-Trophäe, Menü-Fixes, Türsystem-Debugging]]
 - [[2026-07-25_905d144_feat_level-generation-polish_minimap-overhaul_haza|2026-07-25 — feat: Level-Generation-Polish, Minimap-Overhaul, Hazard/Door-Fixes, Atmosphäre]]
 
@@ -78,3 +78,4 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 - **referenced_by (calls)**: [[rolling_thunder]] (Confidence: 1.0)
 - **referenced_by (calls)**: [[shock_bolt]] (Confidence: 1.0)
 - **referenced_by (calls)**: [[stiletto_heels]] (Confidence: 1.0)
+- **referenced_by (references)**: [[_MOC_Status_Effects]] (Confidence: 1.0)

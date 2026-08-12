@@ -51,8 +51,8 @@ SHIELD — neuer Status-Effekt: Schild-Drohne verpasst bis zu drei Gegnern einen
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
-- [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
+- [[2026-08-10_bcd3e81_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+- [[2026-08-04_c28ab95_featitems_ai_ui_levelgen_party-revive_item-reworks|2026-08-04 — feat(items, ai, ui, levelgen): Party-Revive, Item-Reworks, Boss-HP-Split & Lava-Buoyancy]]
 
 ## Laufzeit
 
@@ -66,4 +66,5 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 `scripts/status_effects/shield.gd`
 
 ## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (references)**: [[_MOC_Status_Effects]] (Confidence: 1.0)
 - **referenced_by (references)**: [[custom_enemy_base]] (Confidence: 1.0)

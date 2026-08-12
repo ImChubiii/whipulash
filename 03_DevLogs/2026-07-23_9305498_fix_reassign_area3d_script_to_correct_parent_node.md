@@ -26,3 +26,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `9305498` |
 | Autor | ImChubiii |
 | Datum | 2026-07-23 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-23_9305498_fix_reassign_area3d_script_to_correct_parent_node]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

@@ -31,3 +31,6 @@ tags: [enemy]
 ## Quelle
 
 `scripts/enemies/enemy_ai.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[tpl_Enemy]] (Confidence: 1.0)

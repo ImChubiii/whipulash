@@ -470,9 +470,17 @@ func take() -> bool:
 	var items: Node = get_node_or_null("/root/Items")
 	if items == null:
 		return false
-	if not items.add_item(item_data):
-		return false
 
+	# pickup_active_item() statt add_item(): sind beide Aktiv-Slots (Q/E)
+	# schon belegt und item_data ist selbst aktiv, wird das bisherige
+	# Q-Item verdraengt und muss zurueck auf DIESEN Sockel (Swap statt
+	# nutzlos unausgeruestet im Inventar landen), siehe item_manager.gd.
+	var result: Dictionary = items.pickup_active_item(item_data)
+	if not bool(result.get("picked_up", false)):
+		return false
+	var displaced: ItemData = result.get("displaced") as ItemData
+
+	var taken_item: ItemData = item_data
 	_taken = true
 	# Die Anzeige stand auf "dauerhaft" (Sockel in Reichweite). Ohne diesen
 	# Wechsel bliebe die Karte fuer immer stehen, weil hide_item() erst beim
@@ -482,15 +490,18 @@ func take() -> bool:
 	if hud:
 		hud.hide_item()
 
-	item_taken.emit(item_data, self)
-	_play_take_feedback()
+	item_taken.emit(taken_item, self)
+	_play_take_feedback(displaced)
 	return true
 
 
 ## Der Sockel bleibt als leere Saeule stehen. Ein komplett verschwindender
 ## Sockel wuerde beim Zurueckkommen so aussehen, als waere der Schatzraum nie
 ## bestueckt gewesen.
-func _play_take_feedback() -> void:
+## displaced: nur bei einem Q/E-Swap gesetzt (siehe take()) - der Sockel
+## bestueckt sich nach der Wegnahme-Animation selbst neu, statt leer zu
+## bleiben (siehe _finish_take()/_restock()).
+func _play_take_feedback(displaced: ItemData = null) -> void:
 	if _prompt_label:
 		_prompt_label.visible = false
 	if _name_label:
@@ -514,16 +525,47 @@ func _play_take_feedback() -> void:
 	if _light:
 		tween.tween_property(_light, "light_energy", 0.25, 0.5)
 
-	tween.chain().tween_callback(_finish_take)
+	tween.chain().tween_callback(_finish_take.bind(displaced))
 
 
-func _finish_take() -> void:
+func _finish_take(displaced: ItemData = null) -> void:
 	if _float_root and is_instance_valid(_float_root):
 		_float_root.queue_free()
 		_float_root = null
 	if _beam and is_instance_valid(_beam):
 		_beam.queue_free()
 		_beam = null
+
+	if displaced != null:
+		_restock(displaced)
+
+
+## Verdraengtes Q-Item (siehe ItemManager.pickup_active_item() - beide
+## Aktiv-Slots waren voll) landet wieder auf DIESEM Sockel statt spurlos zu
+## verschwinden ("Swap"). Baut Lichtsaeule + schwebendes Item neu auf, exakt
+## wie beim ersten _ready() - _float_root/_beam wurden gerade erst in
+## _finish_take() freigegeben, es gibt also keine Namenskollision.
+func _restock(new_item: ItemData) -> void:
+	item_data = new_item
+	_accent = new_item.pedestal_color
+	_taken = false
+
+	var cap: MeshInstance3D = get_node_or_null("Cap")
+	if cap:
+		cap.material_override = _make_material(_accent, 0.9)
+
+	_build_beam()
+	_build_float_group()
+
+	if _light:
+		_light.light_color = _accent
+	if _ring and _ring.material_override is StandardMaterial3D:
+		var ring_mat: StandardMaterial3D = _ring.material_override as StandardMaterial3D
+		ring_mat.albedo_color = Color(_accent.r, _accent.g, _accent.b, ring_mat.albedo_color.a)
+	if _name_label:
+		_name_label.text = new_item.display_name
+
+	_preview_shown = false
 
 
 func is_taken() -> bool:

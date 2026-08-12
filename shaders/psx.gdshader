@@ -44,9 +44,21 @@ uniform bool world_space_uv = false;
 uniform float world_uv_scale : hint_range(0.005, 1.0) = 0.0416667;
 
 varying vec3 world_position;
+// Achsen-Projektion statt Mesh-UV fuer WAENDE (Ergaenzung zu world_space_uv,
+// das bisher nur Boden/Decke ueber world_position.xz abdeckte). Waende
+// dehnen sich hauptsaechlich in Y + EINER horizontalen Achse aus - projected
+// man sie trotzdem auf XZ, faellt die Hoehen-Variation komplett weg (Y wird
+// dabei ignoriert). Stattdessen wird hier je Fragment anhand der dominanten
+// Normalen-Komponente eine von drei Achsen-Ebenen gewaehlt (XZ fuer
+// Boden/Decke, ZY/XY fuer Waende) - kein echtes Blend-Triplanar noetig,
+// weil in diesem Projekt ausschliesslich achsenausgerichtete Box-Geometrie
+// vorkommt (jede Flaeche hat eine einzige, klare Normalenrichtung, siehe
+// PSX-Vertex-Snapping-Look ohnehin ohne gekruemmte Flaechen).
+varying vec3 world_normal;
 
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 
 	// Vertex in Clip-Space transformieren (wie es die GPU normalerweise am Ende macht)
 	vec4 clip_position = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1.0));
@@ -68,7 +80,17 @@ void vertex() {
 void fragment() {
 	// filter_nearest sorgt zusammen mit Import-Settings (siehe unten) für die
 	// blockige, ungefilterte Textur-Optik statt weichgezeichneter moderner Texturen.
-	vec2 tex_uv = world_space_uv ? world_position.xz * world_uv_scale : UV;
+	vec2 tex_uv = UV;
+	if (world_space_uv) {
+		vec3 n = abs(world_normal);
+		if (n.y >= n.x && n.y >= n.z) {
+			tex_uv = world_position.xz * world_uv_scale;       // Boden/Decke
+		} else if (n.x >= n.z) {
+			tex_uv = world_position.zy * world_uv_scale;       // Wand Ost/West
+		} else {
+			tex_uv = world_position.xy * world_uv_scale;       // Wand Nord/Sued
+		}
+	}
 	vec4 tex_color = texture(albedo_texture, tex_uv);
 	vec3 base_albedo = tex_color.rgb * albedo_color.rgb;
 	ALBEDO = mix(base_albedo, flash_color.rgb, flash_strength);

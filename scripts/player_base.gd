@@ -44,6 +44,35 @@ func clear_knockback() -> void:
 @export var zoom_max: float = 20.0
 @export var zoom_step: float = 1
 
+# --- Over-the-Shoulder Kamera-Versatz ---
+# Seitlicher Versatz des SpringArm3D-Ursprungs INNERHALB von CameraPivot
+# (positiv = nach rechts, negativ = nach links). Angewendet in _ready() als
+# spring_arm.position.x - eine reine POSITIONS-Verschiebung, bewusst NICHT
+# ueber Camera3D.h_offset (das existiert zwar - siehe shake_camera() weiter
+# unten, das es fuer den Treffer-Wackler nutzt - ist dort aber ein reiner
+# Projektions-/Lens-Shift: er verschiebt nur das GERENDERTE Bild, nicht die
+# tatsaechliche 3D-Position/Blickrichtung der Kamera).
+#
+# WARUM DAS FUER DEN SCHUSS-RAYCAST WICHTIG IST: combat_giselle.gd und
+# combat_winter.gd feuern IMMER von camera.global_position aus, in Richtung
+# -camera.global_transform.basis.z (siehe dortige _perform_primary()/
+# _perform_secondary()) - also exakt dort, wo ein Fadenkreuz in
+# Bildschirmmitte optisch hinzeigt. Eine reine Positions-Verschiebung des
+# SpringArm3D-URSPRUNGS (nicht seiner Rotation) bewegt die Kamera nur
+# PARALLEL zur Seite, ohne ihre Blickrichtung zu aendern - der Raycast bleibt
+# dadurch automatisch treffergenau zur Bildschirmmitte, ganz ohne Anpassung
+# am Zielsystem. Ein h_offset-Ansatz haette das GERENDERTE Bild verschoben,
+# OHNE dass Ursprung/Richtung des Raycasts mitwandern - Fadenkreuz und
+# tatsaechlicher Einschlagpunkt liefen dann sichtbar auseinander.
+#
+# CameraPivot rotiert nur um Y (Yaw, siehe _unhandled_input() weiter unten),
+# SpringArm3D nur um X (Pitch) - der Versatz hier haengt am SpringArm3D-Node
+# selbst und dreht sich dadurch korrekt MIT der Blickrichtung mit (bleibt
+# immer "rechts von der Kamera", unabhaengig davon, wohin der Charakter
+# gerade schaut), beeinflusst aber NICHT dessen eigene Spring-/Kollisions-
+# Logik (_setup_camera_probe()), die relativ zum SpringArm3D selbst rechnet.
+@export_range(-2.0, 2.0) var camera_shoulder_offset: float = 0.6
+
 # --- Automatisches Zoom bei großen Gegnern ---
 # Sobald das aktuell gelockte Ziel is_large_enemy = true hat, zieht die
 # Kamera automatisch auf zoom_max raus (überschreibt dabei aktiv jeden
@@ -388,6 +417,11 @@ func _get_body_height() -> float:
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# VOR combat.setup(): Combat-Scripts (siehe combat_giselle.gd) lesen den
+	# Ausgangswert von spring_arm.position.x einmalig in ihrem eigenen
+	# setup() aus, um spaeter (z.B. nach einem Sniper-Zoom-Tween) dorthin
+	# zurueckzufinden - der muss also schon stehen, bevor setup() laeuft.
+	spring_arm.position.x = camera_shoulder_offset
 	combat.setup(self)
 
 	# Der FOV kommt AUSSCHLIESSLICH aus den Einstellungen, nicht mehr aus

@@ -13,7 +13,7 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
 
 - [[00_Master_Wiki|Dashboard]] (diese Seite)
 - Game Design
-  - Items (94) — [[_MOC_Items|nach Kategorie/Rarity/Kind]]
+  - Items (95) — [[_MOC_Items|nach Kategorie/Rarity/Kind]]
   - Enemies (3 Threat-Budget + 6 Sandbox-Prototypen)
     — [[_MOC_Enemies|nach Tier/Rolle]]
   - Rooms (39) — [[_MOC_Rooms|nach Typ]]
@@ -25,7 +25,7 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
   - [[status_effect_manager]]
   - [[custom_enemy_base]] — Unterbau der sechs Sandbox-Prototypen
   - [[enemy_sandbox_room]] — Debug-Spawnraum fuer alle Gegnertypen
-- DevLogs (90 Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
+- DevLogs (85 Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
 - Templates: [[tpl_Item]] · [[tpl_Enemy]] · [[tpl_Room]] · [[tpl_StatusEffect]]
 
 Jede Item-/Gegner-/Raum-/Status-Effekt-/Architektur-Notiz hat unten einen
@@ -120,7 +120,7 @@ SORT date DESC
 LIMIT 20
 ```
 
-Nur die juengsten 20 — [[_MOC_DevLogs]] listet wirklich **alle** 90
+Nur die juengsten 20 — [[_MOC_DevLogs]] listet wirklich **alle** 85
 Commits, nach Monat gruppiert.
 
 ## 🧠 Semantische Verbindungen (Graphify)

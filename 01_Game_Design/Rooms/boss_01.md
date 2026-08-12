@@ -32,3 +32,6 @@ tags: [room, "room/boss"]
 ## Quelle
 
 `resources/rooms/rd_boss_01.tres` → `scenes/rooms/boss/room_boss_01.tscn`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[boss_01]] (Confidence: 1.0)

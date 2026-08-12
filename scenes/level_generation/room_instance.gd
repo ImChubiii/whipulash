@@ -283,13 +283,45 @@ var ceiling_texture: Texture2D = null
 @export var spawn_ground_probe_height: float = 40.0
 
 ## --- Tuerzustand auf der 3D-Minimap -----------------------------------
-## Farben absichtlich identisch zum schematischen Grid-Overlay
-## (minimap_rooms.gd), damit beide Karten dasselbe sagen.
 @export var door_marker_enabled: bool = true
 @export var door_marker_height: float = 0.3
 @export var door_marker_color_locked: Color = Color(0.70, 0.28, 0.24)
 @export var door_marker_color_hack_locked: Color = Color(0.55, 0.45, 0.30)
 @export var door_marker_color_hack_ready: Color = Color(0.98, 0.80, 0.25)
+
+## --- Raumzustand + Spezialraum-Icons auf der 3D-Minimap ------------------
+## Rueckmeldung: kein separates 2D-Schema-Overlay mehr - Zustand und
+## Spezialraum-Kennzeichnung sollen DIREKT in der echten Top-Down-Minimap
+## zu sehen sein. Gleiches Muster wie die Tuerzustands-Platten oben: eine
+## flache Flaeche auf MINIMAP_ONLY_LAYER, oberhalb der Decke platziert -
+## dadurch fuer die (von weit oben senkrecht herunterblickende, orthogonale)
+## Kartenkamera sichtbar VOR der Decke, ohne die normale Spielkamera oder
+## die Decke selbst anzutasten.
+##
+## ZUSTAND: eine halbtransparente dunkle Flaeche ueber der GESAMTEN
+## Raumflaeche (room_footprint), NUR fuer Raeume mit aktivem Kampf-Gate
+## (_requires_clear) gebaut - verschwindet automatisch, sobald room_cleared
+## feuert (siehe _ready()). "Volle helle Farbe" heisst dann einfach: die
+## Platte ist weg, die echte (bereits korrekt gekachelte) Bodenfarbe
+## scheint ungehindert durch - kein zweiter Ort, an dem eine Typ-Farbe
+## gepflegt werden muesste.
+@export var room_state_overlay_enabled: bool = true
+@export var room_state_overlay_height: float = 0.4
+## War Color(0.08, 0.08, 0.09, 0.72) - Rueckmeldung "soll dunkler sein".
+@export var room_state_overlay_color: Color = Color(0.04, 0.04, 0.045, 0.9)
+
+## ICONS: Schatz-/Bossraum bekommen ein kleines geometrisches Symbol ueber
+## der Raummitte (Stern statt woertlicher Krone, Kreis-Duo statt woertlichem
+## Totenkopf - siehe _build_special_room_icon(): die Kartenkamera blickt rein
+## ORTHOGONAL senkrecht herab, sichtbar ist also ausschliesslich die
+## X/Z-Silhouette, keine Hoehe/Volumen. Ein fein gezacktes Kronen- oder
+## Schaedel-Umriss-Polygon waere aus der Verkleinerung der kleinen Minimap
+## ohnehin kaum von einem Stern/Kreis zu unterscheiden - die einfachere Form
+## ist genauso lesbar und deutlich robuster zu bauen.
+@export var special_room_icon_height: float = 0.7
+@export var special_room_icon_size: float = 3.2
+@export var treasure_room_icon_color: Color = Color(0.98, 0.82, 0.22)
+@export var boss_room_icon_color: Color = Color(0.92, 0.20, 0.18)
 
 ## --- Stage-Skalierung der Gegner --------------------------------------
 ## Vom LevelGenerator gesetzt (nicht @export - sonst gaebe es pro
@@ -469,6 +501,13 @@ var _door_markers: Dictionary = {}
 ## dir -> zuletzt gezeichneter DoorState. Verhindert, dass jeden Frame
 ## Material-Eigenschaften neu gesetzt werden.
 var _door_marker_states: Dictionary = {}
+
+## Von LevelGenerator direkt nach dem Instanziieren gesetzt (siehe dortiges
+## load_room(), analog zu grid_position), ueber set_room_type() - siehe dort.
+## -1 = unbekannt/nicht gesetzt (z.B. Raum von Hand in eine Testszene
+## gesetzt, ohne LevelGenerator).
+var room_type: int = -1
+var _room_state_overlay: MeshInstance3D = null
 var _door_marker_pulse: float = 0.0
 
 
@@ -479,6 +518,13 @@ func _ready() -> void:
 	_setup_presence_area()
 	if build_ceiling:
 		_build_ceiling()
+	_fix_floor_material_tiling()
+	# Raeumt die Zustands-Dimmplatte weg, sobald der Raum tatsaechlich
+	# gecleart wird - room_cleared feuert an mehreren Stellen (regulaeres
+	# Herunterzaehlen, Watchdog, Sofort-Clear ohne Gegner), siehe dortige
+	# Aufrufer. Selbst-Verbindung statt eines externen Listeners: die
+	# Minimap-Darstellung ist eine reine Eigenschaft DIESES Raums.
+	room_cleared.connect(_on_self_room_cleared)
 	if build_door_lintels:
 		_build_door_lintels()
 	if wall_cap_enabled:
@@ -1498,6 +1544,66 @@ func _load_lintel_material() -> Material:
 	return fallback
 
 
+## BUGFIX "Boden-/Wandtextur bei mehrzelligen Raeumen (2x1/2x2) sichtbar
+## gestreckt/verzerrt": Boden UND Waende sind (anders als die Decke, siehe
+## _make_ceiling_material()) in JEDER Raum-.tscn von Hand platzierte BoxMesh-
+## Nodes mit surface_material_override - deren UV spannt sich IMMER 0..1
+## ueber die gesamte Mesh-Flaeche (Godot-Standardverhalten fuer BoxMesh/
+## PlaneMesh). In einem normalen 1x1-Raum faellt das nicht auf (alle
+## 1x1-Raeume gleich gross, das Streckungsverhaeltnis ist ueberall
+## identisch) - ein 2x1-footprint_cells-Raum ist aber doppelt so breit bzw.
+## hat doppelt so lange Waende: dieselbe Texturkachel wird dort auf die
+## doppelte Laenge gestreckt statt sich zu wiederholen, direkt sichtbar
+## neben normalgrossen Nachbarraeumen.
+##
+## Gleicher Fix wie bei der Decke: dupliziertes Material (NIE die geteilte
+## Original-Resource anfassen, sonst aendert das Boden/Waende JEDES Raums im
+## Spiel) mit world_space_uv=true (siehe psx.gdshader - deckt seit der
+## Achsen-Projektions-Erweiterung dort sowohl horizontale Flaechen (Boden/
+## Decke, XZ) als auch vertikale (Waende, ZY/XY je nach Ausrichtung) ab).
+## Haelt die Kachelgroesse in Weltunits konstant, unabhaengig von der
+## Flaeche. Laeuft fuer JEDEN Raum, nicht nur mehrzellige - ein 1x1-Raum
+## sieht dabei identisch aus wie vorher, nur jetzt "richtig" statt zufaellig
+## passend.
+func _fix_floor_material_tiling() -> void:
+	var floor_body := get_node_or_null("Floor") as StaticBody3D
+	if floor_body != null:
+		for child in floor_body.get_children():
+			if child is MeshInstance3D:
+				_apply_world_space_uv(child as MeshInstance3D)
+
+	# Waende sind DIREKTE Kinder des Raums mit "Wall"-Praefix - gleiche
+	# Erkennung wie _build_wall_caps().
+	for child in get_children():
+		if not (child is StaticBody3D) or not child.name.begins_with("Wall"):
+			continue
+		for grandchild in child.get_children():
+			if grandchild is MeshInstance3D:
+				_apply_world_space_uv(grandchild as MeshInstance3D)
+
+
+## Wandelt JEDES Material eines MeshInstance3D (material_override UND alle
+## surface_material_override-Slots) in eine eindeutige Kopie mit
+## world_space_uv=true um. Nicht-ShaderMaterial-Slots (z.B. ein
+## StandardMaterial3D-Fallback) werden unangetastet uebersprungen - der Fix
+## gilt nur fuer das psx.gdshader-Material.
+func _apply_world_space_uv(mesh_instance: MeshInstance3D) -> void:
+	if mesh_instance.material_override is ShaderMaterial:
+		var mat: ShaderMaterial = (mesh_instance.material_override as ShaderMaterial).duplicate()
+		mat.set_shader_parameter("world_space_uv", true)
+		mesh_instance.material_override = mat
+		return
+
+	if mesh_instance.mesh == null:
+		return
+	for i: int in range(mesh_instance.mesh.get_surface_count()):
+		var surface: Material = mesh_instance.get_surface_override_material(i)
+		if surface is ShaderMaterial:
+			var mat: ShaderMaterial = (surface as ShaderMaterial).duplicate()
+			mat.set_shader_parameter("world_space_uv", true)
+			mesh_instance.set_surface_override_material(i, mat)
+
+
 ## Schaltet die flache Bodenplatte des Raumes ab und liefert deren
 ## Material zurueck, damit die Rampe genauso aussieht.
 ##
@@ -2107,6 +2213,7 @@ func _update_entry_presence(inside: bool) -> void:
 	_inside_entry_trigger = inside
 	if inside:
 		room_entered.emit(self)
+	_refresh_room_state_overlay_visibility()
 
 
 ## Zaehlt hoch, solange der Spieler ausserhalb der Presence-Area ist, und
@@ -2191,6 +2298,7 @@ func prepare_enemies(entries: Array[EnemySpawnEntry], threat_budget: int, stage:
 	_pending_entries = usable
 	_pending_budget = threat_budget
 	_lock_exits(false)
+	_build_room_state_overlay()
 
 
 ## Deckelt, wie viele VERSCHIEDENE Gegnertypen ein einzelner Raum zeigen darf
@@ -2531,6 +2639,162 @@ func _build_door_markers() -> void:
 
 		_door_markers[dir] = {"node": marker, "material": material}
 		_door_marker_states[dir] = -1
+
+
+## ============================================================================
+## Raumzustand + Spezialraum-Icons auf der 3D-Minimap
+## ============================================================================
+## Wird aus prepare_enemies() aufgerufen, sobald feststeht, dass der Raum
+## tatsaechlich ein Kampf-Gate hat (_requires_clear) - ein Korridor/Start-/
+## Schatzraum ohne Kampf-Gate braucht nie eine Dimmplatte, "cleared" ist fuer
+## sie von Anfang an true.
+func _build_room_state_overlay() -> void:
+	if not room_state_overlay_enabled or _room_state_overlay != null:
+		return
+
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(room_footprint.x, room_footprint.y)
+
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = room_state_overlay_color
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	_room_state_overlay = MeshInstance3D.new()
+	_room_state_overlay.name = "MinimapStateOverlay"
+	_room_state_overlay.mesh = plane
+	_room_state_overlay.material_override = material
+	_room_state_overlay.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_room_state_overlay.position = Vector3(0.0, room_height + room_state_overlay_height, 0.0)
+	# Nur die Minimap-Kamera sieht diesen Layer - siehe Klassenkommentar zu
+	# MINIMAP_ONLY_LAYER/_build_door_markers().
+	_room_state_overlay.layers = 1 << (MINIMAP_ONLY_LAYER - 1)
+	add_child(_room_state_overlay)
+	_refresh_room_state_overlay_visibility()
+
+
+## room_cleared-Handler (siehe _ready()): raeumt die Dimmplatte weg, sobald
+## der Raum wirklich gecleart ist - die echte, darunterliegende Bodenfarbe
+## scheint dann ungehindert durch die Kartenkamera durch.
+func _on_self_room_cleared(_room: RoomInstance) -> void:
+	if _room_state_overlay != null and is_instance_valid(_room_state_overlay):
+		_room_state_overlay.queue_free()
+	_room_state_overlay = null
+
+
+## Rueckmeldung "wenn man im Raum ist, soll er auch schon hell werden": nicht
+## erst NACH dem Clear soll die Dimmung weg sein, sondern schon waehrend man
+## drinsteht (z.B. mitten im laufenden Kampf) - der eigene Standort soll auf
+## der Karte nie dunkel wirken. Verlaesst man einen noch nicht gecleareten
+## Raum wieder, kommt die Dimmung zurueck, bis er entweder erneut betreten
+## oder tatsaechlich gecleart wird (dann verschwindet die Platte permanent,
+## siehe _on_self_room_cleared()). _inside_entry_trigger kommt vom
+## bestehenden Dwell-Check in _physics_process()/_update_entry_presence().
+func _refresh_room_state_overlay_visibility() -> void:
+	if _room_state_overlay == null or not is_instance_valid(_room_state_overlay):
+		return
+	_room_state_overlay.visible = not _inside_entry_trigger
+
+
+## Von LevelGenerator direkt nach dem Instanziieren gesetzt (siehe dortiges
+## load_room(), analog zu grid_position) - baut bei Schatz-/Bossraum sofort
+## das passende Minimap-Icon.
+func set_room_type(type: int) -> void:
+	room_type = type
+	_build_special_room_icon()
+
+
+func _build_special_room_icon() -> void:
+	var icon: Node3D = null
+	if room_type == RoomData.RoomType.TREASURE:
+		icon = _build_treasure_icon()
+	elif room_type == RoomData.RoomType.BOSS:
+		icon = _build_boss_icon()
+	if icon == null:
+		return
+	icon.position = Vector3(0.0, room_height + special_room_icon_height, 0.0)
+	add_child(icon)
+
+
+## BUGFIX "Icons komplett unsichtbar": urspruenglich per SurfaceTool aus
+## Hand-Polygonen gebaut - ein Ansatz, der SONST NIRGENDS im Projekt
+## vorkommt. Vermutlich ein Culling-/AABB-Problem eines von Hand erzeugten
+## Custom-Mesh ohne explizites custom_aabb. Jetzt ausschliesslich aus
+## eingebauten Primitiv-Meshes (BoxMesh/CylinderMesh) zusammengesetzt -
+## exakt dieselbe, bereits erwiesenermassen funktionierende Bauweise wie die
+## Tuerzustands-Platten (_build_door_markers()) und der Rest des Projekts
+## (dive_bomber.gd, custom_enemy_base.gd, treasure_pedestal.gd, ...).
+##
+## Kronen-Andeutung statt woertlicher Zacken: ein um 45 Grad gedrehtes,
+## flaches BoxMesh ergibt aus der rein orthogonalen Draufsicht der
+## Kartenkamera eine Rauten-/Edelstein-Silhouette, vier kleine Punkte an
+## den Spitzen lesen sich als Zacken.
+func _build_treasure_icon() -> Node3D:
+	var root := Node3D.new()
+	root.name = "TreasureIcon"
+
+	var s: float = special_room_icon_size
+	var gem_mesh := BoxMesh.new()
+	gem_mesh.size = Vector3(s, 0.05, s)
+	var gem: MeshInstance3D = _make_flat_icon_mesh(gem_mesh, treasure_room_icon_color)
+	gem.rotation_degrees.y = 45.0
+	root.add_child(gem)
+
+	for angle_deg: float in [0.0, 90.0, 180.0, 270.0]:
+		var rad: float = deg_to_rad(angle_deg)
+		var tip_mesh := CylinderMesh.new()
+		tip_mesh.top_radius = s * 0.16
+		tip_mesh.bottom_radius = s * 0.16
+		tip_mesh.height = 0.05
+		var tip: MeshInstance3D = _make_flat_icon_mesh(tip_mesh, treasure_room_icon_color)
+		tip.position = Vector3(cos(rad) * s * 0.75, 0.02, sin(rad) * s * 0.75)
+		root.add_child(tip)
+
+	return root
+
+
+## Vereinfachter Totenkopf (Bossraum): flache dunkle Kreisflaeche + zwei
+## helle "Augen"-Punkte knapp darueber versetzt (Farbkontrast statt einer
+## echten Aussparung).
+func _build_boss_icon() -> Node3D:
+	var root := Node3D.new()
+	root.name = "BossIcon"
+
+	var base_mesh := CylinderMesh.new()
+	base_mesh.top_radius = special_room_icon_size * 0.5
+	base_mesh.bottom_radius = special_room_icon_size * 0.5
+	base_mesh.height = 0.05
+	root.add_child(_make_flat_icon_mesh(base_mesh, Color(0.1, 0.1, 0.11)))
+
+	var eye_radius: float = special_room_icon_size * 0.14
+	for side: float in [-1.0, 1.0]:
+		var eye_mesh := CylinderMesh.new()
+		eye_mesh.top_radius = eye_radius
+		eye_mesh.bottom_radius = eye_radius
+		eye_mesh.height = 0.05
+		var eye: MeshInstance3D = _make_flat_icon_mesh(eye_mesh, boss_room_icon_color)
+		eye.position = Vector3(side * special_room_icon_size * 0.28, 0.03, -special_room_icon_size * 0.08)
+		root.add_child(eye)
+
+	return root
+
+
+## Etwas Emission obendrauf, damit die Icons sich klar von der (nach der
+## letzten Rueckmeldung deutlich dunkleren) Dimmplatte abheben.
+func _make_flat_icon_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = mesh
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = color
+	material.emission_enabled = true
+	material.emission = color
+	material.emission_energy_multiplier = 1.2
+	mesh_instance.material_override = material
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh_instance.layers = 1 << (MINIMAP_ONLY_LAYER - 1)
+	return mesh_instance
 
 
 func _process(delta: float) -> void:

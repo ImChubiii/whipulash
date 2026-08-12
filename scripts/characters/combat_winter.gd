@@ -59,6 +59,9 @@ var _laser_tick_timer: float = 0.0
 var _laser_beam: Dictionary = {}
 var _laser_locked_target: Node3D = null
 var _laser_esp_marker: Label3D = null
+## Kastenumriss um das gelockte Ziel, siehe scripts/vfx/enemy_esp_box.gd -
+## leuchtet bei jedem Schadens-Tick kurz auf (_update_laser()).
+var _laser_esp_box: EnemyEspBox = null
 
 var _camera: Camera3D = null
 var _spring_arm: SpringArm3D = null
@@ -95,15 +98,41 @@ func _perform_primary() -> void:
 	var color: Color = data.attack_color if data else Color(0.5, 1.0, 0.7)
 	var dmg: float = plasma_damage * _damage_multiplier()
 
+	# Rueckmeldung "Charakter soll in die Richtung schauen, wenn man
+	# schiesst": targets[0] ist der naechste (siehe _pick_plasma_targets()'
+	# Sortierung) - nicht erst auf den Einschlag eines Bolts warten (der
+	# Flug dauert je nach Distanz spuerbar).
+	_lock_model_to(targets[0])
+
 	for target: Node3D in targets:
+		# ESP-Box PRO ZIEL, nicht ein einzelnes gelocktes Ziel wie bei Uzi/
+		# Sniper/Laser: Plasma kann bis zu plasma_bolt_count Gegner
+		# gleichzeitig anfliegen. Kurzlebig statt "gelockt, bis es
+		# wegfaellt" - passt zum Ein-Schuss-Charakter jedes einzelnen Bolts.
+		var esp_box: EnemyEspBox = EnemyEspBox.build_for(target, color)
+		get_tree().current_scene.add_child(esp_box)
+		esp_box.global_position = target.global_position + Vector3.UP * (esp_box.size.y * 0.5)
+
 		var on_strike: Callable = func(hit_target: Node3D) -> void:
-			_on_plasma_strike(hit_target, origin, dmg)
+			_on_plasma_strike(hit_target, origin, dmg, esp_box)
 
 		var bolt: HomingBolt = HomingBolt.spawn(
 			self, origin, target, color, on_strike, plasma_bolt_speed, plasma_bolt_lifetime, false, player
 		)
 		if bolt:
 			_attach_plasma_trail(bolt, color)
+		else:
+			esp_box.queue_free()
+
+		# Sicherheitsnetz: stirbt/entkommt das Ziel, bevor der Bolt trifft,
+		# feuert HomingBolt._strike() (und damit der on_strike-Callback,
+		# der die Box sonst aufraeumt) nie - die Box wuerde sonst dauerhaft
+		# haengen bleiben.
+		get_tree().create_timer(plasma_bolt_lifetime + 0.1).timeout.connect(
+			func() -> void:
+				if is_instance_valid(esp_box):
+					esp_box.queue_free()
+		)
 
 
 ## Bis zu plasma_bolt_count lebende Gegner in Reichweite, naechster zuerst.
@@ -174,7 +203,17 @@ func _attach_plasma_trail(bolt: Node3D, color: Color) -> void:
 ## homing_bolt.gd::_strike()). Die Zug-Richtung ist deshalb "vom Abschussort
 ## zum Einschlag", nicht "vom Ziel weg vom Einschlag" - liest sich als
 ## Schubs weiter in Flugrichtung, siehe Kopfkommentar-Entscheidung im Plan.
-func _on_plasma_strike(target: Node3D, origin: Vector3, dmg: float) -> void:
+func _on_plasma_strike(target: Node3D, origin: Vector3, dmg: float, esp_box: EnemyEspBox = null) -> void:
+	if esp_box != null and is_instance_valid(esp_box):
+		esp_box.flash()
+		# Kurz nach dem Aufblitzen aufraeumen statt sofort - der Puls soll
+		# noch sichtbar sein, bevor die Box mit dem Bolt zusammen verschwindet.
+		get_tree().create_timer(EnemyEspBox.FLASH_DURATION).timeout.connect(
+			func() -> void:
+				if is_instance_valid(esp_box):
+					esp_box.queue_free()
+		)
+
 	if not is_instance_valid(target):
 		return
 	var health: Node = target.find_child("Health", true, false)
@@ -261,6 +300,12 @@ func _update_laser(delta: float) -> void:
 	var target: Node3D = _resolve_laser_target(origin, look_dir)
 	var dir: Vector3 = ((target.global_position + Vector3.UP) - origin).normalized() if target != null else look_dir
 	_update_laser_esp(target)
+	# Rueckmeldung "Charakter soll in die Richtung schauen, wenn man
+	# schiesst" - vorher haengte _lock_model_to() weiter unten nur am
+	# tatsaechlichen Schadens-Tick (do_damage UND hit), der Strahl feuert
+	# aber jeden Frame; das Modell blieb zwischen zwei Ticks stehen.
+	if target != null:
+		_lock_model_to(target)
 
 	_laser_tick_timer -= delta
 	var do_damage: bool = _laser_tick_timer <= 0.0
@@ -278,13 +323,14 @@ func _update_laser(delta: float) -> void:
 			var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
 			if spark:
 				spark.scale *= 1.4
-			_lock_model_to(result["target"])
 			# Leichtes Dauer-Rattern statt eines einzelnen Shakes - passt
 			# besser zu einem Dauerstrahl als ein einmaliger Ausschlag und
 			# macht spuerbar, dass der Strahl laufend Schaden macht statt
 			# nur huebsch auszusehen (Rueckmeldung "sieht schwach aus").
 			if player and player.has_method("shake_camera"):
 				player.shake_camera(0.06)
+			if _laser_esp_box != null and is_instance_valid(_laser_esp_box):
+				_laser_esp_box.flash()
 
 	if _laser_beam.is_empty():
 		var data: CharacterData = PartyManager.get_active_data()
@@ -327,11 +373,14 @@ func _resolve_laser_target(origin: Vector3, look_dir: Vector3) -> Node3D:
 
 
 ## Gleiches Muster wie combat_giselle.gd::_update_uzi_esp() - Label3D
-## (billboard + no_depth_test) ueber dem gerade automatisch anvisierten Ziel.
+## (billboard + no_depth_test) PLUS EnemyEspBox-Kastenumriss ueber dem gerade
+## automatisch anvisierten Ziel.
 func _update_laser_esp(target: Node3D) -> void:
 	if target == _laser_locked_target and target != null and is_instance_valid(target):
 		if _laser_esp_marker != null and is_instance_valid(_laser_esp_marker):
 			_laser_esp_marker.global_position = target.global_position + Vector3.UP * 2.2
+		if _laser_esp_box != null and is_instance_valid(_laser_esp_box):
+			_laser_esp_box.global_position = target.global_position + Vector3.UP * (_laser_esp_box.size.y * 0.5)
 		return
 
 	_clear_laser_esp()
@@ -343,11 +392,18 @@ func _update_laser_esp(target: Node3D) -> void:
 	get_tree().current_scene.add_child(_laser_esp_marker)
 	_laser_esp_marker.global_position = target.global_position + Vector3.UP * 2.2
 
+	_laser_esp_box = EnemyEspBox.build_for(target, laser_esp_color)
+	get_tree().current_scene.add_child(_laser_esp_box)
+	_laser_esp_box.global_position = target.global_position + Vector3.UP * (_laser_esp_box.size.y * 0.5)
+
 
 func _clear_laser_esp() -> void:
 	if _laser_esp_marker != null and is_instance_valid(_laser_esp_marker):
 		_laser_esp_marker.queue_free()
 	_laser_esp_marker = null
+	if _laser_esp_box != null and is_instance_valid(_laser_esp_box):
+		_laser_esp_box.queue_free()
+	_laser_esp_box = null
 	_laser_locked_target = null
 
 

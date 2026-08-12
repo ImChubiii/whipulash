@@ -26,3 +26,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `3b06fb5` |
 | Autor | ImChubiii |
 | Datum | 2026-07-22 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-22_3b06fb5_fix_settings_tabs]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

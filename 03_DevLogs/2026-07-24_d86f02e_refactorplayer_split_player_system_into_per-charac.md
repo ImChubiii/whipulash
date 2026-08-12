@@ -53,3 +53,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `d86f02e` |
 | Autor | ImChubiii |
 | Datum | 2026-07-24 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-24_d86f02e_refactorplayer_split_player_system_into_per-charac]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

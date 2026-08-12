@@ -32,3 +32,6 @@ tags: [item]
 ## Quelle
 
 `scripts/items/item_catalog.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[tpl_Item]] (Confidence: 1.0)

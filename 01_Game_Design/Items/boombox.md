@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_BOOMBOX`, Variable `boombox`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[boombox]] (Confidence: 1.0)

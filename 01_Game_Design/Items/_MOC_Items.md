@@ -4,12 +4,12 @@ tags: [moc, items]
 
 # MOC — Items nach Gruppierung
 
-94 Items insgesamt. Siehe auch [[00_Master_Wiki|Dashboard]] fuer die
+95 Items insgesamt. Siehe auch [[00_Master_Wiki|Dashboard]] fuer die
 sortierbare Gesamttabelle.
 
 ## Nach Kategorie
 
-### DEFENSE (16)
+### DEFENSE (17)
 
 - [[car_alarm|Alarmanlage vom Parkplatz]]
 - [[boombox|Alte Ghettoblaster-Box]]
@@ -18,6 +18,7 @@ sortierbare Gesamttabelle.
 - [[handball_pads|Handball-Schulterpolster]]
 - [[healing_orb|Heil-Orb]]
 - [[broken_toaster|Kaputter Toaster]]
+- [[karina_passive_lifesteal|Karinas Reflexe]]
 - [[magnetic_compass|Magnetischer Kompass]]
 - [[plastic_halo|Plastik-Heiligenschein]]
 - [[bubble_gum|Riesige Kaugummiblase]]
@@ -219,8 +220,9 @@ sortierbare Gesamttabelle.
 - [[tangled_yoyo|Verheddertes Jo-Jo]]
 - [[broken_pencil|Zerbrochener Bleistift]]
 
-### COMMON (5)
+### COMMON (6)
 
+- [[karina_passive_lifesteal|Karinas Reflexe]]
 - [[empty_energy_can|Leere Energy-Dose]]
 - [[rusty_cleaver|Rostiges Beil]]
 - [[jump_rope|Springseil]]
@@ -278,7 +280,7 @@ sortierbare Gesamttabelle.
 - [[fault_line|Verwerfungslinie]]
 - [[walkman|Walkman (kaputt)]]
 
-### PASSIVE (49)
+### PASSIVE (50)
 
 - [[car_alarm|Alarmanlage vom Parkplatz]]
 - [[roller_skates|Alte Rollschuhe]]
@@ -295,6 +297,7 @@ sortierbare Gesamttabelle.
 - [[holy_oil|Heiliges Oel]]
 - [[brimstone_horns|Hoellenfeuer-Hoerner]]
 - [[broken_toaster|Kaputter Toaster]]
+- [[karina_passive_lifesteal|Karinas Reflexe]]
 - [[chewing_gum|Kaugummi unter dem Schuh]]
 - [[copper_wire|Kupferdraht-Spule]]
 - [[laser_pointer|Laser-Pointer aus dem Kiosk]]

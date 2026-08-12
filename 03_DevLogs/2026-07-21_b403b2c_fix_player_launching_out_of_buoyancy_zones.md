@@ -34,3 +34,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `b403b2c` |
 | Autor | ImChubiii |
 | Datum | 2026-07-21 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-21_b403b2c_fix_player_launching_out_of_buoyancy_zones]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

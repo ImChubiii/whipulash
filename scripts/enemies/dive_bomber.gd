@@ -25,7 +25,8 @@ const DUST_RING_SCENE: PackedScene = preload("res://scenes/vfx/dust_ring.tscn")
 const SPARK_YELLOW_SCENE: PackedScene = preload("res://scenes/vfx/spark_yellow.tscn")
 const ROCK_COLOR: Color = Color(0.32, 0.28, 0.26)
 
-var hover_height: float = 11.0
+## War 11.0 - Rueckmeldung "zu tief, nicht weit oben in der Luft" (2026-08-12).
+var hover_height: float = 16.0
 var hover_recenter_speed: float = 2.5
 var dash_interval: float = 3.4
 var lock_time: float = 0.9
@@ -38,9 +39,9 @@ var detect_range: float = 40.0
 
 ## Optisch (und, ueber die Kollisionsbox, auch spielerisch) groesser - reine
 ## Groessenanpassung, siehe visual_root.scale unten.
-## War 1.5 - Rueckmeldung "jeder Gegner ausser Magnet soll 3x groesser sein"
-## (1.5 * 3 = 4.5).
-const VISUAL_SCALE: float = 4.5
+## War 1.5, dann 4.5 ("jeder Gegner ausser Magnet soll 3x groesser sein").
+## Rueckmeldung "zu gross" (2026-08-12): auf 3.0 zurueckgenommen.
+const VISUAL_SCALE: float = 3.0
 
 var _state: State = State.HOVER
 var _bob_phase: float = 0.0

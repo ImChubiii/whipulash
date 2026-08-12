@@ -26,7 +26,8 @@ extends Node
 signal loot_dropped(kind: int, position: Vector3)
 
 ## Grundchance auf ueberhaupt einen Drop, bevor Glueck und Combo dazukommen.
-const BASE_DROP_CHANCE: float = 0.78
+## War 0.78 - Rueckmeldung "Drop-Raten spuerbar erhoehen".
+const BASE_DROP_CHANCE: float = 0.9
 
 ## Gewichte der Verbrauchsgueter. Werden intern normalisiert — die Zahlen
 ## entsprechen 1:1 der Design-Vorgabe (40 / 30 / 15).
@@ -41,8 +42,11 @@ const LUCK_PER_COMBO_STEP: float = 0.002
 ## entwerten und Loot zur Selbstverstaendlichkeit machen.
 const MAX_DROP_CHANCE: float = 0.95
 
-## Wie viele Drops ein Raum maximal ausspuckt.
-@export var max_drops_per_room: int = 1
+## Wie viele Drops ein Raum maximal ausspuckt. War 1 - Rueckmeldung
+## "Drop-Raten spuerbar erhoehen", zusammen mit BASE_DROP_CHANCE angehoben:
+## nicht nur wahrscheinlicher, dass ueberhaupt etwas droppt, sondern auch
+## mehr auf einmal.
+@export var max_drops_per_room: int = 2
 
 ## Standardmaessig AN, bis das System verifiziert ist. Danach auf false.
 @export var debug_logging: bool = true

@@ -28,3 +28,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `70c307e` |
 | Autor | ImChubiii |
 | Datum | 2026-07-25 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-25_70c307e_featminimap_add_player_direction_arrow]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

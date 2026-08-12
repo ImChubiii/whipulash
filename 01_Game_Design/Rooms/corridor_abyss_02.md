@@ -32,3 +32,6 @@ tags: [room, "room/corridor"]
 ## Quelle
 
 `resources/rooms/rd_corridor_abyss_02.tres` → `scenes/rooms/corridor/room_corridor_abyss_02.tscn`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[corridor_abyss_02]] (Confidence: 1.0)

@@ -32,3 +32,6 @@ tags: [room, "room/start"]
 ## Quelle
 
 `resources/rooms/rd_start_01.tres` → `scenes/rooms/room_start_01.tscn`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[start_01]] (Confidence: 1.0)

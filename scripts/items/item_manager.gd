@@ -268,7 +268,13 @@ func count_item(item_id: String) -> int:
 	return total
 
 
-func add_item(item: ItemData) -> bool:
+## silent = true unterdrueckt NUR item_added (das Signal, an dem die
+## "Item gefunden"-Popup-Karte haengt, siehe item_description_hud.gd::
+## _on_item_added()) - fuer fest verdrahtete, unsichtbare Charakter-Passiven
+## wie Karinas Reflexe (siehe char_karina.gd), die nie "gefunden" werden.
+## inventory_changed bleibt bewusst IMMER an, sonst wuerden Inventarlisten-UI
+## und Stat-Neuberechnung nach einem stillen Grant nicht mitziehen.
+func add_item(item: ItemData, silent: bool = false) -> bool:
 	if item == null:
 		return false
 	if item.max_stacks > 0 and count_item(item.id) >= item.max_stacks:
@@ -282,9 +288,65 @@ func add_item(item: ItemData) -> bool:
 	_apply_item_stats(item, inventory.size() - 1)
 	_register_synergy_tags(item)
 
-	item_added.emit(item)
+	if not silent:
+		item_added.emit(item)
 	inventory_changed.emit()
 	return true
+
+
+## Sonderfall fuer Sockel-Pickups (siehe treasure_pedestal.gd::take()):
+## normales add_item() legt ein DRITTES aktives Item nur unausgeruestet ins
+## Inventar (siehe PHASE-5-Kopfkommentar oben) - fuer einen Sockel ist das
+## die falsche Erwartung ("wozu nehme ich das mit, wenn es eh nichts tut").
+## Rueckmeldung: sind beide Slots (Q+E) schon belegt und man nimmt ein
+## drittes AKTIVES Item vom Sockel, wird stattdessen das Q-Item aus dem
+## Inventar entfernt und als "displaced" zurueckgegeben - der Aufrufer legt
+## es zurueck auf den Sockel (Swap). In jedem anderen Fall (freier Slot,
+## kein aktives Item, Stapelgrenze erreicht) verhaelt es sich wie add_item().
+##
+## Rueckgabe: {"picked_up": bool, "displaced": ItemData oder null}
+func pickup_active_item(item: ItemData) -> Dictionary:
+	if item == null:
+		return {"picked_up": false, "displaced": null}
+	# Stapelgrenze VORAB pruefen (dieselbe Bedingung wie add_item()) - sonst
+	# wuerde ein danach fehlschlagendes add_item() das bereits entfernte
+	# Q-Item ersatzlos verschwinden lassen.
+	if item.max_stacks > 0 and count_item(item.id) >= item.max_stacks:
+		return {"picked_up": false, "displaced": null}
+
+	var both_slots_full: bool = active_items[0] != null and active_items[1] != null
+	if not (item.is_active_item() and both_slots_full):
+		return {"picked_up": add_item(item), "displaced": null}
+
+	var displaced: ItemData = active_items[0]
+	_remove_from_inventory(displaced)
+	active_items[0] = null
+	active_slots_changed.emit()
+
+	add_item(item)
+	return {"picked_up": true, "displaced": displaced}
+
+
+## Entfernt GENAU EIN Exemplar aus dem Inventar (nicht alle Stacks).
+## _apply_item_stats() verknuepft Stat-Modifier ueber die INVENTAR-POSITION
+## (source_id enthaelt den Index, siehe dort) - eine Entfernung aus der
+## Mitte wuerde alle nachfolgenden Indizes verschieben und deren Modifier
+## unter dem ALTEN source_id verwaist zuruecklassen (PlayerStats._modifiers
+## ist ein Dictionary ohne automatische Bereinigung, siehe player_stats.gd).
+## Robuster als jeden verschobenen Index einzeln nachzuziehen: alle
+## Stat-Modifier komplett verwerfen und aus dem (jetzt korrekten) Inventar
+## neu aufbauen - derselbe Ablauf wie reset_run().
+func _remove_from_inventory(item: ItemData) -> void:
+	var index: int = inventory.find(item)
+	if index == -1:
+		return
+	inventory.remove_at(index)
+	_active_charges.erase(item.id)
+	_active_cooldowns.erase(item.id)
+	if stats != null:
+		stats.clear_all()
+		_reapply_all_item_stats()
+	inventory_changed.emit()
 
 
 func _register_synergy_tags(item: ItemData) -> void:

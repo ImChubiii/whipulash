@@ -34,7 +34,9 @@ const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
 ## --- Secondary "Phantom Execute" ---------------------------------------------
 @export var stealth_max_duration: float = 5.0
 @export var stealth_reentry_cooldown: float = 5.0
-@export var stealth_touch_radius: float = 1.6
+## War 1.6 - Rueckmeldung "Vernetzung (Markieren) funktioniert manchmal
+## nicht, Hitbox sollte grosszuegiger sein". Auf 2.6 angehoben.
+@export var stealth_touch_radius: float = 2.6
 @export var detonation_damage: float = 220.0
 
 const STANCE_MODIFIER_SOURCE: String = "karina_acid_rush"
@@ -44,7 +46,11 @@ const STANCE_MODIFIER_SOURCE: String = "karina_acid_rush"
 ## noetig. Auf Rueckmeldung ("Deckkraft auf 4%") von 0.95 auf 0.96 (100%-4%)
 ## angehoben.
 const STEALTH_MESH_TRANSPARENCY: float = 0.96
-const STEALTH_TOUCH_CHECK_INTERVAL: float = 0.15
+## War 0.15 - bei Karinas Lauftempo (~15-19 u/s) legt sie zwischen zwei
+## Pruefungen bis zu ~2.85 Einheiten zurueck; bei einem Vorbeilaufen konnte
+## das den Beruehrungs-Check komplett verpassen ("Vernetzung funktioniert
+## manchmal nicht"). Auf 0.05 gesenkt (~20x/s statt ~6.7x/s).
+const STEALTH_TOUCH_CHECK_INTERVAL: float = 0.05
 ## Motion-Blur-Trail (GhostTrail, siehe combat_base.gd) waehrend Phantom
 ## Execute auf 50% Staerke - deutlich ueber dem sehr dezenten Lauf-Trail-
 ## Default, siehe Rueckmeldung "motion blur trail auf 50%".
@@ -67,6 +73,12 @@ var _marked_enemy_ids: Array[int] = []
 var _mark_beams: Array[Dictionary] = []
 
 var _health: Health = null
+## Fuer Karinas feste Passive "Reflexe" (Lifesteal-on-Hit, siehe
+## item_behaviours.gd::try_karina_lifesteal()) - Karinas Angriffe laufen nie
+## ueber Hitbox.hit_landed (siehe Klassenkommentar), das normale
+## player_hit_enemy-Signal feuert fuer sie also nie. Direkter Aufruf bei
+## jedem eigenen Treffer statt dessen.
+var _item_behaviours: Node = null
 var _meshes: Array[MeshInstance3D] = []
 var _aura_visual: MeshInstance3D = null
 var _aura_pulse_tween: Tween = null
@@ -84,6 +96,7 @@ func _init() -> void:
 func setup(owner_player: CharacterBody3D) -> void:
 	super.setup(owner_player)
 	_health = player.get_node_or_null("Health") as Health
+	_item_behaviours = get_node_or_null("/root/Items/ItemBehaviours")
 	var model: Node = player.get_node_or_null("CharacterModel")
 	_meshes = _collect_mesh_instances(model) if model else []
 	if ghost_trail:
@@ -195,10 +208,20 @@ func _tick_acid_aura(delta: float) -> void:
 	var dns: PackedScene = primary_hitbox.damage_number_scene if primary_hitbox else null
 	var hit_anyone: bool = false
 
-	for enemy: Node3D in EnemyQuery.enemies_within(player.global_position, acid_aura_radius):
+	# BUGFIX "Primärangriff trifft in der Luft nicht": enemies_within() misst
+	# volle 3D-Kugel-Distanz von Karinas Ursprung. Springt sie, wandert dieser
+	# Ursprung nach oben, waehrend Gegner-Ursprünge am Boden bleiben - ab
+	# Sprunghoehe + Fuesse-Versatz reicht das, um direkt daneben stehende
+	# Gegner rechnerisch aus dem Radius fallen zu lassen (siehe enemy_query.gd
+	# fuer die volle Herleitung). enemies_within_flat() trennt Horizontal-
+	# Radius von einem grosszuegigen Hoehenfenster und trifft dadurch auch
+	# waehrend eines Sprungs zuverlaessig.
+	for enemy: Node3D in EnemyQuery.enemies_within_flat(player.global_position, acid_aura_radius, 3.0, 5.0):
 		if enemy.has_method("apply_status_effect"):
 			hit_anyone = true
 			enemy.apply_status_effect("acid", acid_effect_duration, acid_damage_per_tick, player, acid_tick_interval)
+			if _item_behaviours:
+				_item_behaviours.try_karina_lifesteal()
 			if dns != null:
 				var number: Node = dns.instantiate()
 				get_tree().current_scene.add_child(number)
@@ -306,7 +329,9 @@ func _tick_stealth(delta: float, force_end: bool) -> void:
 		return
 	_stealth_touch_timer = STEALTH_TOUCH_CHECK_INTERVAL
 
-	for enemy: Node3D in EnemyQuery.enemies_within(player.global_position, stealth_touch_radius):
+	# Gleicher Grund wie in _tick_acid_aura(): flach statt Kugel-Radius, damit
+	# ein Sprung waehrend Phantom Execute die "Vernetzung" nicht verpasst.
+	for enemy: Node3D in EnemyQuery.enemies_within_flat(player.global_position, stealth_touch_radius, 3.0, 5.0):
 		var id: int = enemy.get_instance_id()
 		if not _marked_enemy_ids.has(id):
 			# Verbindet den NEU markierten Gegner mit dem zuletzt markierten -
@@ -431,6 +456,8 @@ func _detonate() -> void:
 		if health == null or not (health is Health) or not (health as Health).is_alive():
 			continue
 		(health as Health).take_damage(dmg, player)
+		if _item_behaviours:
+			_item_behaviours.try_karina_lifesteal()
 		VFX.spawn(HIT_VFX_SCENE, enemy_3d.global_position + Vector3.UP, Vector3.UP)
 
 		if dns != null:

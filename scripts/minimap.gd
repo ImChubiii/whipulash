@@ -218,12 +218,16 @@ func _ready() -> void:
 	map_container.pivot_offset = map_container.size * 0.5
 	map_container.rotation_degrees = map_calibration_offset_degrees
 
-	# Overlay-Platzierung kommt aus den Einstellungen. Der @export-Wert
-	# bleibt als Editor-Vorgabe erhalten, wird hier aber ueberschrieben -
-	# sonst gaebe es zwei konkurrierende Quellen fuer dieselbe Entscheidung.
-	overlay_placement = SettingsManager.minimap_grid_placement as OverlayPlacement
-	if overlay_placement != OverlayPlacement.HIDDEN:
-		_create_room_overlay()
+	# Das schematische Raum-Grid-Overlay (MinimapRooms) ist komplett entfernt
+	# (Rueckmeldung: "sollte kein Layoutgrid sein, sondern direkt in der
+	# Minimap"). Raum-Zustand (gecleart/nicht) und Spezialraum-Icons
+	# (Schatz/Boss) werden jetzt direkt in der echten 3D-Top-Down-Ansicht
+	# angezeigt - siehe room_instance.gd::_build_room_state_overlay()/
+	# set_room_type(), beide auf MINIMAP_ONLY_LAYER wie die schon
+	# bestehenden Tuerzustands-Platten. _create_room_overlay() bleibt als
+	# totes Legacy-Codepfad stehen (siehe dortiger Kommentar), wird aber
+	# absichtlich nie mehr aufgerufen.
+	overlay_placement = OverlayPlacement.HIDDEN
 
 	# WICHTIG: Erst NACH _create_room_overlay() die Kleinansicht-Masse
 	# sichern. Das Overlay veraendert dort ggf. die Frame-Hoehe - wuerde
@@ -506,17 +510,9 @@ func _apply_minimap_settings() -> void:
 	if zone_label:
 		zone_label.visible = SettingsManager.minimap_show_zone_label
 
-	var placement: int = SettingsManager.minimap_grid_placement
-	if _room_overlay and is_instance_valid(_room_overlay):
-		_room_overlay.visible = placement != SettingsManager.MINIMAP_GRID_HIDDEN
-	elif placement != SettingsManager.MINIMAP_GRID_HIDDEN:
-		# Grid war beim Start ausgeschaltet und wurde jetzt eingeschaltet:
-		# Overlay nachtraeglich erzeugen statt einen Neustart zu verlangen.
-		overlay_placement = placement as OverlayPlacement
-		_create_room_overlay()
-		if _room_overlay:
-			_small_overlay_size = _room_overlay.size
-			_small_overlay_position = _room_overlay.position
+	# Grid-Overlay entfernt (siehe _ready()) - die minimap_grid_placement-
+	# Einstellung bleibt bestehen (Menue nicht angefasst), wird hier aber
+	# bewusst ignoriert statt ein Overlay nachzuziehen.
 
 
 ## Zoom > 1 = naeher dran. Der Kamera-Ausschnitt ist der KEHRWERT des

@@ -62,7 +62,12 @@ const DIR_OFFSETS := {
 ## werden also spuerbar dicker (1.0 -> 3.0 Einheiten). Bei der PSX-Optik
 ## dieses Spiels passt das eher zum Stil, als dass es stoert - falls nicht,
 ## ist das der erste Punkt, an dem man ansetzt.
-@export var room_scale: Vector3 = Vector3(2.0, 2.0, 2.0)
+## War Vector3(2.0, 2.0, 2.0) - Rueckmeldung "Raeume generell um ca. 15%
+## verkleinern". cell_size/elevation_step werden unten in _apply_room_scale()
+## direkt AUS diesem Wert abgeleitet (nicht separat gepflegt) - das
+## Grid-System bleibt dadurch automatisch konsistent, es gibt keinen
+## zweiten Ort, der von Hand synchron gehalten werden muesste.
+@export var room_scale: Vector3 = Vector3(2.0, 2.0, 2.0) * 0.85
 
 ## Referenzgroesse EINER Raum-Szene bei room_scale = (1,1,1). Nicht aendern,
 ## ohne auch die Raum-Szenen selbst neu zu bauen - das hier ist die Basis,
@@ -445,6 +450,8 @@ func _instantiate_layout(layout: Dictionary) -> void:
 			continue
 
 		room.grid_position = grid_pos
+		if room.has_method("set_room_type"):
+			room.set_room_type(cell.room_type)
 
 		room.apply_exit_flags(cell.exit_flags)
 
@@ -486,7 +493,7 @@ func _instantiate_layout(layout: Dictionary) -> void:
 		room.set_spawn_seed(DetRng.derive(_run_seed, "spawn:%d:%d:%d" % [grid_pos.x, grid_pos.y, current_stage]))
 
 		var table: Array[EnemySpawnEntry] = _table_for_type(cell.room_type)
-		var budget: int = _budget_for_type(cell.room_type)
+		var budget: int = _budget_for_type(cell.room_type, cell.footprint)
 		room.prepare_enemies(table, budget, current_stage, cell.room_type == RoomData.RoomType.BOSS)
 
 		room.debug_doors = debug_doors
@@ -939,7 +946,12 @@ func _table_for_type(type: int) -> Array[EnemySpawnEntry]:
 	return empty
 
 
-func _budget_for_type(type: int) -> int:
+## footprint: Zellen-Grundflaeche des Raums (Vector2i.ONE = normaler 1x1-
+## Raum). Rueckmeldung "grosse Raeume (2x1/2x2) wirken leer, wenn sie
+## dasselbe Budget wie ein 1x1-Raum haben, obwohl sie deutlich mehr
+## Grundflaeche haben" - skaliert Budget linear mit der Zellenanzahl, damit
+## die Gegnerdichte pro Flaeche konstant bleibt.
+func _budget_for_type(type: int, footprint: Vector2i = Vector2i.ONE) -> int:
 	var base: int = 0
 	match type:
 		RoomData.RoomType.COMBAT:
@@ -951,7 +963,19 @@ func _budget_for_type(type: int) -> int:
 		_:
 			return 0
 
-	var cap: int = boss_threat_hard_cap if type == RoomData.RoomType.BOSS else threat_hard_cap
+	# WICHTIG: threat_hard_cap (64) ist standardmaessig GENAU gleich
+	# combat_threat_budget (64) - ein normaler 1x1-Kampfraum sitzt in Stage 1
+	# also schon exakt am Deckel. Wuerde NUR "base" mit der Zellenzahl
+	# multipliziert, wuerde der unveraenderte Cap die Skalierung sofort
+	# wieder auf den 1x1-Wert zurueckschneiden. Der Cap muss deshalb
+	# GENAUSO skalieren wie das Budget selbst.
+	var cell_count: int = maxi(footprint.x * footprint.y, 1)
+	base *= cell_count
+	var cap: int = (boss_threat_hard_cap if type == RoomData.RoomType.BOSS else threat_hard_cap) * cell_count
+
+	# Die Stage-Steigerung bleibt bewusst UNSKALIERT (flacher Bonus,
+	# unabhaengig von der Raumgroesse) - sie ist eine globale
+	# Schwierigkeitskurve, keine flaechenabhaengige Groesse.
 	return clampi(base + (current_stage - 1) * threat_per_stage, 0, cap)
 
 # --- Navigation ------------------------------------------------------

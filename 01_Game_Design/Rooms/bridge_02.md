@@ -32,3 +32,6 @@ tags: [room, "room/corridor"]
 ## Quelle
 
 `resources/rooms/rd_bridge_02.tres` → `scenes/rooms/corridor/room_bridge_02.tscn`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[bridge_02]] (Confidence: 1.0)

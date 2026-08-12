@@ -32,3 +32,6 @@ tags: [room, "room/treasure"]
 ## Quelle
 
 `resources/rooms/rd_treasure_02.tres` → `scenes/rooms/treasure/room_treasure_02.tscn`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[treasure_02]] (Confidence: 1.0)

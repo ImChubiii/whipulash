@@ -116,3 +116,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `61765de` |
 | Autor | ImChubiii |
 | Datum | 2026-07-26 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-26_61765de_feat_combat-tuning_hud-overhaul_anti-baiting_sieg-]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

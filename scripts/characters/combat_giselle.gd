@@ -22,6 +22,14 @@ class_name CombatGiselle
 const MUZZLE_VFX_SCENE: PackedScene = preload("res://scenes/vfx/spark_yellow.tscn")
 const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
 
+## BUGFIX "Muendungsblitz-Partikel fliegen in die Kamera": _spawn_muzzle_vfx()
+## bekam bisher die Camera3D-Position selbst als Spawn-Punkt - der Effekt
+## sass damit direkt AM Objektiv, und sein 75-Grad-Streuwinkel (siehe
+## spark_yellow.tscn) rendert dadurch sichtbar ueber den ganzen Bildschirm
+## statt als kleiner Blitz vor dem Lauf. Schiebt den Spawn-Punkt ein Stueck
+## in Schussrichtung nach vorn, weg vom Objektiv.
+const MUZZLE_FORWARD_OFFSET: float = 0.6
+
 ## --- Primary "Uzi Spray" -------------------------------------------------
 @export var uzi_magazine_size: int = 40
 @export var uzi_reload_time: float = 1.0
@@ -50,29 +58,49 @@ const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
 @export var sniper_zoom_in_time: float = 0.5
 @export var sniper_zoom_out_time: float = 0.35
 
+## Zusaetzlicher seitlicher Kamera-Versatz waehrend des Sniper-Zooms, ON TOP
+## von player_base.gd's staendigem camera_shoulder_offset - der Charakter
+## steht beim Reinzoomen sonst mitten im Bild und verdeckt genau das Ziel,
+## das man gerade anvisiert. Siehe _start_sniper_charge()/
+## _release_sniper_charge() - laeuft als eigener Tween parallel zum FOV-Tween.
+@export var sniper_aim_shoulder_offset: float = 1.1
+
 ## --- Aim-Assist (Sniper) ----------------------------------------------------
 ## Nur noch fuer den Sniper: die Uzi hat seit dem Auto-Target-Rework ihr
 ## eigenes uzi_target_cone_deg (harter Lock statt weichem Assist, siehe oben).
-## Rueckmeldung "RMB soll einen soft aim assist haben": Winkel von 5 auf 10
-## Grad angehoben, damit er ueberhaupt spuerbar greift - strength bleibt bei
-## 0.5 (weich, kein harter Lock wie bei der Uzi).
-@export var aim_assist_angle_deg: float = 10.0
-@export var aim_assist_strength: float = 0.5
+## War 10/0.5 ("soft aim assist"). Rueckmeldung "reicht nicht, Fadenkreuz
+## soll viel staerker am Gegner kleben bleiben": Winkel auf 18 Grad und
+## strength auf 0.85 angehoben - deutlich klebriger, aber bewusst NICHT 1.0,
+## damit ein grob daneben gezielter Schuss noch knapp danebengehen kann statt
+## komplett zum Aim-Bot zu werden. Bei Bedarf im Inspector weiter hochdrehen.
+@export var aim_assist_angle_deg: float = 18.0
+@export var aim_assist_strength: float = 0.85
 
 var _uzi_ammo: int = 40
 var _uzi_reloading: bool = false
 var _uzi_locked_target: Node3D = null
 var _uzi_esp_marker: Label3D = null
+var _uzi_esp_box: EnemyEspBox = null
 
 var _sniper_charging: bool = false
+var _sniper_locked_target: Node3D = null
+var _sniper_esp_box: EnemyEspBox = null
 var _camera: Camera3D = null
 var _spring_arm: SpringArm3D = null
 var _default_fov: float = 75.0
 var _fov_tween: Tween = null
+## Ausgangswert von _spring_arm.position.x, EINMAL in setup() gelesen -
+## player_base.gd hat den Shoulder-Offset zu dem Zeitpunkt schon gesetzt
+## (siehe player_base.gd::_ready(), laeuft VOR combat.setup()). Der Sniper-
+## Zoom tweent dorthin zurueck statt hart auf 0.0, damit ein evtl. per
+## Inspector abweichender Standard-Offset erhalten bleibt.
+var _default_shoulder_offset: float = 0.6
+var _shoulder_tween: Tween = null
 
 
 func _init() -> void:
-	primary_cooldown = 0.08
+	# War 0.08 - Rueckmeldung "schiesst minimal zu schnell". Leicht angehoben.
+	primary_cooldown = 0.1
 	secondary_cooldown = 5.0
 	utility_cooldown = 0.8
 
@@ -84,6 +112,8 @@ func setup(owner_player: CharacterBody3D) -> void:
 	_uzi_ammo = uzi_magazine_size
 	if _camera:
 		_default_fov = _camera.fov
+	if _spring_arm:
+		_default_shoulder_offset = _spring_arm.position.x
 
 
 # ============================================================================
@@ -110,6 +140,13 @@ func _perform_primary() -> void:
 	var target: Node3D = _resolve_uzi_target(origin, look_dir)
 	var dir: Vector3 = ((target.global_position + Vector3.UP) - origin).normalized() if target != null else look_dir
 	_update_uzi_esp(target)
+	# Rueckmeldung "Charakter soll in die Richtung schauen, wenn man einen
+	# Gegner beschiesst": frueher haengte _lock_model_to() nur am BESTAETIGTEN
+	# Treffer (unten im result["hit"]-Zweig) - ein Ziel im Kegel, das die Uzi
+	# gerade anvisiert, liess das Modell also stehen, solange der Schuss aus
+	# irgendeinem Grund (Deckung, Rand des Kegels) nicht ankam. "Schiesst auf"
+	# heisst schon "hat ein Ziel gewaehlt", nicht erst "hat getroffen".
+	_lock_model_to(target)
 
 	var dns: PackedScene = primary_hitbox.damage_number_scene if primary_hitbox else null
 	var result: Dictionary = Hitscan.fire(self, origin, dir, uzi_range, uzi_damage * _damage_multiplier(), player, dns)
@@ -119,9 +156,10 @@ func _perform_primary() -> void:
 		var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
 		if spark:
 			spark.scale *= 1.6
-		_lock_model_to(result["target"])
 		if player and player.has_method("shake_camera"):
 			player.shake_camera(0.18)
+		if _uzi_esp_box != null and is_instance_valid(_uzi_esp_box):
+			_uzi_esp_box.flash()
 
 	_uzi_ammo -= 1
 	if _uzi_ammo <= 0:
@@ -147,15 +185,17 @@ func _resolve_uzi_target(origin: Vector3, look_dir: Vector3) -> Node3D:
 	return EnemyQuery.best_target_in_cone(origin, look_dir, uzi_range, uzi_target_cone_deg)
 
 
-## Haelt einen einzelnen Label3D-Marker (billboard + no_depth_test, gleiches
-## Muster wie damage_number.gd) ueber dem gerade automatisch anvisierten
+## Haelt einen Label3D-Marker UND eine EnemyEspBox (Kastenumriss, siehe
+## scripts/vfx/enemy_esp_box.gd) ueber dem gerade automatisch anvisierten
 ## Ziel fest - das ist das in der Rueckmeldung verlangte "ESP" auf den
-## beschossenen Gegner. no_depth_test sorgt dafuer, dass er auch durch
-## Gegner/Deckung hindurch klar lesbar bleibt, nicht nur durch Waende.
+## beschossenen Gegner. no_depth_test sorgt dafuer, dass der Marker auch
+## durch Gegner/Deckung hindurch klar lesbar bleibt, nicht nur durch Waende.
 func _update_uzi_esp(target: Node3D) -> void:
 	if target == _uzi_locked_target and target != null and is_instance_valid(target):
 		if _uzi_esp_marker != null and is_instance_valid(_uzi_esp_marker):
 			_uzi_esp_marker.global_position = target.global_position + Vector3.UP * 2.2
+		if _uzi_esp_box != null and is_instance_valid(_uzi_esp_box):
+			_uzi_esp_box.global_position = target.global_position + Vector3.UP * (_uzi_esp_box.size.y * 0.5)
 		return
 
 	_clear_uzi_esp()
@@ -167,11 +207,18 @@ func _update_uzi_esp(target: Node3D) -> void:
 	get_tree().current_scene.add_child(_uzi_esp_marker)
 	_uzi_esp_marker.global_position = target.global_position + Vector3.UP * 2.2
 
+	_uzi_esp_box = EnemyEspBox.build_for(target, uzi_esp_color)
+	get_tree().current_scene.add_child(_uzi_esp_box)
+	_uzi_esp_box.global_position = target.global_position + Vector3.UP * (_uzi_esp_box.size.y * 0.5)
+
 
 func _clear_uzi_esp() -> void:
 	if _uzi_esp_marker != null and is_instance_valid(_uzi_esp_marker):
 		_uzi_esp_marker.queue_free()
 	_uzi_esp_marker = null
+	if _uzi_esp_box != null and is_instance_valid(_uzi_esp_box):
+		_uzi_esp_box.queue_free()
+	_uzi_esp_box = null
 	_uzi_locked_target = null
 
 
@@ -213,13 +260,14 @@ func get_uzi_magazine_size() -> int:
 	return uzi_magazine_size
 
 
-## _uzi_esp_marker haengt unter current_scene, NICHT unter diesem Combat-Node
-## (siehe _build_esp_marker()/_update_uzi_esp()) - ueberlebt einen
-## Charakterwechsel also nicht automatisch. Explizit aufraeumen, sonst bleibt
-## ein verwaister Marker in der Szene stehen, falls LMB genau beim Wechsel
-## gehalten wurde.
+## _uzi_esp_marker/_uzi_esp_box haengen unter current_scene, NICHT unter
+## diesem Combat-Node (siehe _build_esp_marker()/_update_uzi_esp()) -
+## ueberleben einen Charakterwechsel also nicht automatisch. Explizit
+## aufraeumen, sonst bleibt ein verwaister Marker/Kasten in der Szene stehen,
+## falls LMB/RMB genau beim Wechsel gehalten wurde.
 func _exit_tree() -> void:
 	_clear_uzi_esp()
+	_clear_sniper_esp()
 
 
 # ============================================================================
@@ -232,6 +280,14 @@ func _exit_tree() -> void:
 # ============================================================================
 func _poll_secondary_input(_delta: float) -> void:
 	if _sniper_charging:
+		# ESP-Box waehrend des GESAMTEN Ladevorgangs aktuell halten - sticky
+		# Targeting (siehe _resolve_sniper_esp_target()) sorgt dafuer, dass
+		# sie nicht bei jedem winzigen Maus-Zittern auf einen anderen Gegner
+		# umspringt.
+		if _camera != null:
+			var origin: Vector3 = _camera.global_position
+			var look_dir: Vector3 = -_camera.global_transform.basis.z
+			_update_sniper_esp(_resolve_sniper_esp_target(origin, look_dir))
 		if not Input.is_action_pressed("attack_secondary"):
 			_release_sniper_charge()
 		return
@@ -249,6 +305,20 @@ func _start_sniper_charge() -> void:
 	_fov_tween.tween_property(_camera, "fov", sniper_zoom_fov, sniper_zoom_in_time) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
+	# Schulterblick-Versatz: der Charakter steht sonst mitten im Bild und
+	# verdeckt beim Reinzoomen genau das Ziel (Rueckmeldung "Kamera-Shift
+	# beim Zielen"). Reine Positions-Verschiebung des SpringArm3D-Ursprungs,
+	# KEINE Rotationsaenderung - siehe player_base.gd::camera_shoulder_offset
+	# fuer die ausfuehrliche Begruendung, warum das (statt Camera3D.h_offset)
+	# den Schuss-Raycast (origin=Kamera-Position, dir=Kamera-Blickrichtung)
+	# automatisch treffergenau mitverschiebt, ohne dass hier irgendetwas am
+	# Zielsystem angepasst werden muss.
+	if _spring_arm:
+		_kill_shoulder_tween()
+		_shoulder_tween = _spring_arm.create_tween()
+		_shoulder_tween.tween_property(_spring_arm, "position:x", sniper_aim_shoulder_offset, sniper_zoom_in_time) \
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
 
 func _release_sniper_charge() -> void:
 	_sniper_charging = false
@@ -256,6 +326,12 @@ func _release_sniper_charge() -> void:
 		_kill_fov_tween()
 		_fov_tween = _camera.create_tween()
 		_fov_tween.tween_property(_camera, "fov", _default_fov, sniper_zoom_out_time) \
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+
+	if _spring_arm:
+		_kill_shoulder_tween()
+		_shoulder_tween = _spring_arm.create_tween()
+		_shoulder_tween.tween_property(_spring_arm, "position:x", _default_shoulder_offset, sniper_zoom_out_time) \
 			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 	# Der Schuss loest erst HIER aus (nicht beim Druecken) - deshalb bleibt
@@ -268,6 +344,56 @@ func _release_sniper_charge() -> void:
 func _kill_fov_tween() -> void:
 	if _fov_tween != null and _fov_tween.is_valid():
 		_fov_tween.kill()
+
+
+func _kill_shoulder_tween() -> void:
+	if _shoulder_tween != null and _shoulder_tween.is_valid():
+		_shoulder_tween.kill()
+
+
+## Sticky Targeting fuer die Sniper-ESP-Box waehrend Ladevorgang + Burst -
+## gleiches Muster wie _resolve_uzi_target()/combat_winter.gd::
+## _resolve_laser_target(). Rein visuell, unabhaengig vom eigentlichen
+## Schuss-Aim-Assist (der bleibt der reine Richtungs-Slerp unten in
+## _perform_secondary() - EnemyQuery.aim_assisted_direction() feuert immer
+## auf den WINKEL-naechsten Kandidaten im Feuermoment, nicht zwingend auf
+## dieses gelockte Ziel; beide finden in der Praxis fast immer denselben
+## Gegner, weil dieselbe Kegel-/Reichweiten-Logik zugrunde liegt).
+func _resolve_sniper_esp_target(origin: Vector3, look_dir: Vector3) -> Node3D:
+	if _sniper_locked_target != null and is_instance_valid(_sniper_locked_target):
+		var health: Node = _sniper_locked_target.find_child("Health", true, false)
+		var alive: bool = health != null and health is Health and (health as Health).is_alive()
+		var to_target: Vector3 = (_sniper_locked_target.global_position + Vector3.UP) - origin
+		var in_range: bool = to_target.length() <= sniper_range
+		var in_cone: bool = to_target.length_squared() > 0.0001 \
+			and look_dir.angle_to(to_target.normalized()) <= deg_to_rad(aim_assist_angle_deg * 1.5)
+		if alive and in_range and in_cone:
+			return _sniper_locked_target
+
+	return EnemyQuery.best_target_in_cone(origin, look_dir, sniper_range, aim_assist_angle_deg)
+
+
+func _update_sniper_esp(target: Node3D) -> void:
+	if target == _sniper_locked_target and target != null and is_instance_valid(target):
+		if _sniper_esp_box != null and is_instance_valid(_sniper_esp_box):
+			_sniper_esp_box.global_position = target.global_position + Vector3.UP * (_sniper_esp_box.size.y * 0.5)
+		return
+
+	_clear_sniper_esp()
+	_sniper_locked_target = target
+	if target == null or not is_instance_valid(target):
+		return
+
+	_sniper_esp_box = EnemyEspBox.build_for(target, uzi_esp_color)
+	get_tree().current_scene.add_child(_sniper_esp_box)
+	_sniper_esp_box.global_position = target.global_position + Vector3.UP * (_sniper_esp_box.size.y * 0.5)
+
+
+func _clear_sniper_esp() -> void:
+	if _sniper_esp_box != null and is_instance_valid(_sniper_esp_box):
+		_sniper_esp_box.queue_free()
+	_sniper_esp_box = null
+	_sniper_locked_target = null
 
 
 func _perform_secondary() -> void:
@@ -287,6 +413,13 @@ func _perform_secondary() -> void:
 	var dns: PackedScene = secondary_hitbox.damage_number_scene if secondary_hitbox else null
 	var landed_hit: bool = false
 
+	# Rueckmeldung "Charakter soll in die Richtung schauen, wenn man schiesst"
+	# - gleicher Grund wie bei der Uzi: nicht erst auf einen bestaetigten
+	# Treffer warten. _sniper_locked_target ist bereits waehrend des Ladens
+	# (siehe _poll_secondary_input()) ermittelt.
+	if _sniper_locked_target != null and is_instance_valid(_sniper_locked_target):
+		_lock_model_to(_sniper_locked_target)
+
 	for i: int in range(sniper_shot_count):
 		var result: Dictionary = Hitscan.fire(self, origin, dir, sniper_range, dmg, player, dns)
 		_spawn_muzzle_vfx(origin, dir)
@@ -299,6 +432,8 @@ func _perform_secondary() -> void:
 			if spark:
 				spark.scale *= 2.2
 			_lock_model_to(result["target"])
+			if _sniper_esp_box != null and is_instance_valid(_sniper_esp_box):
+				_sniper_esp_box.flash()
 		if i < sniper_shot_count - 1:
 			await get_tree().create_timer(0.03).timeout
 
@@ -307,6 +442,11 @@ func _perform_secondary() -> void:
 		# verkauft das Gewicht eines Treffers, der die meisten Gegner sofort
 		# toetet, deutlich staerker als reines Wackeln.
 		Juice.impact(0.6, Juice.DURATION_HEAVY)
+
+	# Burst ist fertig (RMB feuert nur einmal pro Ladevorgang) - ESP-Box
+	# wieder einsammeln, statt sie bis zum naechsten Ladevorgang haengen zu
+	# lassen.
+	_clear_sniper_esp()
 
 
 func is_sniper_charging() -> bool:
@@ -331,11 +471,6 @@ func _lock_model_to(target: Variant) -> void:
 		player.set_target(target)
 
 
-## "dir" ist hier die reine Schuss-/Blickrichtung (-Camera-Z). VFX.spawn()/
-## _aim() orientieren aber nach der PROJEKT-Konvention "+Z ist vorne" (siehe
-## primary_hitbox.gd swing_vfx-Kommentar) - deshalb hier NEGIERT uebergeben,
-## sonst zeigt der Muendungsblitz sichtbar rueckwaerts, obwohl der Raycast
-## selbst (der "dir" unnegiert bekommt) korrekt in Blickrichtung feuert.
 ## Sichtbarer Muendungsblitz-bis-Trefferpunkt-Streifen, kurz aufblitzend und
 ## sofort wieder weg (BeamVisual.create()/update() einmalig statt jeden
 ## Frame, siehe Winters Dauerstrahl fuer den Unterschied). Vorher hatte
@@ -354,10 +489,24 @@ func _spawn_tracer(origin: Vector3, endpoint: Vector3, radius_scale: float, life
 	)
 
 
+## BUGFIX "Partikel fliegen Richtung Kamera statt zum Ziel": vfx_dir war
+## bisher "-dir" (also zurueck zum Schuetzen). vfx_manager.gd::spawn() ist
+## eindeutig dokumentiert ("-Z des Effekts zeigt darauf, Godot-Konvention von
+## look_at()") - mit "-dir" zeigte das lokale -Z des Muendungsblitzes damit
+## RUECKWAERTS zur Kamera und +Z (nicht -Z) nach vorne zum Ziel, also genau
+## verkehrt herum. Die alte Begruendung dafuer berief sich auf den
+## "+Z ist vorne"-Kommentar in primary_hitbox.gd - der gilt aber nur fuer
+## PrimaryHitbox, weil DIESES eine Area3D-Node im .tscn von Hand so gedreht
+## wurde, dass sein +Z nach vorne zeigt. Das ist eine Eigenheit dieses einen
+## Nodes, keine projektweite Konvention - fuer alles, was per VFX.spawn()
+## ausgerichtet wird (wie hier), gilt ausschliesslich die -Z-Regel oben.
+## "dir" (unnegiert) ist bereits die reine Schuss-/Blickrichtung, siehe
+## Aufrufer - richtig ausgerichtet zeigt das jetzt tatsaechlich zum Ziel.
 func _spawn_muzzle_vfx(pos: Vector3, dir: Vector3) -> void:
-	var vfx_dir: Vector3 = -dir
+	var vfx_dir: Vector3 = dir
+	var spawn_pos: Vector3 = pos + dir * MUZZLE_FORWARD_OFFSET
 	var data: CharacterData = PartyManager.get_active_data()
 	if data != null:
-		VFX.spawn_dual_tinted(MUZZLE_VFX_SCENE, pos, data.attack_color, data.attack_color_secondary, vfx_dir)
+		VFX.spawn_dual_tinted(MUZZLE_VFX_SCENE, spawn_pos, data.attack_color, data.attack_color_secondary, vfx_dir)
 	else:
-		VFX.spawn(MUZZLE_VFX_SCENE, pos, vfx_dir)
+		VFX.spawn(MUZZLE_VFX_SCENE, spawn_pos, vfx_dir)

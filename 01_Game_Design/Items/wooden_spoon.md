@@ -47,7 +47,7 @@ dieses Items ODER umgekehrt):
 
 ## Erwaehnt in DevLogs
 
-- [[2026-07-27_0c0e515_feat_treasure_room_items_hud_overhaul_balancing_mu|2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes]]
+- [[2026-07-27_f88829f_feat_treasure_room_items_hud_overhaul_balancing_mu|2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes]]
 
 ## Metadaten
 

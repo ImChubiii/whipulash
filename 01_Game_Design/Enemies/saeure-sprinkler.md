@@ -33,7 +33,7 @@ Bewegt sich nie. Spuckt alle `fire_interval` Sekunden ein Saeure-Geschoss auf di
 | Flugzeit Geschoss (s) | 0.7 |
 | Pfuetzenradius | 2.6 |
 | Pfuetzen-Lebensdauer (s) | 6 |
-| Erkennungsreichweite | 40 |
+| Erkennungsreichweite | 500 |
 
 ## Status-Effekte (ausgeloest)
 
@@ -41,7 +41,7 @@ Bewegt sich nie. Spuckt alle `fire_interval` Sekunden ein Saeure-Geschoss auf di
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
+- [[2026-08-10_bcd3e81_wiki_sechs_neue_sandbox-gegner_item-item-synergien|2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten]]
 
 ## Quelle
 

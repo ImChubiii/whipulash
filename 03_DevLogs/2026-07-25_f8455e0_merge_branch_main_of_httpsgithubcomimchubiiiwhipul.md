@@ -26,3 +26,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `f8455e0` |
 | Autor | ImChubiii |
 | Datum | 2026-07-25 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-25_f8455e0_merge_branch_main_of_httpsgithubcomimchubiiiwhipul]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

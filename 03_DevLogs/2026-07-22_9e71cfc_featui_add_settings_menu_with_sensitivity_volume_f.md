@@ -46,3 +46,7 @@ Kopfkommentar bei `build_entity_index()` in `generate_vault.py`.
 | Commit | `9e71cfc` |
 | Autor | ImChubiii |
 | Datum | 2026-07-22 |
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **contains**: [[2026-07-22_9e71cfc_featui_add_settings_menu_with_sensitivity_volume_f]] (Confidence: 1.0)
+- **references**: [[_MOC_DevLogs]] (Confidence: 1.0)

@@ -45,6 +45,12 @@ enum Kind {
 ## der Spieler ueberhaupt sieht, dass etwas gedroppt ist.
 @export var arm_delay: float = 0.35
 
+## Rueckmeldung "3D-Modelle fuer Muenzen/Herzen/Bomben sollen groesser und
+## auffaelliger sein". Gilt NICHT fuer Kind.ITEM (der Sockel-Platzhalter hat
+## seine eigene Groesse/Bedeutung, siehe _build_pedestal()) - deshalb hier
+## statt als globaler Node3D.scale, siehe Anwendung in _build_visual().
+@export var consumable_visual_scale: float = 1.8
+
 ## --- Bodenglanz (Lesbarkeit) ------------------------------------------
 ##
 ## Muenzen, Herzen und Bomben gehen im PSX-Dungeon unter: die Meshes sind
@@ -142,6 +148,8 @@ func _build_visual() -> void:
 		custom.mesh = mesh_override
 		custom.material_override = _make_material(_color_for_kind())
 		_visual.add_child(custom)
+		if kind != Kind.ITEM:
+			_visual.scale = Vector3.ONE * consumable_visual_scale
 		return
 
 	match kind:
@@ -156,6 +164,12 @@ func _build_visual() -> void:
 
 	if glow_enabled and kind != Kind.ITEM:
 		_build_glow()
+
+	# Skaliert Modell UND Halo gemeinsam (Glow haengt als Kind an _visual,
+	# siehe _build_glow()) - ein groesseres Pickup mit unveraendert kleinem
+	# Halo wuerde unproportioniert aussehen.
+	if kind != Kind.ITEM:
+		_visual.scale = Vector3.ONE * consumable_visual_scale
 
 
 ## Weisser Halo + Punktlicht.

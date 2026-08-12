@@ -55,8 +55,9 @@ ACID — Saeure-DoT aus Limonade, Pfuetzen und dem Handstaubsauger.
 
 ## Erwaehnt in DevLogs
 
-- [[2026-08-12_5f8cd6d_feat_combat_mechanics_weighted_item_drops_and_ui_t|2026-08-12 — ﻿feat: combat mechanics, weighted item drops and UI tweaks]]
-- [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
+- [[2026-08-12_f23c551_feat_combat_mechanics_weighted_item_drops_and_ui_t|2026-08-12 — ﻿feat: combat mechanics, weighted item drops, and UI tweaks]]
+- [[2026-08-12_e219233_feat_combat_mechanics_weighted_item_drops_and_ui_t|2026-08-12 — ﻿feat: combat mechanics, weighted item drops and UI tweaks]]
+- [[2026-08-04_7940cf9_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef|2026-08-04 — feat(items,status,levelgen,rooms): Phase 3-5 - Status-Effekt-System, Item-Overhaul, Multi-Zellen-Raeume, Etagen-Progression]]
 
 ## Laufzeit
 
@@ -76,3 +77,4 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 - **referenced_by (calls)**: [[seize]] (Confidence: 1.0)
 - **referenced_by (calls)**: [[snake_bite]] (Confidence: 1.0)
 - **referenced_by (calls)**: [[stiletto_heels]] (Confidence: 1.0)
+- **referenced_by (references)**: [[_MOC_Status_Effects]] (Confidence: 1.0)

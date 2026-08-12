@@ -8,6 +8,6 @@ script = ExtResource("1_script")
 scene = ExtResource("2_scene")
 display_name = "Divebomber"
 weight = 3.0
-threat_cost = 2
+threat_cost = 3
 max_per_room = 8
 min_spawn_spacing = 4.0

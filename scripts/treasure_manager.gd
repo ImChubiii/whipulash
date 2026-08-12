@@ -224,11 +224,24 @@ func _spawn_pedestal(room: RoomInstance) -> void:
 
 	# Blutzoll-Raeume (Blueprint Nr. 5): SacrificePedestal statt des normalen
 	# Sockels - identische Optik/Interaktion, kostet aber HP beim Nehmen.
+	#
+	# HARDENING: vorher "bool(room.get('is_sacrifice_room'))" - ein
+	# dynamischer Property-Zugriff, der bei einem Tippfehler/umbenannten
+	# Feld STILL auf null (-> bool(null) = false) zurueckfaellt statt eines
+	# Parse-Fehlers. Direkter, statisch typisierter Zugriff auf room.
+	# is_sacrifice_room (RoomInstance @export, siehe room_instance.gd) faengt
+	# so einen Tippfehler kuenftig SOFORT beim Laden ab, statt ihn still
+	# durchzulassen. Zusaetzliches Logging, falls der Blutzoll-Sockel
+	# jemals in einem Raum landet, der es nicht sein sollte.
+	var is_sacrifice: bool = room.is_sacrifice_room
 	var pedestal: TreasurePedestal
-	if bool(room.get("is_sacrifice_room")):
+	if is_sacrifice:
 		pedestal = SacrificePedestal.create(item)
 	else:
 		pedestal = TreasurePedestal.create(item)
+	_debug("  -> is_sacrifice_room=%s fuer Raum %s (Szene '%s') -> %s" % [
+		is_sacrifice, room.grid_position, room.scene_file_path, pedestal.get_class()
+	])
 	room.add_child(pedestal)
 	pedestal.global_position = _find_spawn_position(room)
 	pedestal.item_taken.connect(_on_item_taken)
