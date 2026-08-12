@@ -27,3 +27,14 @@ mono_crash.*.json
 
 # Private working notes
 # (Removed 04 and 05 so they are tracked)
+
+# Obsidian workspaces (prevents git spam)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/workspace
+
+# OS and Temp files
+Thumbs.db
+.DS_Store
+*.log
+*.tmp
