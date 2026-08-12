@@ -65,3 +65,7 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_LOCKDOWN`, Variable `lockdown`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[silenced]] (Confidence: 1.0)
+- **calls**: [[stun]] (Confidence: 1.0)

@@ -39,7 +39,64 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 # Kleine Helfer
 # ============================================================================
 
+import json
+
+GRAPHIFY_DATA = None
+GRAPHIFY_NODES = {}
+GRAPHIFY_LINKS_BY_FILE = {}
+
+def load_graphify_data() -> None:
+    global GRAPHIFY_DATA, GRAPHIFY_NODES, GRAPHIFY_LINKS_BY_FILE
+    graph_path = PROJECT_ROOT / "graphify-out" / "graph.json"
+    if not graph_path.exists():
+        return
+    try:
+        with open(graph_path, "r", encoding="utf-8") as f:
+            GRAPHIFY_DATA = json.load(f)
+    except Exception:
+        return
+
+    GRAPHIFY_NODES = {n["id"]: n for n in GRAPHIFY_DATA.get("nodes", [])}
+    for link in GRAPHIFY_DATA.get("links", []):
+        src_id = link.get("source")
+        tgt_id = link.get("target")
+        if src_id not in GRAPHIFY_NODES or tgt_id not in GRAPHIFY_NODES:
+            continue
+            
+        src_node = GRAPHIFY_NODES[src_id]
+        tgt_node = GRAPHIFY_NODES[tgt_id]
+        src_file = src_node.get("source_file")
+        tgt_file = tgt_node.get("source_file")
+        
+        rel = link.get("relation", "related")
+        score = link.get("confidence_score", 1.0)
+        
+        if src_file:
+            tgt_name = Path(tgt_file).stem if tgt_file else tgt_node.get("label", tgt_id)
+            if tgt_file and tgt_file.endswith(".md"):
+                formatted = f"- **{rel}**: [[{tgt_name}]] (Confidence: {score})"
+            else:
+                formatted = f"- **{rel}**: `{tgt_name}` (Confidence: {score})"
+            GRAPHIFY_LINKS_BY_FILE.setdefault(src_file, set()).add(formatted)
+            
+        if tgt_file and tgt_file != src_file:
+            src_name = Path(src_file).stem if src_file else src_node.get("label", src_id)
+            if src_file and src_file.endswith(".md"):
+                formatted = f"- **referenced_by ({rel})**: [[{src_name}]] (Confidence: {score})"
+            else:
+                formatted = f"- **referenced_by ({rel})**: `{src_name}` (Confidence: {score})"
+            GRAPHIFY_LINKS_BY_FILE.setdefault(tgt_file, set()).add(formatted)
+
+
 def write_md(path: Path, content: str) -> None:
+    try:
+        rel_path = path.relative_to(PROJECT_ROOT).as_posix()
+        if rel_path in GRAPHIFY_LINKS_BY_FILE and path.suffix == ".md":
+            links = sorted(list(GRAPHIFY_LINKS_BY_FILE[rel_path]))
+            content = content.rstrip() + "\n\n## 🧠 Semantische Verbindungen (Graphify)\n" + "\n".join(links)
+    except ValueError:
+        pass
+
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content.rstrip() + "\n", encoding="utf-8")
 
@@ -2751,6 +2808,8 @@ def write_wiki_sync() -> None:
 def main() -> None:
     print("Whiplash Obsidian-Vault-Generator")
     print("=" * 60)
+
+    load_graphify_data()
 
     ensure_folders()
     print("[1/7] Ordnerstruktur angelegt")

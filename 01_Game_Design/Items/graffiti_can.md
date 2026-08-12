@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_GRAFFITI_CAN`, Variable `graffiti`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[charm]] (Confidence: 1.0)

@@ -42,3 +42,12 @@ bei `queue_free()` NICHT).
 ## Erwaehnt in DevLogs
 
 - —
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[enemy_sandbox_room]] (Confidence: 1.0)
+- **referenced_by (implements)**: [[divebomber]] (Confidence: 1.0)
+- **referenced_by (implements)**: [[magnet-kern]] (Confidence: 1.0)
+- **referenced_by (implements)**: [[moerser-bot]] (Confidence: 1.0)
+- **referenced_by (implements)**: [[plasmastrahl-bot]] (Confidence: 1.0)
+- **referenced_by (implements)**: [[saeure-sprinkler]] (Confidence: 1.0)
+- **referenced_by (implements)**: [[schild-drohne]] (Confidence: 1.0)

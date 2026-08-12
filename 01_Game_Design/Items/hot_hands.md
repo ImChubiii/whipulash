@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_HOT_HANDS`, Variable `hot_hands`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[burn]] (Confidence: 1.0)

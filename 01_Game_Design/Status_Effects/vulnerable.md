@@ -55,3 +55,6 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/items/item_behaviours.gd` (`StatusEffectBase.apply_raw(target, "vulnerable", ...)`, z.B. Schlangenbiss +49 %/3.75s, Alarm-Bot +140 %/5s)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[snake_bite]] (Confidence: 1.0)

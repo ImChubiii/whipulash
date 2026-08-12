@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_WALKMAN`, Variable `walkman`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[confused]] (Confidence: 1.0)

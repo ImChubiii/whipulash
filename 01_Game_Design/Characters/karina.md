@@ -67,3 +67,6 @@ Charaktere.
 ## Quelle
 
 `scenes/characters/char_karina.tscn`, `resources/char_3.tres`, `scripts/characters/combat_karina.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **inherits**: [[player_base]] (Confidence: 1.0)

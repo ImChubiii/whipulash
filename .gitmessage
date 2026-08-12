@@ -1,8 +1,0 @@
-﻿feat: combat mechanics, weighted item drops and UI tweaks
-
-- hitbox.gd: Implement critical hits with 1.5x multiplier and hit stop VFX
-- acid.gd: Acid status effect now increases damage taken by 20%
-- treasure_manager.gd: Add weighted item selection based on synergies
-- treasure_manager.gd: Implement sacrifice pedestals for blood toll rooms
-- damage_number.gd: Scale up crit numbers, unify dash damage color
-- low_hp_vignette.gd: Reduce max opacity from 78% to 45% for visibility

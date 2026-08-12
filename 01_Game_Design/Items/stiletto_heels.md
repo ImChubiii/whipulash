@@ -67,3 +67,8 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_STILETTO_HEELS`, Variable `heels`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[acid]] (Confidence: 1.0)
+- **calls**: [[slow]] (Confidence: 1.0)
+- **calls**: [[stun]] (Confidence: 1.0)

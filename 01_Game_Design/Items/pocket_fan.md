@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_POCKET_FAN`, Variable `fan`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[slow]] (Confidence: 1.0)

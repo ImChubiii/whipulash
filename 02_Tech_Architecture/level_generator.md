@@ -66,3 +66,8 @@ Projektile der alten Etage.
 ## Erwaehnt in DevLogs
 
 - —
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (references)**: [[colossus]] (Confidence: 1.0)
+- **references**: [[fighter]] (Confidence: 1.0)
+- **references**: [[stinger]] (Confidence: 1.0)

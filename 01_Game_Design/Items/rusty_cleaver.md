@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_RUSTY_CLEAVER`, Variable `cleaver`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (conceptually_related_to)**: [[knitting_needles]] (Confidence: 1.0)

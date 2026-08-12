@@ -47,3 +47,6 @@ Bewegt sich nie. Feuert alle `fire_interval` Sekunden eine zweiphasige Wurfparab
 ## Quelle
 
 `scripts/enemies/mortar_bot.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **implements**: [[enemy_sandbox_room]] (Confidence: 1.0)

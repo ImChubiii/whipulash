@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_ACID_BOOTS`, Variable `boots`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **references**: [[lemonade]] (Confidence: 1.0)

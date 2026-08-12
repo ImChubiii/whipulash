@@ -63,3 +63,6 @@ Charaktere.
 ## Quelle
 
 `scenes/characters/char_winter.tscn`, `resources/char_4.tres`, `scripts/characters/combat_winter.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **inherits**: [[player_base]] (Confidence: 1.0)

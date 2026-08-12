@@ -75,3 +75,6 @@ Ueberblick beider Systeme.
 ## Quelle
 
 `scenes/scout_dummy.tscn` (Root-Node-Properties), `resources/enemies/es_stinger.tres`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (references)**: [[level_generator]] (Confidence: 1.0)

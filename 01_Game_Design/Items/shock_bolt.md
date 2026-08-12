@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_SHOCK_BOLT`, Variable `shock_bolt`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[stun]] (Confidence: 1.0)

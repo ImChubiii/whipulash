@@ -69,3 +69,6 @@ lesbare Energiestrahlen (Kern + Glow + laufender Puls) — genutzt von
 ## Erwaehnt in DevLogs
 
 - —
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **references**: [[shield]] (Confidence: 1.0)

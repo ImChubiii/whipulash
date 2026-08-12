@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_COPPER_WIRE`, Variable `copper`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[burn]] (Confidence: 1.0)

@@ -25,7 +25,7 @@ oder `98_Scripts/wiki_sync.py` fuer inkrementelle Updates verwenden.
   - [[status_effect_manager]]
   - [[custom_enemy_base]] — Unterbau der sechs Sandbox-Prototypen
   - [[enemy_sandbox_room]] — Debug-Spawnraum fuer alle Gegnertypen
-- DevLogs (89 Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
+- DevLogs (90 Commits) — [[_MOC_DevLogs|vollstaendige Liste]]
 - Templates: [[tpl_Item]] · [[tpl_Enemy]] · [[tpl_Room]] · [[tpl_StatusEffect]]
 
 Jede Item-/Gegner-/Raum-/Status-Effekt-/Architektur-Notiz hat unten einen
@@ -120,5 +120,10 @@ SORT date DESC
 LIMIT 20
 ```
 
-Nur die juengsten 20 — [[_MOC_DevLogs]] listet wirklich **alle** 89
+Nur die juengsten 20 — [[_MOC_DevLogs]] listet wirklich **alle** 90
 Commits, nach Monat gruppiert.
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **references**: [[_MOC_Enemies]] (Confidence: 1.0)
+- **references**: [[_MOC_Items]] (Confidence: 1.0)
+- **references**: [[_MOC_Rooms]] (Confidence: 1.0)

@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_MEGAPHONE`, Variable `megaphone`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[silenced]] (Confidence: 1.0)

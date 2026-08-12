@@ -60,3 +60,6 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/status_effects/charm.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[graffiti_can]] (Confidence: 1.0)

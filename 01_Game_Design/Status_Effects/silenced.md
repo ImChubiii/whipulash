@@ -68,3 +68,13 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/status_effects/silenced.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[car_alarm]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[lockdown]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[megaphone]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[modem_56k]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[nightfall]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[paranoia]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[pepper_mill]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[prowler]] (Confidence: 1.0)

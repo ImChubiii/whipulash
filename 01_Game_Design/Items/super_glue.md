@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_SUPER_GLUE`, Variable `glue`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[rooted]] (Confidence: 1.0)

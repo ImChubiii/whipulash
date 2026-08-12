@@ -1,0 +1,1 @@
+{"nodes": [{"id": "party_manager", "label": "party_manager.gd", "file_type": "code", "source_file": "02_Tech_Architecture/party_manager.md", "rationale": "Manages character switching and party-wide health penalties (Last Stand)."}], "edges": [], "hyperedges": []}

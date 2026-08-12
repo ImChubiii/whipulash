@@ -70,3 +70,12 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/status_effects/confused.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[disco_ball]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[fakeout]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[leer]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[paranoia]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[prowler]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[roller_skates]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[walkman]] (Confidence: 1.0)

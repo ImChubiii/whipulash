@@ -79,3 +79,6 @@ Ueberblick beider Systeme.
 ## Quelle
 
 `scenes/enemies/dummy.tscn` (Root-Node-Properties), `resources/enemies/es_fighter.tres`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (references)**: [[level_generator]] (Confidence: 1.0)

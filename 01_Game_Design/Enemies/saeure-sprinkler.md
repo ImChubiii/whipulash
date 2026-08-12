@@ -46,3 +46,6 @@ Bewegt sich nie. Spuckt alle `fire_interval` Sekunden ein Saeure-Geschoss auf di
 ## Quelle
 
 `scripts/enemies/acid_sprinkler.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **implements**: [[enemy_sandbox_room]] (Confidence: 1.0)

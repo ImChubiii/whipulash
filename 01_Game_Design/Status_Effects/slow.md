@@ -70,3 +70,14 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/status_effects/slow.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[bubble_gum]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[chewing_gum]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[hairspray]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[holy_oil]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[ice_bag]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[nightfall]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[pocket_fan]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[slow_orb]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[stiletto_heels]] (Confidence: 1.0)

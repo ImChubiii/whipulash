@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_ICE_BAG`, Variable `ice`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[slow]] (Confidence: 1.0)

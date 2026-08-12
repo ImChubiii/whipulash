@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_SPICY_RAMEN`, Variable `ramen`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[burn]] (Confidence: 1.0)

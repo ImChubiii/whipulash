@@ -329,3 +329,6 @@ sortierbare Gesamttabelle.
 - [[tangled_yoyo|Verheddertes Jo-Jo]]
 - [[devour|Verschlingen]]
 - [[broken_pencil|Zerbrochener Bleistift]]
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (references)**: [[00_Master_Wiki]] (Confidence: 1.0)

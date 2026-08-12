@@ -46,3 +46,6 @@ Bewegt sich nie, schiesst nicht. Zieht den Spieler und freiliegende Pickups kont
 ## Quelle
 
 `scripts/enemies/magnet_core.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **implements**: [[enemy_sandbox_room]] (Confidence: 1.0)

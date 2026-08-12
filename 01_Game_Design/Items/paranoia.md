@@ -65,3 +65,7 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_PARANOIA`, Variable `paranoia`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[confused]] (Confidence: 1.0)
+- **calls**: [[silenced]] (Confidence: 1.0)

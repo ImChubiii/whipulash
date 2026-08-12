@@ -64,3 +64,7 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_CHILI_OIL`, Variable `chili`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[acid]] (Confidence: 1.0)
+- **references**: [[burn]] (Confidence: 1.0)

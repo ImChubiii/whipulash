@@ -64,3 +64,6 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/status_effects/shield.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (references)**: [[custom_enemy_base]] (Confidence: 1.0)

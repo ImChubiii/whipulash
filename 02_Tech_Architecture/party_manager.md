@@ -60,3 +60,6 @@ bewusst auf (aufgerufen aus `run_restart.gd`, dem einzigen Neustart-Pfad).
 ## Erwaehnt in DevLogs
 
 - —
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **references**: [[player_base]] (Confidence: 1.0)

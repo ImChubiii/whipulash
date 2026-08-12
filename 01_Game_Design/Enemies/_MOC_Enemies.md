@@ -53,3 +53,6 @@ nur ueber [[enemy_sandbox_room]] spawnbar, noch nicht integriert.
 ### Stationaer · Kontrolle (Sog + Abstossungs-Schockwelle) (1)
 
 - [[magnet-kern|Magnet-Kern]]
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (references)**: [[00_Master_Wiki]] (Confidence: 1.0)

@@ -51,3 +51,6 @@ Schwebt ausserhalb der Nahkampfreichweite (leichtes Auf/Ab, KEIN Kreisen) und st
 ## Quelle
 
 `scripts/enemies/dive_bomber.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **implements**: [[enemy_sandbox_room]] (Confidence: 1.0)

@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_HAND_VACUUM`, Variable `vacuum`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[acid]] (Confidence: 1.0)

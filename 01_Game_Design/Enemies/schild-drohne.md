@@ -45,3 +45,6 @@ Greift nie direkt an. Schwebt in einer weichen Lissajous-Bahn und verbindet sich
 ## Quelle
 
 `scripts/enemies/shield_drone.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **implements**: [[enemy_sandbox_room]] (Confidence: 1.0)

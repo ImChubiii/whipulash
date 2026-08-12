@@ -69,3 +69,12 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/status_effects/burn.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[copper_wire]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[hairspray]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[hot_hands]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[incendiary]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[spicy_ramen]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[storm_lighter]] (Confidence: 1.0)
+- **referenced_by (references)**: [[chili_oil]] (Confidence: 1.0)

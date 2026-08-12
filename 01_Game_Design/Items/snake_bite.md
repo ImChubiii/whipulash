@@ -65,3 +65,7 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_SNAKE_BITE`, Variable `snake_bite`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[acid]] (Confidence: 1.0)
+- **calls**: [[vulnerable]] (Confidence: 1.0)

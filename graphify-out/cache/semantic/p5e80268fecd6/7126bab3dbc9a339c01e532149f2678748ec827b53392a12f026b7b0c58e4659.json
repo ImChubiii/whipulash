@@ -1,0 +1,1 @@
+{"nodes": [{"id": "player_base", "label": "player_base.gd", "file_type": "code", "source_file": "02_Tech_Architecture/player_base.md", "rationale": "Base class for players, handling camera, stun-lock protection, and status effects."}], "edges": [], "hyperedges": []}

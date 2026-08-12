@@ -2,14 +2,15 @@
 tags: [moc, devlogs]
 ---
 
-# MOC — Alle DevLogs (89 Commits)
+# MOC — Alle DevLogs (90 Commits)
 
 Jeder Commit in der `main`-Historie dieses Repos, chronologisch nach Monat
 gruppiert (neuester Monat zuerst). Das Dashboard zeigt nur die juengsten 20 —
 diese Seite ist die vollstaendige Liste.
 
-### 2026-08 (34)
+### 2026-08 (35)
 
+- [[2026-08-12_5f8cd6d_feat_combat_mechanics_weighted_item_drops_and_ui_t|2026-08-12 — ﻿feat: combat mechanics, weighted item drops and UI tweaks]]
 - [[2026-08-12_e458c87_docs_add_concrete_godot_implementation_hints_for_c|2026-08-12 — docs: add concrete Godot implementation hints for Claude to all blueprint ideas]]
 - [[2026-08-12_0201145_docs_correct_sequential_numbering_for_schulhof_ite|2026-08-12 — docs: correct sequential numbering for Schulhof items in blueprint]]
 - [[2026-08-12_7e2352c_docs_add_dash_damage_visual_feedback_concept_to_bl|2026-08-12 — docs: add dash damage visual feedback concept to blueprint]]

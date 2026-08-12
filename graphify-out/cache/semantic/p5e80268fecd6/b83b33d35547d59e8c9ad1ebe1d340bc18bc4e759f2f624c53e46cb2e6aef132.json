@@ -1,0 +1,1 @@
+{"nodes": [{"id": "level_generator", "label": "level_generator.gd", "file_type": "code", "source_file": "02_Tech_Architecture/level_generator.md", "rationale": "Procedural generation engine using a threat-budget system for enemy placement."}], "edges": [], "hyperedges": []}

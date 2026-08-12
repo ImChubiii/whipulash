@@ -1,0 +1,1 @@
+{"nodes": [{"id": "status_effect_manager", "label": "status_effect_manager.gd", "file_type": "code", "source_file": "02_Tech_Architecture/status_effect_manager.md", "rationale": "Centralized logic for applying and ticking status effects on entities."}], "edges": [], "hyperedges": []}

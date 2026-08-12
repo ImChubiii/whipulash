@@ -64,3 +64,6 @@ Charaktere.
 ## Quelle
 
 `scenes/characters/char_giselle.tscn`, `resources/char_2.tres`, `scripts/characters/combat_giselle.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **inherits**: [[player_base]] (Confidence: 1.0)

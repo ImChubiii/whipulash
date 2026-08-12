@@ -62,3 +62,6 @@ Charaktere.
 ## Quelle
 
 `scenes/characters/char_ningning.tscn`, `resources/char_1.tres`, `scripts/characters/combat_ningning.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **inherits**: [[player_base]] (Confidence: 1.0)

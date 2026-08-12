@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_FAULT_LINE`, Variable `fault_line`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[stun]] (Confidence: 1.0)

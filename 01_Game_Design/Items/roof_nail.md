@@ -65,3 +65,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_ROOF_NAIL`, Variable `nail`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[rooted]] (Confidence: 1.0)

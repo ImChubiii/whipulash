@@ -70,3 +70,11 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/status_effects/stun.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[fault_line]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[jumper_cables]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[lockdown]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[rolling_thunder]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[shock_bolt]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[stiletto_heels]] (Confidence: 1.0)

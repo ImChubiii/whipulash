@@ -1,0 +1,2498 @@
+{
+  "nodes": [
+    {
+      "id": "98_scripts_wiki_sync",
+      "label": "wiki_sync.py",
+      "file_type": "code",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_read_frontmatter",
+      "label": "read_frontmatter()",
+      "file_type": "code",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L34",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_replace_frontmatter_field",
+      "label": "replace_frontmatter_field()",
+      "file_type": "code",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L43",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_sync_items",
+      "label": "sync_items()",
+      "file_type": "code",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L51",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_sync_rooms",
+      "label": "sync_rooms()",
+      "file_type": "code",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L95",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_sync_enemies",
+      "label": "sync_enemies()",
+      "file_type": "code",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L131",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_sync_status_effects",
+      "label": "sync_status_effects()",
+      "file_type": "code",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L139",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L147",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_rationale_35",
+      "label": "Gibt (frontmatter_block_ohne_dashes, rest_des_dokuments) zurueck.",
+      "file_type": "rationale",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L35",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_rationale_52",
+      "label": "Liest scripts/items/item_catalog.gd erneut und aktualisiert…",
+      "file_type": "rationale",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L52",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_rationale_96",
+      "label": "Liest resources/rooms/rd_*.tres erneut und aktualisiert spawn_weight/…",
+      "file_type": "rationale",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L96",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_rationale_132",
+      "label": "# TODO: .tscn-Root-Node-Properties der drei Dummy-Szenen erneut lesen",
+      "file_type": "rationale",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L132",
+      "_origin": "ast"
+    },
+    {
+      "id": "98_scripts_wiki_sync_rationale_140",
+      "label": "# TODO: scripts/status_effects/*.gd erneut parsen (DEFAULT_DURATION /",
+      "file_type": "rationale",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L140",
+      "_origin": "ast"
+    },
+    {
+      "id": "add_tags",
+      "label": "add_tags.py",
+      "file_type": "code",
+      "source_file": "add_tags.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "add_tags_add_tags_to_file",
+      "label": "add_tags_to_file()",
+      "file_type": "code",
+      "source_file": "add_tags.py",
+      "source_location": "L4",
+      "_origin": "ast"
+    },
+    {
+      "id": "extract_related",
+      "label": "extract_related.py",
+      "file_type": "code",
+      "source_file": "extract_related.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "extract_related_extract_related_section",
+      "label": "extract_related_section()",
+      "file_type": "code",
+      "source_file": "extract_related.py",
+      "source_location": "L10",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault",
+      "label": "generate_vault.py",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_md",
+      "label": "write_md()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L42",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_extract_alternative_names",
+      "label": "extract_alternative_names()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L47",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_slugify",
+      "label": "slugify()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L70",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_yaml_escape",
+      "label": "yaml_escape()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L78",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_yaml_list",
+      "label": "yaml_list()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L83",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_ensure_folders",
+      "label": "ensure_folders()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L107",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_templates",
+      "label": "write_templates()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L240",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_items",
+      "label": "parse_items()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L266",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_item_notes",
+      "label": "write_item_notes()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L307",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_resolve_call_chain",
+      "label": "_resolve_call_chain()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L421",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_extract_has_blocks",
+      "label": "_extract_has_blocks()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L444",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_strip_gd_comments",
+      "label": "_strip_gd_comments()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L464",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_collect_item_aggregate_text",
+      "label": "_collect_item_aggregate_text()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L485",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_item_cross_references",
+      "label": "parse_item_cross_references()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L549",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_tres_kv",
+      "label": "parse_tres_kv()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L685",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_tscn_root_node",
+      "label": "parse_tscn_root_node()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L694",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_enemies",
+      "label": "parse_enemies()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L716",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_enemy_notes",
+      "label": "write_enemy_notes()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L763",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_custom_enemies",
+      "label": "parse_custom_enemies()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L945",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_custom_enemy_notes",
+      "label": "write_custom_enemy_notes()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1014",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_gd_cooldowns",
+      "label": "parse_gd_cooldowns()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1225",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_characters",
+      "label": "parse_characters()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1234",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_character_notes",
+      "label": "write_character_notes()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1264",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_exits_from_mask",
+      "label": "exits_from_mask()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1352",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_find_room_scene",
+      "label": "find_room_scene()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1356",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_rooms",
+      "label": "parse_rooms()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1367",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_room_notes",
+      "label": "write_room_notes()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1392",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_status_effects",
+      "label": "parse_status_effects()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1460",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_status_effect_notes",
+      "label": "write_status_effect_notes()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L1528",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_architecture_notes",
+      "label": "write_architecture_notes()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2059",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_parse_git_log",
+      "label": "parse_git_log()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2071",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_devlog_filename",
+      "label": "_devlog_filename()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2101",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_build_entity_index",
+      "label": "build_entity_index()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2124",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_compute_devlog_mentions",
+      "label": "compute_devlog_mentions()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2160",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_devlog_backlink_section",
+      "label": "devlog_backlink_section()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2185",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_devlogs",
+      "label": "write_devlogs()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2198",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_devlogs_moc",
+      "label": "write_devlogs_moc()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2251",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_group_block",
+      "label": "_group_block()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2300",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_moc_pages",
+      "label": "write_moc_pages()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2312",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_dashboard",
+      "label": "write_dashboard()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2443",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_write_wiki_sync",
+      "label": "write_wiki_sync()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2743",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "generate_vault.py",
+      "source_location": "L2751",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_422",
+      "label": "Loest Funktionsaufrufe innerhalb von seed_text rekursiv auf (bis max_depth),…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L422",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_445",
+      "label": "Extrahiert den eingerueckten Codeblock nach jedem `_has(ItemCatalog.ID_X)`…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L445",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_465",
+      "label": "Entfernt `# ...`-Kommentare zeilenweise (stringbewusst), BEVOR nach…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L465",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_487",
+      "label": "Sammelt allen Code, der nachweislich zum Effekt-Pfad EINES Items gehoert…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L487",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_550",
+      "label": "Fuer jedes Item ausschliesslich aus echten Code-Referenzen in…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L550",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_695",
+      "label": "Liest die Properties des ERSTEN [node ...]-Blocks (die Wurzel des…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L695",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_2127",
+      "label": "Gibt (Laenge, Regex, Notiz-Dateiname, Kind) zurueck, absteigend nach Laenge…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L2127",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_2163",
+      "label": "commit_mentions: commit-hash -> [(kind, notiz_dateiname), ...] entity_mentions:…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L2163",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_2187",
+      "label": "Fuer Item-/Gegner-/Raum-/Status-Effekt-/Architektur-Notizen: Liste der DevLogs,…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L2187",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_2252",
+      "label": "Vollstaendige, chronologische Liste WIRKLICH ALLER Commits in main's Historie…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L2252",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_2301",
+      "label": "entries: Liste aus (wikilink_id, anzeige_text). Alias-Pipe nur, wenn…",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L2301",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_2708",
+      "label": "# TODO: .tscn-Root-Node-Properties der drei Dummy-Szenen erneut lesen",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L2708",
+      "_origin": "ast"
+    },
+    {
+      "id": "generate_vault_rationale_2716",
+      "label": "# TODO: scripts/status_effects/*.gd erneut parsen (DEFAULT_DURATION /",
+      "file_type": "rationale",
+      "source_file": "generate_vault.py",
+      "source_location": "L2716",
+      "_origin": "ast"
+    },
+    {
+      "id": "scratch_blueprint",
+      "label": "scratch_blueprint.py",
+      "file_type": "code",
+      "source_file": "scratch_blueprint.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "scratch_recover",
+      "label": "scratch_recover.py",
+      "file_type": "code",
+      "source_file": "scratch_recover.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "scratch_recover_clean_view_file_output",
+      "label": "clean_view_file_output()",
+      "file_type": "code",
+      "source_file": "scratch_recover.py",
+      "source_location": "L8",
+      "_origin": "ast"
+    }
+  ],
+  "edges": [
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "re",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "98_scripts_wiki_sync_read_frontmatter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_read_frontmatter",
+      "target": "98_scripts_wiki_sync_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "98_scripts_wiki_sync_replace_frontmatter_field",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "98_scripts_wiki_sync_sync_items",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L51",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "98_scripts_wiki_sync_sync_rooms",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L95",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "98_scripts_wiki_sync_sync_enemies",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L131",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "98_scripts_wiki_sync_sync_status_effects",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L139",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync",
+      "target": "98_scripts_wiki_sync_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L147",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_sync_items",
+      "target": "98_scripts_wiki_sync_read_frontmatter",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_sync_items",
+      "target": "98_scripts_wiki_sync_replace_frontmatter_field",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L82",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_sync_rooms",
+      "target": "98_scripts_wiki_sync_read_frontmatter",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L113",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_sync_rooms",
+      "target": "98_scripts_wiki_sync_replace_frontmatter_field",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L116",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_main",
+      "target": "98_scripts_wiki_sync_sync_items",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L152",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_main",
+      "target": "98_scripts_wiki_sync_sync_rooms",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L153",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_main",
+      "target": "98_scripts_wiki_sync_sync_enemies",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_main",
+      "target": "98_scripts_wiki_sync_sync_status_effects",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L155",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_rationale_35",
+      "target": "98_scripts_wiki_sync_read_frontmatter",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_rationale_52",
+      "target": "98_scripts_wiki_sync_sync_items",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_rationale_96",
+      "target": "98_scripts_wiki_sync_sync_rooms",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L96",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_rationale_132",
+      "target": "98_scripts_wiki_sync",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L132",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "98_scripts_wiki_sync_rationale_140",
+      "target": "98_scripts_wiki_sync",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "98_Scripts/wiki_sync.py",
+      "source_location": "L140",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "add_tags",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "add_tags.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "add_tags",
+      "target": "glob",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "add_tags.py",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "add_tags",
+      "target": "add_tags_add_tags_to_file",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "add_tags.py",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "extract_related",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "extract_related.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "extract_related",
+      "target": "glob",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "extract_related.py",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "extract_related",
+      "target": "extract_related_extract_related_section",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "extract_related.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "re",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L31",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "subprocess",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_md",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_md",
+      "target": "generate_vault_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_extract_alternative_names",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_extract_alternative_names",
+      "target": "generate_vault_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_slugify",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L70",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_yaml_escape",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L78",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_yaml_list",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L83",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_ensure_folders",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_templates",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L240",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_items",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L266",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_item_notes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L307",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_resolve_call_chain",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L421",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_extract_has_blocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L444",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_strip_gd_comments",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L464",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_collect_item_aggregate_text",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L485",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_item_cross_references",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L549",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_tres_kv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L685",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_tscn_root_node",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L694",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_enemies",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L716",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_enemy_notes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L763",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_custom_enemies",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L945",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_custom_enemy_notes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1014",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_gd_cooldowns",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1225",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_characters",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1234",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_character_notes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1264",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_exits_from_mask",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1352",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_find_room_scene",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1356",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_rooms",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1367",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_room_notes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1392",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_status_effects",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1460",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_status_effect_notes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1528",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_architecture_notes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2059",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_parse_git_log",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2071",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_devlog_filename",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2101",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_build_entity_index",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2124",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_compute_devlog_mentions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2160",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2185",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_devlogs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2198",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_devlogs_moc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2251",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_group_block",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2300",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_moc_pages",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2312",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_dashboard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2443",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_write_wiki_sync",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2743",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault",
+      "target": "generate_vault_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2751",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_yaml_list",
+      "target": "generate_vault_yaml_escape",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_templates",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L241",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_item_notes",
+      "target": "generate_vault_yaml_escape",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L332",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_item_notes",
+      "target": "generate_vault_yaml_list",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L343",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_item_notes",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L380",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_item_notes",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L398",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_collect_item_aggregate_text",
+      "target": "generate_vault_resolve_call_chain",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L502",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_collect_item_aggregate_text",
+      "target": "generate_vault_extract_has_blocks",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L507",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_item_cross_references",
+      "target": "generate_vault_strip_gd_comments",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L567",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_item_cross_references",
+      "target": "generate_vault_collect_item_aggregate_text",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L579",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_enemies",
+      "target": "generate_vault_parse_tscn_root_node",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L720",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_enemies",
+      "target": "generate_vault_parse_tres_kv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L739",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_enemy_notes",
+      "target": "generate_vault_slugify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L767",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_enemy_notes",
+      "target": "generate_vault_extract_alternative_names",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L768",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_enemy_notes",
+      "target": "generate_vault_yaml_escape",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L771",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_enemy_notes",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L837",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_enemy_notes",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L843",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_custom_enemies",
+      "target": "generate_vault_slugify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L982",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_custom_enemy_notes",
+      "target": "generate_vault_extract_alternative_names",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1019",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_custom_enemy_notes",
+      "target": "generate_vault_yaml_escape",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1030",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_custom_enemy_notes",
+      "target": "generate_vault_yaml_list",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1037",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_custom_enemy_notes",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1068",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_custom_enemy_notes",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1074",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_characters",
+      "target": "generate_vault_parse_tres_kv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1237",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_characters",
+      "target": "generate_vault_parse_gd_cooldowns",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1240",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_character_notes",
+      "target": "generate_vault_extract_alternative_names",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1269",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_character_notes",
+      "target": "generate_vault_yaml_escape",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1277",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_character_notes",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1327",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_character_notes",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1333",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_rooms",
+      "target": "generate_vault_parse_tres_kv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1371",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_rooms",
+      "target": "generate_vault_exits_from_mask",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1383",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_parse_rooms",
+      "target": "generate_vault_find_room_scene",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1387",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_room_notes",
+      "target": "generate_vault_yaml_escape",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1397",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_room_notes",
+      "target": "generate_vault_yaml_list",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1400",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_room_notes",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1425",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_room_notes",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1431",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_status_effect_notes",
+      "target": "generate_vault_yaml_escape",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1594",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_status_effect_notes",
+      "target": "generate_vault_yaml_list",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1600",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_status_effect_notes",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1637",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_status_effect_notes",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L1650",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_architecture_notes",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2062",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_architecture_notes",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2064",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_devlog_filename",
+      "target": "generate_vault_slugify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2102",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_build_entity_index",
+      "target": "generate_vault_slugify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2144",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_devlog_backlink_section",
+      "target": "generate_vault_devlog_filename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2192",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_devlogs",
+      "target": "generate_vault_devlog_filename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2203",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_devlogs",
+      "target": "generate_vault_yaml_escape",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2220",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_devlogs",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2248",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_devlogs_moc",
+      "target": "generate_vault_devlog_filename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2264",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_devlogs_moc",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2281",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_moc_pages",
+      "target": "generate_vault_group_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2338",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_moc_pages",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2348",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_moc_pages",
+      "target": "generate_vault_slugify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2351",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_write_dashboard",
+      "target": "generate_vault_write_md",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2570",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_ensure_folders",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2755",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_templates",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2758",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_parse_items",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2766",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_parse_item_cross_references",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2767",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_parse_enemies",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2768",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_parse_custom_enemies",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2769",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_parse_characters",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2770",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_parse_rooms",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2771",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_parse_status_effects",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2772",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_parse_git_log",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2773",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_build_entity_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2777",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_compute_devlog_mentions",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2778",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_item_notes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2783",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_enemy_notes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2791",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_custom_enemy_notes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2792",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_character_notes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2796",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_room_notes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2799",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_status_effect_notes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2809",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_architecture_notes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2813",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_moc_pages",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2816",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_devlogs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2819",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_devlogs_moc",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2820",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_dashboard",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2823",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_main",
+      "target": "generate_vault_write_wiki_sync",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2826",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_422",
+      "target": "generate_vault_resolve_call_chain",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L422",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_445",
+      "target": "generate_vault_extract_has_blocks",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L445",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_465",
+      "target": "generate_vault_strip_gd_comments",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L465",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_487",
+      "target": "generate_vault_collect_item_aggregate_text",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L487",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_550",
+      "target": "generate_vault_parse_item_cross_references",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L550",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_695",
+      "target": "generate_vault_parse_tscn_root_node",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L695",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_2127",
+      "target": "generate_vault_build_entity_index",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2127",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_2163",
+      "target": "generate_vault_compute_devlog_mentions",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2163",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_2187",
+      "target": "generate_vault_devlog_backlink_section",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2187",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_2252",
+      "target": "generate_vault_write_devlogs_moc",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2252",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_2301",
+      "target": "generate_vault_group_block",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2301",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_2708",
+      "target": "generate_vault",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2708",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "generate_vault_rationale_2716",
+      "target": "generate_vault",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "generate_vault.py",
+      "source_location": "L2716",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "scratch_blueprint",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scratch_blueprint.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "scratch_blueprint",
+      "target": "glob",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scratch_blueprint.py",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "scratch_blueprint",
+      "target": "re",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scratch_blueprint.py",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "scratch_recover",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scratch_recover.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "scratch_recover",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scratch_recover.py",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "scratch_recover",
+      "target": "re",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scratch_recover.py",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "scratch_recover",
+      "target": "scratch_recover_clean_view_file_output",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scratch_recover.py",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

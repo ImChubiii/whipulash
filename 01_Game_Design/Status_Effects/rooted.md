@@ -67,3 +67,9 @@ altem und neuem Wert. Fuer echte Verlaengerung: `extend_effect()` /
 ## Quelle
 
 `scripts/status_effects/rooted.gd`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[roof_nail]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[seize]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[super_glue]] (Confidence: 1.0)
+- **referenced_by (calls)**: [[whipped_cream]] (Confidence: 1.0)

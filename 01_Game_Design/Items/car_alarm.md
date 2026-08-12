@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_CAR_ALARM`, Variable `alarm`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[silenced]] (Confidence: 1.0)

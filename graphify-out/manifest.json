@@ -1,0 +1,1277 @@
+{
+  "98_Scripts/wiki_sync.py": {
+    "mtime": 1786541421.048087,
+    "ast_hash": "4f6b98fdb6f2acf9a40d45db84a161c2",
+    "semantic_hash": "4f6b98fdb6f2acf9a40d45db84a161c2"
+  },
+  "add_tags.py": {
+    "mtime": 1786540686.5702422,
+    "ast_hash": "a3e284237f268e449c2918ed64e8f63a",
+    "semantic_hash": "a3e284237f268e449c2918ed64e8f63a"
+  },
+  "extract_related.py": {
+    "mtime": 1786497062.577134,
+    "ast_hash": "834e9adc48404f8990739849e2e65be3",
+    "semantic_hash": "834e9adc48404f8990739849e2e65be3"
+  },
+  "generate_vault.py": {
+    "mtime": 1786541405.553281,
+    "ast_hash": "7d8c8b4b0720146b3a94e39d0d9b49bd",
+    "semantic_hash": "7d8c8b4b0720146b3a94e39d0d9b49bd"
+  },
+  "scratch_blueprint.py": {
+    "mtime": 1786532896.4604845,
+    "ast_hash": "82fec6c1fa811511dd558a24f4f8c60b",
+    "semantic_hash": "82fec6c1fa811511dd558a24f4f8c60b"
+  },
+  "scratch_recover.py": {
+    "mtime": 1786532671.897324,
+    "ast_hash": "541ee8cbff5ee10c9877a25d2c48ab37",
+    "semantic_hash": "541ee8cbff5ee10c9877a25d2c48ab37"
+  },
+  "01_Game_Design/Items/brimstone_horns.md": {
+    "mtime": 1786541420.3001027,
+    "ast_hash": "3e390341eb5029770d635b7fe8b71410",
+    "semantic_hash": "3e390341eb5029770d635b7fe8b71410"
+  },
+  "01_Game_Design/Items/broken_pencil.md": {
+    "mtime": 1786541420.913364,
+    "ast_hash": "07d1d3d860d5e84e74e45ae49151025b",
+    "semantic_hash": "07d1d3d860d5e84e74e45ae49151025b"
+  },
+  "01_Game_Design/Items/broken_toaster.md": {
+    "mtime": 1786541420.3073134,
+    "ast_hash": "05ebfed3fbca4044b5e3c5bc49e45670",
+    "semantic_hash": "05ebfed3fbca4044b5e3c5bc49e45670"
+  },
+  "01_Game_Design/Items/bubble_gum.md": {
+    "mtime": 1786541420.472516,
+    "ast_hash": "a2d2c390c5a66df82a7db034f4fc0472",
+    "semantic_hash": "a2d2c390c5a66df82a7db034f4fc0472"
+  },
+  "01_Game_Design/Items/car_alarm.md": {
+    "mtime": 1786541420.4694257,
+    "ast_hash": "b29770620ae3c4d7074226a90032e109",
+    "semantic_hash": "b29770620ae3c4d7074226a90032e109"
+  },
+  "01_Game_Design/Items/chalk_eraser.md": {
+    "mtime": 1786541420.910259,
+    "ast_hash": "7f29eee3a3a157c9fc33c99c68b961fe",
+    "semantic_hash": "7f29eee3a3a157c9fc33c99c68b961fe"
+  },
+  "01_Game_Design/Items/chewing_gum.md": {
+    "mtime": 1786541420.3073134,
+    "ast_hash": "dfa92eed1e8fc54077b3e0319d54d5b0",
+    "semantic_hash": "dfa92eed1e8fc54077b3e0319d54d5b0"
+  },
+  "01_Game_Design/Items/chili_oil.md": {
+    "mtime": 1786541420.4678783,
+    "ast_hash": "50d0e654c9955c3b674b7c8e77cc3e32",
+    "semantic_hash": "50d0e654c9955c3b674b7c8e77cc3e32"
+  },
+  "01_Game_Design/Items/copper_wire.md": {
+    "mtime": 1786541420.472516,
+    "ast_hash": "7d9a1b11faeedd56086b9d5ec6004511",
+    "semantic_hash": "7d9a1b11faeedd56086b9d5ec6004511"
+  },
+  "01_Game_Design/Items/cursed_die.md": {
+    "mtime": 1786541420.8510323,
+    "ast_hash": "99f5ab90c47dfab456d51d814bf2ed27",
+    "semantic_hash": "99f5ab90c47dfab456d51d814bf2ed27"
+  },
+  "01_Game_Design/Items/devil_outfit.md": {
+    "mtime": 1786541420.3135698,
+    "ast_hash": "4a3b7205de56e3582a6e64aeaa5a174f",
+    "semantic_hash": "4a3b7205de56e3582a6e64aeaa5a174f"
+  },
+  "01_Game_Design/Items/devour.md": {
+    "mtime": 1786541420.891261,
+    "ast_hash": "00ba97290f4119cfe702950e1395e8ff",
+    "semantic_hash": "00ba97290f4119cfe702950e1395e8ff"
+  },
+  "01_Game_Design/Items/disco_ball.md": {
+    "mtime": 1786541420.3120148,
+    "ast_hash": "bc85c38955238234199e1bf3009864b6",
+    "semantic_hash": "bc85c38955238234199e1bf3009864b6"
+  },
+  "01_Game_Design/Items/empress.md": {
+    "mtime": 1786541420.9008565,
+    "ast_hash": "2734321475a71914da4dc300fc6dc05e",
+    "semantic_hash": "2734321475a71914da4dc300fc6dc05e"
+  },
+  "01_Game_Design/Items/empty_energy_can.md": {
+    "mtime": 1786541420.910259,
+    "ast_hash": "4d54bbaeeca2b6f157fc34d76abe4fdc",
+    "semantic_hash": "4d54bbaeeca2b6f157fc34d76abe4fdc"
+  },
+  "01_Game_Design/Items/executioner_hood.md": {
+    "mtime": 1786541420.4678783,
+    "ast_hash": "95fc805a182d999cf79c0cb88a89d6bc",
+    "semantic_hash": "95fc805a182d999cf79c0cb88a89d6bc"
+  },
+  "01_Game_Design/Items/fakeout.md": {
+    "mtime": 1786541420.90144,
+    "ast_hash": "7cb56116dbc29e51f57ad43fe3e55bad",
+    "semantic_hash": "7cb56116dbc29e51f57ad43fe3e55bad"
+  },
+  "01_Game_Design/Items/fault_line.md": {
+    "mtime": 1786541420.8630617,
+    "ast_hash": "8c758249e3f04f38780aa1e2f502b9bd",
+    "semantic_hash": "8c758249e3f04f38780aa1e2f502b9bd"
+  },
+  "01_Game_Design/Items/forgotten_gym_bag.md": {
+    "mtime": 1786541420.9149346,
+    "ast_hash": "88f228f682803969ca041e5ad106f929",
+    "semantic_hash": "88f228f682803969ca041e5ad106f929"
+  },
+  "01_Game_Design/Items/gatecrash.md": {
+    "mtime": 1786541420.9019551,
+    "ast_hash": "96258b3a264ac1299a783422f9027a23",
+    "semantic_hash": "96258b3a264ac1299a783422f9027a23"
+  },
+  "01_Game_Design/Items/golden_credit_card.md": {
+    "mtime": 1786541420.3150997,
+    "ast_hash": "1bedd8df22f870c3e77f3a22f59a6ca6",
+    "semantic_hash": "1bedd8df22f870c3e77f3a22f59a6ca6"
+  },
+  "01_Game_Design/Items/graffiti_can.md": {
+    "mtime": 1786541420.8594818,
+    "ast_hash": "09c7a0e0e2c4c8c5e3b819a8dd69821d",
+    "semantic_hash": "09c7a0e0e2c4c8c5e3b819a8dd69821d"
+  },
+  "01_Game_Design/Items/hairspray.md": {
+    "mtime": 1786541420.3073134,
+    "ast_hash": "277c3b42eb333db238a52909dc9d674d",
+    "semantic_hash": "277c3b42eb333db238a52909dc9d674d"
+  },
+  "01_Game_Design/Items/hand_vacuum.md": {
+    "mtime": 1786541420.8523285,
+    "ast_hash": "7df04e0b76a99eade663f0b57cb20f9a",
+    "semantic_hash": "7df04e0b76a99eade663f0b57cb20f9a"
+  },
+  "01_Game_Design/Items/handball_pads.md": {
+    "mtime": 1786541420.3135698,
+    "ast_hash": "81a46e3ed1bef4cb067b41d0cae0ee21",
+    "semantic_hash": "81a46e3ed1bef4cb067b41d0cae0ee21"
+  },
+  "01_Game_Design/Items/healing_orb.md": {
+    "mtime": 1786541420.859988,
+    "ast_hash": "e42957847a73532ae44871f9451ac0a5",
+    "semantic_hash": "e42957847a73532ae44871f9451ac0a5"
+  },
+  "01_Game_Design/Items/holy_oil.md": {
+    "mtime": 1786541420.3001027,
+    "ast_hash": "74de23ab8a8242192229ab42306d140c",
+    "semantic_hash": "74de23ab8a8242192229ab42306d140c"
+  },
+  "01_Game_Design/Items/hot_hands.md": {
+    "mtime": 1786541420.8960145,
+    "ast_hash": "a096808cfa78ed366325c49bcc93f471",
+    "semantic_hash": "a096808cfa78ed366325c49bcc93f471"
+  },
+  "01_Game_Design/Items/hunters_fury.md": {
+    "mtime": 1786541420.8927753,
+    "ast_hash": "1f18cb1de21b2598e884cc9995e88dc7",
+    "semantic_hash": "1f18cb1de21b2598e884cc9995e88dc7"
+  },
+  "01_Game_Design/Items/ice_bag.md": {
+    "mtime": 1786541420.3120148,
+    "ast_hash": "27ee6d7c491002733ec69881d1aa7024",
+    "semantic_hash": "27ee6d7c491002733ec69881d1aa7024"
+  },
+  "01_Game_Design/Items/incendiary.md": {
+    "mtime": 1786541420.8620515,
+    "ast_hash": "77d84f77759ec5a8e177c90f2f7c90c5",
+    "semantic_hash": "77d84f77759ec5a8e177c90f2f7c90c5"
+  },
+  "01_Game_Design/Items/jump_rope.md": {
+    "mtime": 1786541420.908736,
+    "ast_hash": "86c6ea6f91e32eeb55fb1f3b461e806d",
+    "semantic_hash": "86c6ea6f91e32eeb55fb1f3b461e806d"
+  },
+  "01_Game_Design/Items/jumper_cables.md": {
+    "mtime": 1786541420.3001027,
+    "ast_hash": "dd213c2592c957a305fe48534dcef73a",
+    "semantic_hash": "dd213c2592c957a305fe48534dcef73a"
+  },
+  "01_Game_Design/Items/knitting_needles.md": {
+    "mtime": 1786541420.3120148,
+    "ast_hash": "812108de1cd977a7e64ac538bad7a118",
+    "semantic_hash": "812108de1cd977a7e64ac538bad7a118"
+  },
+  "01_Game_Design/Items/laser_pointer.md": {
+    "mtime": 1786541420.308864,
+    "ast_hash": "8d64d1c69246b8943005abc429295903",
+    "semantic_hash": "8d64d1c69246b8943005abc429295903"
+  },
+  "01_Game_Design/Items/leer.md": {
+    "mtime": 1786541420.8992848,
+    "ast_hash": "6fb0623bdc326cb1780208b398f6c644",
+    "semantic_hash": "6fb0623bdc326cb1780208b398f6c644"
+  },
+  "01_Game_Design/Items/library_book.md": {
+    "mtime": 1786541420.8500328,
+    "ast_hash": "56da621f76421c0f73013979cb2d4365",
+    "semantic_hash": "56da621f76421c0f73013979cb2d4365"
+  },
+  "01_Game_Design/Items/lockdown.md": {
+    "mtime": 1786541420.9071844,
+    "ast_hash": "99e71cfba8639dd7cdc782e5b27bda05",
+    "semantic_hash": "99e71cfba8639dd7cdc782e5b27bda05"
+  },
+  "01_Game_Design/Items/magnetic_compass.md": {
+    "mtime": 1786541420.301664,
+    "ast_hash": "d924c7acdc73f618d22ef6458942d7e3",
+    "semantic_hash": "d924c7acdc73f618d22ef6458942d7e3"
+  },
+  "01_Game_Design/Items/megaphone.md": {
+    "mtime": 1786541420.8552394,
+    "ast_hash": "f9422852686df004c274e1f41192ad9a",
+    "semantic_hash": "f9422852686df004c274e1f41192ad9a"
+  },
+  "01_Game_Design/Items/modem_56k.md": {
+    "mtime": 1786541420.308864,
+    "ast_hash": "bdefdc16721700631f5c0e163ba8fa38",
+    "semantic_hash": "bdefdc16721700631f5c0e163ba8fa38"
+  },
+  "01_Game_Design/Items/mosquito_spray.md": {
+    "mtime": 1786541420.3166554,
+    "ast_hash": "9f5df8c54ce2b84bab52d963013e0c28",
+    "semantic_hash": "9f5df8c54ce2b84bab52d963013e0c28"
+  },
+  "01_Game_Design/Items/nanoswarm.md": {
+    "mtime": 1786541420.9056506,
+    "ast_hash": "d614266ec861848c78f0b8601bf1568c",
+    "semantic_hash": "d614266ec861848c78f0b8601bf1568c"
+  },
+  "01_Game_Design/Items/nightfall.md": {
+    "mtime": 1786541420.9040215,
+    "ast_hash": "ff530f0f05673deb3a8570b0f44d27ce",
+    "semantic_hash": "ff530f0f05673deb3a8570b0f44d27ce"
+  },
+  "01_Game_Design/Items/nun_habit.md": {
+    "mtime": 1786541420.3135698,
+    "ast_hash": "5b75a3bca9e517f71972f9cb6deef2fe",
+    "semantic_hash": "5b75a3bca9e517f71972f9cb6deef2fe"
+  },
+  "01_Game_Design/Items/old_compass.md": {
+    "mtime": 1786541420.9118316,
+    "ast_hash": "a5c555a5fb3437162635b55b3b2f2037",
+    "semantic_hash": "a5c555a5fb3437162635b55b3b2f2037"
+  },
+  "01_Game_Design/Items/orbital_strike.md": {
+    "mtime": 1786541420.8943076,
+    "ast_hash": "a5336011baeb9b4434ce603a7d4b0bd7",
+    "semantic_hash": "a5336011baeb9b4434ce603a7d4b0bd7"
+  },
+  "01_Game_Design/Items/ouija_board.md": {
+    "mtime": 1786541420.4740415,
+    "ast_hash": "d37d16df2f1735389df5e7aeafe91459",
+    "semantic_hash": "d37d16df2f1735389df5e7aeafe91459"
+  },
+  "01_Game_Design/Items/paint_shells.md": {
+    "mtime": 1786541420.897732,
+    "ast_hash": "3c019be56c7becbb53438a782a4ddfe5",
+    "semantic_hash": "3c019be56c7becbb53438a782a4ddfe5"
+  },
+  "01_Game_Design/Items/paintbox.md": {
+    "mtime": 1786541420.913364,
+    "ast_hash": "4c7ceedaaa9960939078650c2cd6343f",
+    "semantic_hash": "4c7ceedaaa9960939078650c2cd6343f"
+  },
+  "01_Game_Design/Items/paranoia.md": {
+    "mtime": 1786541420.9040215,
+    "ast_hash": "b31c182cc3aba15fbae570866a11af78",
+    "semantic_hash": "b31c182cc3aba15fbae570866a11af78"
+  },
+  "01_Game_Design/Items/pepper_mill.md": {
+    "mtime": 1786541420.8536892,
+    "ast_hash": "66be2b2ca1fc80c49a23b73b318241e4",
+    "semantic_hash": "66be2b2ca1fc80c49a23b73b318241e4"
+  },
+  "01_Game_Design/Items/plastic_halo.md": {
+    "mtime": 1786541420.3042572,
+    "ast_hash": "06d552aad043e1bb05a101eaa3c456c4",
+    "semantic_hash": "06d552aad043e1bb05a101eaa3c456c4"
+  },
+  "01_Game_Design/Items/pocket_calculator.md": {
+    "mtime": 1786541420.908736,
+    "ast_hash": "9c041e661f250e056d7e2525191aa62c",
+    "semantic_hash": "9c041e661f250e056d7e2525191aa62c"
+  },
+  "01_Game_Design/Items/pocket_fan.md": {
+    "mtime": 1786541420.8584752,
+    "ast_hash": "e0e0b0c0b0e9661c9c241d27be6ecefd",
+    "semantic_hash": "e0e0b0c0b0e9661c9c241d27be6ecefd"
+  },
+  "01_Game_Design/Items/protein_shake.md": {
+    "mtime": 1786541420.3027122,
+    "ast_hash": "5723db44feb970ac9508e786e5ea8678",
+    "semantic_hash": "5723db44feb970ac9508e786e5ea8678"
+  },
+  "01_Game_Design/Items/prowler.md": {
+    "mtime": 1786541420.902481,
+    "ast_hash": "c1d36904b0964c48e80ddf99dd7c4c8e",
+    "semantic_hash": "c1d36904b0964c48e80ddf99dd7c4c8e"
+  },
+  "01_Game_Design/Items/rice_pudding.md": {
+    "mtime": 1786541420.3104877,
+    "ast_hash": "af7229f5b9d95dbfbfa53d7d87293b5c",
+    "semantic_hash": "af7229f5b9d95dbfbfa53d7d87293b5c"
+  },
+  "01_Game_Design/Items/roller_skates.md": {
+    "mtime": 1786541420.4720085,
+    "ast_hash": "5485e74869deadc03aadf45363b89cf9",
+    "semantic_hash": "5485e74869deadc03aadf45363b89cf9"
+  },
+  "01_Game_Design/Items/rolling_thunder.md": {
+    "mtime": 1786541420.8630617,
+    "ast_hash": "61a7a56d618a26164a694d2169c4aae4",
+    "semantic_hash": "61a7a56d618a26164a694d2169c4aae4"
+  },
+  "01_Game_Design/Items/roof_nail.md": {
+    "mtime": 1786541420.305801,
+    "ast_hash": "0d21001da2842956506c0513aae9bb8c",
+    "semantic_hash": "0d21001da2842956506c0513aae9bb8c"
+  },
+  "01_Game_Design/Items/run_it_back.md": {
+    "mtime": 1786541420.897732,
+    "ast_hash": "b5f57f19e420475cd63fb53430895603",
+    "semantic_hash": "b5f57f19e420475cd63fb53430895603"
+  },
+  "01_Game_Design/Items/rusty_cleaver.md": {
+    "mtime": 1786541420.298558,
+    "ast_hash": "8a0076cc220b0813d7cfa107aee43788",
+    "semantic_hash": "8a0076cc220b0813d7cfa107aee43788"
+  },
+  "01_Game_Design/Items/seize.md": {
+    "mtime": 1786541420.8656464,
+    "ast_hash": "07ffd4b35788b0603f6ed60a6082eaef",
+    "semantic_hash": "07ffd4b35788b0603f6ed60a6082eaef"
+  },
+  "01_Game_Design/Items/set_square.md": {
+    "mtime": 1786541420.910259,
+    "ast_hash": "ee71d287ed23e12ac51999910929026a",
+    "semantic_hash": "ee71d287ed23e12ac51999910929026a"
+  },
+  "01_Game_Design/Items/shock_bolt.md": {
+    "mtime": 1786541420.8630617,
+    "ast_hash": "0407d03817be9215f10da04031bc12d6",
+    "semantic_hash": "0407d03817be9215f10da04031bc12d6"
+  },
+  "01_Game_Design/Items/showstopper.md": {
+    "mtime": 1786541420.8992848,
+    "ast_hash": "c4f43bdbe3c1d124f9905e51e86b7d81",
+    "semantic_hash": "c4f43bdbe3c1d124f9905e51e86b7d81"
+  },
+  "01_Game_Design/Items/slow_orb.md": {
+    "mtime": 1786541420.859988,
+    "ast_hash": "80bf5543145d1ae685ebd69a03b7f8e0",
+    "semantic_hash": "80bf5543145d1ae685ebd69a03b7f8e0"
+  },
+  "01_Game_Design/Items/snake_bite.md": {
+    "mtime": 1786541420.8943076,
+    "ast_hash": "b1320c568c9260c9bd2bf3260880ab36",
+    "semantic_hash": "b1320c568c9260c9bd2bf3260880ab36"
+  },
+  "01_Game_Design/Items/spicy_ramen.md": {
+    "mtime": 1786541420.8569152,
+    "ast_hash": "5a9a90d29b21ce1482c0305a70ebc6cc",
+    "semantic_hash": "5a9a90d29b21ce1482c0305a70ebc6cc"
+  },
+  "01_Game_Design/Items/static_sock.md": {
+    "mtime": 1786541420.298558,
+    "ast_hash": "0a424469e6382093a602dfdd93fe4261",
+    "semantic_hash": "0a424469e6382093a602dfdd93fe4261"
+  },
+  "01_Game_Design/Items/stiletto_heels.md": {
+    "mtime": 1786541420.3150997,
+    "ast_hash": "6daa7d7b2898da0433fd421a2f6938a1",
+    "semantic_hash": "6daa7d7b2898da0433fd421a2f6938a1"
+  },
+  "01_Game_Design/Items/stim_beacon.md": {
+    "mtime": 1786541420.8646383,
+    "ast_hash": "df661a11148b1ddf79e8aa947fb67df4",
+    "semantic_hash": "df661a11148b1ddf79e8aa947fb67df4"
+  },
+  "01_Game_Design/Items/storm_lighter.md": {
+    "mtime": 1786541420.4740415,
+    "ast_hash": "972adc728c83b4aa1f295716b216253e",
+    "semantic_hash": "972adc728c83b4aa1f295716b216253e"
+  },
+  "01_Game_Design/Items/super_glue.md": {
+    "mtime": 1786541420.4709985,
+    "ast_hash": "5f646382f407c06642d88a188ea5515e",
+    "semantic_hash": "5f646382f407c06642d88a188ea5515e"
+  },
+  "01_Game_Design/Items/tangled_yoyo.md": {
+    "mtime": 1786541420.9123552,
+    "ast_hash": "274e03a0df427be228a62646a6e543d5",
+    "semantic_hash": "274e03a0df427be228a62646a6e543d5"
+  },
+  "01_Game_Design/Items/tennis_ball.md": {
+    "mtime": 1786541420.3104877,
+    "ast_hash": "14a309a8e7d75d6064bc727744b49ce1",
+    "semantic_hash": "14a309a8e7d75d6064bc727744b49ce1"
+  },
+  "01_Game_Design/Items/tight_pants.md": {
+    "mtime": 1786541420.3027122,
+    "ast_hash": "19ce421383c928807bbf04a2f3497cf9",
+    "semantic_hash": "19ce421383c928807bbf04a2f3497cf9"
+  },
+  "01_Game_Design/Items/turret.md": {
+    "mtime": 1786541420.8932989,
+    "ast_hash": "fb8a97820d8013d4019c3449d3ac8530",
+    "semantic_hash": "fb8a97820d8013d4019c3449d3ac8530"
+  },
+  "01_Game_Design/Items/updraft.md": {
+    "mtime": 1786541420.859988,
+    "ast_hash": "0219a679a055862477d8c077fd479ef6",
+    "semantic_hash": "0219a679a055862477d8c077fd479ef6"
+  },
+  "01_Game_Design/Items/vampire_teeth.md": {
+    "mtime": 1786541420.3166554,
+    "ast_hash": "7b8f5baa4b0c4ebdfb5bf3395682ea90",
+    "semantic_hash": "7b8f5baa4b0c4ebdfb5bf3395682ea90"
+  },
+  "01_Game_Design/Items/walkman.md": {
+    "mtime": 1786541420.8536892,
+    "ast_hash": "3d6a0db6fe186a209a26ba30cea8cd43",
+    "semantic_hash": "3d6a0db6fe186a209a26ba30cea8cd43"
+  },
+  "01_Game_Design/Items/whipped_cream.md": {
+    "mtime": 1786541420.8569152,
+    "ast_hash": "83d8dbf7efeb9b91d221c440335b3870",
+    "semantic_hash": "83d8dbf7efeb9b91d221c440335b3870"
+  },
+  "01_Game_Design/Items/wooden_spoon.md": {
+    "mtime": 1786541420.2970302,
+    "ast_hash": "d7582ce96cb61e77af1027f0f31a5754",
+    "semantic_hash": "d7582ce96cb61e77af1027f0f31a5754"
+  },
+  "01_Game_Design/Status_Effects/_MOC_Status_Effects.md": {
+    "mtime": 1786541420.9751744,
+    "ast_hash": "ce7633a25fbd8e4902401ae6f2d25d0e",
+    "semantic_hash": "ce7633a25fbd8e4902401ae6f2d25d0e"
+  },
+  "01_Game_Design/Status_Effects/acid.md": {
+    "mtime": 1786541420.958064,
+    "ast_hash": "59773149f7e9e4401ec2be945e3d0d6d",
+    "semantic_hash": "59773149f7e9e4401ec2be945e3d0d6d"
+  },
+  "01_Game_Design/Status_Effects/burn.md": {
+    "mtime": 1786541420.9596324,
+    "ast_hash": "0c38527ff701fbcd8dcec88bf0464b37",
+    "semantic_hash": "0c38527ff701fbcd8dcec88bf0464b37"
+  },
+  "01_Game_Design/Status_Effects/charm.md": {
+    "mtime": 1786541420.9606428,
+    "ast_hash": "c41c9f4deb3023c5e0f45230ce1651e8",
+    "semantic_hash": "c41c9f4deb3023c5e0f45230ce1651e8"
+  },
+  "01_Game_Design/Status_Effects/confused.md": {
+    "mtime": 1786541420.9611492,
+    "ast_hash": "bcdca55cf72556f6f06abe48be8376a6",
+    "semantic_hash": "bcdca55cf72556f6f06abe48be8376a6"
+  },
+  "01_Game_Design/Status_Effects/rooted.md": {
+    "mtime": 1786541420.9611492,
+    "ast_hash": "d9e4716e941576e16b96c2bcdbc425a7",
+    "semantic_hash": "d9e4716e941576e16b96c2bcdbc425a7"
+  },
+  "01_Game_Design/Status_Effects/shield.md": {
+    "mtime": 1786541420.9621558,
+    "ast_hash": "8ccfd8894fecb2cbf028cd2e7efcf33b",
+    "semantic_hash": "8ccfd8894fecb2cbf028cd2e7efcf33b"
+  },
+  "01_Game_Design/Status_Effects/silenced.md": {
+    "mtime": 1786541420.962662,
+    "ast_hash": "004c661f8336a8de991af26078a46e3a",
+    "semantic_hash": "004c661f8336a8de991af26078a46e3a"
+  },
+  "01_Game_Design/Status_Effects/slow.md": {
+    "mtime": 1786541420.962662,
+    "ast_hash": "8a7ad2ecda6aba52fbdabff1451665ab",
+    "semantic_hash": "8a7ad2ecda6aba52fbdabff1451665ab"
+  },
+  "01_Game_Design/Status_Effects/stun.md": {
+    "mtime": 1786541420.9641976,
+    "ast_hash": "dec34ff2921bb9ea9125853e4701cbaf",
+    "semantic_hash": "dec34ff2921bb9ea9125853e4701cbaf"
+  },
+  "01_Game_Design/Status_Effects/vulnerable.md": {
+    "mtime": 1786541420.9641976,
+    "ast_hash": "0ba7ba170cd67eed9ca254b834ef5f7b",
+    "semantic_hash": "0ba7ba170cd67eed9ca254b834ef5f7b"
+  },
+  "02_Tech_Architecture/combat_base.md": {
+    "mtime": 1786541420.9689753,
+    "ast_hash": "7b180d22c917827fb3581688efc94621",
+    "semantic_hash": "7b180d22c917827fb3581688efc94621"
+  },
+  "02_Tech_Architecture/custom_enemy_base.md": {
+    "mtime": 1786541420.9689753,
+    "ast_hash": "3ece98b32141d1306ef760c758f5c29f",
+    "semantic_hash": "3ece98b32141d1306ef760c758f5c29f"
+  },
+  "04_Chat_Prompts/2026-08-03_godot-projektdateien-erstellen-und-exportieren-2.md": {
+    "mtime": 1786386325.8101063,
+    "ast_hash": "0c09313f2d93b2858842017e26af6996",
+    "semantic_hash": "0c09313f2d93b2858842017e26af6996"
+  },
+  "04_Chat_Prompts/2026-08-03_godot-projektdateien-erstellen-und-exportieren.md": {
+    "mtime": 1786386325.770378,
+    "ast_hash": "f133be81616f3b6697d6d160d8d9bd55",
+    "semantic_hash": "f133be81616f3b6697d6d160d8d9bd55"
+  },
+  "05_Gedanken/01_Workflow_Tools.md": {
+    "mtime": 1786532722.5691543,
+    "ast_hash": "edf4736ac2fdd558987af58b3ee10474",
+    "semantic_hash": "edf4736ac2fdd558987af58b3ee10474"
+  },
+  "05_Gedanken/02_Game_Design_Blueprint.md": {
+    "mtime": 1786533541.5292692,
+    "ast_hash": "41c1352976ad4726ed747a0c876e3b91",
+    "semantic_hash": "41c1352976ad4726ed747a0c876e3b91"
+  },
+  "05_Gedanken/03_Item_Database.md": {
+    "mtime": 1786532748.5165064,
+    "ast_hash": "80dbd9dfed6d5dc47259bdf221a78288",
+    "semantic_hash": "80dbd9dfed6d5dc47259bdf221a78288"
+  },
+  "05_Gedanken/04_Item_Concepts_V2.md": {
+    "mtime": 1786532782.3131375,
+    "ast_hash": "106d624674adc79bdff7d46343dd93ce",
+    "semantic_hash": "106d624674adc79bdff7d46343dd93ce"
+  },
+  "05_Gedanken/05_Item_Concepts_Archive.md": {
+    "mtime": 1786532754.1599574,
+    "ast_hash": "abd5bef073a842b0830c5792937ff633",
+    "semantic_hash": "abd5bef073a842b0830c5792937ff633"
+  },
+  "05_Gedanken/09_Apply_Graph_Colors.md": {
+    "mtime": 1786532700.8325858,
+    "ast_hash": "5c61e09674b70abdb2aecfee65701296",
+    "semantic_hash": "5c61e09674b70abdb2aecfee65701296"
+  },
+  "05_Gedanken/roguelike_analyse.md": {
+    "mtime": 1786538163.5970204,
+    "ast_hash": "cfa7d63c94bf5110d6614746ad024223",
+    "semantic_hash": "cfa7d63c94bf5110d6614746ad024223"
+  },
+  "06_Assets/character_models.md": {
+    "mtime": 1786497058.3298383,
+    "ast_hash": "39b0ee31ef0c2e9457d79c59968dd92a",
+    "semantic_hash": "39b0ee31ef0c2e9457d79c59968dd92a"
+  },
+  "06_Assets/enemy_models.md": {
+    "mtime": 1786497058.3314135,
+    "ast_hash": "36e61facca90e55916c912f767a6b2d4",
+    "semantic_hash": "36e61facca90e55916c912f767a6b2d4"
+  },
+  "06_Assets/environment_assets.md": {
+    "mtime": 1786497058.3314135,
+    "ast_hash": "091347f7556a8d2c24d247db3d60c903",
+    "semantic_hash": "091347f7556a8d2c24d247db3d60c903"
+  },
+  "06_Assets/textures.md": {
+    "mtime": 1786497058.3329933,
+    "ast_hash": "21e94123564af1b4b160ff29bad10bfe",
+    "semantic_hash": "21e94123564af1b4b160ff29bad10bfe"
+  },
+  "AGENTS.md": {
+    "mtime": 1786497058.3468108,
+    "ast_hash": "052a1484fd0d50e0b430f3256259b5c6",
+    "semantic_hash": "052a1484fd0d50e0b430f3256259b5c6"
+  },
+  "CLAUDE.md": {
+    "mtime": 1786497058.3468108,
+    "ast_hash": "e557d8837d624fef851afefd595b95db",
+    "semantic_hash": "e557d8837d624fef851afefd595b95db"
+  },
+  "HOME.md": {
+    "mtime": 1786532021.5294871,
+    "ast_hash": "31bbeea5fb67640c94b19c3a555c6347",
+    "semantic_hash": "31bbeea5fb67640c94b19c3a555c6347"
+  },
+  "README.md": {
+    "mtime": 1786497058.5373406,
+    "ast_hash": "15b6a28676724c7fcd9bceb649c2896f",
+    "semantic_hash": "15b6a28676724c7fcd9bceb649c2896f"
+  },
+  "_project_export.txt": {
+    "mtime": 1786497058.5701792,
+    "ast_hash": "52cd6180da2047f39ed32fa737ee6430",
+    "semantic_hash": "52cd6180da2047f39ed32fa737ee6430"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/License.txt": {
+    "mtime": 1786497060.3771472,
+    "ast_hash": "25766872d97d781d9ee2d1363cc687c8",
+    "semantic_hash": "25766872d97d781d9ee2d1363cc687c8"
+  },
+  "assets/environments/fps_dungeon_extras/license.txt": {
+    "mtime": 1786497060.5940864,
+    "ast_hash": "4c971bbb769321683941d612d0048387",
+    "semantic_hash": "4c971bbb769321683941d612d0048387"
+  },
+  "credits/credits.txt": {
+    "mtime": 1786375510.7352624,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "gamedesign/rooms/rooms_overview.md": {
+    "mtime": 1786497062.5791738,
+    "ast_hash": "ba3c231736db576c4aef9c737c0ed031",
+    "semantic_hash": "ba3c231736db576c4aef9c737c0ed031"
+  },
+  "99_Attachments/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg": {
+    "mtime": 1786497058.342156,
+    "ast_hash": "9c07b57485bb7daeefd932ebef601722",
+    "semantic_hash": "9c07b57485bb7daeefd932ebef601722"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Assets/fbx(unity)/dungeon_texture.png": {
+    "mtime": 1786497058.7019656,
+    "ast_hash": "636db5ccbdf966c84362448b4c2aa17d",
+    "semantic_hash": "636db5ccbdf966c84362448b4c2aa17d"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Assets/fbx/dungeon_texture.png": {
+    "mtime": 1786497059.09112,
+    "ast_hash": "636db5ccbdf966c84362448b4c2aa17d",
+    "semantic_hash": "636db5ccbdf966c84362448b4c2aa17d"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/dungeon_texture.png": {
+    "mtime": 1786497059.5373783,
+    "ast_hash": "636db5ccbdf966c84362448b4c2aa17d",
+    "semantic_hash": "636db5ccbdf966c84362448b4c2aa17d"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Assets/obj/dungeon_texture.png": {
+    "mtime": 1786497059.98133,
+    "ast_hash": "636db5ccbdf966c84362448b4c2aa17d",
+    "semantic_hash": "636db5ccbdf966c84362448b4c2aa17d"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Assets/textures/dungeon_texture.png": {
+    "mtime": 1786497060.3756137,
+    "ast_hash": "735d249352bfbdf01081773579c94dc6",
+    "semantic_hash": "735d249352bfbdf01081773579c94dc6"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample1.png": {
+    "mtime": 1786497060.3906026,
+    "ast_hash": "2ebb28d0a24e25462d19cbbbdd51570a",
+    "semantic_hash": "2ebb28d0a24e25462d19cbbbdd51570a"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample10.png": {
+    "mtime": 1786497060.399313,
+    "ast_hash": "c206acc21d7ed3d9182207a3ee79e9fd",
+    "semantic_hash": "c206acc21d7ed3d9182207a3ee79e9fd"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample11.png": {
+    "mtime": 1786497060.4106245,
+    "ast_hash": "ca13d6691114d3228351bf28424182ba",
+    "semantic_hash": "ca13d6691114d3228351bf28424182ba"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample12.png": {
+    "mtime": 1786497060.4189298,
+    "ast_hash": "dfc5a665e868a18da24535b665ad99ec",
+    "semantic_hash": "dfc5a665e868a18da24535b665ad99ec"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample2.png": {
+    "mtime": 1786497060.4298916,
+    "ast_hash": "618f6bb20531dcde03f8ec62aa9cf53d",
+    "semantic_hash": "618f6bb20531dcde03f8ec62aa9cf53d"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample3.png": {
+    "mtime": 1786497060.4466913,
+    "ast_hash": "ec2f0ae15d151e289d5a4d8afe44a2ab",
+    "semantic_hash": "ec2f0ae15d151e289d5a4d8afe44a2ab"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample4.png": {
+    "mtime": 1786497060.4621167,
+    "ast_hash": "73e3cc5c6727337f0d5527a58b3f1122",
+    "semantic_hash": "73e3cc5c6727337f0d5527a58b3f1122"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample5.png": {
+    "mtime": 1786497060.4723759,
+    "ast_hash": "de1013dadb10cbbd32982cf97b06cbc9",
+    "semantic_hash": "de1013dadb10cbbd32982cf97b06cbc9"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample6.png": {
+    "mtime": 1786497060.4931633,
+    "ast_hash": "222b02214eb6f8c904735ea9ea92fdf8",
+    "semantic_hash": "222b02214eb6f8c904735ea9ea92fdf8"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample7.png": {
+    "mtime": 1786497060.5033693,
+    "ast_hash": "34391a4c5a1b5a9a065dd68b55fe8626",
+    "semantic_hash": "34391a4c5a1b5a9a065dd68b55fe8626"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample8.png": {
+    "mtime": 1786497060.5174122,
+    "ast_hash": "1e59c4cb0a2f35f79968fd8322a99d48",
+    "semantic_hash": "1e59c4cb0a2f35f79968fd8322a99d48"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample9.png": {
+    "mtime": 1786497060.526033,
+    "ast_hash": "c7e5d7f48d22b364d77872c9a9cb645b",
+    "semantic_hash": "c7e5d7f48d22b364d77872c9a9cb645b"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/Dungeon_sample_big.png": {
+    "mtime": 1786497060.5411048,
+    "ast_hash": "45b85d029d70869f60d0ecaefebe9918",
+    "semantic_hash": "45b85d029d70869f60d0ecaefebe9918"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/extra_content1.png": {
+    "mtime": 1786497060.548985,
+    "ast_hash": "6fdf31bcbd1cac24bdede167533590c4",
+    "semantic_hash": "6fdf31bcbd1cac24bdede167533590c4"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/extra_content2.png": {
+    "mtime": 1786497060.5556395,
+    "ast_hash": "7a8c4db750ecdc782fb692a5776d0ae3",
+    "semantic_hash": "7a8c4db750ecdc782fb692a5776d0ae3"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/extra_textures.png": {
+    "mtime": 1786497060.5659308,
+    "ast_hash": "b80b7fa604fa7f0e9d28067be778136c",
+    "semantic_hash": "b80b7fa604fa7f0e9d28067be778136c"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/Samples/source_content.png": {
+    "mtime": 1786497060.5752184,
+    "ast_hash": "a77a0499cb02f870d25cb63531f4cdef",
+    "semantic_hash": "a77a0499cb02f870d25cb63531f4cdef"
+  },
+  "assets/environments/KayKit_Dungeon_Pack_1.1_FREE/contents.png": {
+    "mtime": 1786497060.5825708,
+    "ast_hash": "83aad99f674c2d31e4b1b4fcf67c6cd9",
+    "semantic_hash": "83aad99f674c2d31e4b1b4fcf67c6cd9"
+  },
+  "assets/environments/dungeon_kit/pillar_thicc.png": {
+    "mtime": 1786375510.4197888,
+    "ast_hash": "36af1c56996462b91fd956e0e4a57461",
+    "semantic_hash": "36af1c56996462b91fd956e0e4a57461"
+  },
+  "assets/environments/dungeon_kit/poison.png": {
+    "mtime": 1786375510.4249885,
+    "ast_hash": "67d918c64682dccb2b308fe4ac3ab4f9",
+    "semantic_hash": "67d918c64682dccb2b308fe4ac3ab4f9"
+  },
+  "assets/environments/dungeon_kit/roof_flat.png": {
+    "mtime": 1786375510.4310405,
+    "ast_hash": "1070db82e15cd7cb60fe47f2be9f2d9e",
+    "semantic_hash": "1070db82e15cd7cb60fe47f2be9f2d9e"
+  },
+  "assets/environments/dungeon_kit/roof_raised.png": {
+    "mtime": 1786375510.4361248,
+    "ast_hash": "1070db82e15cd7cb60fe47f2be9f2d9e",
+    "semantic_hash": "1070db82e15cd7cb60fe47f2be9f2d9e"
+  },
+  "assets/environments/dungeon_kit/shield.png": {
+    "mtime": 1786375510.439394,
+    "ast_hash": "5ae38ec183aa5d1445843c1fd7e6dca4",
+    "semantic_hash": "5ae38ec183aa5d1445843c1fd7e6dca4"
+  },
+  "assets/environments/dungeon_kit/sword.png": {
+    "mtime": 1786375510.4660437,
+    "ast_hash": "55c63c2c7b6e0b35fd4a81dc55610465",
+    "semantic_hash": "55c63c2c7b6e0b35fd4a81dc55610465"
+  },
+  "assets/environments/dungeon_kit/table_2x2.png": {
+    "mtime": 1786375510.4704435,
+    "ast_hash": "92aff734a3525c56fdf2e41d339ef7a6",
+    "semantic_hash": "92aff734a3525c56fdf2e41d339ef7a6"
+  },
+  "assets/environments/dungeon_kit/table_2x3.png": {
+    "mtime": 1786375510.4762897,
+    "ast_hash": "e9398d993a5e716342b145c1d540798b",
+    "semantic_hash": "e9398d993a5e716342b145c1d540798b"
+  },
+  "assets/environments/dungeon_kit/table_fancy_2x2.png": {
+    "mtime": 1786375510.48091,
+    "ast_hash": "92aff734a3525c56fdf2e41d339ef7a6",
+    "semantic_hash": "92aff734a3525c56fdf2e41d339ef7a6"
+  },
+  "assets/environments/dungeon_kit/table_fancy_2x3.png": {
+    "mtime": 1786375510.4872892,
+    "ast_hash": "92aff734a3525c56fdf2e41d339ef7a6",
+    "semantic_hash": "92aff734a3525c56fdf2e41d339ef7a6"
+  },
+  "assets/environments/dungeon_kit/tile_flat.png": {
+    "mtime": 1786375510.4919393,
+    "ast_hash": "c035b77d49c093f1bdb3e36a958d4e6c",
+    "semantic_hash": "c035b77d49c093f1bdb3e36a958d4e6c"
+  },
+  "assets/environments/dungeon_kit/tile_raised.png": {
+    "mtime": 1786375510.49518,
+    "ast_hash": "0e624c6eb09c586da79c13f0be348585",
+    "semantic_hash": "0e624c6eb09c586da79c13f0be348585"
+  },
+  "assets/environments/dungeon_kit/torch.png": {
+    "mtime": 1786375510.5014997,
+    "ast_hash": "7081bac9909d532c4e8f647e699f699e",
+    "semantic_hash": "7081bac9909d532c4e8f647e699f699e"
+  },
+  "assets/environments/dungeon_kit/wall_flat.png": {
+    "mtime": 1786375510.5060823,
+    "ast_hash": "0f509e043ff65d847d884bc7dfb941bc",
+    "semantic_hash": "0f509e043ff65d847d884bc7dfb941bc"
+  },
+  "assets/environments/dungeon_kit/wall_raised.png": {
+    "mtime": 1786375510.5117075,
+    "ast_hash": "9348c58bac1a3f83391b509cb2456a26",
+    "semantic_hash": "9348c58bac1a3f83391b509cb2456a26"
+  },
+  "assets/environments/dungeon_kit/wood_beam.png": {
+    "mtime": 1786375510.5209408,
+    "ast_hash": "98fe2e98de7f212dfc44538c7adda658",
+    "semantic_hash": "98fe2e98de7f212dfc44538c7adda658"
+  },
+  "assets/environments/fps_dungeon_extras/textures/ammobox_baseColor.png": {
+    "mtime": 1786497060.6747808,
+    "ast_hash": "de1473c245b77e7b5a7bf34b886bbd2b",
+    "semantic_hash": "de1473c245b77e7b5a7bf34b886bbd2b"
+  },
+  "assets/environments/fps_dungeon_extras/textures/ammobox_metallicRoughness.png": {
+    "mtime": 1786497060.7069602,
+    "ast_hash": "2bb499fba8ee7cbcd5d73ca8d5bae6f0",
+    "semantic_hash": "2bb499fba8ee7cbcd5d73ca8d5bae6f0"
+  },
+  "assets/environments/fps_dungeon_extras/textures/ammobox_normal.png": {
+    "mtime": 1786497060.739401,
+    "ast_hash": "6178c44498e92300cdcd5a907c645199",
+    "semantic_hash": "6178c44498e92300cdcd5a907c645199"
+  },
+  "assets/environments/fps_dungeon_extras/textures/barrel_baseColor.png": {
+    "mtime": 1786497060.8073392,
+    "ast_hash": "278029fa8567feeb8712fb4f8945a08a",
+    "semantic_hash": "278029fa8567feeb8712fb4f8945a08a"
+  },
+  "assets/environments/fps_dungeon_extras/textures/barrel_metallicRoughness.png": {
+    "mtime": 1786497060.860966,
+    "ast_hash": "89a10b98af8bfc20c593c20e6b9fdfcd",
+    "semantic_hash": "89a10b98af8bfc20c593c20e6b9fdfcd"
+  },
+  "assets/environments/fps_dungeon_extras/textures/barrel_normal.png": {
+    "mtime": 1786497060.920098,
+    "ast_hash": "1f7da54b8ca8e14010a59846f9af10e0",
+    "semantic_hash": "1f7da54b8ca8e14010a59846f9af10e0"
+  },
+  "assets/environments/fps_dungeon_extras/textures/chair_baseColor.png": {
+    "mtime": 1786497061.0205343,
+    "ast_hash": "850e3d627c4719d7ca19033006ec64ee",
+    "semantic_hash": "850e3d627c4719d7ca19033006ec64ee"
+  },
+  "assets/environments/fps_dungeon_extras/textures/chair_metallicRoughness.png": {
+    "mtime": 1786497061.0682452,
+    "ast_hash": "1b28e3e4b0944c9ddda805e22f1714b4",
+    "semantic_hash": "1b28e3e4b0944c9ddda805e22f1714b4"
+  },
+  "assets/environments/fps_dungeon_extras/textures/chair_normal.png": {
+    "mtime": 1786497061.1473432,
+    "ast_hash": "35ae92c018b82b69a56beedf78955381",
+    "semantic_hash": "35ae92c018b82b69a56beedf78955381"
+  },
+  "assets/environments/fps_dungeon_extras/textures/chest_baseColor.png": {
+    "mtime": 1786497061.22589,
+    "ast_hash": "79c4e645e40deec9b3520bd4f5b18e6f",
+    "semantic_hash": "79c4e645e40deec9b3520bd4f5b18e6f"
+  },
+  "assets/environments/fps_dungeon_extras/textures/chest_metallicRoughness.png": {
+    "mtime": 1786497061.27947,
+    "ast_hash": "b06fb363349796720da902bc738c33a6",
+    "semantic_hash": "b06fb363349796720da902bc738c33a6"
+  },
+  "assets/environments/fps_dungeon_extras/textures/chest_normal.png": {
+    "mtime": 1786497061.3464575,
+    "ast_hash": "9885e95b41aa805e51be432fe742c97e",
+    "semantic_hash": "9885e95b41aa805e51be432fe742c97e"
+  },
+  "assets/environments/fps_dungeon_extras/textures/crate_baseColor.png": {
+    "mtime": 1786497061.4218395,
+    "ast_hash": "bb6d965fa3c9f945840ba5b4d4b222ca",
+    "semantic_hash": "bb6d965fa3c9f945840ba5b4d4b222ca"
+  },
+  "assets/environments/fps_dungeon_extras/textures/crate_metallicRoughness.png": {
+    "mtime": 1786497061.471203,
+    "ast_hash": "5abd9b33b9d0b81e40ca69470ce1f217",
+    "semantic_hash": "5abd9b33b9d0b81e40ca69470ce1f217"
+  },
+  "assets/environments/fps_dungeon_extras/textures/crate_normal.png": {
+    "mtime": 1786497061.5337188,
+    "ast_hash": "8b196e871fb8226cbdcdf11816250ffa",
+    "semantic_hash": "8b196e871fb8226cbdcdf11816250ffa"
+  },
+  "assets/environments/fps_dungeon_extras/textures/healthbox_baseColor.png": {
+    "mtime": 1786497061.594999,
+    "ast_hash": "a85fa12fd393f1d68f8e59161a263f36",
+    "semantic_hash": "a85fa12fd393f1d68f8e59161a263f36"
+  },
+  "assets/environments/fps_dungeon_extras/textures/healthbox_metallicRoughness.png": {
+    "mtime": 1786497061.6291049,
+    "ast_hash": "e01c3ab76b3069d3cc03d87067530c00",
+    "semantic_hash": "e01c3ab76b3069d3cc03d87067530c00"
+  },
+  "assets/environments/fps_dungeon_extras/textures/healthbox_normal.png": {
+    "mtime": 1786497061.673085,
+    "ast_hash": "447c30eabcc75f9a8c9cf6e71837f337",
+    "semantic_hash": "447c30eabcc75f9a8c9cf6e71837f337"
+  },
+  "assets/environments/fps_dungeon_extras/textures/shells_baseColor.png": {
+    "mtime": 1786497061.7522433,
+    "ast_hash": "c088c6940e67483321d22f7d7d55f178",
+    "semantic_hash": "c088c6940e67483321d22f7d7d55f178"
+  },
+  "assets/environments/fps_dungeon_extras/textures/shells_metallicRoughness.png": {
+    "mtime": 1786497061.8223102,
+    "ast_hash": "7322b5a214dc3dd79a7ea9bcdcf18c41",
+    "semantic_hash": "7322b5a214dc3dd79a7ea9bcdcf18c41"
+  },
+  "assets/environments/fps_dungeon_extras/textures/shells_normal.png": {
+    "mtime": 1786497061.875448,
+    "ast_hash": "8d6acd8756a464e0b3fa4d402d8ba2b6",
+    "semantic_hash": "8d6acd8756a464e0b3fa4d402d8ba2b6"
+  },
+  "assets/environments/fps_dungeon_extras/textures/table_metallicRoughness.png": {
+    "mtime": 1786497062.1181314,
+    "ast_hash": "6bcfa28a9b9eb8e0d18e405cdd277f06",
+    "semantic_hash": "6bcfa28a9b9eb8e0d18e405cdd277f06"
+  },
+  "assets/textures/characters/blossom_the_powerpuff_girls_0.png": {
+    "mtime": 1786375510.6985555,
+    "ast_hash": "e4e539f647e962a59fcee2603257af27",
+    "semantic_hash": "e4e539f647e962a59fcee2603257af27"
+  },
+  "assets/textures/characters/lowpoly_robots_0.png": {
+    "mtime": 1786375510.7010765,
+    "ast_hash": "edbec51830f529b269c505a1cb059347",
+    "semantic_hash": "edbec51830f529b269c505a1cb059347"
+  },
+  "assets/textures/environment/180efe57-cfaf-4517-8033-2c0fda4877c6.jpg": {
+    "mtime": 1786497062.213959,
+    "ast_hash": "036706b39dd562344856d3d1fda11c9e",
+    "semantic_hash": "036706b39dd562344856d3d1fda11c9e"
+  },
+  "assets/textures/environment/cf0c6cdc-cfbc-4787-a3a7-f631c48a6a07.jpg": {
+    "mtime": 1786497062.2257307,
+    "ast_hash": "36d5ce3a8e525a3e1e3ff4db20f9a2d1",
+    "semantic_hash": "36d5ce3a8e525a3e1e3ff4db20f9a2d1"
+  },
+  "assets/textures/environment/rough-checked-texture-collage.jpg": {
+    "mtime": 1786497062.2971363,
+    "ast_hash": "9127ad1cdd18d115556f572c53f361ef",
+    "semantic_hash": "9127ad1cdd18d115556f572c53f361ef"
+  },
+  "assets/textures/environment/walltile/wall_tile_01.png": {
+    "mtime": 1786497062.4460962,
+    "ast_hash": "b1e082ae386c7d4916824b3287f2ac03",
+    "semantic_hash": "b1e082ae386c7d4916824b3287f2ac03"
+  },
+  "assets/textures/environment/walltile/wall_tile_02.png": {
+    "mtime": 1786497062.5017767,
+    "ast_hash": "3f953bf497a287f8c707d17bcd3db6c3",
+    "semantic_hash": "3f953bf497a287f8c707d17bcd3db6c3"
+  },
+  "assets/textures/environment/walltile/wall_tile_03.png": {
+    "mtime": 1786497062.551838,
+    "ast_hash": "6d6b2bb1fb4ccfe2f7d0482f2e33afd0",
+    "semantic_hash": "6d6b2bb1fb4ccfe2f7d0482f2e33afd0"
+  },
+  "assets/textures/ui/image-removebg-preview (10).png": {
+    "mtime": 1786375510.7041292,
+    "ast_hash": "23bb6c39e53cfa8e8c868d3a09ca852a",
+    "semantic_hash": "23bb6c39e53cfa8e8c868d3a09ca852a"
+  },
+  "assets/textures/ui/image-removebg-preview (11).png": {
+    "mtime": 1786375510.706744,
+    "ast_hash": "cb9eea5df019511ea4c2925f9387b004",
+    "semantic_hash": "cb9eea5df019511ea4c2925f9387b004"
+  },
+  "assets/textures/ui/image-removebg-preview (13).png": {
+    "mtime": 1786497062.5636947,
+    "ast_hash": "34055b5de1215c8d0fbab1d291d4a5f1",
+    "semantic_hash": "34055b5de1215c8d0fbab1d291d4a5f1"
+  },
+  "assets/textures/ui/image-removebg-preview (9).png": {
+    "mtime": 1786375510.7091196,
+    "ast_hash": "513581a0b0775a9b1d8b382b6b486e38",
+    "semantic_hash": "513581a0b0775a9b1d8b382b6b486e38"
+  },
+  "assets/ui/icon.svg": {
+    "mtime": 1786375510.7121556,
+    "ast_hash": "17aa99f97e300ec84af44ed317103361",
+    "semantic_hash": "17aa99f97e300ec84af44ed317103361"
+  },
+  "assets/ui/image-removebg-preview (13).png": {
+    "mtime": 1786375510.7158175,
+    "ast_hash": "8ff81963a20b04e52f3558f635d6d49b",
+    "semantic_hash": "8ff81963a20b04e52f3558f635d6d49b"
+  },
+  "00_Dashboard/00_Master_Wiki.md": {
+    "mtime": 1786541421.0465398,
+    "ast_hash": "3a5c287213cb92fe9e3f126b3c4dc9d5",
+    "semantic_hash": "3a5c287213cb92fe9e3f126b3c4dc9d5"
+  },
+  "01_Game_Design/Characters/_MOC_Characters.md": {
+    "mtime": 1786541420.973626,
+    "ast_hash": "6f0f37c20304eab1d223f1deb349fb71",
+    "semantic_hash": "6f0f37c20304eab1d223f1deb349fb71"
+  },
+  "01_Game_Design/Characters/giselle.md": {
+    "mtime": 1786541420.9256482,
+    "ast_hash": "7e33db6976ac609c0332967e3d197d58",
+    "semantic_hash": "7e33db6976ac609c0332967e3d197d58"
+  },
+  "01_Game_Design/Characters/karina.md": {
+    "mtime": 1786541420.9271634,
+    "ast_hash": "ba088d02035d4356a53d59ab00772fa4",
+    "semantic_hash": "ba088d02035d4356a53d59ab00772fa4"
+  },
+  "01_Game_Design/Characters/ningning.md": {
+    "mtime": 1786541420.9241025,
+    "ast_hash": "fac5f14e881d4b4cb1690e3faadce8b3",
+    "semantic_hash": "fac5f14e881d4b4cb1690e3faadce8b3"
+  },
+  "01_Game_Design/Characters/winter.md": {
+    "mtime": 1786541420.928714,
+    "ast_hash": "00c517cb0b95a084cc42aec4a529c0c9",
+    "semantic_hash": "00c517cb0b95a084cc42aec4a529c0c9"
+  },
+  "01_Game_Design/Enemies/_MOC_Enemies.md": {
+    "mtime": 1786541420.972064,
+    "ast_hash": "2f46c97f6e3925752b83e3f157145827",
+    "semantic_hash": "2f46c97f6e3925752b83e3f157145827"
+  },
+  "01_Game_Design/Enemies/colossus.md": {
+    "mtime": 1786541420.91799,
+    "ast_hash": "238fa3c5c987f042fb7775efceb41b4f",
+    "semantic_hash": "238fa3c5c987f042fb7775efceb41b4f"
+  },
+  "01_Game_Design/Enemies/divebomber.md": {
+    "mtime": 1786541420.9220455,
+    "ast_hash": "181411c2d656856d292bfe60461bc7f2",
+    "semantic_hash": "181411c2d656856d292bfe60461bc7f2"
+  },
+  "01_Game_Design/Enemies/fighter.md": {
+    "mtime": 1786541420.915943,
+    "ast_hash": "bbda54ffe3685b29443acfc73f514cdb",
+    "semantic_hash": "bbda54ffe3685b29443acfc73f514cdb"
+  },
+  "01_Game_Design/Enemies/magnet-kern.md": {
+    "mtime": 1786541420.9210343,
+    "ast_hash": "f8b70b04b1d84f8e6d025f1805b43dd5",
+    "semantic_hash": "f8b70b04b1d84f8e6d025f1805b43dd5"
+  },
+  "01_Game_Design/Enemies/moerser-bot.md": {
+    "mtime": 1786541420.91851,
+    "ast_hash": "12487bcb39a387045c13a741f6e5d2cc",
+    "semantic_hash": "12487bcb39a387045c13a741f6e5d2cc"
+  },
+  "01_Game_Design/Enemies/plasmastrahl-bot.md": {
+    "mtime": 1786541420.9241025,
+    "ast_hash": "b4f0655456481da00dc2febebee40cc5",
+    "semantic_hash": "b4f0655456481da00dc2febebee40cc5"
+  },
+  "01_Game_Design/Enemies/saeure-sprinkler.md": {
+    "mtime": 1786541420.9200263,
+    "ast_hash": "da65636ed7da230d250a786aae8ae573",
+    "semantic_hash": "da65636ed7da230d250a786aae8ae573"
+  },
+  "01_Game_Design/Enemies/schild-drohne.md": {
+    "mtime": 1786541420.922552,
+    "ast_hash": "12d7ec40439ad4abd5155d7fedf9313f",
+    "semantic_hash": "12d7ec40439ad4abd5155d7fedf9313f"
+  },
+  "01_Game_Design/Enemies/stinger.md": {
+    "mtime": 1786541420.9164493,
+    "ast_hash": "6d3ce86d556a4d20f5b0b34b5505c09b",
+    "semantic_hash": "6d3ce86d556a4d20f5b0b34b5505c09b"
+  },
+  "01_Game_Design/Hazards/lemonade.md": {
+    "mtime": 1786497057.6610112,
+    "ast_hash": "54618aedc2455c9e7c6de7e381b03697",
+    "semantic_hash": "54618aedc2455c9e7c6de7e381b03697"
+  },
+  "01_Game_Design/Items/_MOC_Items.md": {
+    "mtime": 1786541420.972064,
+    "ast_hash": "2a9fac0dc7070107463252fe38f65ca6",
+    "semantic_hash": "2a9fac0dc7070107463252fe38f65ca6"
+  },
+  "01_Game_Design/Items/acid_boots.md": {
+    "mtime": 1786541420.3027122,
+    "ast_hash": "26405a4222cecef1bdd8a983aa3ec7e1",
+    "semantic_hash": "26405a4222cecef1bdd8a983aa3ec7e1"
+  },
+  "01_Game_Design/Items/battery_pack.md": {
+    "mtime": 1786541420.4694257,
+    "ast_hash": "9e5c81fb1d9f8988c86ceda4fe312cba",
+    "semantic_hash": "9e5c81fb1d9f8988c86ceda4fe312cba"
+  },
+  "01_Game_Design/Rooms/_MOC_Rooms.md": {
+    "mtime": 1786541420.973626,
+    "ast_hash": "7f5cc749283864d2c00d4bee1f647ea8",
+    "semantic_hash": "7f5cc749283864d2c00d4bee1f647ea8"
+  },
+  "02_Tech_Architecture/enemy_sandbox_room.md": {
+    "mtime": 1786541420.9705253,
+    "ast_hash": "243bebf83bd04aac914f420b72d5f91b",
+    "semantic_hash": "243bebf83bd04aac914f420b72d5f91b"
+  },
+  "02_Tech_Architecture/level_generator.md": {
+    "mtime": 1786541420.9663968,
+    "ast_hash": "87a880ae9a9c040a00e016e080db6553",
+    "semantic_hash": "87a880ae9a9c040a00e016e080db6553"
+  },
+  "02_Tech_Architecture/party_manager.md": {
+    "mtime": 1786541420.96576,
+    "ast_hash": "c538bab1e70b0f961351e7c93bab1fdc",
+    "semantic_hash": "c538bab1e70b0f961351e7c93bab1fdc"
+  },
+  "02_Tech_Architecture/player_base.md": {
+    "mtime": 1786541420.9674587,
+    "ast_hash": "5ba57e1a14a288a42b9314611949b369",
+    "semantic_hash": "5ba57e1a14a288a42b9314611949b369"
+  },
+  "02_Tech_Architecture/status_effect_manager.md": {
+    "mtime": 1786541420.9689753,
+    "ast_hash": "22a604d1cf6aea19982f87459f378cf2",
+    "semantic_hash": "22a604d1cf6aea19982f87459f378cf2"
+  },
+  "04_Chat_Prompts/2026-07-17_third-person-dungeon-crawler-mit-ps1-grafik.md": {
+    "mtime": 1786386326.2467394,
+    "ast_hash": "a2a69a5bae3ca7560e7cf08c7d0c340c",
+    "semantic_hash": "a2a69a5bae3ca7560e7cf08c7d0c340c"
+  },
+  "04_Chat_Prompts/2026-07-22_naechste-ziele-definieren.md": {
+    "mtime": 1786386325.1963358,
+    "ast_hash": "0d11e8adb0f60e126a7aa933a2aafa97",
+    "semantic_hash": "0d11e8adb0f60e126a7aa933a2aafa97"
+  },
+  "04_Chat_Prompts/2026-07-22_settings-struktur-mit-separatem-keybinds-tab.md": {
+    "mtime": 1786386325.0369422,
+    "ast_hash": "00a0e889374b73042064f9d1860d3cb1",
+    "semantic_hash": "00a0e889374b73042064f9d1860d3cb1"
+  },
+  "04_Chat_Prompts/2026-07-23_gdscript-und-tscn-dateien-anfordern.md": {
+    "mtime": 1786386325.7365437,
+    "ast_hash": "997209eea7751b6663fa8b5575fdf9b5",
+    "semantic_hash": "997209eea7751b6663fa8b5575fdf9b5"
+  },
+  "04_Chat_Prompts/2026-07-23_heavy-enemies-nicht-pushbar-machen.md": {
+    "mtime": 1786386325.97272,
+    "ast_hash": "3a46076eb5ad98605dffea27931a3131",
+    "semantic_hash": "3a46076eb5ad98605dffea27931a3131"
+  },
+  "04_Chat_Prompts/2026-07-23_hud-ui-mit-character-anzeige-und-ability-icons.md": {
+    "mtime": 1786386325.2322662,
+    "ast_hash": "50103ec41a2bb6d8da4cf8064970adb3",
+    "semantic_hash": "50103ec41a2bb6d8da4cf8064970adb3"
+  },
+  "04_Chat_Prompts/2026-07-23_lemonade-als-gridmap-asset-mit-effekten.md": {
+    "mtime": 1786386324.990034,
+    "ast_hash": "0af630150a1a30e7b0517d82fceab64a",
+    "semantic_hash": "0af630150a1a30e7b0517d82fceab64a"
+  },
+  "04_Chat_Prompts/2026-07-23_log-datei-ueberpruefung.md": {
+    "mtime": 1786386326.5479653,
+    "ast_hash": "e9645db2e94853d710473efa4ba29a26",
+    "semantic_hash": "e9645db2e94853d710473efa4ba29a26"
+  },
+  "04_Chat_Prompts/2026-07-23_pause-menu-bugs-in-level-02.md": {
+    "mtime": 1786386325.633366,
+    "ast_hash": "0b7ee84d55fcaebcb0174aa6a2b65166",
+    "semantic_hash": "0b7ee84d55fcaebcb0174aa6a2b65166"
+  },
+  "04_Chat_Prompts/2026-07-24_character-spezifische-szenen-und-abilities.md": {
+    "mtime": 1786386325.5940595,
+    "ast_hash": "ec8f6915e66701b025ad36c1af188c7d",
+    "semantic_hash": "ec8f6915e66701b025ad36c1af188c7d"
+  },
+  "04_Chat_Prompts/2026-07-24_roguelike-style-room-design-variation.md": {
+    "mtime": 1786386326.130639,
+    "ast_hash": "2f0c99bacc92541396d0122d95c89279",
+    "semantic_hash": "2f0c99bacc92541396d0122d95c89279"
+  },
+  "04_Chat_Prompts/2026-07-24_spielmechaniken-und-ui-anpassungen-fuer-godot-projekt.md": {
+    "mtime": 1786386324.9480424,
+    "ast_hash": "86895e014a5ee641733809dbbe286989",
+    "semantic_hash": "86895e014a5ee641733809dbbe286989"
+  },
+  "04_Chat_Prompts/2026-07-25_gegner-scaling-und-raumgroesse-anpassen.md": {
+    "mtime": 1786386324.90933,
+    "ast_hash": "63ff4c33afc306592d302dd7b5ff0ba6",
+    "semantic_hash": "63ff4c33afc306592d302dd7b5ff0ba6"
+  },
+  "04_Chat_Prompts/2026-07-25_godot-level-generator-room-instantiation.md": {
+    "mtime": 1786386325.3504813,
+    "ast_hash": "788b672ef3f63cb55cf561bfd48a8ee5",
+    "semantic_hash": "788b672ef3f63cb55cf561bfd48a8ee5"
+  },
+  "04_Chat_Prompts/2026-07-25_level-design-und-gameplay-verbesserungen.md": {
+    "mtime": 1786386325.8415968,
+    "ast_hash": "646b5eef22ae5f06b5a34ab57752dd83",
+    "semantic_hash": "646b5eef22ae5f06b5a34ab57752dd83"
+  },
+  "04_Chat_Prompts/2026-07-26_partikel-fuer-kampfeffekte-hinzufuegen.md": {
+    "mtime": 1786386326.0504284,
+    "ast_hash": "2d0abef851d1961b4085b8d223176203",
+    "semantic_hash": "2d0abef851d1961b4085b8d223176203"
+  },
+  "04_Chat_Prompts/2026-07-26_speedrun-ranking-und-gameplay-verbesserungen.md": {
+    "mtime": 1786386326.1644778,
+    "ast_hash": "69f55f7b73c4028e8cbf6c737fab7acf",
+    "semantic_hash": "69f55f7b73c4028e8cbf6c737fab7acf"
+  },
+  "04_Chat_Prompts/2026-07-27_3d-roboter-modelle-in-godot-4-gegner-szenen-integrieren.md": {
+    "mtime": 1786386324.7138267,
+    "ast_hash": "a3aa6a6ed9dadde7d37981cb5e29907d",
+    "semantic_hash": "a3aa6a6ed9dadde7d37981cb5e29907d"
+  },
+  "04_Chat_Prompts/2026-07-27_treasure-room-items-und-bomb-mechaniken.md": {
+    "mtime": 1786386325.5088792,
+    "ast_hash": "892e3b588b5f2a2c8b00d116c9179689",
+    "semantic_hash": "892e3b588b5f2a2c8b00d116c9179689"
+  },
+  "04_Chat_Prompts/2026-07-28_bomben-physik-und-item-verhalten-debugging.md": {
+    "mtime": 1786386325.3931127,
+    "ast_hash": "65d134528fddbdb5fefa90237463f4a2",
+    "semantic_hash": "65d134528fddbdb5fefa90237463f4a2"
+  },
+  "04_Chat_Prompts/2026-07-28_item-effekte-zentralisieren-und-kategorisieren.md": {
+    "mtime": 1786386326.8094325,
+    "ast_hash": "67a394fccf03d738dd9b53e27b6b8641",
+    "semantic_hash": "67a394fccf03d738dd9b53e27b6b8641"
+  },
+  "04_Chat_Prompts/2026-07-28_melee-items-mit-effekten-und-gameplay-feedback.md": {
+    "mtime": 1786386325.5506551,
+    "ast_hash": "e13b962e6e724966a180299861df5933",
+    "semantic_hash": "e13b962e6e724966a180299861df5933"
+  },
+  "04_Chat_Prompts/2026-08-01_game-balance-adjustments-and-file-setup.md": {
+    "mtime": 1786386325.3087907,
+    "ast_hash": "74ac33c01dcf3da4e30970102211d41c",
+    "semantic_hash": "74ac33c01dcf3da4e30970102211d41c"
+  },
+  "04_Chat_Prompts/2026-08-04_gdscript-projekt-analysiert-root-causes-identifiziert.md": {
+    "mtime": 1786386326.744148,
+    "ast_hash": "02d945a065996e100de10d084c1ba161",
+    "semantic_hash": "02d945a065996e100de10d084c1ba161"
+  },
+  "05_Gedanken/Ideen.md": {
+    "mtime": 1786541931.863765,
+    "ast_hash": "518c25fb446feea3fa0ed514b39e49e6",
+    "semantic_hash": "518c25fb446feea3fa0ed514b39e49e6"
+  },
+  "06_Assets/_MOC_Assets.md": {
+    "mtime": 1786497058.3298383,
+    "ast_hash": "91e907e3365506918c698209905a6ddd",
+    "semantic_hash": "91e907e3365506918c698209905a6ddd"
+  },
+  "assets/characters/blossom_rig_the_powerpuff_girls_0.png": {
+    "mtime": 1786375510.0668073,
+    "ast_hash": "3ecdd72ebb5043b01cb650533b42c0a0",
+    "semantic_hash": "3ecdd72ebb5043b01cb650533b42c0a0"
+  },
+  "assets/characters/lowpoly_robots_0.png": {
+    "mtime": 1786375510.1560736,
+    "ast_hash": "edbec51830f529b269c505a1cb059347",
+    "semantic_hash": "edbec51830f529b269c505a1cb059347"
+  }
+}

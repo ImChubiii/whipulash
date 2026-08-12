@@ -51,3 +51,6 @@ Lookup/Apply/VFX-Block sonst wortgleich dupliziert haetten.
 ## Erwaehnt in DevLogs
 
 - —
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (calls)**: [[player_base]] (Confidence: 1.0)

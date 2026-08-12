@@ -74,3 +74,6 @@ Ueberblick beider Systeme.
 ## Quelle
 
 `scenes/tank_dummy.tscn` (Root-Node-Properties), `resources/enemies/es_colossus.tres`
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **references**: [[level_generator]] (Confidence: 1.0)

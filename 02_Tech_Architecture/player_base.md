@@ -51,3 +51,11 @@ Fall in tiefe Abgruende, statt endlos zu fallen.
 ## Erwaehnt in DevLogs
 
 - —
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[status_effect_manager]] (Confidence: 1.0)
+- **referenced_by (inherits)**: [[giselle]] (Confidence: 1.0)
+- **referenced_by (inherits)**: [[karina]] (Confidence: 1.0)
+- **referenced_by (inherits)**: [[ningning]] (Confidence: 1.0)
+- **referenced_by (inherits)**: [[winter]] (Confidence: 1.0)
+- **referenced_by (references)**: [[party_manager]] (Confidence: 1.0)

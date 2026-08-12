@@ -64,3 +64,6 @@ dieses Items ODER umgekehrt):
 ## Quelle
 
 `scripts/items/item_catalog.gd` (Konstante `ID_ROLLING_THUNDER`, Variable `rolling_thunder`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **calls**: [[stun]] (Confidence: 1.0)

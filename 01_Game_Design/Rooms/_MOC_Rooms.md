@@ -59,3 +59,6 @@ tags: [moc, rooms]
 - [[treasure_02]]
 - [[treasure_03]]
 - [[treasure_sacrifice_01]]
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **referenced_by (references)**: [[00_Master_Wiki]] (Confidence: 1.0)

@@ -49,3 +49,6 @@ Driftet langsam ueber dem Schlachtfeld, laedt sichtbar auf (`charge_time`) und z
 ## Quelle
 
 `scripts/enemies/plasma_beam_bot.gd` (Modul-Scope-`var`-Deklarationen, `_configure()`)
+
+## 🧠 Semantische Verbindungen (Graphify)
+- **implements**: [[enemy_sandbox_room]] (Confidence: 1.0)

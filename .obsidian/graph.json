@@ -1,0 +1,72 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": true,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:01_Game_Design/Enemies",
+      "color": {
+        "a": 1,
+        "rgb": 15087942
+      }
+    },
+    {
+      "query": "path:01_Game_Design/Characters",
+      "color": {
+        "a": 1,
+        "rgb": 5032432
+      }
+    },
+    {
+      "query": "path:01_Game_Design/Items",
+      "color": {
+        "a": 1,
+        "rgb": 16556817
+      }
+    },
+    {
+      "query": "path:01_Game_Design/Rooms",
+      "color": {
+        "a": 1,
+        "rgb": 448160
+      }
+    },
+    {
+      "query": "path:01_Game_Design/Status_Effects",
+      "color": {
+        "a": 1,
+        "rgb": 11868062
+      }
+    },
+    {
+      "query": "path:05_Gedanken",
+      "color": {
+        "a": 1,
+        "rgb": 16758183
+      }
+    },
+    {
+      "query": "file:_MOC",
+      "color": {
+        "a": 1,
+        "rgb": 16777215
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 0.3242333118601222,
+  "close": false
+}
