@@ -2426,24 +2426,59 @@ func _spawn_prepared_enemies() -> void:
 		_lock_exits(false)
 
 
+## Radius der Freiraum-Pruefung gegen Level-Geometrie (Saeulen, Waende) beim
+## Spawnen. Kein exakter Kollisions-Match pro Gegner-Groesse, sondern ein
+## konservativer Mindestfreiraum - verhindert, dass ein Marker, der von Hand
+## zu nah an eine Saeule gesetzt wurde, einen Gegner direkt IN der Saule
+## spawnt (der bleibt dort dann reglos stecken, da die meisten Gegnertypen
+## keine eigene Ausweich-Navigation haben).
+const SPAWN_CLEARANCE_RADIUS: float = 1.0
+const SPAWN_CLEARANCE_MASK: int = 1 # Standard-Layer der Level-Geometrie (Saeulen, Waende, ...)
+
 func _take_spawn_point(free_points: Array[Marker3D], taken: Array[Vector3], spacing: float) -> Marker3D:
 	if free_points.is_empty():
 		return null
-	if spacing <= 0.0 or taken.is_empty():
-		return free_points.pop_front()
 
+	# Erste Runde: bevorzugt Punkte, die sowohl den Abstand zu bereits
+	# vergebenen Punkten einhalten ALS AUCH frei von Level-Geometrie sind.
 	for i in range(free_points.size()):
 		var candidate: Marker3D = free_points[i]
+		if _spawn_point_is_blocked(candidate):
+			continue
 		var ok: bool = true
 		for t in taken:
-			if candidate.global_position.distance_to(t) < spacing:
+			if spacing > 0.0 and candidate.global_position.distance_to(t) < spacing:
 				ok = false
 				break
 		if ok:
 			free_points.remove_at(i)
 			return candidate
 
+	# Zweite Runde: Abstands-Vorgabe faellt lassen, aber Geometrie-Freiraum
+	# bleibt hart - lieber enger stehen als in einer Saeule spawnen.
+	for i in range(free_points.size()):
+		var candidate: Marker3D = free_points[i]
+		if not _spawn_point_is_blocked(candidate):
+			free_points.remove_at(i)
+			return candidate
+
+	# Kein einziger Punkt ist frei von Level-Geometrie (sollte praktisch nie
+	# vorkommen) - Fallback auf den alten Best-Effort statt gar nicht zu
+	# spawnen.
 	return free_points.pop_front()
+
+
+func _spawn_point_is_blocked(point: Marker3D) -> bool:
+	var space_state := get_world_3d().direct_space_state
+	var query := PhysicsShapeQueryParameters3D.new()
+	var shape := SphereShape3D.new()
+	shape.radius = SPAWN_CLEARANCE_RADIUS
+	query.shape = shape
+	query.transform = Transform3D(Basis.IDENTITY, point.global_position)
+	query.collision_mask = SPAWN_CLEARANCE_MASK
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	return not space_state.intersect_shape(query, 1).is_empty()
 
 
 func _spawn_one(entry: EnemySpawnEntry, point: Marker3D) -> void:

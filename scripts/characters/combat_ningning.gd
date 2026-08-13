@@ -31,15 +31,26 @@ func _init() -> void:
 
 
 const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_blood_hit.tscn")
+const SLASH_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_slash_ningning.tscn")
+const FIRE_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_fire_ningning.tscn")
 
 func setup(owner_player: CharacterBody3D) -> void:
 	super.setup(owner_player)
 	
 	if primary_hitbox:
 		primary_hitbox.impact_vfx = HIT_VFX_SCENE
+		primary_hitbox.swing_vfx = SLASH_VFX_SCENE
+		var p_vis = primary_hitbox.get_node_or_null("Visual")
+		if p_vis:
+			p_vis.queue_free()
+			
 	if secondary_hitbox:
 		secondary_hitbox.hit_landed.connect(_on_haymaker_hit)
 		secondary_hitbox.impact_vfx = HIT_VFX_SCENE
+		secondary_hitbox.swing_vfx = FIRE_VFX_SCENE
+		var s_vis = secondary_hitbox.get_node_or_null("Visual")
+		if s_vis:
+			s_vis.queue_free()
 
 
 func _on_haymaker_hit(_target: Node) -> void:

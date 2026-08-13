@@ -17,12 +17,12 @@ tags: [character]
 
 ## Basiswerte
 
-| Wert | Betrag |
-|---|---|
-| Move-Speed | 19.5 |
-| Max. HP | 125.0 |
-| Primary-Basis-Cooldown | 0.18 s |
-| Secondary-Basis-Cooldown | 3.0 s |
+| Wert                     | Betrag |
+| ------------------------ | ------ |
+| Move-Speed               | 19.5   |
+| Max. HP                  | 125.0  |
+| Primary-Basis-Cooldown   | 0.18 s |
+| Secondary-Basis-Cooldown | 3.0 s  |
 
 ## Mechanik
 

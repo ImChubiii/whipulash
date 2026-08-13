@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://df4x8x8x8x8x8"]
+
+[ext_resource type="Script" path="res://scripts/vfx/animated_slash_ningning.gd" id="1_slashn"]
+
+[node name="AnimatedSlashNingning" type="AnimatedSprite3D"]
+script = ExtResource("1_slashn")

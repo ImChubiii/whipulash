@@ -17,6 +17,8 @@ class_name CombatWinter
 # ungenutzt im Baum (siehe combat_base.gd-Kopfkommentar zu diesem Muster).
 
 const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_blood_hit.tscn")
+const MUZZLE_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_muzzle_flash_winter.tscn")
+const MUZZLE_FORWARD_OFFSET: float = 0.8
 
 ## --- Primary "Magnetic Plasma" ---------------------------------------------
 @export var plasma_damage: float = 12.0
@@ -102,7 +104,12 @@ func _perform_primary() -> void:
 	# schiesst": targets[0] ist der naechste (siehe _pick_plasma_targets()'
 	# Sortierung) - nicht erst auf den Einschlag eines Bolts warten (der
 	# Flug dauert je nach Distanz spuerbar).
-	_lock_model_to(targets[0])
+	var primary_target = targets[0]
+	_lock_model_to(primary_target)
+	
+	var dir = (primary_target.global_position + Vector3.UP - origin).normalized()
+	var muzzle_pos: Vector3 = player.global_position + Vector3.UP * 1.3 + dir * 0.8 if player else origin
+	_spawn_muzzle_vfx(muzzle_pos, dir)
 
 	for target: Node3D in targets:
 		# ESP-Box PRO ZIEL, nicht ein einzelnes gelocktes Ziel wie bei Uzi/
@@ -441,3 +448,17 @@ func _damage_multiplier() -> float:
 func _lock_model_to(target: Variant) -> void:
 	if player and player.has_method("set_target") and target is Node3D:
 		player.set_target(target)
+
+func _spawn_muzzle_vfx(pos: Vector3, dir: Vector3, scale_mul: float = 1.0) -> void:
+	var vfx_dir: Vector3 = dir
+	var spawn_pos: Vector3 = pos + dir * MUZZLE_FORWARD_OFFSET
+	var data: CharacterData = PartyManager.get_active_data()
+	var vfx: Node3D
+	
+	if data != null:
+		vfx = VFX.spawn_dual_tinted(MUZZLE_VFX_SCENE, spawn_pos, data.attack_color, data.attack_color_secondary, vfx_dir)
+	else:
+		vfx = VFX.spawn(MUZZLE_VFX_SCENE, spawn_pos, vfx_dir)
+		
+	if vfx != null and scale_mul != 1.0:
+		vfx.scale *= scale_mul

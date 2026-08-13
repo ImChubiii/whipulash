@@ -25,7 +25,7 @@ const CRIT_DAMAGE_MULTIPLIER: float = 1.5
 ## Hoehe ueber dem Ziel-Pivot, auf der der Impact erscheint.
 @export var impact_height: float = 1.2
 
-@onready var visual: MeshInstance3D = get_node_or_null("Visual")
+@onready var visual: Node3D = get_node_or_null("Visual")
 
 var _already_hit: Array[Node] = []
 
@@ -43,7 +43,7 @@ func _ready() -> void:
 	# und der Effekt feuert garantiert erst NACH allen Filtern
 	# (Self-Damage, _already_hit, Health-Check).
 	hit_landed.connect(_on_hit_landed_vfx)
-	if visual:
+	if visual and is_instance_valid(visual):
 		visual.visible = false
 
 
@@ -51,7 +51,7 @@ func activate() -> void:
 	_already_hit.clear()
 	monitoring = true
 	_debug("activate() aufgerufen. monitoring=%s, global_position=%s, owner=%s" % [monitoring, global_position, owner])
-	if visual:
+	if visual and is_instance_valid(visual):
 		visual.visible = true
 
 	if swing_vfx:
@@ -87,8 +87,8 @@ func _sweep_initial_overlaps() -> void:
 
 func deactivate() -> void:
 	monitoring = false
-	_debug("deactivate() aufgerufen.")
-	if visual:
+	_debug("deactivate() aufgerufen. monitoring=%s" % monitoring)
+	if visual and is_instance_valid(visual):
 		visual.visible = false
 
 
