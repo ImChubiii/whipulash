@@ -238,6 +238,8 @@ func _on_status_effect_ticked(id: String, magnitude: float, source: Node) -> voi
 ## normale Bewegung einfach ohne Trail, statt einen Fehler zu werfen.
 @onready var ghost_trail: GhostTrail = get_node_or_null("GhostTrail")
 
+var anim_manager: Node = null
+
 ## Ab welcher horizontalen Geschwindigkeit (Einheiten/Sekunde) der
 ## Dauer-Lauf-Trail einsetzt - verhindert, dass er schon beim Anlaufen/
 ## Abbremsen oder bei kleinem Knockback-Restschwung flackert.
@@ -453,6 +455,12 @@ func _ready() -> void:
 		health.health_changed.connect(_on_own_health_changed)
 		health.died.connect(_on_died)
 		_last_known_health = health.current_health
+		
+	# Animation System initialisieren
+	var anim_script = load("res://scripts/characters/animation_manager.gd")
+	if anim_script:
+		anim_manager = anim_script.new(self)
+		add_child(anim_manager)
 
 ## Einziger Einstiegspunkt fuer den Basis-FOV.
 ##

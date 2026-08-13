@@ -49,7 +49,7 @@ enum Kind {
 ## auffaelliger sein". Gilt NICHT fuer Kind.ITEM (der Sockel-Platzhalter hat
 ## seine eigene Groesse/Bedeutung, siehe _build_pedestal()) - deshalb hier
 ## statt als globaler Node3D.scale, siehe Anwendung in _build_visual().
-@export var consumable_visual_scale: float = 1.8
+@export var consumable_visual_scale: float = 3.5
 
 ## --- Bodenglanz (Lesbarkeit) ------------------------------------------
 ##
@@ -119,6 +119,19 @@ func _ready() -> void:
 
 	if kind == Kind.ITEM:
 		_build_prompt()
+		
+	call_deferred("_drop_to_floor")
+
+func _drop_to_floor() -> void:
+	if not is_inside_tree():
+		return
+	var space_state = get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.5, global_position + Vector3.DOWN * 50.0)
+	query.collision_mask = 1 # Environment mask
+	var result = space_state.intersect_ray(query)
+	if result:
+		global_position.y = result.position.y
+		_base_y = global_position.y
 
 
 ## Bequemer Konstruktor fuer den LootManager.

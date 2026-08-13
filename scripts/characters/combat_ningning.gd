@@ -30,15 +30,16 @@ func _init() -> void:
 	utility_cooldown = 0.8
 
 
+const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_blood_hit.tscn")
+
 func setup(owner_player: CharacterBody3D) -> void:
 	super.setup(owner_player)
-	# Zusaetzlich zum automatischen Kamera-Shake aus combat_base.gd::
-	# _on_hit_landed() (der fuer JEDEN Treffer gleich stark ausfaellt) - ein
-	# kurzer Hit-Stop + kraeftigerer Shake NUR fuer den Haymaker, damit sich
-	# der wuchtige Finisher spuerbar staerker anfuehlt als der schnelle Jab
-	# (Rueckmeldung "sieht schwach aus").
+	
+	if primary_hitbox:
+		primary_hitbox.impact_vfx = HIT_VFX_SCENE
 	if secondary_hitbox:
 		secondary_hitbox.hit_landed.connect(_on_haymaker_hit)
+		secondary_hitbox.impact_vfx = HIT_VFX_SCENE
 
 
 func _on_haymaker_hit(_target: Node) -> void:

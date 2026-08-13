@@ -16,7 +16,7 @@ class_name CombatWinter
 # PrimaryHitbox/SecondaryHitbox aus char_winter.tscn bleiben bewusst
 # ungenutzt im Baum (siehe combat_base.gd-Kopfkommentar zu diesem Muster).
 
-const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
+const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_blood_hit.tscn")
 
 ## --- Primary "Magnetic Plasma" ---------------------------------------------
 @export var plasma_damage: float = 12.0
@@ -243,8 +243,6 @@ func _on_plasma_strike(target: Node3D, origin: Vector3, dmg: float, esp_box: Ene
 		target.apply_knockback(pull_dir.normalized() * plasma_pull_strength)
 
 	var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, target.global_position + Vector3.UP, Vector3.UP)
-	if spark:
-		spark.scale *= 1.7
 	if player and player.has_method("shake_camera"):
 		player.shake_camera(0.15)
 	_lock_model_to(target)
@@ -321,8 +319,6 @@ func _update_laser(delta: float) -> void:
 		_laser_tick_timer = laser_tick_interval
 		if result["hit"]:
 			var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
-			if spark:
-				spark.scale *= 1.4
 			# Leichtes Dauer-Rattern statt eines einzelnen Shakes - passt
 			# besser zu einem Dauerstrahl als ein einmaliger Ausschlag und
 			# macht spuerbar, dass der Strahl laufend Schaden macht statt

@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://dmkjscb47xypn"]
+
+[ext_resource type="Script" uid="uid://d37sppg1qeffa" path="res://scripts/vfx/auto_destroy_particles.gd" id="1_xabcy"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_blood"]
+direction = Vector3(0, 1, 0)
+initial_velocity_min = 4.0
+initial_velocity_max = 7.0
+gravity = Vector3(0, -12, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blood"]
+shading_mode = 0
+albedo_color = Color(0.8, 0, 0, 1)
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_blood"]
+material = SubResource("StandardMaterial3D_blood")
+size = Vector2(0.6, 0.6)
+
+[node name="BloodSplash" type="GPUParticles3D" unique_id=1507127191]
+emitting = false
+amount = 15
+lifetime = 0.8
+explosiveness = 0.95
+process_material = SubResource("ParticleProcessMaterial_blood")
+draw_pass_1 = SubResource("QuadMesh_blood")
+script = ExtResource("1_xabcy")

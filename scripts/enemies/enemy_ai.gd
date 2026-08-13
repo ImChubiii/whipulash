@@ -14,6 +14,8 @@ const PSX_SHADER: Shader = preload("res://shaders/psx.gdshader")
 
 @export var move_speed: float = 7.0
 
+var anim_manager: Node = null
+
 # --- Individuelle Geschwindigkeits-Streuung -------------------------------
 # Jede gespawnte Instanz wuerfelt EINMALIG in _ready() einen eigenen
 # Multiplikator zwischen (1 - speed_variance) und (1 + speed_variance).
@@ -134,73 +136,6 @@ func get_display_name() -> String:
 @export var separation_radius: float = 6.0
 @export var separation_strength: float = 5.0
 
-## --- Zickzack-Verfolgung (Scout/Stinger) ------------------------------
-## Ein Gegner, der schnurgerade auf den Spieler zulaeuft, ist trivial zu
-## treffen und fuehlt sich wie ein Zielobjekt an, nicht wie ein Jaeger.
-##
-## MUSTER: zick - stehen - zack - stehen. Der Gegner setzt also einen
-## schraegen Sprint an, friert kurz ein, und setzt dann schraeg in die
-## ANDERE Richtung an. Das Einfrieren ist der eigentliche Trick: es macht
-## den naechsten Richtungswechsel unvorhersehbar, weil man waehrend der
-## Pause nicht sieht, wohin es weitergeht.
-##
-## Der Ausschlag wird kurz vor dem Ziel ausgeblendet - sonst zieht der
-## Gegner im letzten Meter dauernd am Spieler vorbei und kommt nie in
-## attack_range. In der Pausenphase gilt dasselbe: innerhalb von
-## zigzag_min_distance wird NICHT mehr angehalten, sonst bliebe er direkt
-## vor dem Spieler stehen statt zuzuschlagen.
-##
-## Standard AUS, damit traege Typen (Fighter, Colossus) unveraendert
-## geradeaus laufen. Einschalten in der jeweiligen Gegner-Szene.
-@export var zigzag_enabled: bool = false
-
-## Seitlicher Ausschlag eines Beins. 55 Grad heisst: gut die Haelfte der
-## Geschwindigkeit geht in die Seitwaertsbewegung (cos 55 = 0.57 Vortrieb).
-## Ueber 70 Grad kommt er praktisch nicht mehr naeher.
-@export_range(0.0, 80.0) var zigzag_angle_degrees: float = 55.0
-
-## Wie lange EIN schraeges Bein laeuft, bevor angehalten wird.
-@export var zigzag_leg_time: float = 0.35
-
-## Standzeit zwischen zwei Beinen.
-@export var zigzag_pause_time: float = 0.4
-
-## Wie hart in der Pause abgebremst wird. Hoch = schlagartiger Stopp,
-## niedrig = ausrollen. Deutlich ueber movement_acceleration setzen,
-## damit die Pause auch als Pause gelesen wird.
-@export var zigzag_brake_acceleration: float = 90.0
-
-## Ab hier laeuft er schnurgerade durch und pausiert nicht mehr.
-@export var zigzag_min_distance: float = 3.5
-
-## Ab dieser Entfernung ist der Ausschlag voll ausgefahren. Dazwischen
-## wird linear geblendet.
-@export var zigzag_fade_distance: float = 10.0
-
-## BUGFIX "Teleport-Dash": der Kurvenwinkel sprang beim Phasenwechsel
-## bisher schlagartig von 0 auf den vollen Ausschlag - der Gegner wirkte wie
-## seitlich teleportiert statt wie eine gelaufene Kurve. Begrenzt jetzt, wie
-## viele Grad pro Sekunde sich der Winkel maximal aendern darf.
-@export var zigzag_angle_smoothing_deg: float = 260.0
-
-## Sichtbares Lean-Telegraphing: das Modell legt sich in dieselbe Richtung
-## wie der Kurvenwinkel, bevor/waehrend der Ausschlag greift - ein fruehes
-## visuelles Signal, in welche Richtung der Gegner als naechstes ausweicht.
-@export_range(0.0, 45.0) var zigzag_lean_angle_deg: float = 16.0
-
-var _zigzag_current_angle_deg: float = 0.0
-var _zigzag_lean_current_deg: float = 0.0
-
-## Ab welchem Ausschlags-Anteil ueberhaupt noch pausiert wird.
-##
-## WARUM: Bei 0.32 s Bein und 0.4 s Pause ist der Gegner nur 44 % der Zeit
-## in Bewegung, und davon geht bei 58 Grad noch die Haelfte zur Seite. Ein
-## fliehender Spieler waere damit schlicht schneller und der Stinger holt
-## nie auf. Unterhalb dieser Schwelle laeuft er deshalb durch (der Winkel
-## wird ohnehin schon ausgeblendet) und pausiert erst wieder, wenn er
-## Abstand hat.
-@export_range(0.0, 1.0) var zigzag_pause_min_amount: float = 0.45
-
 ## --- Fokus-Verlust ----------------------------------------------------
 ## Eine Horde, in der jeder Gegner exakt dasselbe tut, liest sich als EIN
 ## Schwarm - egal wie viele es sind. Sobald einzelne aber zwischendurch
@@ -229,16 +164,6 @@ var _zigzag_lean_current_deg: float = 0.0
 
 var _focus_lost_timer: float = 0.0
 var _wander_direction: Vector3 = Vector3.ZERO
-
-## Zufaelliger Startpunkt im Takt pro Instanz. Ohne das laeuft eine ganze
-## Gruppe im Gleichschritt und sieht aus wie eine Marschformation.
-@export var zigzag_random_phase: bool = true
-
-## Taktphasen: 0 = Bein nach rechts, 1 = Pause, 2 = Bein nach links,
-## 3 = Pause. Ungerade Indizes sind also immer Pausen.
-var _zigzag_phase_index: int = 0
-var _zigzag_timer: float = 0.0
-var _zigzag_holding: bool = false
 
 # Sauberer Ausstieg aus einem angefangenen Angriff: Telegraph aus, kurzer
 # Cooldown, zurueck ins Verfolgen. Wird NICHT aufgerufen, wenn der Gegner
@@ -969,13 +894,6 @@ func _ready() -> void:
 
 	_setup_slope_stability()
 
-	_zigzag_timer = zigzag_leg_time
-	if zigzag_random_phase:
-		# Zufaelliger Einstiegspunkt im Takt: sowohl die Phase als auch
-		# die Restzeit darin, sonst starten alle gleichzeitig ihr Bein.
-		_zigzag_phase_index = randi() % 4
-		_zigzag_timer = randf() * (zigzag_pause_time if _zigzag_is_pause() else zigzag_leg_time)
-
 	_debug("_ready(). attack_hitbox=%s | telegraph_inner=%s | telegraph_outer=%s | nav_agent=%s" % [attack_hitbox, telegraph_inner, telegraph_outer, nav_agent])
 
 	var shape_node := _get_collision_shape_node()
@@ -1002,9 +920,17 @@ func _ready() -> void:
 		telegraph_inner.scale = Vector3(0.01, 1.0, 0.01)
 	if telegraph_outer:
 		telegraph_outer.visible = false
-
+	
 	_setup_visuals()
-	_setup_animation()
+	_setup_status_visuals()
+	_setup_slope_stability()
+	# _setup_animation() # Deaktiviert, da AnimationManager uebernimmt
+	
+	# Animation System initialisieren
+	var anim_script = load("res://scripts/characters/animation_manager.gd")
+	if anim_script:
+		anim_manager = anim_script.new(self)
+		add_child(anim_manager)
 
 	if health:
 		health.died.connect(_on_died)
@@ -1103,6 +1029,13 @@ func _setup_visuals() -> void:
 	_debug("_setup_visuals(): %d Surface(s) mit PSX-Material bestueckt." % _mesh_materials.size())
 
 
+## Knochennamen, die als Fuss-Referenz fuer model_auto_ground zaehlen -
+## KayKit-Rig ("foot.l"/"foot.r") plus Mixamo-Fallback-Namen fuer aeltere
+## Rigs. Siehe Kommentar in _orient_model().
+const GROUND_REFERENCE_BONE_NAMES: PackedStringArray = [
+	"foot.l", "foot.r", "LeftFoot", "RightFoot"
+]
+
 ## Dreht das Modell in Blickrichtung des Projekts und schiebt es mittig
 ## ueber den Ursprung des CharacterBody3D.
 func _orient_model(model_root: Node3D) -> void:
@@ -1125,10 +1058,13 @@ func _orient_model(model_root: Node3D) -> void:
 	var to_body: Transform3D = global_transform.affine_inverse() * skeleton.global_transform
 	var lo: Vector3 = Vector3.INF
 	var hi: Vector3 = -Vector3.INF
+	var foot_lo_y: float = INF
 	for bone_index: int in range(skeleton.get_bone_count()):
 		var point: Vector3 = to_body * _rest_global_transform(skeleton, bone_index).origin
 		lo = lo.min(point)
 		hi = hi.max(point)
+		if skeleton.get_bone_name(bone_index) in GROUND_REFERENCE_BONE_NAMES:
+			foot_lo_y = minf(foot_lo_y, point.y)
 
 	if lo.x > hi.x:
 		return
@@ -1142,7 +1078,17 @@ func _orient_model(model_root: Node3D) -> void:
 		var shape_node: CollisionShape3D = _get_collision_shape_node()
 		if shape_node != null and shape_node.shape is CapsuleShape3D:
 			floor_y = shape_node.position.y - (shape_node.shape as CapsuleShape3D).height * 0.5
-		shift.y = lo.y - floor_y - model_ground_bias
+		# Nur die Fussknochen als Bodenreferenz nehmen, NICHT den tiefsten
+		# Knochen der gesamten Hierarchie - Zubehoer-Knochen (KayKit-Umhang,
+		# Waffe am Guertel etc.) haengen in der Rest-Pose teils deutlich
+		# tiefer als die Fuesse und wuerden das Modell sonst zu weit nach
+		# oben schieben. Fehler skaliert mit der Modellgroesse, deshalb bei
+		# grossen Gegnern (Colossus, Fighter) viel sichtbarer als bei
+		# kleinen (Stinger). Fallback auf den tiefsten Punkt, falls keine
+		# der bekannten Fuss-Knochennamen gefunden werden (z.B. altes
+		# lowpoly_robots-Rig).
+		var ground_y: float = foot_lo_y if foot_lo_y < INF else lo.y
+		shift.y = ground_y - floor_y - model_ground_bias
 
 	model_root.position -= shift
 	_debug("_orient_model(): Yaw %.0f Grad, Versatz korrigiert um %s" % [model_yaw_offset_deg, shift])
@@ -1391,6 +1337,9 @@ func _kill_swing_tweens() -> void:
 
 
 func _begin_attack_swing() -> void:
+	if anim_manager and anim_manager.has_method("trigger_attack"):
+		anim_manager.trigger_attack()
+		
 	if not attack_swing_enabled or _is_dead:
 		return
 	if _anim_player != null:
@@ -1705,10 +1654,10 @@ func _update_unstuck(delta: float) -> void:
 		return
 
 	# Nur zaehlen, wenn der Gegner ueberhaupt vorwaerts kommen WILL - ein
-	# Gegner, der bewusst steht (IDLE, an einer Kante wartend, in einer
-	# Zickzack-Pause, abgelenkt), soll nicht als "haengt fest" gelten.
+	# Gegner, der bewusst steht (IDLE, an einer Kante wartend, abgelenkt),
+	# soll nicht als "haengt fest" gelten.
 	var wants_to_move: bool = _state == State.CHASE and not _waiting_at_ledge \
-		and not _zigzag_holding and _focus_lost_timer <= 0.0
+		and _focus_lost_timer <= 0.0
 
 	if not wants_to_move:
 		_unstuck_reference_pos = global_position
@@ -1819,24 +1768,6 @@ func _move_towards_player(delta: float) -> void:
 		dir.y = 0.0
 		dir = dir.normalized()
 
-	# VOR den Kanten- und Hindernis-Pruefungen ausweichen: die pruefen
-	# dir, und geprueft werden muss die Richtung, in die der Gegner
-	# tatsaechlich laeuft - sonst testet er den Boden neben seinem Weg.
-	if zigzag_enabled and target != null:
-		var zigzag_angle: float = _zigzag_step(delta)
-		if _zigzag_holding:
-			# Pausenphase: stehen bleiben, aber weiter den Spieler
-			# anschauen. Frueher Ausstieg, weil Kanten- und
-			# Hindernis-Pruefung fuer einen stehenden Gegner sinnlos sind.
-			var hold_x: float = velocity.x - _knockback_velocity.x
-			var hold_z: float = velocity.z - _knockback_velocity.z
-			velocity.x = move_toward(hold_x, 0.0, zigzag_brake_acceleration * delta)
-			velocity.z = move_toward(hold_z, 0.0, zigzag_brake_acceleration * delta)
-			_waiting_at_ledge = false
-			_face_player(delta)
-			return
-		dir = dir.rotated(Vector3.UP, zigzag_angle)
-
 	_waiting_at_ledge = false
 
 	# --- Ledge-Logik: NUR relevant ohne gueltigen NavMesh-Pfad ---
@@ -1938,68 +1869,6 @@ func _wander_step(delta: float) -> void:
 func _random_ground_direction() -> Vector3:
 	var angle: float = randf() * TAU
 	return Vector3(sin(angle), 0.0, cos(angle))
-
-
-## Schaltet den Zickzack-Takt weiter und liefert den Ausweichwinkel des
-## aktuellen Beins. Setzt nebenbei _zigzag_holding, wenn gerade eine
-## Pausenphase laeuft.
-##
-## Die Blickrichtung bleibt unberuehrt (_face_player laeuft weiter auf den
-## Spieler) - der Gegner schaut einen also an, waehrend er seitlich
-## versetzt naeher kommt oder kurz einfriert.
-func _zigzag_step(delta: float) -> float:
-	# Nah am Ziel: kein Ausschlag, keine Pause. Sonst bliebe der Gegner
-	# direkt vor seinem Ziel stehen, statt in attack_range zu gehen.
-	var zigzag_target: Node3D = _current_target()
-	var distance: float = global_position.distance_to(zigzag_target.global_position) if zigzag_target != null else INF
-	var span: float = maxf(zigzag_fade_distance - zigzag_min_distance, 0.01)
-	var amount: float = clampf((distance - zigzag_min_distance) / span, 0.0, 1.0)
-
-	var target_deg: float = 0.0
-
-	if amount <= 0.0:
-		_zigzag_holding = false
-	else:
-		_zigzag_timer -= delta
-		if _zigzag_timer <= 0.0:
-			_zigzag_phase_index = (_zigzag_phase_index + 1) % 4
-			_zigzag_timer = zigzag_pause_time if _zigzag_is_pause() else zigzag_leg_time
-
-		_zigzag_holding = _zigzag_is_pause() and amount >= zigzag_pause_min_amount
-		if not _zigzag_holding:
-			# Phase 0 schlaegt nach rechts aus, Phase 2 nach links.
-			var side: float = 1.0 if _zigzag_phase_index == 0 else -1.0
-			target_deg = zigzag_angle_degrees * side * amount
-
-	# Winkel mit begrenzter Geschwindigkeit dem Ziel nachfahren statt
-	# schlagartig zu springen - siehe Bugfix-Kommentar bei
-	# zigzag_angle_smoothing_deg.
-	_zigzag_current_angle_deg = move_toward(_zigzag_current_angle_deg, target_deg, zigzag_angle_smoothing_deg * delta)
-	_apply_zigzag_lean(delta, target_deg)
-
-	return deg_to_rad(_zigzag_current_angle_deg)
-
-
-func _zigzag_is_pause() -> bool:
-	return (_zigzag_phase_index % 2) == 1
-
-
-## Bankt das Modell sichtbar in Richtung des aktuellen Kurvenwinkels. Laeuft
-## auf derselben Rampe wie der Winkel selbst, damit Lean und tatsaechliche
-## Kurve immer synchron wirken. Greift nicht waehrend eines Angriffs — dort
-## bestimmt _set_lean() die Modell-Rotation (Vorlehnen, andere Achse).
-func _apply_zigzag_lean(delta: float, target_deg: float) -> void:
-	if _visual_root == null or not is_instance_valid(_visual_root) or _is_attacking:
-		return
-
-	var target_lean: float = clampf(target_deg / maxf(zigzag_angle_degrees, 0.01), -1.0, 1.0) * zigzag_lean_angle_deg
-	_zigzag_lean_current_deg = move_toward(_zigzag_lean_current_deg, target_lean, zigzag_angle_smoothing_deg * delta)
-
-	_visual_root.rotation = Vector3(
-		_model_base_rotation.x,
-		_model_base_rotation.y,
-		_model_base_rotation.z + deg_to_rad(_zigzag_lean_current_deg) * _lean_sign
-	)
 
 
 func _measure_drop_depth(dir: Vector3, effective_forward_distance: float) -> float:

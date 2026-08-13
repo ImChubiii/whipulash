@@ -680,7 +680,7 @@ func _player() -> CharacterBody3D:
 
 func _has(item_id: String) -> bool:
 	return _items != null and _items.has_item(item_id)
-
+	
 
 func _stats() -> PlayerStats:
 	if _items == null:

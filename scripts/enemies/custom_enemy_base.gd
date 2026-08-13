@@ -27,7 +27,7 @@ class_name CustomEnemyBase
 # Tabellen (siehe resources/enemies/es_*.tres) als auch einzeln ueber
 # EnemySandboxRoom (scripts/enemy_sandbox_room.gd) spawnbar.
 
-const HIT_SPARK_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
+const HIT_SPARK_SCENE: PackedScene = preload("res://scenes/vfx/animated_blood_hit.tscn")
 
 ## Einheitliches Rot fuer alle Boden-Telegraphen ("hier schlaegt gleich etwas
 ## ein") ueber alle sechs Typen hinweg - Rueckmeldung: die einzelnen Typen

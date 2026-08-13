@@ -19,8 +19,8 @@ class_name CombatGiselle
 # nur ihre bereits im Inspector gesetzten damage_number_scene-Referenzen
 # werden noch mitbenutzt, um keine zweite Ressourcen-Zuweisung zu brauchen.
 
-const MUZZLE_VFX_SCENE: PackedScene = preload("res://scenes/vfx/spark_yellow.tscn")
-const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
+const MUZZLE_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_muzzle_flash.tscn")
+const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_blood_hit.tscn")
 
 ## BUGFIX "Muendungsblitz-Partikel fliegen in die Kamera": _spawn_muzzle_vfx()
 ## bekam bisher die Camera3D-Position selbst als Spawn-Punkt - der Effekt
@@ -138,7 +138,12 @@ func _perform_primary() -> void:
 	# das die tatsaechliche Blickrichtung.
 	var look_dir: Vector3 = -_camera.global_transform.basis.z
 	var target: Node3D = _resolve_uzi_target(origin, look_dir)
-	var dir: Vector3 = ((target.global_position + Vector3.UP) - origin).normalized() if target != null else look_dir
+	
+	# Wenn kein Gegner im Visier ist, gar nicht erst schießen (Munition sparen)
+	if target == null:
+		return
+		
+	var dir: Vector3 = ((target.global_position + Vector3.UP) - origin).normalized()
 	_update_uzi_esp(target)
 	# Rueckmeldung "Charakter soll in die Richtung schauen, wenn man einen
 	# Gegner beschiesst": frueher haengte _lock_model_to() nur am BESTAETIGTEN
@@ -150,12 +155,12 @@ func _perform_primary() -> void:
 
 	var dns: PackedScene = primary_hitbox.damage_number_scene if primary_hitbox else null
 	var result: Dictionary = Hitscan.fire(self, origin, dir, uzi_range, uzi_damage * _damage_multiplier(), player, dns)
-	_spawn_muzzle_vfx(origin, dir)
-	_spawn_tracer(origin, result["position"], 0.35, 0.06)
+	
+	var muzzle_pos: Vector3 = player.global_position + Vector3.UP * 1.3 + dir * 0.8 if player else origin
+	_spawn_muzzle_vfx(muzzle_pos, dir)
+	_spawn_tracer(muzzle_pos, result["position"], 0.35, 0.06)
 	if result["hit"]:
-		var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
-		if spark:
-			spark.scale *= 1.6
+		VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
 		if player and player.has_method("shake_camera"):
 			player.shake_camera(0.18)
 		if _uzi_esp_box != null and is_instance_valid(_uzi_esp_box):
@@ -422,10 +427,12 @@ func _perform_secondary() -> void:
 
 	for i: int in range(sniper_shot_count):
 		var result: Dictionary = Hitscan.fire(self, origin, dir, sniper_range, dmg, player, dns)
-		_spawn_muzzle_vfx(origin, dir)
+		
+		var muzzle_pos: Vector3 = player.global_position + Vector3.UP * 1.3 + dir * 0.8 if player else origin
+		_spawn_muzzle_vfx(muzzle_pos, dir, 2.5)
 		# Deutlich staerker als der Uzi-Tracer - der Sniper soll sich wie
 		# der "one-shot-kill"-Treffer anfuehlen, den die Spec verlangt.
-		_spawn_tracer(origin, result["position"], 0.9, 0.12)
+		_spawn_tracer(muzzle_pos, result["position"], 0.9, 0.12)
 		if result["hit"]:
 			landed_hit = true
 			var spark: Node3D = VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
@@ -502,11 +509,18 @@ func _spawn_tracer(origin: Vector3, endpoint: Vector3, radius_scale: float, life
 ## ausgerichtet wird (wie hier), gilt ausschliesslich die -Z-Regel oben.
 ## "dir" (unnegiert) ist bereits die reine Schuss-/Blickrichtung, siehe
 ## Aufrufer - richtig ausgerichtet zeigt das jetzt tatsaechlich zum Ziel.
-func _spawn_muzzle_vfx(pos: Vector3, dir: Vector3) -> void:
+func _spawn_muzzle_vfx(pos: Vector3, dir: Vector3, scale_mul: float = 1.0) -> void:
 	var vfx_dir: Vector3 = dir
 	var spawn_pos: Vector3 = pos + dir * MUZZLE_FORWARD_OFFSET
 	var data: CharacterData = PartyManager.get_active_data()
+	var vfx: Node3D
+	
+	# Da AnimatedSprite3D von vfx_manager.gd (spawn_dual_tinted) nicht gefärbt wird,
+	# funktioniert hier spawn() genauso gut für Originalfarben.
 	if data != null:
-		VFX.spawn_dual_tinted(MUZZLE_VFX_SCENE, spawn_pos, data.attack_color, data.attack_color_secondary, vfx_dir)
+		vfx = VFX.spawn_dual_tinted(MUZZLE_VFX_SCENE, spawn_pos, data.attack_color, data.attack_color_secondary, vfx_dir)
 	else:
-		VFX.spawn(MUZZLE_VFX_SCENE, spawn_pos, vfx_dir)
+		vfx = VFX.spawn(MUZZLE_VFX_SCENE, spawn_pos, vfx_dir)
+		
+	if vfx != null and scale_mul != 1.0:
+		vfx.scale *= scale_mul

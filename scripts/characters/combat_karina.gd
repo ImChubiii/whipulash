@@ -18,7 +18,7 @@ class_name CombatKarina
 # Primary hat bewusst KEINEN klassischen Schlag: die Stance IST der gesamte
 # Primary-Angriff.
 
-const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/hit_spark.tscn")
+const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_blood_hit.tscn")
 
 ## --- Primary "Acid Rush Mode" -----------------------------------------------
 @export var stance_speed_bonus_mul: float = 1.2
@@ -220,6 +220,10 @@ func _tick_acid_aura(delta: float) -> void:
 		if enemy.has_method("apply_status_effect"):
 			hit_anyone = true
 			enemy.apply_status_effect("acid", acid_effect_duration, acid_damage_per_tick, player, acid_tick_interval)
+			
+			# Blut-VFX spawnen, da Karina sonst überhaupt kein Hit-Feedback am Gegner hat
+			VFX.spawn(HIT_VFX_SCENE, enemy.global_position + Vector3.UP, Vector3.UP)
+				
 			if _item_behaviours:
 				_item_behaviours.try_karina_lifesteal()
 			if dns != null:

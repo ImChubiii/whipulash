@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="2_k5f3b"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_fva3d"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="5_dmgnum"]
-[ext_resource type="PackedScene" uid="uid://cwxy54bgqns2d" path="res://assets/characters/lowpoly_robots.glb" id="6_robot"]
+[ext_resource type="PackedScene" uid="uid://h3hsb6rg5w2j" path="res://KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Warrior.glb" id="6_robot"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 radius = 1.5
@@ -72,6 +72,8 @@ floor_snap_length = 0.4
 # Deckenabstand.
 scale = Vector3(1.85, 1.85, 1.85)
 script = ExtResource("1_w4gkx")
+model_yaw_offset_deg = 0.0
+model_auto_ground = true
 move_speed = 8.0
 detection_range = 90.0
 attack_cooldown = 1.8
@@ -113,7 +115,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
 [node name="CharacterModel" parent="." unique_id=2020016892 instance=ExtResource("6_robot")]
-transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 0, 0, 0)
+transform = Transform3D(2.4, 0, 0, 0, 2.4, 0, 0, 0, 2.4, 0, 0, 0)
 
 [node name="Health" type="Node" parent="." unique_id=496713544]
 script = ExtResource("2_k5f3b")

@@ -147,27 +147,27 @@ static func _spawn_one_floor_splat(parent: Node, origin: Vector3, context: Node3
 	var result := space_state.intersect_ray(query)
 	var floor_pos: Vector3 = result.position if not result.is_empty() else origin
 
-	var radius: float = randf_range(FLOOR_RADIUS_MIN, FLOOR_RADIUS_MAX)
-	var disc := CylinderMesh.new()
-	disc.top_radius = radius
-	disc.bottom_radius = radius
-	disc.height = 0.03
-	disc.radial_segments = 10
-
-	var mat := _make_material(FLOOR_COLOR)
-	var mesh := MeshInstance3D.new()
-	mesh.name = "BloodFloor"
-	mesh.mesh = disc
-	mesh.material_override = mat
-	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(mesh)
-	mesh.global_position = floor_pos + Vector3.UP * 0.02
-	mesh.rotation.y = randf() * TAU
-	# Leicht unregelmaessig statt einem perfekten Kreis - liest sich mehr
-	# nach Spritzer, weniger nach gestempeltem Aufkleber.
-	mesh.scale = Vector3(1.0, 1.0, randf_range(0.65, 1.35))
-
-	_fade_and_free(mesh, mat)
+	var decal := Decal.new()
+	decal.name = "BloodFloor"
+	
+	var radius: float = randf_range(FLOOR_RADIUS_MIN, FLOOR_RADIUS_MAX) * 2.0
+	decal.size = Vector3(radius, 0.4, radius)
+	
+	# Lädt die Textur, falls vorhanden. Ansonsten bleibt der Fleck leer/unsichtbar,
+	# bis du ein Bild dort ablegst!
+	var tex_path := "res://assets/vfx/blood_splatter.png"
+	if ResourceLoader.exists(tex_path):
+		decal.texture_albedo = load(tex_path)
+		decal.modulate = FLOOR_COLOR
+	else:
+		push_warning("VFX: Lade dir ein Bild für Blut herunter und speichere es unter " + tex_path)
+		# Fallback: Damit es nicht crasht, erstellen wir einfach vorübergehend nichts.
+		
+	parent.add_child(decal)
+	decal.global_position = floor_pos
+	decal.rotation.y = randf() * TAU
+	
+	_fade_and_free_decal(decal)
 
 
 ## Prueft ALLE vier Himmelsrichtungen (statt nur bis zum ersten Treffer) und
@@ -230,4 +230,13 @@ static func _fade_and_free(mesh: MeshInstance3D, mat: StandardMaterial3D) -> voi
 	tween.tween_callback(func() -> void:
 		if is_instance_valid(mesh):
 			mesh.queue_free()
+	)
+
+static func _fade_and_free_decal(decal: Decal) -> void:
+	var tween: Tween = decal.create_tween()
+	tween.tween_interval(maxf(LIFETIME - FADE_TIME, 0.0))
+	tween.tween_property(decal, "modulate:a", 0.0, FADE_TIME)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(decal):
+			decal.queue_free()
 	)

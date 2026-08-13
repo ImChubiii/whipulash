@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_m4cp6"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_r5myi"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="5_dmgnum"]
-[ext_resource type="PackedScene" uid="uid://cwxy54bgqns2d" path="res://assets/characters/lowpoly_robots.glb" id="6_robot"]
+[ext_resource type="PackedScene" uid="uid://bmq0kqgilyb13" path="res://KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Rogue.glb" id="6_robot"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 radius = 0.4
@@ -68,6 +68,8 @@ floor_snap_length = 0.29
 # problemlos passt - anders als Fighter/Colossus, siehe deren Kommentare.
 scale = Vector3(3, 3, 3)
 script = ExtResource("1_p4blw")
+model_yaw_offset_deg = 0.0
+model_auto_ground = true
 move_speed = 15.0
 speed_variance = 0.16
 detection_range = 100.0
@@ -82,12 +84,6 @@ reticle_scale = 0.3
 camera_lock_multiplier = 0.3
 separation_radius = 1.0
 separation_strength = 3.0
-zigzag_enabled = true
-zigzag_angle_degrees = 58.0
-zigzag_leg_time = 0.32
-zigzag_pause_time = 0.1
-zigzag_brake_acceleration = 110.0
-zigzag_fade_distance = 11.0
 focus_loss_enabled = true
 focus_loss_chance_per_second = 0.18
 focus_loss_wander_speed_factor = 0.55
@@ -104,7 +100,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
 [node name="CharacterModel" parent="." unique_id=895800740 instance=ExtResource("6_robot")]
-transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0.4, 0)
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0, 0)
 
 [node name="Health" type="Node" parent="." unique_id=496713544]
 script = ExtResource("3_m4cp6")

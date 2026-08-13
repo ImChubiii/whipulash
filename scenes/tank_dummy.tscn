@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_vm80r"]
 [ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_1v3u1"]
 [ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="5_dmgnum"]
-[ext_resource type="PackedScene" path="res://assets/characters/lowpoly_robots.glb" id="6_robot"]
+[ext_resource type="PackedScene" uid="uid://bmn0irvqi527n" path="res://KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Minion.glb" id="6_robot"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
 radius = 3.0
@@ -68,9 +68,12 @@ floor_snap_length = 0.5
 # Rueckmeldung "jeder Gegner ausser Magnet 3x groesser", gedeckelt aufs
 # Rauminnere: Colossus spawnt nur in Bossraeumen (24 Units hoch, siehe
 # rd_boss_01.tres/min_room_height). Bei 12 Units Rohhoehe waeren volle 3x
-# (36 Units) hoeher als jeder Raum im Spiel. 1.6x (19.2 Units) laesst ihn
-# spuerbar groesser wirken und behaelt ~4.8 Units Deckenabstand.
-scale = Vector3(1.6, 1.6, 1.6)
+# (36 Units) hoeher als jeder Raum im Spiel. 1.9x (22.8 Units) ist nahe ans
+# Limit gefahren und behaelt noch ~1.2 Units Deckenabstand - Kollision/
+# Pathing bleiben dadurch bewusst gedeckelt. Zusaetzliche "viel groesser"-
+# Wirkung kommt ueber die rein visuelle CharacterModel-Skalierung unten,
+# die Kollision/Navigation nicht beeinflusst.
+scale = Vector3(1.9, 1.9, 1.9)
 script = ExtResource("1_p7a36")
 move_speed = 5.5
 speed_variance = 0.08
@@ -86,9 +89,9 @@ robot_variant = "RB"
 model_tint = Color(0.95, 0.7, 0.7, 1)
 psx_snap_resolution = 77.73
 psx_vertex_jitter = 0.64
-model_yaw_offset_deg = 180.0
+model_yaw_offset_deg = 0.0
 model_auto_center = true
-model_auto_ground = false
+model_auto_ground = true
 locomotion_animation = "Animation"
 is_large_enemy = true
 is_heavy = true
@@ -138,7 +141,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.0, 0)
 shape = SubResource("CapsuleShape3D_6igkw")
 
 [node name="CharacterModel" parent="." instance=ExtResource("6_robot")]
-transform = Transform3D(3.19, 0, 0, 0, 3.19, 0, 0, 0, 3.19, 0, 0.0, 0)
+transform = Transform3D(4.2, 0, 0, 0, 4.2, 0, 0, 0, 4.2, 0, 0.0, 0)
 
 [node name="Health" type="Node" parent="." unique_id=496713544]
 script = ExtResource("3_vm80r")
