@@ -1,0 +1,185 @@
+
+[gd_scene format=3 uid="uid://6agdektsj4x3"]
+
+[ext_resource type="Script" uid="uid://bqsncuqrnam0r" path="res://scripts/enemies/enemy_ai.gd" id="1_p7a36"]
+[ext_resource type="Shader" uid="uid://bl0t62j8xq1d4" path="res://shaders/psx.gdshader" id="2_0p5eo"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_vm80r"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="4_1v3u1"]
+[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="5_dmgnum"]
+[ext_resource type="PackedScene" uid="uid://bmn0irvqi527n" path="res://KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Minion.glb" id="6_robot"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
+radius = 3.0
+height = 12.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sl5qy"]
+radius = 3.3
+height = 9.9
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4eyt2"]
+render_priority = 0
+shader = ExtResource("2_0p5eo")
+shader_parameter/albedo_color = Color(0.7316159, 0, 0.20945221, 1)
+shader_parameter/snap_resolution = 24.102
+shader_parameter/vertex_jitter_strength = 0.729
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_sl5qy"]
+material = SubResource("ShaderMaterial_4eyt2")
+radius = 1.335
+height = 6.75
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_w4gkx"]
+render_priority = 0
+shader = ExtResource("2_0p5eo")
+shader_parameter/albedo_color = Color(1, 0, 0, 1)
+shader_parameter/snap_resolution = 32.0
+shader_parameter/vertex_jitter_strength = 0.5
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_6igkw"]
+material = SubResource("ShaderMaterial_w4gkx")
+inner_radius = 8.4
+outer_radius = 8.5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_v72lb"]
+render_priority = 0
+shader = ExtResource("2_0p5eo")
+shader_parameter/albedo_color = Color(1, 0.15686275, 0.1254902, 1)
+shader_parameter/snap_resolution = 32.0
+shader_parameter/vertex_jitter_strength = 0.5
+shader_parameter/alpha_multiplier = 1.0
+shader_parameter/flash_color = Color(1, 0, 0, 1)
+shader_parameter/flash_strength = 0.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_fva3d"]
+material = SubResource("ShaderMaterial_v72lb")
+top_radius = 8.4
+bottom_radius = 8.4
+height = 0.001
+
+[node name="TankDummy" type="CharacterBody3D" unique_id=786565251]
+collision_layer = 4
+floor_snap_length = 0.5
+# Rueckmeldung "jeder Gegner ausser Magnet 3x groesser", gedeckelt aufs
+# Rauminnere: Colossus spawnt nur in Bossraeumen (24 Units hoch, siehe
+# rd_boss_01.tres/min_room_height). Bei 12 Units Rohhoehe waeren volle 3x
+# (36 Units) hoeher als jeder Raum im Spiel. 1.9x (22.8 Units) ist nahe ans
+# Limit gefahren und behaelt noch ~1.2 Units Deckenabstand - Kollision/
+# Pathing bleiben dadurch bewusst gedeckelt. Zusaetzliche "viel groesser"-
+# Wirkung kommt ueber die rein visuelle CharacterModel-Skalierung unten,
+# die Kollision/Navigation nicht beeinflusst.
+scale = Vector3(1.9, 1.9, 1.9)
+script = ExtResource("1_p7a36")
+move_speed = 5.5
+speed_variance = 0.08
+detection_range = 200.0
+attack_range = 8.0
+attack_cooldown = 1.5
+gravity = 20.0
+attack_windup_time = 2.0
+pre_attack_delay = 0.6
+display_name = "Colossus"
+model_node_name = "CharacterModel"
+robot_variant = "RB"
+model_tint = Color(0.475, 0.35, 0.35, 1)
+psx_snap_resolution = 77.73
+psx_vertex_jitter = 0.64
+model_yaw_offset_deg = 0.0
+model_auto_center = true
+model_auto_ground = true
+locomotion_animation = "Animation"
+is_large_enemy = true
+is_heavy = true
+reticle_height_offset = 13.0
+reticle_forward_offset = 5.0
+reticle_scale = 2.5
+camera_lock_multiplier = 1.0
+separation_radius = 8.0
+separation_strength = 4.0
+min_alpha_at_zero_hp = 0.25
+hit_flash_alpha = 0.2
+hit_flash_duration = 0.3
+hit_color_flash_strength = 0.8
+hit_color_flash_duration = 0.5
+telegraph_ground_snap = true
+telegraph_ground_clearance = 0.05
+telegraph_ground_raycast_mask = 1
+telegraph_ground_raycast_range = 30.0
+can_jump = false
+jump_height = 0.0
+obstacle_jump_margin = 0.3
+obstacle_check_distance = 3.5
+obstacle_check_low_height = 0.5
+ledge_check_forward_distance = 3.5
+ledge_check_drop_distance = 4.0
+ledge_wait_enabled = true
+can_jump_across_ledges = false
+jump_across_max_gap = 4.0
+ground_raycast_mask = 1
+ledge_check_scale_with_radius = true
+ledge_check_radius_margin = 1.0
+ledge_check_lateral_samples = true
+movement_acceleration = 18.0
+nav_target_update_interval = 0.25
+ledge_drop_enabled = true
+max_safe_drop_height = 6.0
+ledge_drop_probe_distance = 20.0
+ledge_drop_player_below_margin = 1.5
+player_head_slide_impulse = 25.0
+player_head_slide_normal_threshold = 0.4
+player_head_slide_min_height_above_player = 0.5
+knockback_friction = 14.0
+debug_logging = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=623834254]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.0, 0)
+shape = SubResource("CapsuleShape3D_6igkw")
+
+[node name="CharacterModel" parent="." instance=ExtResource("6_robot")]
+transform = Transform3D(4.2, 0, 0, 0, 4.2, 0, 0, 0, 4.2, 0, 0.0, 0)
+
+[node name="Health" type="Node" parent="." unique_id=496713544]
+script = ExtResource("3_vm80r")
+max_health = 400.0
+regen_enabled = false
+
+[node name="AttackHitbox" type="Area3D" parent="." unique_id=1434330377]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.216951)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("4_1v3u1")
+damage = 70.0
+knockback_force = 10.0
+stun_duration = 0.0
+damage_number_scene = ExtResource("5_dmgnum")
+debug_logging = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox" unique_id=556284364]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, -3.4395208)
+shape = SubResource("CapsuleShape3D_sl5qy")
+
+[node name="Visual" type="MeshInstance3D" parent="AttackHitbox" unique_id=1173160389]
+transform = Transform3D(1.8915654, 0, 0, 0, 1, 0, 0, 0, 2.3874803, 0, 4.3, -3.0344234)
+mesh = SubResource("CapsuleMesh_sl5qy")
+
+[node name="TelegraphOuterRing" type="MeshInstance3D" parent="AttackHitbox" unique_id=1368129936]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -8.249018)
+mesh = SubResource("TorusMesh_6igkw")
+
+[node name="TelegraphInner" type="MeshInstance3D" parent="AttackHitbox" unique_id=1874015288]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -8.234204)
+mesh = SubResource("CylinderMesh_fva3d")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=974135199]
+path_desired_distance = 2.0
+target_desired_distance = 4.0
+path_height_offset = 0.5
+radius = 4.8
+height = 19.2
+
+

@@ -6,26 +6,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Whiplash** (in-game title "Lemonade") is a 3D action roguelite built in **Godot 4.7** (GDScript, Jolt physics, mobile renderer, PSX-style look). A run is a series of procedurally generated dungeon floors: clear combat rooms of enemies picked by a threat-budget, unlock the boss/treasure doors, beat the boss, advance to the next floor. Four playable characters (Karina, Winter, Giselle, NingNing) are swappable mid-run. German is the primary language of code comments and design docs; the player-facing README is in German.
 
+## Repo layout
+
+The repo root splits into two independent trees:
+
+- **`game/`** — the actual Godot project (`project.godot`, `scenes/`, `scripts/`, `resources/`, `assets/`, ...). Everything in "Commands" and "Architecture" below is relative to `game/`, not the repo root.
+- **`wiki/`** — the Obsidian vault (`00_Dashboard/`, `01_Game_Design/`, ..., `98_Scripts/`), see "Knowledge base / wiki tooling" below. `wiki/.obsidian/` is the vault marker — Obsidian only ever sees this subtree.
+
+`CLAUDE.md`, `AGENTS.md`, `README.md` stay at the repo root (outside both `game/` and `wiki/`).
+
 ## Commands
 
 There is no CLI build/test/lint toolchain — this is a Godot editor project.
 
-- **Run the game**: open `project.godot` in the Godot 4.7 editor and press Play (or `godot --path .` from the CLI if the Godot binary is on `PATH`). Main scene: `scenes/main_menu.tscn`.
-- **Export a build**: File → Export in the editor, using the presets in `export_presets.cfg` (currently only "Windows Desktop", output to `Game Export/Whiplash.exe`).
+- **Run the game**: open `game/project.godot` in the Godot 4.7 editor and press Play (or `godot --path game` from the CLI if the Godot binary is on `PATH`). Main scene: `scenes/main_menu.tscn`.
+- **Export a build**: File → Export in the editor, using the presets in `game/export_presets.cfg` (currently only "Windows Desktop", output to `game/Game Export/Whiplash.exe`).
 - **No automated test suite** exists. Two in-game debug rooms substitute for manual testing:
   - `EnemySandboxRoom` (autoload) — spawn any enemy type (including the six prototypes not yet in the level generator's spawn tables) in isolation. Reached via the 4th pad in `scripts/debug_teleporter.gd`.
   - `ItemTestRoom` (autoload) — same idea for items.
-- **Full project text dump** (for pasting into an LLM chat, not for Claude Code): `run_management_export.bat` regenerates `_project_export.txt` via a PowerShell one-liner and copies it to the clipboard. Not needed inside this session.
+- **Full project text dump** (for pasting into an LLM chat, not for Claude Code): `game/run_management_export.bat` regenerates `game/_project_export.txt` via a PowerShell one-liner and copies it to the clipboard. Not needed inside this session.
 
 ### Knowledge base / wiki tooling
 
-The repo carries an Obsidian vault (`00_Dashboard/`, `01_Game_Design/`, `02_Tech_Architecture/`, `03_DevLogs/`, `04_Chat_Prompts/`, `05_Gedanken/`) plus a `graphify-out/` knowledge graph, generated from the actual project files (not hand-written):
+The repo carries an Obsidian vault under `wiki/` (`wiki/00_Dashboard/`, `wiki/01_Game_Design/`, `wiki/02_Tech_Architecture/`, `wiki/03_DevLogs/`, `wiki/04_Chat_Prompts/`, `wiki/05_Gedanken/`) plus a `wiki/graphify-out/` knowledge graph, generated from the actual project files (not hand-written). All commands below are run from the repo root (so both `game/` and `wiki/` are reachable via relative paths):
 
-- `python generate_vault.py` — full idempotent rebuild of the vault (items, enemies, rooms, status effects, devlogs from git log, architecture notes, MOC/dashboard pages) from `scripts/items/item_catalog.gd`, `resources/enemies/es_*.tres`, `resources/rooms/rd_*.tres`, `scripts/status_effects/*.gd`, and git history. Run after larger content changes (new items/enemies/rooms).
-  - `write_wiki_sync()` inside it also regenerates `98_Scripts/wiki_sync.py`, its own incremental counterpart — don't hand-edit that file's sync logic.
-- `python 98_Scripts/wiki_sync.py [--apply]` — lighter-weight: refreshes only YAML frontmatter of existing item/room notes from current source, without touching hand-written prose sections. Enemies/status-effects are not yet wired up there (marked TODO in the file).
+- `python wiki/98_Scripts/generate_vault.py` — full idempotent rebuild of the vault (items, enemies, rooms, status effects, devlogs from git log, architecture notes, MOC/dashboard pages) from `game/scripts/items/item_catalog.gd`, `game/resources/enemies/es_*.tres`, `game/resources/rooms/rd_*.tres`, `game/scripts/status_effects/*.gd`, and repo-wide git history. Run after larger content changes (new items/enemies/rooms).
+  - `write_wiki_sync()` inside it also regenerates `wiki/98_Scripts/wiki_sync.py`, its own incremental counterpart — don't hand-edit that file's sync logic.
+- `python wiki/98_Scripts/wiki_sync.py [--apply]` — lighter-weight: refreshes only YAML frontmatter of existing item/room notes from current source, without touching hand-written prose sections. Enemies/status-effects are not yet wired up there (marked TODO in the file).
+- `python wiki/98_Scripts/generate_patchnotes.py` — rebuilds `wiki/00_Dashboard/PATCHNOTES.md`'s skeleton (date headers + chat-log links), preserves hand-written daily summaries, auto-fills a marked placeholder from DevLogs/chat titles for days without one yet. See `wiki/00_Dashboard/01_Dokumentations_Guide.md` Abschnitt 3.
 - `graphify update .` — refresh the knowledge graph after code changes (AST-only, no API cost); see the global CLAUDE.md graphify rules for query usage.
-- `02_Tech_Architecture/*.md` are hand-maintained architecture notes per key script (see below) — read these before diving into the corresponding `.gd` file, they document *why*, not just *what*.
+- `wiki/02_Tech_Architecture/*.md` are hand-maintained architecture notes per key script (see below) — read these before diving into the corresponding `.gd` file, they document *why*, not just *what*.
+- `wiki/00_Dashboard/01_Dokumentations_Guide.md` — full reference for the whole vault system (every folder, where its data comes from, what to do when chats/patchnotes are missing).
 
 ## Architecture
 
@@ -47,13 +58,14 @@ The repo carries an Obsidian vault (`00_Dashboard/`, `01_Game_Design/`, `02_Tech
 | `EnemyDensity` | `scripts/enemies/enemy_density.gd` | per-stage enemy HP/damage scaling |
 | `HudExtra` | `scripts/hud_extra.gd` | secondary HUD elements |
 | `Teleporter` | `scripts/debug_teleporter.gd` | debug teleport pads (incl. sandbox rooms) |
+| `EspTarget` | `scripts/vfx/esp_target.gd` | singular projectwide "ESP" enemy-highlight indicator (Winter/Giselle auto-target visuals) |
 | `Stages` | `scripts/level/stage_manager.gd` | floor-to-floor progression |
 | `GameStats` | `scripts/game_stats.gd` | run statistics |
 | `ItemTestRoom` / `EnemySandboxRoom` | `scripts/item_test_room.gd` / `scripts/enemy_sandbox_room.gd` | debug-only sandbox rooms |
 
 ### Level generation (`scenes/level_generation/`)
 
-`level_generator.gd` builds each floor's layout from `RoomData` templates (`resources/rooms/rd_*.tres` + scenes under `scenes/rooms/{combat,corridor,treasure,boss}/`), growing a tree via `room_grid_generator.gd`. Key points documented in `02_Tech_Architecture/level_generator.md`:
+`level_generator.gd` builds each floor's layout from `RoomData` templates (`resources/rooms/rd_*.tres` + scenes under `scenes/rooms/{combat,corridor,treasure,boss}/`), growing a tree via `room_grid_generator.gd`. Key points documented in `wiki/02_Tech_Architecture/level_generator.md`:
 
 - **Threat-budget spawning**: combat rooms get a point budget; each enemy type (`EnemySpawnEntry.threat_cost`) costs points, so a room may have many cheap enemies or few expensive ones instead of a fixed spawn list.
 - **Multi-cell rooms** (`footprint_cells`, e.g. `2x1`/`2x2`) are assigned *after* tree growth (`_assign_footprints`), not during, so a large room doesn't consume multiple frontier slots and break branching. Their exits are fixed in the `.tscn` itself, not generator-assigned.
@@ -82,7 +94,7 @@ Exactly **one** active `CharacterBody3D` exists at a time. Switching characters 
   - To interoperate with the rest of the game both systems must independently satisfy: group `"enemies"` (how items/bombs/homing-bolts find targets), `collision_layer = 4` (matches `PrimaryHitbox.collision_mask`), and a child node literally named `"Health"` (found via `find_child`).
   - Forced removal (e.g. `enemy_sandbox_room.gd`'s "clear enemies" pad) must call `_cleanup_effects()` explicitly — `queue_free()` does not fire `Health.died`, so anything relying on that signal (beams, telegraphs) would otherwise leak until its own timeout.
 
-See `02_Tech_Architecture/custom_enemy_base.md` and `enemy_sandbox_room.md` for the full rationale.
+See `wiki/02_Tech_Architecture/custom_enemy_base.md` and `enemy_sandbox_room.md` for the full rationale.
 
 ### Items (`scripts/items/`)
 
@@ -103,7 +115,7 @@ See `02_Tech_Architecture/custom_enemy_base.md` and `enemy_sandbox_room.md` for 
 
 ### Design docs vs. code
 
-`01_Game_Design/` (Items, Enemies, Rooms, Status_Effects) documents *balance intent*; `02_Tech_Architecture/` documents *implementation rationale* per key script, cross-linked via `[[wikilinks]]`. When changing balancing numbers or adding items/enemies/rooms, prefer updating the source file (`item_catalog.gd`, `es_*.tres`, `rd_*.tres`, `status_effects/*.gd`) and then regenerating the vault — the vault content is derived, not authored by hand (frontmatter and structural sections at least; some prose sections are hand-maintained, see `wiki_sync.py` docstring).
+`wiki/01_Game_Design/` (Items, Enemies, Rooms, Status_Effects) documents *balance intent*; `wiki/02_Tech_Architecture/` documents *implementation rationale* per key script, cross-linked via `[[wikilinks]]`. When changing balancing numbers or adding items/enemies/rooms, prefer updating the source file (`item_catalog.gd`, `es_*.tres`, `rd_*.tres`, `status_effects/*.gd`, all under `game/`) and then regenerating the vault — the vault content is derived, not authored by hand (frontmatter and structural sections at least; some prose sections are hand-maintained, see `wiki_sync.py` docstring).
 
 
 ## Verwandte Seiten

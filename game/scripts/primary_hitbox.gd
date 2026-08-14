@@ -1,0 +1,239 @@
+extends Area3D
+class_name Hitbox
+
+signal hit_landed(target: Node)
+
+@export var damage: float = 10.0
+@export var knockback_force: float = 0.0
+@export var stun_duration: float = 0.0
+@export var status_effect_id: String = ""
+@export var status_effect_duration: float = 0.0
+@export var status_effect_magnitude: float = 1.0
+@export var status_effect_tick_interval: float = 0.0
+@export var damage_number_scene: PackedScene
+@export var debug_logging: bool = false
+
+## Kritische Treffer: nur Spieler-Hitboxen wuerfeln (siehe _is_player_attack),
+## sonst wuerden Gegner-Treffer versehentlich denselben Roll bekommen.
+const CRIT_DAMAGE_MULTIPLIER: float = 1.5
+
+# --- VFX ---
+## Effekt beim Aktivieren der Hitbox (Schlag-Trail / Swoosh).
+@export var swing_vfx: PackedScene
+## Effekt beim BESTAETIGTEN Treffer (Impact-Funken).
+@export var impact_vfx: PackedScene
+## Hoehe ueber dem Ziel-Pivot, auf der der Impact erscheint.
+@export var impact_height: float = 1.2
+
+@onready var visual: Node3D = get_node_or_null("Visual")
+## Fuer den swing_vfx-Spawnpunkt (siehe activate()) - der Area3D-Root selbst
+## sitzt ohne eigenen Offset an der CameraPivot-Position (Brust-/Kopfhoehe
+## des Charakters), waehrend die eigentliche Trefferzone ueber diese
+## CollisionShape3D nach vorne versetzt ist. swing_vfx frueher an
+## global_position gespawnt landete dadurch sichtbar IM Charaktermodell statt
+## an der Stelle, an der der Schlag tatsaechlich stattfindet.
+@onready var _collision_shape: CollisionShape3D = get_node_or_null("CollisionShape3D")
+
+var _already_hit: Array[Node] = []
+
+
+func _debug(msg: String) -> void:
+	if debug_logging:
+		print("Hitbox DEBUG [%s]: %s" % [get_path(), msg])
+
+
+func _ready() -> void:
+	monitoring = false
+	body_entered.connect(_on_body_entered)
+	# Der Impact haengt bewusst am eigenen hit_landed-Signal statt in
+	# _on_body_entered(): so bleibt die Treffer-Logik voellig unangetastet
+	# und der Effekt feuert garantiert erst NACH allen Filtern
+	# (Self-Damage, _already_hit, Health-Check).
+	hit_landed.connect(_on_hit_landed_vfx)
+	if visual and is_instance_valid(visual):
+		visual.visible = false
+
+
+func activate() -> void:
+	_already_hit.clear()
+	monitoring = true
+	_debug("activate() aufgerufen. monitoring=%s, global_position=%s, owner=%s" % [monitoring, global_position, owner])
+	if visual and is_instance_valid(visual):
+		visual.visible = true
+
+	if swing_vfx:
+		# BUGFIX "Partikel passieren in ihr drinne statt vor ihr": vorher an
+		# global_position (Area3D-Root, ohne Vorwaerts-Offset) gespawnt - siehe
+		# _collision_shape-Kommentar oben. Die CollisionShape3D sitzt an der
+		# tatsaechlichen Trefferzone, dort soll der Schlag auch sichtbar
+		# stattfinden. Faellt auf global_position zurueck, falls eine Hitbox
+		# (z.B. bei Gegnern) keine CollisionShape3D-Kindnode dieses Namens hat.
+		var swing_spawn_pos: Vector3 = _collision_shape.global_position if _collision_shape else global_position
+		# Das Projekt nutzt +Z als "vorne", deshalb basis.z (nicht -basis.z).
+		VFX.spawn(swing_vfx, swing_spawn_pos, global_transform.basis.z)
+
+	# ROBUSTHEITS-FIX: body_entered feuert nur beim EINTRETEN in die Area.
+	# Steht der Spieler beim Aktivieren schon MITTEN in der Hitbox (genau
+	# der Normalfall: der Gegner bleibt in Reichweite stehen, telegraphiert
+	# und schlaegt dann zu, ohne dass sich jemand bewegt hat), kann das
+	# Signal ausbleiben und der Schlag geht wirkungslos durch.
+	# Deshalb wird direkt nach der Aktivierung EINMAL aktiv nachgesehen,
+	# wer bereits ueberlappt.
+	_sweep_initial_overlaps.call_deferred()
+
+
+## Traegt Bodies nach, die beim Aktivieren bereits in der Hitbox standen.
+## Ein Physik-Frame Wartezeit ist noetig, weil die Area ihre Ueberlappungen
+## erst nach dem Umschalten von monitoring neu auswertet -
+## get_overlapping_bodies() waere im selben Frame noch leer.
+func _sweep_initial_overlaps() -> void:
+	if not monitoring:
+		return
+	await get_tree().physics_frame
+	if not is_instance_valid(self) or not monitoring:
+		return
+
+	for body in get_overlapping_bodies():
+		if body is Node3D:
+			_debug("Nachtrag-Sweep: '%s' stand beim Aktivieren bereits in der Hitbox." % body.name)
+			_on_body_entered(body)
+
+
+func deactivate() -> void:
+	monitoring = false
+	_debug("deactivate() aufgerufen. monitoring=%s" % monitoring)
+	if visual and is_instance_valid(visual):
+		visual.visible = false
+
+
+func _on_body_entered(body: Node3D) -> void:
+	_debug("body_entered ausgelöst: '%s' (Typ: %s)" % [body.name, body.get_class()])
+
+	if body == owner:
+		_debug("  -> ignoriert: body ist der owner selbst (Self-Damage-Schutz)")
+		return
+
+	if body in _already_hit:
+		_debug("  -> ignoriert: body wurde in dieser Aktivierung bereits getroffen")
+		return
+
+	var health := body.find_child("Health", true, false)
+	if health == null or not (health is Health):
+		_debug("  -> ignoriert: kein Health-Node am getroffenen Objekt gefunden (health=%s)" % health)
+		return
+
+	_debug("  -> TREFFER BESTÄTIGT. Schaden=%.1f, stun_duration=%.2f, status_effect_id='%s'" % [damage, stun_duration, status_effect_id])
+
+	_already_hit.append(body)
+
+	var final_damage: float = damage
+	var is_crit: bool = false
+	if _is_player_attack() and Items.stats != null:
+		var crit_chance: float = Items.stats.get_stat(PlayerStats.STAT_CRIT_CHANCE)
+		if crit_chance > 0.0 and randf() < crit_chance:
+			is_crit = true
+			final_damage *= CRIT_DAMAGE_MULTIPLIER
+
+	health.take_damage(final_damage, owner)
+	hit_landed.emit(body)
+
+	if is_crit:
+		Juice.hit_stop_light()
+
+	if stun_duration > 0.0 and body.has_method("apply_stun"):
+		body.apply_stun(stun_duration)
+		_debug("  -> apply_stun(%.2f) auf '%s' aufgerufen" % [stun_duration, body.name])
+
+	if status_effect_id != "" and body.has_method("apply_status_effect"):
+		body.apply_status_effect(status_effect_id, status_effect_duration, status_effect_magnitude, owner, status_effect_tick_interval)
+		_debug("  -> apply_status_effect('%s', duration=%.2f, magnitude=%.2f, tick=%.2f) auf '%s' aufgerufen" % [status_effect_id, status_effect_duration, status_effect_magnitude, status_effect_tick_interval, body.name])
+
+	# Knockback: nur wenn knockback_force > 0.0 und Ziel kein schwerer Gegner.
+	#
+	# WICHTIG: Player und EnemyAI setzen velocity.x/z JEDEN Physik-Frame direkt
+	# aus ihrer eigenen Bewegungslogik (Input bzw. State-Machine) — ein simples
+	# "body.velocity += push_dir * knockback_force" wird dadurch im naechsten
+	# Frame sofort wieder ueberschrieben und ist praktisch unsichtbar. Deshalb
+	# wird bevorzugt apply_knockback() aufgerufen: dort landet der Impuls in
+	# einem separaten, ueber Zeit abklingenden Puffer, der von der Bewegung
+	# NICHT ueberschrieben wird. Bodies ohne diese Methode fallen weiterhin
+	# auf die direkte velocity-Modifikation zurueck.
+	if knockback_force > 0.0 and body is CharacterBody3D:
+		var is_heavy_target: bool = body.get("is_heavy") == true
+		if is_heavy_target:
+			_debug("  -> Knockback IGNORIERT: '%s' ist ein schwerer Gegner (is_heavy=true)" % body.name)
+		else:
+			var push_dir := (body.global_position - global_position).normalized()
+			var impulse: Vector3 = push_dir * knockback_force
+			if body.has_method("apply_knockback"):
+				body.apply_knockback(impulse)
+				_debug("  -> Knockback %.1f ueber apply_knockback() auf '%s' angewendet" % [knockback_force, body.name])
+			else:
+				body.velocity += impulse
+				_debug("  -> Knockback %.1f (Fallback: direkt auf velocity) auf '%s' angewendet" % [knockback_force, body.name])
+
+	_spawn_damage_number(body, final_damage, is_crit)
+
+
+func _on_hit_landed_vfx(target: Node) -> void:
+	if impact_vfx == null or not (target is Node3D):
+		return
+
+	var target_3d: Node3D = target as Node3D
+	var dir: Vector3 = target_3d.global_position - global_position
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		dir = global_transform.basis.z
+
+	# Auf halbem Weg zwischen Hitbox-Mitte und Ziel-Pivot: sieht bei
+	# grossen Gegnern (Colossus) deutlich besser aus als exakt im Pivot,
+	# der dort tief in der Koerpermitte liegt.
+	var spawn_pos: Vector3 = global_position.lerp(target_3d.global_position, 0.5)
+	spawn_pos.y = target_3d.global_position.y + impact_height
+
+	var attacker_colors: Variant = _resolve_attacker_colors()
+	if attacker_colors is Array:
+		VFX.spawn_dual_tinted(impact_vfx, spawn_pos, attacker_colors[0], attacker_colors[1], dir.normalized())
+	else:
+		VFX.spawn(impact_vfx, spawn_pos, dir.normalized())
+
+
+## Liefert [attack_color, attack_color_secondary] des aktiven Charakters,
+## WENN diese Hitbox zu einem Spieler-Treffer gehoert - sonst null (dann
+## bleibt impact_vfx in seiner in der Szene konfigurierten Standardfarbe,
+## unveraendert fuer Gegner-Angriffe, die dieselbe Hitbox-Klasse verwenden,
+## siehe enemy_ai.gd).
+##
+## "owner" ist hier Godots eingebautes Node.owner, NICHTS, das dieses Skript
+## selbst setzt: fuer einen Hitbox-Node, der im Editor als Kind einer
+## Charakter-Szene liegt (z.B. char_ningning.tscn/CameraPivot/PrimaryHitbox),
+## traegt die Engine dort automatisch die WURZEL dieser Szene ein - also
+## exakt die CharacterBody3D-Instanz, die PartyManager als "player" haelt.
+func _resolve_attacker_colors() -> Variant:
+	if owner == null or not is_instance_valid(owner):
+		return null
+	if not PartyManager.has_player() or owner != PartyManager.player:
+		return null
+	var data: CharacterData = PartyManager.get_active_data()
+	if data == null:
+		return null
+	return [data.attack_color, data.attack_color_secondary]
+
+
+## true, wenn diese Hitbox gerade fuer den aktiven Spieler zuschlaegt - siehe
+## _resolve_attacker_colors() weiter oben, gleiches Prinzip (owner ist die
+## Charakter-Wurzel dank Godots automatischer Node.owner-Zuweisung).
+func _is_player_attack() -> bool:
+	return owner != null and is_instance_valid(owner) \
+		and PartyManager.has_player() and owner == PartyManager.player
+
+
+func _spawn_damage_number(body: Node3D, amount: float, is_crit: bool = false) -> void:
+	if not damage_number_scene:
+		push_warning("Hitbox: damage_number_scene ist NICHT gesetzt im Inspector!")
+		return
+
+	var number := damage_number_scene.instantiate()
+	get_tree().current_scene.add_child(number)
+	number.global_position = body.global_position + Vector3(0, 1.8, 0)
+	number.show_damage(amount, is_crit)

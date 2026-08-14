@@ -1,0 +1,95 @@
+[gd_scene format=3 uid="uid://plesiwjme2q2"]
+
+[ext_resource type="Script" uid="uid://nmqrc35k3824" path="res://scripts/characters/char_karina.gd" id="1_karina"]
+[ext_resource type="PackedScene" uid="uid://bvkmibmn4wwby" path="res://assets/characters/blossom_the_powerpuff_girls.glb" id="2_tuyoq"]
+[ext_resource type="Script" uid="uid://cl5g4gx25yqm" path="res://scripts/health.gd" id="3_qhqgy"]
+[ext_resource type="PackedScene" uid="uid://jlssmdypv6ce" path="res://scenes/ui/damage_number.tscn" id="4_71isp"]
+[ext_resource type="Script" uid="uid://v72lkilmlqmb" path="res://scripts/primary_hitbox.gd" id="5_fjrip"]
+[ext_resource type="Script" uid="uid://eklnfrxejbuf" path="res://scripts/characters/combat_karina.gd" id="5_karinacombat"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/hit_spark_primary.tscn" id="6_hitspark"]
+[ext_resource type="Script" path="res://scripts/vfx/ghost_trail.gd" id="7_ghosttrail"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6igkw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qlg0r"]
+size = Vector3(3.2440796, 3.4442139, 2.7280273)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rn2lo"]
+shading_mode = 0
+disable_ambient_light = true
+albedo_color = Color(0.9462666, 0.5312258, 0.2327764, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qlg0r"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(3.2530518, 3.45578, 3.3742065)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4eyt2"]
+size = Vector3(1, 1, 4.548828)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6igkw"]
+material = SubResource("StandardMaterial3D_rn2lo")
+size = Vector3(18.537506, 22.847519, 72.81865)
+
+[node name="CharKarina" type="CharacterBody3D" unique_id=1211426866]
+script = ExtResource("1_karina")
+speed = 20.0
+zoom_max = 15.0
+large_enemy_zoom_hold_time = 1.0
+large_enemy_zoom_speed = 4.0
+camera_soft_lock_strength = 0.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=575633596]
+shape = SubResource("CapsuleShape3D_6igkw")
+
+[node name="CharacterModel" parent="." unique_id=465802841 instance=ExtResource("2_tuyoq")]
+transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 1.7, 0, -0.80809474, 0)
+
+[node name="CameraPivot" type="Node3D" parent="." unique_id=1287006210]
+
+[node name="SecondaryHitbox" type="Area3D" parent="CameraPivot" unique_id=514001301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.64158916)
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+damage = 30.0
+damage_number_scene = ExtResource("4_71isp")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/SecondaryHitbox" unique_id=1947348745]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0057678223, 1.2221069, -1.6582446)
+shape = SubResource("BoxShape3D_qlg0r")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/SecondaryHitbox" unique_id=1014834245]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0067749023, 1.2358551, -1.9572151)
+mesh = SubResource("BoxMesh_qlg0r")
+
+[node name="PrimaryHitbox" type="Area3D" parent="CameraPivot" unique_id=364859976]
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("5_fjrip")
+damage = 14.0
+damage_number_scene = ExtResource("4_71isp")
+impact_vfx = ExtResource("6_hitspark")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CameraPivot/PrimaryHitbox" unique_id=1270968494]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9936628)
+shape = SubResource("BoxShape3D_4eyt2")
+
+[node name="Visual" type="MeshInstance3D" parent="CameraPivot/PrimaryHitbox" unique_id=827592480]
+transform = Transform3D(0.06977262, 0, 0, 0, 0.062419526, 0, 0, 0, 0.06977262, 0.093759656, 0.09555578, -3.2045803)
+mesh = SubResource("BoxMesh_6igkw")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=906557283]
+spring_length = 8.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=979760550]
+
+[node name="Health" type="Node" parent="." unique_id=1014464105]
+script = ExtResource("3_qhqgy")
+max_health = 70.0
+regen_enabled = false
+
+[node name="Combat" type="Node" parent="." unique_id=2032550543]
+script = ExtResource("5_karinacombat")
+
+[node name="GhostTrail" type="Node" parent="."]
+script = ExtResource("7_ghosttrail")

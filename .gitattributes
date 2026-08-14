@@ -4,3 +4,5 @@
 # git-crypt
 04_Chat_Prompts/** filter=git-crypt diff=git-crypt
 05_Gedanken/** filter=git-crypt diff=git-crypt
+00_Dashboard/01_Dokumentations_Guide.md filter=git-crypt diff=git-crypt
+wiki/00_Dashboard/01_Dokumentations_Guide.md filter=git-crypt diff=git-crypt
