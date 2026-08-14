@@ -858,7 +858,7 @@ Date:   Mon Aug 10 16:47:43 2026 +0200
 
 
 
-    feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes
+    feat(vfx,ui,item,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes
 
     
 
@@ -1884,7 +1884,7 @@ Date:   Sat Aug 1 15:01:05 2026 +0200
 
 
 
-    fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm
+    fix(restart,doors,item,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm
 
     
 
@@ -2356,11 +2356,11 @@ Date:   Tue Jul 28 01:53:25 2026 +0200
 
     
 
-    - Move scripts from root and scenes/ into scripts/{core,enemies,hazards,level,ui}
+    - Move scripts from root and scenes/ into scripts/{core,enemy,hazards,level,ui}
 
     - Move scenes into scenes/{enemies,environment,hazards,ui}
 
-    - Move assets into assets/{characters,environments,textures,ui}
+    - Move asset into assets/{characters,environments,textures,ui}
 
     - Update all res:// references in .gd, .tscn, .tres, .cfg and .import files
 
@@ -2408,7 +2408,7 @@ Date:   Mon Jul 27 18:51:09 2026 +0200
 
 
 
-    feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes
+    feat: Treasure room item, HUD overhaul, balancing, multiple bug fixes
 
     
 
@@ -2416,7 +2416,7 @@ Date:   Mon Jul 27 18:51:09 2026 +0200
 
     
 
-    Closes the gap between the fully completed item system (catalog, effects, stat integration) and actual gameplay: Pickup.create_item() was never called anywhere in the project, meaning there were eight functional items that could never spawn during a run. Additionally includes a comprehensive HUD refactor (moving away from a separate Autoload overlay into the standard HUD scene), two balancing adjustments (bombs, base damage), and a series of independent bug fixes identified while testing these changes.
+    Closes the gap between the fully completed item system (catalog, effects, stat integration) and actual gameplay: Pickup.create_item() was never called anywhere in the project, meaning there were eight functional item that could never spawn during a run. Additionally includes a comprehensive HUD refactor (moving away from a separate Autoload overlay into the standard HUD scene), two balancing adjustments (bombs, base damage), and a series of independent bug fixes identified while testing these changes.
 
     
 
@@ -2426,11 +2426,11 @@ Date:   Mon Jul 27 18:51:09 2026 +0200
 
     Treasure Room Pedestal (treasure_manager.gd NEW, treasure_pedestal.gd NEW)
 
-    Autoload "Treasure": Hooks into every room via SceneTree.node_added (similar to loot), identifies treasure rooms via group/scene path/LevelGenerator grid cell (in that order), and places EXACTLY ONE item pedestal in the center of the room.
+    Autoload "Treasure": Hooks into every room via SceneTree.node_added (similar to loot), identifies treasure room via group/scene path/LevelGenerator grid cell (in that order), and places EXACTLY ONE item pedestal in the center of the room.
 
     
 
-    Item selection is deterministic based on the run seed + grid position, with no duplicate items within a single run until the pool is exhausted.
+    Item selection is deterministic based on the run seed + grid position, with no duplicate item within a single run until the pool is exhausted.
 
     
 
@@ -2442,7 +2442,7 @@ Date:   Mon Jul 27 18:51:09 2026 +0200
 
     
 
-    Bugfix: The pedestal was attached several physics frames after the room's single Fog-of-War pass, leaving it permanently visible on the 3D minimap even in unvisited rooms (appearing as a floating point of light in the empty fog). The pedestal now synchronizes its visibility layer with its parent room's layer on every map_updated signal.
+    Bugfix: The pedestal was attached several physics frames after the room's single Fog-of-War pass, leaving it permanently visible on the 3D minimap even in unvisited room (appearing as a floating point of light in the empty fog). The pedestal now synchronizes its visibility layer with its parent room's layer on every map_updated signal.
 
     
 
@@ -2486,7 +2486,7 @@ Date:   Mon Jul 27 18:51:09 2026 +0200
 
     
 
-    item_summary_list.gd (NEW): Reusable item overview with a hover tooltip description, shared across the Pause, Game Over, and Victory screens instead of using three separate implementations. Previously, death_screen.gd displayed hardcoded placeholder text ("No items collected") regardless of actual inventory, while the Pause and Victory screens had no item display at all.
+    item_summary_list.gd (NEW): Reusable item overview with a hover tooltip description, shared across the Pause, Game Over, and Victory screens instead of using three separate implementations. Previously, death_screen.gd displayed hardcoded placeholder text ("No item collected") regardless of actual inventory, while the Pause and Victory screens had no item display at all.
 
     
 
@@ -2496,17 +2496,17 @@ Date:   Mon Jul 27 18:51:09 2026 +0200
 
     Minimap (minimap_rooms.gd)
 
-    Every doorway between two cells was being drawn from the perspective of BOTH adjacent rooms, effectively filling it twice. For open doors between two visited rooms, this resulted in nearly full opacity, making doorways appear brighter than the rooms themselves (the "flicker" upon entering was caused by swapping between single and double fill). Fixed using a sorted cell-pair key to ensure each doorway is drawn exactly once. Lowered the base color opacity as well.
+    Every doorway between two cells was being drawn from the perspective of BOTH adjacent room, effectively filling it twice. For open doors between two visited room, this resulted in nearly full opacity, making doorways appear brighter than the room themselves (the "flicker" upon entering was caused by swapping between single and double fill). Fixed using a sorted cell-pair key to ensure each doorway is drawn exactly once. Lowered the base color opacity as well.
 
     
 
-    Spoiler Protection: Doors leading to an UNVISITED neighboring room are now always drawn in the neutral default color and width, regardless of the actual room type (Treasure/Boss). Previously, the door's map color (golden yellow/red, sometimes pulsing) gave away Treasure and Boss rooms before they were entered.
+    Spoiler Protection: Doors leading to an UNVISITED neighboring room are now always drawn in the neutral default color and width, regardless of the actual room type (Treasure/Boss). Previously, the door's map color (golden yellow/red, sometimes pulsing) gave away Treasure and Boss room before they were entered.
 
     
 
     Enemy AI (enemy_ai.gd)
 
-    Bugfix "Fighter misses attacks": In the ATTACK state, the state machine sets velocity to 0, but separation forces from other enemies were immediately applied unconditionally right after. At the moment of attacking, all enemies are clustered tightly together AND close to the player — meaning separation pushes away from the player. Over the pre_attack_delay + attack_windup_time window (1.8s), this pushed the enemy back so far that the AttackHitbox was swinging into thin air. Separation is now heavily dampened during an active attack (attack_separation_factor, default 0.12); the bump-away force from _handle_standing_on_player() is completely disabled during attacks.
+    Bugfix "Fighter misses attacks": In the ATTACK state, the state machine sets velocity to 0, but separation forces from other enemy were immediately applied unconditionally right after. At the moment of attacking, all enemy are clustered tightly together AND close to the player — meaning separation pushes away from the player. Over the pre_attack_delay + attack_windup_time window (1.8s), this pushed the enemy back so far that the AttackHitbox was swinging into thin air. Separation is now heavily dampened during an active attack (attack_separation_factor, default 0.12); the bump-away force from _handle_standing_on_player() is completely disabled during attacks.
 
     
 
@@ -2544,7 +2544,7 @@ Date:   Mon Jul 27 18:51:09 2026 +0200
 
     Known Open Issues (Not Part of This Commit)
 
-    Visible effect/VFX feedback is still missing for several passive items (Wooden Spoon, Hatchet, Sock, Hellfire Horns) — the underlying game logic functions correctly (see item_behaviours.gd), but there is no custom visual feedback beyond the generic hit-stop. Planned as a separate task block.
+    Visible effect/VFX feedback is still missing for several passive item (Wooden Spoon, Hatchet, Sock, Hellfire Horns) — the underlying game logic functions correctly (see item_behaviours.gd), but there is no custom visual feedback beyond the generic hit-stop. Planned as a separate task block.
 
 
 
@@ -3576,7 +3576,7 @@ Date:   Sat Jul 25 17:29:46 2026 +0200
 
     - Add lava hazards (reusing existing LavaHazard/lemonade.gd) with
 
-      NavigationObstacle3D carving so enemies path around them
+      NavigationObstacle3D carving so enemy path around them
 
     - Fix lemonade.tscn: stray 52x23x70 CSGBox3D leftover from Level 01
 

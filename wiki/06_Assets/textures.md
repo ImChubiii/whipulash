@@ -21,9 +21,9 @@ Neben den direkten Textur-Atlanten der Modelle gibt es spezifische Texturen für
 
 ## Vorschau
 
-![[wall_tile_01.png]]
-![[wall_tile_02.png]]
-![[wall_tile_03.png]]
+
+
+
 
 ## Verwandt
 

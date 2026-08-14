@@ -159,8 +159,16 @@ static func aim_assisted_direction(
 ## Suche wie aim_assisted_direction(), gibt aber das Ziel selbst zurueck statt
 ## nur eine korrigierte Richtung - fuer echtes Auto-Target (Giselles Uzi-
 ## Rework: "nur grob hinschauen, die Waffe erledigt den Rest").
+##
+## group_name defaultet auf "enemies" (unveraendertes Verhalten fuer jeden
+## bestehenden Aufrufer) - Giselle/Winter uebergeben explizit "breakables"
+## als NACHRANGIGEN Fallback-Aufruf, wenn die normale Gegner-Suche leer
+## ausgeht UND kein Gegner in enemy_detection_radius steht (siehe
+## combat_base.gd::_has_nearby_threat()), damit Breakables/TNT nicht
+## automatisch anvisiert werden, solange echte Bedrohungen in der Naehe sind.
 static func best_target_in_cone(
-		origin: Vector3, dir: Vector3, max_range: float, max_angle_deg: float = 35.0
+		origin: Vector3, dir: Vector3, max_range: float, max_angle_deg: float = 35.0,
+		group_name: String = "enemies"
 ) -> Node3D:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null or dir.length_squared() < 0.0001:
@@ -170,7 +178,7 @@ static func best_target_in_cone(
 	var best: Node3D = null
 	var best_angle: float = deg_to_rad(max_angle_deg)
 
-	for node: Node in tree.get_nodes_in_group("enemies"):
+	for node: Node in tree.get_nodes_in_group(group_name):
 		if not (node is Node3D) or not is_instance_valid(node):
 			continue
 		var enemy: Node3D = node as Node3D
@@ -187,3 +195,27 @@ static func best_target_in_cone(
 			best = enemy
 
 	return best
+
+
+## Gibt es MINDESTENS einen lebenden Gegner in radius um from_pos? Gleiche
+## Kandidatenpruefung wie enemies_within(), bricht aber beim ersten Treffer
+## sofort ab statt das komplette Array aufzubauen - fuer die reine Ja/Nein-
+## Gate-Pruefung "Auto-Target darf auf Breakables ausweichen" (siehe
+## combat_base.gd::_has_nearby_threat()), wo das Array selbst nie gebraucht wird.
+static func has_enemies_within(from_pos: Vector3, radius: float) -> bool:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return false
+
+	for node: Node in tree.get_nodes_in_group("enemies"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		var enemy: Node3D = node as Node3D
+		if enemy.global_position.distance_to(from_pos) > radius:
+			continue
+		var health: Node = enemy.find_child("Health", true, false)
+		if health == null or not (health is Health) or not (health as Health).is_alive():
+			continue
+		return true
+
+	return false

@@ -62,10 +62,11 @@ static func fire(
 
 	result["hit"] = true
 	result["target"] = body
+	var is_prop: bool = body is BreakableProp
 
 	(health as Health).take_damage(damage, source as Node3D)
 
-	if damage_number_scene != null and body is Node3D:
+	if damage_number_scene != null and body is Node3D and not is_prop:
 		var number: Node = damage_number_scene.instantiate()
 		context.get_tree().current_scene.add_child(number)
 		(number as Node3D).global_position = (body as Node3D).global_position + Vector3(0.0, 1.8, 0.0)

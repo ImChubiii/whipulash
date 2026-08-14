@@ -2145,6 +2145,7 @@ def parse_git_log() -> list[dict]:
         return []
 
     commits = []
+    seen_subjects = set()
     for entry in raw.split("\x02"):
         entry = entry.strip("\n")
         if not entry.strip():
@@ -2153,12 +2154,16 @@ def parse_git_log() -> list[dict]:
         if len(parts) < 5:
             continue
         commit_hash, date, author, subject, body = parts[0], parts[1], parts[2], parts[3], parts[4]
+        subject_clean = subject.strip()
+        if subject_clean in seen_subjects:
+            continue
+        seen_subjects.add(subject_clean)
         commits.append({
             "hash": commit_hash,
             "short_hash": commit_hash[:7],
             "date": date,
             "author": author,
-            "subject": subject.strip(),
+            "subject": subject_clean,
             "body": body.strip(),
         })
     return commits
@@ -2264,6 +2269,12 @@ def devlog_backlink_section(entity_mentions: dict[tuple[str, str], list[dict]] |
 def write_devlogs(commits: list[dict],
                    commit_mentions: dict[str, list[tuple[str, str]]] | None = None) -> None:
     out_dir = WIKI_ROOT / "03_DevLogs"
+    
+    # Bereinige alte DevLog-Dateien vor dem Neuschreiben
+    for existing_file in out_dir.glob("*.md"):
+        if existing_file.name != "_MOC_DevLogs.md" and existing_file.name != "PATCH_NOTES.md":
+            existing_file.unlink()
+
     commit_mentions = commit_mentions or {}
     for c in commits:
         fname = _devlog_filename(c)
@@ -2406,6 +2417,11 @@ sortierbare Gesamttabelle.
 ## Nach Rarity
 
 {chr(10).join(_group_block(r, by_rarity.get(r, [])) for r in rarity_order if r in by_rarity)}
+
+## Item Konzepte & Datenbank
+
+- [[_Konzepte/01_Item_Konzept_Datenbank|Item Konzept Datenbank]]
+- [[_Konzepte/02_Item_Konzepte_V2|Item Konzepte V2 (inkl. Archiv)]]
 
 ## Nach Kind (Aktiv/Passiv)
 

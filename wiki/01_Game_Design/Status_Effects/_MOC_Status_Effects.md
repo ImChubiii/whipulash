@@ -1,5 +1,5 @@
 ---
-tags: [moc, status-effects]
+tags: [moc, status-effect]
 ---
 
 # MOC — Status-Effekte nach Klasse

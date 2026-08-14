@@ -74,8 +74,6 @@ Ueberblick beider Systeme.
 - [[2026-07-25_905d144_feat_level-generation-polish_minimap-overhaul_haza|2026-07-25 — feat: Level-Generation-Polish, Minimap-Overhaul, Hazard/Door-Fixes, Atmosphäre]]
 - [[2026-07-25_170eb45_featlevel-gen_threat-budget_enemy_mix_lava_hazards|2026-07-25 — feat(level-gen): threat-budget enemy mix, lava hazards, elevation, minimap overlay]]
 - [[2026-07-21_0d3ad30_fix_enemy_movement_freeze_and_enhance_ledge_detect|2026-07-21 — Fix enemy movement freeze and enhance ledge detection]]
-- [[2026-07-25_66b3f05_featlevel-gen_threat-budget_enemy_mix_lava_hazards|2026-07-25 — feat(level-gen): threat-budget enemy mix, lava hazards, elevation, minimap overlay]]
-- [[2026-07-21_2135fc5_fix_enemy_movement_freeze_and_enhance_ledge_detect|2026-07-21 — Fix enemy movement freeze and enhance ledge detection]]
 
 ## Quelle
 

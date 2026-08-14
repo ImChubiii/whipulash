@@ -104,7 +104,7 @@ Schau gerne in die Datei rein und sag mir, ob der Aufbau so perfekt für deinen 
 
 ## User
 
-was ist der unterschied zwischen devlogs und chatprompts?
+was ist der unterschied zwischen devlog und chatprompts?
 
 ## Assistant
 
@@ -203,7 +203,7 @@ Damit hast du jetzt für jeden Tag, an dem gearbeitet wurde, eine schöne, autom
 
 ## User
 
-gibts ein einheitliches muster wie man jeden tag dokumentiert strukturieren kann? bitte sag mit wie und welche ordner/dateien wie chatprompts und devlogs bsp man braucht
+gibts ein einheitliches muster wie man jeden tag dokumentiert strukturieren kann? bitte sag mit wie und welche ordner/dateien wie chatprompts und devlog bsp man braucht
 
 ## Assistant
 

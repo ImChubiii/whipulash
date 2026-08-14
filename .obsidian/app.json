@@ -1,0 +1,8 @@
+{
+  "userIgnoreFilters": [
+    "game/",
+    ".git/",
+    ".godot/",
+    "graphify-out/"
+  ]
+}

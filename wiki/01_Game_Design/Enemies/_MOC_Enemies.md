@@ -1,5 +1,5 @@
 ---
-tags: [moc, enemies]
+tags: [moc, enemy]
 ---
 
 # MOC — Gegner nach Gruppierung

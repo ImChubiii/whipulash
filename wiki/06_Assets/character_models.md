@@ -20,7 +20,7 @@ Das Spiel nutzt aktuell Powerpuff Girls Charaktermodelle als Prototypen für die
 
 ## Charakter-Texturen
 
-![[blossom_the_powerpuff_girls_0.png]]
+
 
 *Textur-Atlas der Powerpuff Girls Modelle (geteilt zwischen Blossom, Bubbles, Buttercup)*
 

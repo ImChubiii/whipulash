@@ -20,10 +20,15 @@ const MIN_SURVIVING_FRACTION: float = 0.05
 ## von SacrificePedestal.create() wuerde sonst die geerbte Implementierung
 ## von TreasurePedestal.create() ausfuehren, die textuell TreasurePedestal.
 ## new() aufruft, also trotzdem einen normalen Sockel erzeugen wuerde.
-static func create(data: ItemData) -> SacrificePedestal:
+## Signatur bewusst identisch zu TreasurePedestal.create() gehalten (inkl.
+## start_hidden) - ein abweichendes Static-Overload zwischen Basis- und
+## Subklasse verwirrt Godots statische Analyse beim Aufloesen von
+## "SacrificePedestal.create(...)" an Aufrufstellen wie treasure_manager.gd.
+static func create(data: ItemData, start_hidden: bool = false) -> SacrificePedestal:
 	var pedestal := SacrificePedestal.new()
 	pedestal.item_data = data
 	pedestal.name = "SacrificePedestal_%s" % (data.id if data else "empty")
+	pedestal._start_hidden = start_hidden
 	return pedestal
 
 

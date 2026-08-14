@@ -67,6 +67,15 @@ const GENERATOR_GROUP: String = "level_generator"
 var item_data: ItemData = null
 
 var _taken: bool = false
+
+## Fuer den seltenen "verstecktes Podest in einem zerbrochenen Breakable"-Fall
+## (siehe breakable_prop.gd) - der Sockel existiert schon (Item-Auswahl steht
+## fest), ist aber unsichtbar UND nimmt nicht an der Interaktions-Pruefung in
+## _physics_process() teil, bis reveal() aufgerufen wird. _start_hidden ist
+## nur ein Uebergabe-Flag von create() an _ready() (dort einmalig gelesen),
+## _revealed ist der eigentliche Laufzeit-Zustand.
+var _start_hidden: bool = false
+var _revealed: bool = true
 var _time: float = 0.0
 var _float_root: Node3D = null
 var _gem: MeshInstance3D = null
@@ -86,11 +95,14 @@ var _room: RoomInstance = null
 var _generator: Node = null
 
 
-## Bequemer Konstruktor fuer den TreasureManager.
-static func create(data: ItemData) -> TreasurePedestal:
+## Bequemer Konstruktor fuer den TreasureManager. start_hidden=true baut den
+## Sockel komplett wie gewohnt auf, macht ihn danach aber unsichtbar und
+## nimmt ihn aus der Interaktions-Pruefung - siehe reveal().
+static func create(data: ItemData, start_hidden: bool = false) -> TreasurePedestal:
 	var pedestal := TreasurePedestal.new()
 	pedestal.item_data = data
 	pedestal.name = "TreasurePedestal_%s" % (data.id if data else "empty")
+	pedestal._start_hidden = start_hidden
 	return pedestal
 
 
@@ -106,6 +118,10 @@ func _ready() -> void:
 	_build_float_group()
 	_build_light()
 	_build_labels()
+
+	if _start_hidden:
+		_revealed = false
+		visible = false
 
 	# ------------------------------------------------------------------
 	# Fog-of-War-Anschluss (behobener Bug: Sockel leuchtet durch die Wand
@@ -137,6 +153,28 @@ func _ready() -> void:
 	_room = get_parent() as RoomInstance
 	_sync_minimap_visibility.call_deferred()
 	_bind_generator.call_deferred()
+
+
+## Macht einen mit start_hidden=true erzeugten Sockel sichtbar und
+## interagierbar - z.B. wenn ein Breakable, hinter dem er versteckt war,
+## gerade zerbrochen ist. No-op, falls schon sichtbar oder bereits genommen.
+func reveal() -> void:
+	if _revealed or _taken:
+		return
+	_revealed = true
+	visible = true
+
+	if _light:
+		_light.light_energy = 0.0
+		var tween := create_tween()
+		tween.tween_property(_light, "light_energy", light_energy, 0.4) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	if _float_root:
+		_float_root.scale = Vector3.ZERO
+		var pop_tween := create_tween()
+		pop_tween.tween_property(_float_root, "scale", Vector3.ONE, 0.35) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # ============================================================================
@@ -366,6 +404,9 @@ func _build_labels() -> void:
 # Laufzeit
 # ============================================================================
 func _physics_process(delta: float) -> void:
+	if not _revealed:
+		return
+
 	_time += delta
 	_animate(delta)
 

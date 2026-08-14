@@ -844,6 +844,8 @@ var _cached_damage_number_scene: PackedScene = null
 func _spawn_item_damage_number(target: Node3D, amount: float) -> void:
 	if target == null or not is_instance_valid(target) or amount <= 0.0:
 		return
+	if target is BreakableProp:
+		return
 	if _cached_damage_number_scene == null:
 		if not ResourceLoader.exists(DAMAGE_NUMBER_SCENE_PATH):
 			return

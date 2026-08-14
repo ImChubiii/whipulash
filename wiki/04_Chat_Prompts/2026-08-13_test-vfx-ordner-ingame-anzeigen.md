@@ -184,7 +184,7 @@ Wenn du jetzt als Winter spielst und linksklickst, solltest du den neuen magisch
 
 ## User
 
-die assets sind irgendwie um 90 grad im uhrzeigersinn verdreht
+die asset sind irgendwie um 90 grad im uhrzeigersinn verdreht
 
 ## Assistant
 
@@ -196,7 +196,7 @@ Probier es gleich noch mal aus. Er sollte jetzt mit der spitzen Seite sauber in 
 
 ## User
 
-also ich mag die sachen die rasukommen bei winter wenn man schießt, aber das passt eher wenn es ein enemy hittet chekcst du? also mach lieber so das die animation beim hit eines enemies kommt
+also ich mag die sachen die rasukommen bei winter wenn man schießt, aber das passt eher wenn es ein enemy hittet chekcst du? also mach lieber so das die animation beim hit eines enemy kommt
 
 ## Assistant
 

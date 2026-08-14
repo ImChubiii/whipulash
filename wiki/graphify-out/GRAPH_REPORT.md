@@ -1,42 +1,46 @@
-# Graph Report - whiplash  (2026-08-13)
+# Graph Report - wiki  (2026-08-14)
 
 ## Corpus Check
-- 506 files · ~6,223,090 words
+- 535 files · ~1,804,534 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 5356 nodes · 5070 edges · 552 communities (410 shown, 142 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 24 edges (avg confidence: 0.81)
+- 7317 nodes · 7127 edges · 841 communities (562 shown, 279 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bf2b4514`
+- Built from commit: `ad999416`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- generate_vault.py
+- LLM Wiki
 - Acid
-- KayKit : Dungeon Asset Pack (1.1) License
+- LLM Wiki
 - Silenced
 - wiki_sync.py
 - Fighter
-- LLM Wiki
+- Update cumulative cost tracker
 - custom_enemy_base.gd
-- player_base.gd
+- settings_manager.gd
+- Nächste Optimierungsprozesse für das Spiel
 - Pause menu bugs in level 02
 - Melee-Items mit Effekten und Gameplay-Feedback
-- FPS Dungeon Extras License
-- Whiplash — Master Wiki
-- level_generator.gd
+- MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT)
 - App Nutzung & Ablauf (Workflow)
-- Dungeon Asset Pack Contents Overview
-- Dungeon Asset Pack Textures
+- _MOC_Tech_Architecture.md
+- Controls & Spielablauf Diagram
+- generate_vault.py
+- Charakter-Beschreibung wechselt mit aktivem Charakter
 - Limonade (Umgebungs-Hazard)
 - _MOC_Status_Effects.md
 - Omas Stricknadeln
 - Update cumulative cost tracker
 - Godot-Projektdateien erstellen und exportieren 2
+- 🤷 User: *ok das passt, nimm das zickzack muster der…*
+- Privates GitHub-Repo einrichten
+- 🤷 User: *[Request interrupted by user]*
 - MOC — Charaktere
 - Hoellenfeuer-Hoerner
 - Zerbrochener Bleistift
@@ -82,7 +86,7 @@
 - Aufwind
 - Plastik-Vampirgebiss
 - Mamas Kochloeffel
-- Combat Base Architecture
+- vfx_manager.md
 - Nächste Ziele definieren
 - Settings-Struktur mit separatem Keybinds-Tab
 - GDScript und Tscn Dateien anfordern
@@ -96,73 +100,75 @@
 - Game balance adjustments and file setup
 - Godot-Projektdateien erstellen und exportieren
 - GDScript-Projekt analysiert, Root Causes identifiziert
-- Item Database
-- Item Concepts V2
-- Item Concepts Archive
-- User Raw Bitte Berprfe Und Repariere Das Ganze
-- Balancing-Stellschrauben
-- Roguelike Analyse & Ideen
+- Prompt für Boden-Textur und Model-Ausrichtung
+- 🤷 User: *das gilt auch für die anderen room wie wenn…*
+- 🤷 User: *im raum mit dem kreuz fallen gegner manchmal…*
+- Explore
+- 🤷 User: *Erneut versuchen*
+- Patchnotes-Skript-Weiterentwicklung und Doku-Guide-Feedback
 - Charakter-Modelle
 - Gegner-Modelle
 - Umgebungs-Assets (Dungeon Kit)
 - Assets — Übersicht
 - Texturen
-- Blossom Rig Texture
-- Thick Pillar Texture
-- Poison Texture
-- Flat Roof Texture
-- Raised Roof Texture
-- Shield Texture
-- Sword Texture
-- Table 2x2 Texture
-- Table 2x3 Texture
-- Fancy Table 2x2 Texture
-- Fancy Table 2x3 Texture
-- Flat Tile Texture
-- Raised Tile Texture
-- Torch Texture
-- Flat Wall Texture
-- Raised Wall Texture
-- Wood Beam Texture
-- Dungeon Texture Atlas (FBX)
-- Dungeon Texture Atlas (glTF)
-- Dungeon Texture Atlas (OBJ)
-- Dungeon Sample: Treasure Room
-- Dungeon Sample: Multi-level Cell Block
-- Dungeon Sample: Prison Cells
-- Dungeon Sample: Library Balcony
-- Dungeon Sample: Mine/Excavation
-- Dungeon Sample: Multi-room Living Quarters
-- Dungeon Sample: Tavern/Bar
-- Dungeon Sample: Stairwell and Storage
-- Dungeon Sample: Library/Study
-- Dungeon Sample: Large Treasure Hoard
-- Dungeon Sample: Flooded Dungeon
-- Dungeon Sample: Empty Hallway with Chest
-- Dungeon Asset Pack Furniture
-- Dungeon Asset Pack Source Content
-- Blossom Character Texture
-- Lowpoly Robots Texture Palette
-- Rough Checked Floor Texture
-- Wall Tile Texture 01
-- Wall Tile Texture 02
-- Wall Tile Texture 03
-- UI Sketch Circle
-- UI Symbol Moon Star
-- UI Pointer Up
-- UI Sketch Ring
-- Game Icon
-- UI Pointer Down
-- Last-Stand System
-- Credits
-- LLM Wiki
-- Update cumulative cost tracker
+- 🤷 User: *danke das klappt sehr gut.*
+- Test-VFX-Ordner ingame anzeigen
+- 🤷 User: *die description überlappen sich, bitte so…*
+- 🤷 User: *bitte commite alles und pushe es*
+- 🤷 User: *reglos an der säule, spiel ist geschlossen…*
+- 🤷 User: *Ich habe noch ein paar weitere Anpassungen…*
+- Neue Ideen
+- Patch Notes — Lemonade
+- 🤷 User: *Ich brauche bei unserem Godot 4 (GDScript…*
+- 🤷 User: *[Image #13]Godot Engine v4.7.1.stable.steam…*
+- 🤷 User: *[Request interrupted by user]*
+- Duellanten (Duelists)
+- Neue Ideen
+- 📋 Session `fc033fa9`: Scout und Fighter Animationen und Modelle beheben — Model: `claude-sonnet-5`
+- 🤷 User: *Ich habe noch ein paar weitere Anpassungen…*
+- 🤷 User: *egner, weil die Ratio nicht mehr stimmt.*
+- Lemonade — Spieler-Wiki
+- 🤷 User: *coloss und fighter sind sehr offsett und…*
+- 🤷 User: *also ich will das es dunkler ist.*
+- 🤷 User: *Wir müssen in unserem Godot 4 (GDScript)…*
+- 🤷 User: *coloss noch größer, fighter ein ticken größer…*
+- 🤖 Assistant: *9 files have non-1.0 weights.*
+- Dokumentations-Guide — was ist was, und wo finde ich es?
+- 🤷 User: *Ich brauche Hilfe bei ein paar visuellen…*
+- 🤷 User: *die icons der special room fehlen*
+- Balancing-Stellschrauben
+- Balancing-Stellschrauben
+- Neue Ideen
+- Balancing-Stellschrauben
+- Neue Ideen
+- Tutorial-Prompt formulieren
+- generate_patchnotes.py
+- steam_manager.gd
+- 🤷 User: *diver sind zu groß und zu tief nicht weit…*
+- 🤷 User: *fighter ist gut vllt ticken größer und stinger…*
+- 📋 Session `1c0545a3` — Model: `claude-sonnet-5`
+- Explore
+- Explore
+- Ningning Dash-Beschreibung als Block
+- 🤷 User: *das ist das aktuelle problem: die scouts…*
+- 🤷 User: *mein hud ist ganz weg Invalid assignment…*
+- export_antigravity.py
+- 📋 Session `b281f7e7`: Install custom statusline script — Model: `<synthetic>`
+- User Raw Bitte Berprfe Und Repariere Das Ganze
+- Godot-Projekt-Aufgabenliste
+- 🤷 User: *stinger coloss und fighter sind alle noch…*
+- 🤷 User: *mach die description vom tutorial anders…*
+- 🤖 Assistant: *Now the CustomEnemyBase family's four attacking…*
+- 📋 Session `31bea21d`: Balanciere Gegner-Kosten für Spielmechanik — Model: `claude-sonnet-5`
+- Assistant
+- Assistant
 - Update cumulative cost tracker
 - User Raw Bitte Entferne Diese Folgenden Dateien 1
 - Level 01
 - Level 02 (Arena Gauntlet)
+- User
 - User Raw Claude Dangerously Skip Permissions Claude Dangerously Skip Permissions 1 Thought
-- play_dash_drill_effect
+- User
 - User Raw Ich Muss Meine Situation Erklren Mein
 - MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT)
 - 2026-08-12_slash-command-graphify-2.md
@@ -188,8 +194,8 @@
 - Graphify Installation und Einrichtung
 - UI-Verbesserung für Spielmenü
 - Vault und Graphify: Spielentwicklung verstehen
-- Patch Notes — Lemonade
-- Neue Ideen
+- User
+- User
 - Neue Ideen
 - Gegner und Spawn-Raten Übersicht
 - Gegner und Spawn-Raten Übersicht
@@ -214,11 +220,11 @@
 - Git Commits mit Claude und GitHub CLI
 - Git Commits mit Claude und GitHub CLI
 - Valorant Fähigkeiten: Technische Implementierung
+- 1. `04_Chat_Prompts/` — die Chat-Archiv-Dateien
+- Godot-Projekt-Setup und Szenen-Optimierung
 - Balancing-Stellschrauben
-- Neue Ideen
-- Balancing-Stellschrauben
-- Balancing-Stellschrauben
-- Neue Ideen
+- Assistant
+- Update cumulative cost tracker
 - Gegner bleiben an Kanten stecken
 - Binding of Isaac Room Drop Mechanics
 - Binding of Isaac Room Drop Mechanics
@@ -261,12 +267,12 @@
 - Assistant
 - Md
 - User
+- Balancing-Stellschrauben
+- 🤷 User: *er schaut nun von sich aus nach links nicht…*
+- 💭 Thinking
 - User
-- User
-- MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT)
-- User
-- User
-- User
+- 💭 Thinking
+- Wo sind die Patchnotes bei Obsidian
 - Slow
 - Stun
 - MOC — Status-Effekte nach Klasse
@@ -287,11 +293,11 @@
 - Du Bist Ein Wiki Autor Fuer Das Spiel Lemonade
 - Assistant
 - Schau Dir Den Letzten Commit An Und Den
+- Die 3 Säulen der Dokumentation
 - Update cumulative cost tracker
-- Update cumulative cost tracker
-- Balancing-Stellschrauben
 - 2026-08-12_user-raw-bitte-berprfe-und-repariere-das-ganze.md
-- Balancing-Stellschrauben
+- 🤖 Assistant: *All four match the old values from the doc…*
+- 💭 Thinking
 - {{name}}
 - {{id}}
 - Rooted
@@ -349,11 +355,11 @@
 - Slash Command Graphify Args Raw Obsidian Obsidian Dir Brain
 - Slash Command Graphify
 - User
+- 💭 Thinking
+- Assistant
+- Assistant
 - User
-- User
-- 09_Ideen.md
-- User
-- User
+- Assistant
 - User
 - {{display_name}}
 - 2026-07-21 — Fix enemy movement freeze and enhance ledge detection
@@ -370,7 +376,7 @@
 - 2026-07-22 — fix settings tabs
 - 2026-07-22 — fix settings tabs
 - 2026-07-22 — Add NavMesh pathfinding and fix physics bugs
-- 2026-07-22 — feat(ui): add settings menu with sensitivity, volume, fullscreen and rebindable keybinds
+- _MOC_DevLogs.md
 - 2026-08-10 — Obsidian-Vault ins Repo aufnehmen
 - 2026-07-22 — Add NavMesh pathfinding and fix physics bugs
 - 2026-07-22 — Gridmap asset hinzugefügt
@@ -391,7 +397,7 @@
 - 2026-07-24 — refactor(player): split player system into per-character scenes with shared base classes
 - Karinas Reflexe
 - 2026-07-25 — fix(level-generation): dynamisches Spawning/Tür-System für Grid-Level repariert
-- _MOC_DevLogs.md
+- 2026-07-25 — feat(level-gen): threat-budget enemy mix, lava hazards, elevation, minimap overlay
 - 2026-07-25 — feat(minimap): add player direction arrow
 - 2026-07-25 — feat: Level-Generation-Polish, Minimap-Overhaul, Hazard/Door-Fixes, Atmosphäre
 - 2026-07-25 — fix(level-generation): dynamisches Spawning/Tür-System für Grid-Level repariert
@@ -486,8 +492,8 @@
 - 2026-08-12 — docs: adjust item table formatting for Item DB compatibility
 - 2026-08-12 — ﻿feat: combat mechanics, weighted item drops, and UI tweaks
 - 2026-08-12 — chore: add obsidian workspaces and OS temp files to gitignore
-- Valorant-ähnliche Bewegungsmechanik in Godot
-- Spielearchitektur: ECS und Modifier-System
+- User
+- 2026-08-14_patchnotes-skript-weiterentwicklung-und-doku-guide-feedback.md
 - KI-Verfolgung mit NavigationAgent3D verbessern
 - Game Design Dokument Aufbereitung
 - Game Design Dokument Aufbereitung
@@ -524,11 +530,11 @@
 - User
 - User
 - User
-- User
-- User
+- Assistant
+- 🤷 User: *Fehler bei (190, 25): Cannot infer the type…*
 - {{id}}
 - Low poly games on Steam
-- Godot scanline shader correction
+- Assistant
 - Gegner-KI verbessern beim Klettern
 - HUD UI mit Charakterübersicht und Fähigkeiten
 - Commit-Analyse
@@ -548,12 +554,304 @@
 - Was jetzt im Vault ist
 - <-- blocks pickup, no increment happens
 - Godot level generator room instantiation
-- Threat-Budget Spawning
+- tag_chat_prompts.py
+- 2026-08-14 — fix: BinbunVFX-Asset-Packs an ihren erwarteten Pfad verschieben
+- 2026-08-14 — fix import texture
+- 2026-08-14 — feat: Umfangreiches Update - Gameplay, UI, Level-Generation und VFX
+- Greeting
+- item_manager.gd
+- 💭 Thinking
 - 2026-07-22 — feat(ui): add settings menu with sensitivity, volume, fullscreen and rebindable keybinds
-- Game Controls and Flow (German)
-- Game Controls and Flow (English)
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
 - 2026-08-13 — Update VFX for Ningning, fix Winter animation retargeting, and add Winter muzzle flash
-- Raum-Design Ideen
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- Greeting
+- Assistant
+- Assistant
+- Persönliche Daten im Projekt prüfen
+- User
+- User
+- User
+- User
+- ✅ Erledigt
+- Prompt für Karina-Item-Fix formulieren
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- leaderboard_manager.gd
+- resolve_claude_ki_art.py
+- 01.08.2026
+- 04.08.2026
+- 10.08.2026
+- 11.08.2026
+- 12.08.2026
+- 14.08.2026
+- 22.07.2026
+- 23.07.2026
+- room_commit_guard.gd
+- treasure_manager.gd
+- 27.07.2026
+- 28.07.2026
+- 🤖 Assistant: *Now for the Divebomber — currently `VISUAL_SCALE…*
+- 🤖 Assistant: *Found the crash.*
+- 🤖 Assistant: *Now `acid_sprinkler.gd` — detection range…*
+- 🤖 Assistant: *Now `combat_giselle.gd` — fire rate, dynamic…*
+- 🤖 Assistant: *Now I have everything needed — node paths…*
+- game_juice.gd
+- 🤖 Assistant: *Now `player_base.gd` for the default over…*
+- 🤖 Assistant: *Now update `_update_laser_esp()` to use …*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- game_stats.gd
+- loot_manager.gd
+- enemy_density.gd
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- Assistant
+- Assistant
+- Assistant
+- 🤖 Assistant: *Now let's add the helper functions (`_find_skeleton…*
+- 🤖 Assistant: *Now let's fix the facing-direction bug —…*
+- 🤖 Assistant: *Now the sniper ESP functions and its flash…*
+- 🤖 Assistant: *Now the sniper hit-flash call further down…*
+- 🤖 Assistant: *This is a multi-part task, let me track it…*
+- 🤖 Assistant: *Winter is done.*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking: *I'm confirming the structure: NingNing's…*
+- 💭 Thinking
+- 💭 Thinking: *Karina doesn…*
+- 💭 Thinking: *I'm checking whether max_health is declared…*
+- 💭 Thinking
+- 💭 Thinking
+- Assistant
+- Assistant
+- Graph Farben Anwenden
+- 01_Item_Konzept_Datenbank.md
+- 🤖 Assistant: *All the unambiguous item are done — ESP…*
+- 🤖 Assistant: *All edits are in.*
+- 🤖 Assistant: *All room templates now have `spawn_weight…*
+- 🤖 Assistant: *All threat-budget costs are updated.*
+- 🤖 Assistant: *Balance changes are done.*
+- 🤖 Assistant: *\*\*Camera particles (Giselle's Uzi):\*\* the…*
+- MOC — Tech-Architektur
+- 🤖 Assistant: *Found root causes for the crash and the camera…*
+- 🤖 Assistant: *Good. Now let's verify `item_manager.gd`…*
+- 🤖 Assistant: *Good, that's correct.*
+- 🤖 Assistant: *I've gathered enough context on every part…*
+- 🤖 Assistant: *Let me add a stored size to `EnemyEspBox…*
+- 🤖 Assistant: *Let me verify the most complex edits by re…*
+- 🤖 Assistant: *Let's do a final check of the `level_generator…*
+- 🤖 Assistant: *Let's review the final `combat_giselle.gd…*
+- run_restart.gd
+- 🤖 Assistant: *Now hook the flash + cleanup into `_perform_secondary…*
+- 🤖 Assistant: *Now `item_behaviours.gd` — the constants…*
+- 🤖 Assistant: *Now let's apply the facing fix and dynamic…*
+- 🤖 Assistant: *Now let's check the actual floor node in…*
+- 🤖 Assistant: *Now let's extend the `room_instance.gd` fix…*
+- 🤖 Assistant: *Now `level_generator.gd` — room scale and…*
+- 🤖 Assistant: *Now `loot_manager.gd` and `pickup.gd`:*
+- 🤖 Assistant: *Now `mortar_bot.gd` — scale, detection range…*
+- 🤖 Assistant: *Now `room_instance.gd` — the floor texture…*
+- 🤖 Assistant: *Now the ESP color/box vars, shoulder-offset…*
+- stage_manager.gd
+- 🤖 Assistant: *Now the item catalog entry for Karina's passive…*
+- 🤖 Assistant: *Now the Laser (secondary) — dynamic ESP sizing…*
+- 🤖 Assistant: *Now the sniper poll/charge/release functions…*
+- 🤖 Assistant: *Now the stealth touch-radius check (`_tick_stealth…*
+- 🤖 Assistant: *Now the `_tick_acid_aura()` hit loop (LMB…*
+- 🤖 Assistant: *Now the two `EnemyQuery.enemies_within(.…*
+- 🤖 Assistant: *Now `treasure_pedestal.gd` — wire the swap…*
+- 🤖 Assistant: *Now update `_on_plasma_strike()` to accept…*
+- 🤖 Assistant: *Tabs consistent.*
+- 🤖 Assistant: *This is a substantial rewrite of `minimap_rooms…*
+- 🤖 Assistant: *This looks correct.*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- vfx_manager.gd
+- 13.08.2026
+- 💭 Thinking
+- 💭 Thinking
+- 25.07.2026
+- 🤖 Assistant: *Let me check the referenced convention comment…*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 🤖 Assistant: *Clean. Let's verify the same for combat_winter…*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- Assistant
+- Assistant
+- Assistant
+- Zusammenfassung der Änderungen
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 🤖 Assistant: *Both clean. Now let's do a final read-through…*
+- 🤖 Assistant: *Confirmed — `result["target"]` is a valid…*
+- 🤖 Assistant: *Graphify query returned mostly wiki/chat…*
+- 🤖 Assistant: *Now I have a clear picture.*
+- 💭 Thinking
+- 🤖 Assistant: *Now let's migrate Winter's ESP code.*
+- 🤖 Assistant: *Now let's rewrite the description constants…*
+- 🤖 Assistant: *Now let's rewrite `tutorial_character_intro…*
+- 🤖 Assistant: *Now let's update the Obsidian vault and knowledge…*
+- 💭 Thinking: *Confirmed there's no scene replacement happening…*
+- 🤖 Assistant: *Now the attack-speed scaling.*
+- 🤖 Assistant: *Now the ESP singleton — the biggest piece…*
+- 🤖 Assistant: *Now the room-type teleport path (Start/Tresor…*
+- 🤖 Assistant: *Now update `description_for()`'s return type…*
+- 💭 Thinking
+- 🤖 Assistant: *This all looks correct.*
+- 🤖 Assistant: *This looks correct and clean.*
+- 🤖 Assistant: *Vault regenerated successfully.*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking: *I'm checking that `_roll_speed_multiplier…*
+- 💭 Thinking: *I'm adjusting the AbilityBar node to scale…*
+- 💭 Thinking: *I need to check the state machine to confirm…*
+- 💭 Thinking: *I notice there's no fighter.tscn, stinger…*
+- 💭 Thinking: *No enum-based branching confirms the per…*
+- 💭 Thinking: *I should also check whether `set_max_health…*
+- 💭 Thinking: *Good, the level generator lookup already…*
+- 💭 Thinking: *The HUD is a Control node nested under the…*
+- 💭 Thinking: *The teleporter pads were replaced with an…*
+- 💭 Thinking: *PauseMenu is a Control node within the same…*
+- 💭 Thinking: *I confirmed that EnemyAI adds itself to the…*
+- 💭 Thinking
+- 💭 Thinking: *I'll find the PauseMenu node using that group…*
+- 💭 Thinking: *Those .tres files likely define spawn threat…*
+- 💭 Thinking: *Now I'm wrapping up by summarizing the changes…*
+- 💭 Thinking: *Confirmed that dash_interval is DiveBomber…*
+- 💭 Thinking
+- 💭 Thinking: *So h…*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking: *The user wants me to restructure the tutorial…*
+- 💭 Thinking: *I found the attack_cooldown export var in…*
+- 💭 Thinking: *So dummy.tscn is actually the Fighter enemy…*
+- 💭 Thinking: *I should check how other scripts reliably…*
+- 💭 Thinking: *Now I want to double-check I haven't broken…*
+- 💭 Thinking: *The cleanest approach is to scale the AbilityBar…*
+- 💭 Thinking: *MagnetCore doesn't really "attack" in the…*
+- 💭 Thinking: *I'm noting that Health.max_health is set…*
+- 💭 Thinking: *Confirmed the shockwave only applies knockback…*
+- 💭 Thinking
+- 💭 Thinking: *There's no dedicated fighter.tscn anywhere…*
+- 💭 Thinking
+- 💭 Thinking: *I'm noticing the AbilityBar is positioned…*
+- 💭 Thinking: *Confirmed that "Boss" and "Tresor" teleports…*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking: *The user also wants the same cleanup applied…*
+- 💭 Thinking: *I'm confirming that add_to_group("enemies…*
+- 💭 Thinking
+- 💭 Thinking: *That query wasn't useful, just chat noise…*
+- 💭 Thinking: *The graph isn't capturing the .gd source…*
+- 💭 Thinking: *I should check health.gd to see if there…*
+- 💭 Thinking: *I found the VISUAL_SCALE constants in both…*
+- 💭 Thinking
+- 💭 Thinking: *The "← Start" button also teleports to the…*
+- 💭 Thinking: *I'm realizing Winter has two distinct ESP…*
+- 💭 Thinking
+- 💭 Thinking: *The type is safe to change to Array[String…*
+- 💭 Thinking
+- 💭 Thinking
+- 💭 Thinking: *Checking that the `_tutorial_ui` variable…*
+- 💭 Thinking
+- 💭 Thinking: *The user wants each player to have their…*
+- Hit-Stop / Game Juice
+- 💭 Thinking: *I need to figure out which lifecycle method…*
+- 💭 Thinking: *I suspect dummy.tscn, scout_dummy.tscn, and…*
+- 💭 Thinking
+- 💭 Thinking: *PlasmaBeamBot's cooldown_time of 3.2 seconds…*
+- 💭 Thinking: *ShieldDrone has no attack at all, it's purely…*
+- 💭 Thinking: *I don't see a timing variable in shield_drone…*
+- 💭 Thinking
 
 ## God Nodes (most connected - your core abstractions)
 1. `LLM Wiki` - 240 edges
@@ -563,131 +861,358 @@
 5. `User Raw Bitte Entferne Diese Folgenden Dateien 1` - 152 edges
 6. `Update cumulative cost tracker` - 151 edges
 7. `User Raw Claude Dangerously Skip Permissions Claude Dangerously Skip Permissions 1 Thought` - 137 edges
-8. `User Raw Ich Muss Meine Situation Erklren Mein` - 124 edges
-9. `MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT)` - 107 edges
-10. `Godot mit GitHub verbinden: Drei Wege` - 87 edges
+8. `Nächste Optimierungsprozesse für das Spiel` - 136 edges
+9. `User Raw Ich Muss Meine Situation Erklren Mein` - 124 edges
+10. `MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT)` - 107 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Controls & Spielablauf Diagram` --conceptually_related_to--> `App Nutzung & Ablauf (Workflow)`  [INFERRED]
-  99_Attachments/cd565bbe-05f1-450b-9fe6-1a7137320796.jpg → 05_Gedanken/01_Workflow_Tools.md
-- `Lowpoly Robots Texture` --references--> `Fighter`  [EXTRACTED]
-  assets/characters/lowpoly_robots_0.png → 04_Chat_Prompts/2026-07-23_heavy-enemies-nicht-pushbar-machen.md
-- `Barrel Metallic/Roughness Texture` --references--> `KayKit : Dungeon Asset Pack (1.1) License`  [INFERRED]
-  assets/environments/fps_dungeon_extras/textures/barrel_metallicRoughness.png → assets/environments/KayKit_Dungeon_Pack_1.1_FREE/License.txt
-- `Barrel Normal Map` --references--> `KayKit : Dungeon Asset Pack (1.1) License`  [INFERRED]
-  assets/environments/fps_dungeon_extras/textures/barrel_normal.png → assets/environments/KayKit_Dungeon_Pack_1.1_FREE/License.txt
-- `Chair Base Color Texture` --references--> `KayKit : Dungeon Asset Pack (1.1) License`  [INFERRED]
-  assets/environments/fps_dungeon_extras/textures/chair_baseColor.png → assets/environments/KayKit_Dungeon_Pack_1.1_FREE/License.txt
+- `Colossus` --references--> `level_generator.gd`  [EXTRACTED]
+  01_Game_Design/Enemies/colossus.md → 02_Tech_Architecture/level_generator.md
+- `level_generator.gd` --references--> `Fighter`  [EXTRACTED]
+  02_Tech_Architecture/level_generator.md → 01_Game_Design/Enemies/fighter.md
+- `level_generator.gd` --references--> `Stinger`  [EXTRACTED]
+  02_Tech_Architecture/level_generator.md → 01_Game_Design/Enemies/stinger.md
+- `Custom Enemy Base Architecture` --references--> `Shield`  [EXTRACTED]
+  02_Tech_Architecture/custom_enemy_base.md → 01_Game_Design/Status_Effects/shield.md
+- `Divebomber` --implements--> `custom_enemy_base.gd`  [EXTRACTED]
+  01_Game_Design/Enemies/divebomber.md → 02_Tech_Architecture/enemy_sandbox_room.md
 
 ## Import Cycles
 - None detected.
 
 ## Hyperedges (group relationships)
-- **KayKit Dungeon Asset Pack** — assets_environments_kaykit_dungeon_pack_1_1_free_samples_extra_content2, assets_environments_kaykit_dungeon_pack_1_1_free_samples_extra_textures, assets_environments_kaykit_dungeon_pack_1_1_free_samples_source_content [EXTRACTED 1.00]
-- **Dungeon Kit Asset Collection** — assets_environments_dungeon_kit_pillar_thicc, assets_environments_dungeon_kit_poison, assets_environments_dungeon_kit_roof_flat, assets_environments_dungeon_kit_roof_raised, assets_environments_dungeon_kit_shield, assets_environments_dungeon_kit_sword, assets_environments_dungeon_kit_table_2x2, assets_environments_dungeon_kit_table_2x3, assets_environments_dungeon_kit_table_fancy_2x2, assets_environments_dungeon_kit_table_fancy_2x3, assets_environments_dungeon_kit_tile_flat, assets_environments_dungeon_kit_tile_raised, assets_environments_dungeon_kit_torch, assets_environments_dungeon_kit_wall_flat, assets_environments_dungeon_kit_wall_raised, assets_environments_dungeon_kit_wood_beam [EXTRACTED 1.00]
-- **Dungeon Texture Atlas Variants** — assets_environments_kaykit_dungeon_pack_1_1_free_assets_fbx_dungeon_texture, assets_environments_kaykit_dungeon_pack_1_1_free_assets_gltf_dungeon_texture, assets_environments_kaykit_dungeon_pack_1_1_free_assets_obj_dungeon_texture, assets_environments_kaykit_dungeon_pack_1_1_free_assets_textures_dungeon_texture [EXTRACTED 1.00]
 - **Core Enemy Types** — fighter, colossus, stinger [EXTRACTED 1.00]
-- **FPS Dungeon Extras Asset Collection** — assets_environments_fps_dungeon_extras_license, assets_environments_fps_dungeon_extras_textures_ammobox_basecolor, assets_environments_fps_dungeon_extras_textures_ammobox_metallicroughness, assets_environments_fps_dungeon_extras_textures_ammobox_normal, assets_environments_fps_dungeon_extras_textures_barrel_basecolor [EXTRACTED 1.00]
 - **Playable Characters** — 01_game_design_characters_giselle, 01_game_design_characters_karina, 01_game_design_characters_ningning, 01_game_design_characters_winter [EXTRACTED 1.00]
 - **Sandbox Enemy Prototypes** — 01_game_design_enemies_divebomber, 01_game_design_enemies_magnet_kern, 01_game_design_enemies_moerser_bot, 01_game_design_enemies_plasmastrahl_bot, 01_game_design_enemies_saeure_sprinkler, 01_game_design_enemies_schild_drohne [EXTRACTED 1.00]
 - **Threat-Budget Enemies** — 01_game_design_enemies_fighter, 01_game_design_enemies_stinger, 01_game_design_enemies_colossus [EXTRACTED 1.00]
 - **Character Implementation Flow** — 06_assets_character_models [EXTRACTED]
 - **Status Effect Application Pattern** — 01_game_design_status_effects_acid, 01_game_design_status_effects_burn, 01_game_design_status_effects_stun [INFERRED 0.80]
-- **Dungeon Asset Textures** — assets_environments_fps_dungeon_extras_textures_barrel_metallicroughness, assets_environments_fps_dungeon_extras_textures_barrel_normal, assets_environments_fps_dungeon_extras_textures_chair_basecolor, assets_environments_fps_dungeon_extras_textures_chair_metallicroughness, assets_environments_fps_dungeon_extras_textures_chair_normal, assets_environments_fps_dungeon_extras_textures_chest_basecolor, assets_environments_fps_dungeon_extras_textures_chest_metallicroughness, assets_environments_fps_dungeon_extras_textures_chest_normal, assets_environments_fps_dungeon_extras_textures_crate_basecolor, assets_environments_fps_dungeon_extras_textures_crate_metallicroughness, assets_environments_fps_dungeon_extras_textures_crate_normal, assets_environments_fps_dungeon_extras_textures_healthbox_basecolor, assets_environments_fps_dungeon_extras_textures_healthbox_metallicroughness, assets_environments_fps_dungeon_extras_textures_healthbox_normal, assets_environments_fps_dungeon_extras_textures_shells_basecolor, assets_environments_fps_dungeon_extras_textures_shells_metallicroughness, assets_environments_fps_dungeon_extras_textures_shells_normal, assets_environments_fps_dungeon_extras_textures_table_metallicroughness [INFERRED 0.90]
 
-## Communities (552 total, 142 thin omitted)
+## Communities (841 total, 279 thin omitted)
 
-### Community 0 - "generate_vault.py"
-Cohesion: 0.08
-Nodes (57): build_entity_index(), _collect_item_aggregate_text(), compute_devlog_mentions(), devlog_backlink_section(), _devlog_filename(), ensure_folders(), exits_from_mask(), extract_alternative_names() (+49 more)
+### Community 0 - "LLM Wiki"
+Cohesion: 0.01
+Nodes (234): Architecture, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+226 more)
 
 ### Community 1 - "Acid"
-Cohesion: 0.33
-Nodes (6): Omas Scharfes Chili-Oel, Alter Handstaubsauger, Heiliges Oel, Schlangenbiss, Acid, Vulnerable
+Cohesion: 0.29
+Nodes (7): Omas Scharfes Chili-Oel, Alter Handstaubsauger, Heiliges Oel, Schlangenbiss, Mamas Stoeckelschuhe, Acid, Vulnerable
 
-### Community 2 - "KayKit : Dungeon Asset Pack (1.1) License"
-Cohesion: 0.10
-Nodes (21): Barrel Metallic/Roughness Texture, Barrel Normal Map, Chair Base Color Texture, Chair Metallic/Roughness Texture, Chair Normal Map, Chest Base Color Texture, Chest Metallic/Roughness Texture, Chest Normal Map (+13 more)
+### Community 2 - "LLM Wiki"
+Cohesion: 0.01
+Nodes (183): Architecture, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+175 more)
 
 ### Community 3 - "Silenced"
 Cohesion: 0.15
-Nodes (14): Alarmanlage vom Parkplatz, Disco-Kugel-Anhaenger, Koeder, Schwebendes Auge, Lockdown, Megafon aus der Schule, Altes Modulations-Modem, Paranoia (+6 more)
+Nodes (14): Alarmanlage vom Parkplatz, Disco-Kugel-Anhaenger, Koeder, Schwebendes Auge, Megafon aus der Schule, Altes Modulations-Modem, Anbruch der Nacht, Paranoia (+6 more)
 
 ### Community 4 - "wiki_sync.py"
 Cohesion: 0.23
 Nodes (13): main(), Path, # TODO: .tscn-Root-Node-Properties der drei Dummy-Szenen erneut lesen, # TODO: scripts/status_effects/*.gd erneut parsen (DEFAULT_DURATION /, Gibt (frontmatter_block_ohne_dashes, rest_des_dokuments) zurueck., Liest scripts/items/item_catalog.gd erneut und aktualisiert…, Liest resources/rooms/rd_*.tres erneut und aktualisiert spawn_weight/…, read_frontmatter() (+5 more)
 
 ### Community 5 - "Fighter"
-Cohesion: 0.24
-Nodes (12): Heavy enemies nicht pushbar machen, Log-Datei überprüfung, Character-spezifische Szenen und Abilities, Gegner-Scaling und Raumgröße anpassen, Level-Design und Gameplay-Verbesserungen, Speedrun ranking und gameplay verbesserungen, 3D-Roboter-Modelle in Godot 4 Gegner-Szenen integrieren, Lowpoly Robots Texture (+4 more)
+Cohesion: 0.27
+Nodes (11): Heavy enemies nicht pushbar machen, Log-Datei überprüfung, Character-spezifische Szenen und Abilities, Gegner-Scaling und Raumgröße anpassen, Level-Design und Gameplay-Verbesserungen, Speedrun ranking und gameplay verbesserungen, 3D-Roboter-Modelle in Godot 4 Gegner-Szenen integrieren, Colossus (+3 more)
 
-### Community 6 - "LLM Wiki"
+### Community 6 - "Update cumulative cost tracker"
 Cohesion: 0.01
-Nodes (234): Architecture, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+226 more)
+Nodes (165): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+157 more)
 
 ### Community 7 - "custom_enemy_base.gd"
-Cohesion: 0.25
-Nodes (8): Divebomber, Magnet-Kern, Moerser-Bot, Plasmastrahl-Bot, Saeure-Sprinkler, Schild-Drohne, enemy_sandbox_room.gd, custom_enemy_base.gd
+Cohesion: 0.15
+Nodes (12): Divebomber, Magnet-Kern, Moerser-Bot, Plasmastrahl-Bot, Saeure-Sprinkler, Schild-Drohne, debug_teleporter.gd, Erwaehnt in DevLogs (+4 more)
 
-### Community 8 - "player_base.gd"
-Cohesion: 0.29
-Nodes (7): Giselle, Karina, Ningning, Winter, party_manager.gd, player_base.gd, status_effect_manager.gd
+### Community 8 - "settings_manager.gd"
+Cohesion: 0.12
+Nodes (16): Giselle, Karina, Ningning, Winter, player_base.gd, Bug (behoben): Fenster springt beim ersten Start auf (0,0), Clamp beim Laden, nicht nur im Setter, Erwaehnt in DevLogs (+8 more)
+
+### Community 9 - "Nächste Optimierungsprozesse für das Spiel"
+Cohesion: 0.02
+Nodes (127): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+119 more)
 
 ### Community 11 - "Melee-Items mit Effekten und Gameplay-Feedback"
 Cohesion: 0.33
 Nodes (6): Item-Effekte zentralisieren und kategorisieren, Melee-Items mit Effekten und Gameplay-Feedback, Acid, Burn, Rooted, Slow
 
-### Community 12 - "FPS Dungeon Extras License"
-Cohesion: 0.40
-Nodes (5): FPS Dungeon Extras License, Ammobox Base Color Texture, Ammobox Metallic Roughness Texture, Ammobox Normal Map Texture, Barrel Base Color Texture
+### Community 12 - "MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT)"
+Cohesion: 0.02
+Nodes (107): 1. FIXED BLOCKERS & ROOT CAUSES (STRIKT IMPLEMENTIEREN), 2. GAMEPLAY, UI & SYSTEM OVERHAULS, 3. SPECIFIC ITEM REWORKS, Assistant, Assistant, Assistant, Assistant, Assistant (+99 more)
 
-### Community 13 - "Whiplash — Master Wiki"
-Cohesion: 0.50
-Nodes (4): Whiplash — Master Wiki, MOC — Gegner nach Gruppierung, MOC — Items nach Gruppierung, MOC — Raeume nach Typ
+### Community 13 - "App Nutzung & Ablauf (Workflow)"
+Cohesion: 0.14
+Nodes (10): Whiplash — Master Wiki, 1. Antigravity & Obsidian (Planung & Wiki), 2. Claude CLI / Warp (Der Coder), 3. Godot Engine (Die Ausführung), App Nutzung & Ablauf (Workflow), Der Loop in Kurzform, Verwandte Seiten, MOC — Gegner nach Gruppierung (+2 more)
 
-### Community 14 - "level_generator.gd"
-Cohesion: 0.50
-Nodes (4): Colossus, Fighter, Stinger, level_generator.gd
+### Community 14 - "_MOC_Tech_Architecture.md"
+Cohesion: 0.15
+Nodes (11): Colossus, Fighter, Stinger, API, Erwaehnt in DevLogs, hud_extra.gd, Verwandt, Warum das Reset-Overlay hierbleibt (+3 more)
 
-### Community 15 - "App Nutzung & Ablauf (Workflow)"
-Cohesion: 0.29
-Nodes (6): App Nutzung & Ablauf (Workflow), Raum-Ideen & Balancing (Entwurf), Graph Farben Anwenden, Verwandte Seiten, Controls & Spielablauf Diagram, Hit-Stop / Game Juice
+### Community 16 - "generate_vault.py"
+Cohesion: 0.08
+Nodes (57): build_entity_index(), _collect_item_aggregate_text(), compute_devlog_mentions(), devlog_backlink_section(), _devlog_filename(), ensure_folders(), exits_from_mask(), extract_alternative_names() (+49 more)
 
-### Community 16 - "Dungeon Asset Pack Contents Overview"
-Cohesion: 0.50
-Nodes (4): Dungeon Texture Atlas (Source), Dungeon Asset Pack Contents Overview, Dungeon Sample: Large Modular Layout, Extra Content Overview
+### Community 17 - "Charakter-Beschreibung wechselt mit aktivem Charakter"
+Cohesion: 0.04
+Nodes (56): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+48 more)
 
 ### Community 18 - "Limonade (Umgebungs-Hazard)"
 Cohesion: 0.67
 Nodes (3): Limonade (Umgebungs-Hazard), Saeurefeste Stiefel, Ausgelaufene Flachbatterie
 
 ### Community 19 - "_MOC_Status_Effects.md"
-Cohesion: 0.40
-Nodes (4): Spruehdose aus dem Tunnel, Charm, Shield, Custom Enemy Base Architecture
+Cohesion: 0.50
+Nodes (3): Spruehdose aus dem Tunnel, Charm, Shield
 
 ### Community 21 - "Update cumulative cost tracker"
 Cohesion: 0.01
 Nodes (190): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+182 more)
 
+### Community 23 - "🤷 User: *ok das passt, nimm das zickzack muster der…*"
+Cohesion: 0.05
+Nodes (43): ❓ Asking questions..., 🤖 Assistant: *Da ich das Spiel hier nicht selbst starten…*, 🤖 Assistant: *Now clean up the `.tscn` reference in `scout_dummy…*, 🤖 Assistant: *Now let's do the removal.*, 🤖 Assistant: *Now let's verify no leftover references to…*, 🤖 Assistant: *Now remove the `_zigzag_step`, `_zigzag_is_pause…*, 🤖 Assistant: *Now the movement-direction usage block in…*, 🤖 Assistant: *Now the `_ready()` init block:* (+35 more)
+
+### Community 24 - "Privates GitHub-Repo einrichten"
+Cohesion: 0.05
+Nodes (41): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+33 more)
+
+### Community 25 - "🤷 User: *[Request interrupted by user]*"
+Cohesion: 0.04
+Nodes (46): 🤖 Assistant: *Let me verify the new block reads cleanly…*, 🤖 Assistant: *Now hook the overlay build into `prepare_enemies…*, 🤖 Assistant: *Now I understand the existing pattern (`_build_door_markers…*, 🤖 Assistant: *Now let's add the world-space room-state…*, 🤖 Assistant: *Now let's wire `set_room_type()` from `level_generator…*, 🤖 Assistant: *Sorted. I pivoted the implementation based…*, 🤖 Assistant: *This all looks correct.*, 💻 Bash (+38 more)
+
+### Community 71 - "vfx_manager.md"
+Cohesion: 0.21
+Nodes (8): Combat Base Architecture, Custom Enemy Base Architecture, API-Vertrag, Erwaehnt in DevLogs, esp_target.gd, Verwandt, Warum ein einzelner Autoload statt Zustand pro Waffe, status_effect_manager.gd
+
 ### Community 79 - "Stat-System als Grundlage für Loot-Mechaniken"
 Cohesion: 0.22
 Nodes (8): Stat-System als Grundlage für Loot-Mechaniken, User, User, User, User, User, User, User
 
-### Community 88 - "User Raw Bitte Berprfe Und Repariere Das Ganze"
+### Community 85 - "Prompt für Boden-Textur und Model-Ausrichtung"
 Cohesion: 0.05
-Nodes (39): Achievements, Achievements, Achievements, Assistant, Assistant, Bestiary Repentance, Bestiary Repentance, Bestiary Repentance (+31 more)
+Nodes (39): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+31 more)
 
-### Community 89 - "Balancing-Stellschrauben"
-Cohesion: 0.33
-Nodes (6): 1. Giselle (Die Sniper-Anomalie), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Threat-Budget vs. AoE im Lategame, Balancing-Stellschrauben
+### Community 86 - "🤷 User: *das gilt auch für die anderen room wie wenn…*"
+Cohesion: 0.14
+Nodes (14): 🤖 Assistant: *Now let's fix the admin teleport panel (VFX…*, 🤖 Assistant: *Only one declaration, correctly referenced…*, 🤖 Assistant: *This all looks correct.*, 🔎 Grep `hp_multiplier|damage_multiplier|difficulty_scal|stage_multiplier|health_scale` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts`, 🔎 Grep `var fire_interval|var attack_interval|var shoot_interval|var beam_interval|func _configure|max_health =` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies`, 👀 Read `enemy_ai.gd`, 👀 Read `health.gd`, 👀 Read `pause_menu.gd` (+6 more)
 
-### Community 144 - "LLM Wiki"
-Cohesion: 0.01
-Nodes (183): Architecture, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+175 more)
+### Community 87 - "🤷 User: *im raum mit dem kreuz fallen gegner manchmal…*"
+Cohesion: 0.05
+Nodes (40): 🤖 Assistant: *## 1. Enemies falling and not dying ("Raum…*, 🤖 Assistant: *Found it. `_build_void_shaft()` builds a…*, 🤖 Assistant: *Let me now investigate the enemy-falling…*, 🤖 Assistant: *Let me search broadly for every `take_damage…*, 🤖 Assistant: *Now let's dig into the sacrifice bug.*, 💻 Bash, ✏️  Edit `pit_floor.gd`, ✏️  Edit `treasure_manager.gd` (+32 more)
 
-### Community 146 - "Update cumulative cost tracker"
-Cohesion: 0.01
-Nodes (165): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+157 more)
+### Community 88 - "Explore"
+Cohesion: 0.20
+Nodes (10): Achievements, Bestiary Repentance, Endings, Explore, Fatty, Horf, LCS/2026 Season/Summer Season, LPL/2026 Season/Split 3 (+2 more)
+
+### Community 89 - "🤷 User: *Erneut versuchen*"
+Cohesion: 0.06
+Nodes (34): 🤖 Assistant: *Found the exact bug — `generate_new_stage…*, 🤖 Assistant: *Let's check if there's a third stage-entry…*, 🤖 Assistant: *Now add the same call to `generate_stage…*, 🤖 Assistant: *Now let's look at `generate_stage()` directly…*, 🤖 Assistant: *This all checks out.*, 💻 Bash: *Graphify orientation query before further grepping level_generator.gd*, 💻 Bash: *Query graphify about tutorial-to-regular-level stage transition*, ✏️  Edit `level_generator.gd` (+26 more)
+
+### Community 90 - "Patchnotes-Skript-Weiterentwicklung und Doku-Guide-Feedback"
+Cohesion: 0.06
+Nodes (34): 17.07.2026 leer?, 18.07.2026, 19.07.2026, Assistant, Assistant, Assistant, Assistant, Assistant (+26 more)
+
+### Community 96 - "🤷 User: *danke das klappt sehr gut.*"
+Cohesion: 0.06
+Nodes (32): 🤖 Assistant: *Fertig — beide swappen jetzt auf KayKit:*, 🤖 Assistant: *Jetzt Colossus (`tank_dummy.tscn`) mit Skeleton_Minion…*, 🤖 Assistant: *Skeleton_Warrior schon perfekt vorbereitet…*, 💻 Bash, 💻 Bash, 💻 Bash, 💻 Bash, 💻 Bash (+24 more)
+
+### Community 97 - "Test-VFX-Ordner ingame anzeigen"
+Cohesion: 0.07
+Nodes (29): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+21 more)
+
+### Community 98 - "🤷 User: *die description überlappen sich, bitte so…*"
+Cohesion: 0.06
+Nodes (33): 🤖 Assistant: *All consistent and wired correctly.*, 🤖 Assistant: *Confirmed — bomb is bound to `KEY_X`, matching…*, 🤖 Assistant: *Let's verify there are no leftover stale…*, 🤖 Assistant: *Now let's rewrite `tutorial_character_intro…*, 🤖 Assistant: *Now the unlock-callback further down:*, 🤖 Assistant: *Now update `level_generator.gd` to use the…*, ✏️  Edit `level_generator.gd`, ✏️  Edit `level_generator.gd` (+25 more)
+
+### Community 99 - "🤷 User: *bitte commite alles und pushe es*"
+Cohesion: 0.07
+Nodes (28): ❓ Asking questions..., 🤖 Assistant: *Bevor ich pushe: `git add -A` hat den \*\*kompletten…*, 🤖 Assistant: *Commit erfolgreich (604 Dateien, ohne den…*, 🤖 Assistant: *Gepusht. `main` ist jetzt auf `5da0d91`.*, 🤖 Assistant: *Reasonable size.*, 🤖 Assistant: *Sieht sauber aus.*, 💻 Bash, 💻 Bash (+20 more)
+
+### Community 100 - "🤷 User: *reglos an der säule, spiel ist geschlossen…*"
+Cohesion: 0.07
+Nodes (28): ❓ Asking questions..., 🤖 Assistant: *Ich hab's eingegrenzt: das ist `level_generation_test…*, 🤖 Assistant: *Sieht sauber aus.*, ✏️  Edit `room_instance.gd`, 🔎 Grep `acid_sprinkler|mortar_bot|magnet_core|dive_bomber|shield_drone|plasma_beam_bot|scene_path|threat_cost` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation_test.tscn`, 🔎 Grep `^extends|^class_name` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd`, 🔎 Grep `func.*spawn.*enem|EnemySpawnPoint|spawn_point|enemy_spawn` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\level_generator.gd`, 🔎 Grep `func.*spawn|SpawnPoint|instantiate.*enem|threat_budget|_place_enem` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd` (+20 more)
+
+### Community 101 - "🤷 User: *Ich habe noch ein paar weitere Anpassungen…*"
+Cohesion: 0.06
+Nodes (36): 1. Tutorial-Texte & Erklärungen verbessern, 2. UI & Kamera-Anpassungen, 3. Gegner-Skalierung, 4. Bugfix & Überarbeitung: Enemy ESP (Winter & Giselle), 🤖 Assistant: *Found it — `MINIMAP_ZOOM_DEFAULT: float …*, 🤖 Assistant: *Good, all references are consistent.*, 🤖 Assistant: *Good, `target` is in scope.*, 🤖 Assistant: *Now register it as an autoload in project…* (+28 more)
+
+### Community 102 - "Neue Ideen"
+Cohesion: 0.07
+Nodes (27): 2. Zerstörbare Umgebungen & Deckung, 3. "The Lemonade Flood" (Bosskampf-Mechanik), 4. Geheimräume (Der klassische Roguelite-Faktor), 5. Hit-Stop & PSX "Juice", 6. Meta-Progression (Was passiert nach dem Tod?), 7. Kritische Treffer (Crit-Feedback), 8. Dash-Schaden (Damage Numbers), Assistant (+19 more)
+
+### Community 103 - "Patch Notes — Lemonade"
+Cohesion: 0.08
+Nodes (26): 03.08.2026, 05.08.2026, 08.08.2026, 17.07.2026, 18.07.2026, 19.07.2026, 20.07.2026, 21.07.2026 (+18 more)
+
+### Community 104 - "🤷 User: *Ich brauche bei unserem Godot 4 (GDScript…*"
+Cohesion: 0.08
+Nodes (24): 🤖 Assistant: *All changes are in.*, 🤖 Assistant: *Now `char_karina.gd`:*, 🤖 Assistant: *Now `combat_karina.gd` — flat-radius fix…*, 🤖 Assistant: *Now `item_manager.gd` — the `silent` add…*, 🤖 Assistant: *This is correct and safe.*, ✏️  Edit `char_karina.gd`, ✏️  Edit `combat_karina.gd`, ✏️  Edit `item_manager.gd` (+16 more)
+
+### Community 105 - "🤷 User: *[Image #13]Godot Engine v4.7.1.stable.steam…*"
+Cohesion: 0.08
+Nodes (24): ❓ Asking questions..., 🤖 Assistant: *Das sieht nach einem anderen, KI-Pfadfindungs…*, 🤖 Assistant: *Ich bin an dem Punkt, wo ich ohne mehr Kontext…*, 🔎 Grep `acid_sprinkler|mortar_bot|magnet_core|dive_bomber|shield_drone|plasma_beam_bot` in `C:\Users\thvnh\Documents\GitHub\whiplash`, 🔎 Grep `enemy_table|EnemySpawnEntry` in `C:\Users\thvnh\Documents\GitHub\whiplash`, 🔎 Grep `enemy_table` in `C:\Users\thvnh\Documents\GitHub\whiplash`, 🔎 Grep `EnemySpawnEntry|enemy_table|scene_path|display_name` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\level_generator.gd`, 🔎 Grep `LevelGenerator|enemy_table|scene_path|display_name" ?=` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_01.tscn` (+16 more)
+
+### Community 106 - "🤷 User: *[Request interrupted by user]*"
+Cohesion: 0.08
+Nodes (24): 🤖 Assistant: *Der Compile-Fehler kommt daher, dass `source_anim…*, 🤖 Assistant: *Now let's simplify the `is_kaykit` toggle…*, 🤖 Assistant: *Zwei Sachen behoben:*, 💻 Bash, 💻 Bash, ✏️  Edit `animation_manager.gd`, ✏️  Edit `animation_manager.gd`, ✏️  Edit `animation_manager.gd` (+16 more)
+
+### Community 107 - "Duellanten (Duelists)"
+Cohesion: 0.09
+Nodes (22): Archiv (V1), Breach, Brimstone, Duellanten (Duelists), Duellanten (Duelists), Fade, Initiatoren (Initiators), Item-Konzepte Archiv (V1) (+14 more)
+
+### Community 108 - "Neue Ideen"
+Cohesion: 0.09
+Nodes (21): 1. Giselle (Die Sniper-Anomalie), 2. Der Schalter-Puzzle-Kampf (Switch Arena), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 2. Zerstörbare Umgebungen & Deckung, 3. Colossus & Knockback-Resistenz, 3. Der riskante Gitterrost (Abyss Maze), 3. "The Lemonade Flood" (Bosskampf-Mechanik), 4. Die Brücke der Verzweiflung (Chokepoint) (+13 more)
+
+### Community 109 - "📋 Session `fc033fa9`: Scout und Fighter Animationen und Modelle beheben — Model: `claude-sonnet-5`"
+Cohesion: 0.09
+Nodes (21): ❓ Asking questions..., 🤖 Assistant: *Das erklärt es — die Grounding-Korrektur…*, 🤖 Assistant: *Das Muster (90°=links, -90°=rechts) zeigt…*, 🤖 Assistant: *Das sieht nach mehr aus als nur einem Boden…*, 🤖 Assistant: *Die Zahlen sind konsistent — das bestätigt…*, 🤖 Assistant: *Kurz zusammengefasst, was das Problem war…*, 🤖 Assistant: *Test's nochmal im Spiel — stehen sie jetzt…*, 🤖 Assistant: *Test's nochmal — jetzt sollte die Höhe der…* (+13 more)
+
+### Community 110 - "🤷 User: *Ich habe noch ein paar weitere Anpassungen…*"
+Cohesion: 0.11
+Nodes (18): 🤖 Assistant: *Everything's implemented.*, 🤖 Assistant: *Now `enemy_esp_box.gd` — brighter material…*, 🤖 Assistant: *Now let's normalize `spawn_weight` across…*, 💻 Bash, 💻 Bash, ✏️  Edit `enemy_esp_box.gd`, ✏️  Edit `enemy_esp_box.gd`, ✏️  Edit `pickup.gd` (+10 more)
+
+### Community 111 - "🤷 User: *egner, weil die Ratio nicht mehr stimmt.*"
+Cohesion: 0.12
+Nodes (16): 🤖 Assistant: *Applied the balance changes and refreshed…*, 🤖 Assistant: *Both confirm the current values (10 each…*, 🤖 Assistant: *Now let's check if there's a design doc that…*, 🤖 Assistant: *These vault pages are auto-generated from…*, 🤖 Assistant: *Vault regenerated.*, 💻 Bash, 💻 Bash, 💻 Bash (+8 more)
+
+### Community 112 - "Lemonade — Spieler-Wiki"
+Cohesion: 0.13
+Nodes (15): 🎮 Das Spiel, 🧑 Die vier Charaktere, ⚔️ Gegner im Überblick, Grundprinzip, 🎒 Items, [[lemonade|Limonade]], Lemonade — Spieler-Wiki, 🗺️ Räume (+7 more)
+
+### Community 113 - "🤷 User: *coloss und fighter sind sehr offsett und…*"
+Cohesion: 0.13
+Nodes (15): 🤖 Assistant: *Gefunden: `_orient_model()`'s Boden-Berechnung…*, 🤖 Assistant: *Jetzt die Konstante mit den bekannten Fußknochen…*, 🤖 Assistant: *Sieht sauber aus.*, ✏️  Edit `enemy_ai.gd`, ✏️  Edit `enemy_ai.gd`, 🔎 Grep `func _rest_global_transform|func _orient_model|func _find_visible_skeleton|_orient_model\(` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies\enemy_ai.gd`, 🔎 Grep `_rest_global_transform"` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies\enemy_ai.gd`, 👀 Read `enemy_ai.gd` (+7 more)
+
+### Community 114 - "🤷 User: *also ich will das es dunkler ist.*"
+Cohesion: 0.14
+Nodes (14): 🤖 Assistant: *Both changes are in:*, 🤖 Assistant: *Confirmed the exact var to hook into.*, 💻 Bash, ✏️  Edit `room_instance.gd`, ✏️  Edit `room_instance.gd`, 🔎 Grep `_inside_entry_trigger` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd`, 🔎 Grep `_setup_entry_trigger|_on_entry_trigger|_entered|func _on_player_entered|_room_entered|is_current_room` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd`, 👀 Read `room_instance.gd` (+6 more)
+
+### Community 115 - "🤷 User: *Wir müssen in unserem Godot 4 (GDScript)…*"
+Cohesion: 0.14
+Nodes (14): 🤖 Assistant: *Both files use consistent tab indentation…*, 🤖 Assistant: *Good — tabs used consistently, matching the…*, 💻 Bash, 💻 Bash, 💻 Bash, 💻 Bash, 🔎 Grep `class_name Minimap|static var big_map_open|big_map_open` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts`, 🔎 Grep `^func |^extends|^class_name` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_manager.gd` (+6 more)
+
+### Community 116 - "🤷 User: *coloss noch größer, fighter ein ticken größer…*"
+Cohesion: 0.14
+Nodes (14): 🤖 Assistant: *Angepasst — und zwei Hinweise:*, 🤖 Assistant: *Das Schweben kommt daher, dass `model_auto_ground…*, 🤖 Assistant: *Jetzt die Größen-Feinjustierung:*, ✏️  Edit `dummy.tscn`, ✏️  Edit `dummy.tscn`, ✏️  Edit `scout_dummy.tscn`, ✏️  Edit `scout_dummy.tscn`, ✏️  Edit `tank_dummy.tscn` (+6 more)
+
+### Community 117 - "🤖 Assistant: *9 files have non-1.0 weights.*"
+Cohesion: 0.15
+Nodes (13): 🤖 Assistant: *9 files have non-1.0 weights.*, ✏️  Edit `rd_boss_lemonade_flood_01.tres`, ✏️  Edit `rd_combat_11.tres`, ✏️  Edit `rd_combat_12.tres`, ✏️  Edit `rd_combat_abyss_01.tres`, ✏️  Edit `rd_combat_chokepoint_01.tres`, ✏️  Edit `rd_treasure_sacrifice_01.tres`, 👀 Read `rd_boss_lemonade_flood_01.tres` (+5 more)
+
+### Community 118 - "Dokumentations-Guide — was ist was, und wo finde ich es?"
+Cohesion: 0.17
+Nodes (12): 10. Volles Vault-Update (Routine-Workflow für eine KI mit Datei-Zugriff), 2. `03_DevLogs/` — ein Eintrag pro Commit, 3. `00_Dashboard/PATCHNOTES.md` — die spielerfreundlichen Tages-Zusammenfassungen, 4. `01_Game_Design/` (Characters, Items, Enemies, Rooms, Status_Effects) + `06_Assets/`, 5. `02_Tech_Architecture/` — "Warum ist das so gebaut", 6. `05_Gedanken/` — persönliche Notizen, 7. `00_Dashboard/00_Master_Wiki.md`, 8. Skript-Referenz (`wiki/98_Scripts/` + `game/`) (+4 more)
+
+### Community 119 - "🤷 User: *Ich brauche Hilfe bei ein paar visuellen…*"
+Cohesion: 0.06
+Nodes (32): 🤖 Assistant: *All done. Here's a summary of the five changes…*, 🤖 Assistant: *Everything checks out.*, 🤖 Assistant: *Now hook the ESP box into `_perform_primary…*, 🤖 Assistant: *Now let's re-check the current state of …*, 🤖 Assistant: *Now the `_exit_tree()` cleanup and the sniper…*, 💻 Bash, 💻 Bash, 💻 Bash (+24 more)
+
+### Community 120 - "🤷 User: *die icons der special room fehlen*"
+Cohesion: 0.17
+Nodes (12): 🤖 Assistant: *Clean — no remaining references outside the…*, 🤖 Assistant: *Rebuilt both icons using only built-in primitive…*, 🤖 Assistant: *That `SurfaceTool`-built mesh is unprecedented…*, 💻 Bash, ✏️  Edit `room_instance.gd`, 🔎 Grep `load_room\(|func _place_special_rooms|RoomType.BOSS|RoomType.TREASURE|set_room_type` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\level_generator.gd`, 🔎 Grep `_star_points|_build_flat_fan_icon|SurfaceTool` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd`, 🔎 Grep `SurfaceTool` in `C:\Users\thvnh\Documents\GitHub\whiplash` (+4 more)
+
+### Community 121 - "Balancing-Stellschrauben"
+Cohesion: 0.17
+Nodes (12): 1. Giselle (Die Sniper-Anomalie), 2. Der Schalter-Puzzle-Kampf (Switch Arena), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Blutzoll (Sacrifice Room / Risk-Reward) (+4 more)
+
+### Community 122 - "Balancing-Stellschrauben"
+Cohesion: 0.17
+Nodes (12): 1. Giselle (Die Sniper-Anomalie), 2. Der Schalter-Puzzle-Kampf (Switch Arena), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Blutzoll (Sacrifice Room / Risk-Reward) (+4 more)
+
+### Community 123 - "Neue Ideen"
+Cohesion: 0.17
+Nodes (12): 2. Zerstörbare Umgebungen & Deckung, 3. "The Lemonade Flood" (Bosskampf-Mechanik), 4. Geheimräume (Der klassische Roguelite-Faktor), 5. Hit-Stop & PSX "Juice", 6. Meta-Progression (Was passiert nach dem Tod?), 7. Kritische Treffer (Crit-Feedback), 8. Dash-Schaden (Damage Numbers), Neue Ideen (+4 more)
+
+### Community 124 - "Balancing-Stellschrauben"
+Cohesion: 0.17
+Nodes (12): 1. Giselle (Die Sniper-Anomalie), 2. Der Schalter-Puzzle-Kampf (Switch Arena), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Blutzoll (Sacrifice Room / Risk-Reward) (+4 more)
+
+### Community 125 - "Neue Ideen"
+Cohesion: 0.17
+Nodes (12): 2. Zerstörbare Umgebungen & Deckung, 3. "The Lemonade Flood" (Bosskampf-Mechanik), 4. Geheimräume (Der klassische Roguelite-Faktor), 5. Hit-Stop & PSX "Juice", 6. Meta-Progression (Was passiert nach dem Tod?), 7. Kritische Treffer (Crit-Feedback), 8. Dash-Schaden (Damage Numbers), Neue Ideen (+4 more)
+
+### Community 126 - "Tutorial-Prompt formulieren"
+Cohesion: 0.17
+Nodes (11): Assistant, Assistant, Assistant, Assistant, Assistant, Tutorial-Prompt formulieren, User, User (+3 more)
+
+### Community 127 - "generate_patchnotes.py"
+Cohesion: 0.24
+Nodes (11): build_auto_fallback(), format_german_date(), main(), parse_devlogs(), parse_existing_patchnotes(), parse_prompts(), Reads all markdown files in PROMPTS_DIR and groups them by date., Reads existing PATCHNOTES.md and extracts sections per date. (+3 more)
+
+### Community 128 - "steam_manager.gd"
+Cohesion: 0.20
+Nodes (10): Der irrefuehrende Versionsstring, Dev-Setup (aus dem Datei-Header), Erwaehnt in DevLogs, Init-Ablauf und Fallback-App-ID, Manipulationssicherheit — bewusst keine, Oeffentliche API, `_process()` pumpt Callbacks, steam_manager.gd (+2 more)
+
+### Community 129 - "🤷 User: *diver sind zu groß und zu tief nicht weit…*"
+Cohesion: 0.18
+Nodes (11): 1. Die "Swarm"-Gegner (Stark reduzierte Masse), 2. Die "Support/Utility"-Gegner (Etwas teurer), 3. Die "Heavy/Elite"-Gegner (Spürbar teurer), 🤖 Assistant: *All four fixes are in and the vault/graph…*, 🤖 Assistant: *hover_height is picked up by the vault generator…*, 💻 Bash, 💻 Bash, 💻 Bash (+3 more)
+
+### Community 130 - "🤷 User: *fighter ist gut vllt ticken größer und stinger…*"
+Cohesion: 0.18
+Nodes (11): 🤖 Assistant: *Angepasst:*, 🤖 Assistant: *Jetzt Colossus — Body-Scale (bestimmt Kollision…*, ✏️  Edit `dummy.tscn`, ✏️  Edit `scout_dummy.tscn`, ✏️  Edit `tank_dummy.tscn`, 👀 Read `dummy.tscn`, 👀 Read `scout_dummy.tscn`, 👀 Read `tank_dummy.tscn` (+3 more)
+
+### Community 131 - "📋 Session `1c0545a3` — Model: `claude-sonnet-5`"
+Cohesion: 0.18
+Nodes (10): 🤖 Assistant: *You've hit your session limit · resets 11…*, 🤖 Assistant: *You've hit your session limit · resets 11…*, 🤖 Assistant: *You've hit your session limit · resets 11…*, 👀 Read `tutorial_character_intro.gd`, 📋 Session `1c0545a3` — Model: `claude-sonnet-5`, 💭 Thinking: *The user wants the tutorial description UI…*, 🤷 User: *bitte die tutorial räume auch bisschen schwerer…*, 🤷 User: *mein spiel ist schon gut aber ich will das…* (+2 more)
+
+### Community 132 - "Explore"
+Cohesion: 0.20
+Nodes (10): Achievements, Bestiary Repentance, Endings, Explore, Fatty, Horf, LCS/2026 Season/Summer Season, LPL/2026 Season/Split 3 (+2 more)
+
+### Community 133 - "Explore"
+Cohesion: 0.20
+Nodes (10): Achievements, Bestiary Repentance, Endings, Explore, Fatty, Horf, LCS/2026 Season/Summer Season, LPL/2026 Season/Split 3 (+2 more)
+
+### Community 134 - "Ningning Dash-Beschreibung als Block"
+Cohesion: 0.20
+Nodes (9): Assistant, Assistant, Assistant, Assistant, Ningning Dash-Beschreibung als Block, User, User, User (+1 more)
+
+### Community 135 - "🤷 User: *das ist das aktuelle problem: die scouts…*"
+Cohesion: 0.20
+Nodes (10): 🤖 Assistant: *Good, only the one file (with the renamed…*, 💻 Bash, 💻 Bash, 💻 Bash, 💻 Bash, 💭 Thinking, 💭 Thinking, 💭 Thinking (+2 more)
+
+### Community 136 - "🤷 User: *mein hud ist ganz weg Invalid assignment…*"
+Cohesion: 0.20
+Nodes (10): 🤖 Assistant: *Clean now — no other stray comment lines…*, 🤖 Assistant: *That `#` comment I added inside the `.tscn…*, ✏️  Edit `hud.tscn`, 🔎 Grep `^#` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\ui\hud.tscn`, 🔎 Grep `process_mode` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts`, 👀 Read `hud.tscn`, 💭 Thinking, 💭 Thinking: *I'm seeing a Godot error about trying to…* (+2 more)
+
+### Community 137 - "export_antigravity.py"
+Cohesion: 0.47
+Nodes (9): clean_user_content(), export_session(), find_session(), iter_entries(), list_sessions(), local_date(), main(), export_antigravity.py — liest Antigravity-Brain-Sessions… (+1 more)
+
+### Community 138 - "📋 Session `b281f7e7`: Install custom statusline script — Model: `<synthetic>`"
+Cohesion: 0.22
+Nodes (8): 🤖 Assistant: *You've hit your session limit · resets 7…*, 🤖 Assistant: *You've hit your session limit · resets 7…*, 📂 Glob `scripts/statusline.sh`, Install custom statusline script, 📋 Session `b281f7e7`: Install custom statusline script — Model: `<synthetic>`, 💭 Thinking, 🤷 User: *{*, 🤷 User: *cp scripts/statusline.sh ~/.claude/*
+
+### Community 139 - "User Raw Bitte Berprfe Und Repariere Das Ganze"
+Cohesion: 0.22
+Nodes (9): Assistant, Assistant, User, User, User, User, User, User (+1 more)
+
+### Community 140 - "Godot-Projekt-Aufgabenliste"
+Cohesion: 0.22
+Nodes (8): Assistant, Assistant, Assistant, Godot-Projekt-Aufgabenliste, User, Änderung 1: debug_teleporter.gd deaktivieren (alle Pads entfernen), Änderung 2: ADMIN-Panel in pause_menu.gd, Änderung 3: main_menu.gd — _show_screen("character") startet beim aktuell gespielten Charakter
+
+### Community 141 - "🤷 User: *stinger coloss und fighter sind alle noch…*"
+Cohesion: 0.22
+Nodes (9): 🤖 Assistant: *Ich hab einen Debug-Print eingebaut, der…*, ✏️  Edit `enemy_ai.gd`, 🔎 Grep `func _debug\(|@export var debug_logging` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies\enemy_ai.gd`, 👀 Read `enemy_ai.gd`, 👀 Read `enemy_ai.gd`, 💭 Thinking, 💭 Thinking, 💭 Thinking (+1 more)
+
+### Community 142 - "🤷 User: *mach die description vom tutorial anders…*"
+Cohesion: 0.25
+Nodes (8): 🤖 Assistant: *All three call sites are consistent with…*, 🔎 Grep `HUD|hud` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\level_generator.gd`, 👀 Read `hud.tscn`, 👀 Read `level_generator.gd`, 💭 Thinking, 💭 Thinking: *So HUD, PauseMenu, DeathScreen, and WinScreen…*, 💭 Thinking: *The key insight is that since this node extends…*, 🤷 User: *mach die description vom tutorial anders…*
+
+### Community 143 - "🤖 Assistant: *Now the CustomEnemyBase family's four attacking…*"
+Cohesion: 0.25
+Nodes (8): 🤖 Assistant: *Now the CustomEnemyBase family's four attacking…*, ✏️  Edit `acid_sprinkler.gd`, ✏️  Edit `dive_bomber.gd`, ✏️  Edit `mortar_bot.gd`, 👀 Read `acid_sprinkler.gd`, 👀 Read `dive_bomber.gd`, 👀 Read `mortar_bot.gd`, 👀 Read `plasma_beam_bot.gd`
+
+### Community 144 - "📋 Session `31bea21d`: Balanciere Gegner-Kosten für Spielmechanik — Model: `claude-sonnet-5`"
+Cohesion: 0.29
+Nodes (6): Balanciere Gegner-Kosten für Spielmechanik, 🔎 Grep `enum RoomType` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_data.gd`, 🔎 Grep `func requires_clear` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd`, 📋 Session `31bea21d`: Balanciere Gegner-Kosten für Spielmechanik — Model: `claude-sonnet-5`, 💭 Thinking, 🤷 User: *minimap grayout und icons sind garnicht vorhanden…*
+
+### Community 145 - "Assistant"
+Cohesion: 0.29
+Nodes (7): 1. Dringende Bugfixes & Polish (Gameplay), 2. Balancing des Threat-Budgets (Gegner-Spawns), 3. Integration der neuen Gegner in den echten Run, 4. Individuelle Charakter-Bewegungen (Movement), 5. Tooling: Wiki-Sync vervollständigen, 6. Langfristige technische Optimierung, Assistant
+
+### Community 146 - "Assistant"
+Cohesion: 0.29
+Nodes (7): Assistant, Schritt 1: `git-crypt` installieren, Schritt 2: `git-crypt` im Projekt aktivieren, Schritt 3: Den Schlüssel exportieren und SICHERN!, Schritt 4: Festlegen, welche Dateien verschlüsselt werden sollen, Schritt 5: Dateien zu Git hinzufügen, Wie funktioniert `git-crypt`?
 
 ### Community 147 - "Update cumulative cost tracker"
 Cohesion: 0.01
@@ -697,17 +1222,25 @@ Nodes (151): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, A
 Cohesion: 0.01
 Nodes (149): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+141 more)
 
+### Community 151 - "User"
+Cohesion: 0.29
+Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
+
 ### Community 152 - "User Raw Claude Dangerously Skip Permissions Claude Dangerously Skip Permissions 1 Thought"
 Cohesion: 0.01
 Nodes (137): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+129 more)
+
+### Community 153 - "User"
+Cohesion: 0.29
+Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
 
 ### Community 154 - "User Raw Ich Muss Meine Situation Erklren Mein"
 Cohesion: 0.02
 Nodes (124): Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant, Assistant (+116 more)
 
 ### Community 155 - "MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT)"
-Cohesion: 0.02
-Nodes (107): 1. FIXED BLOCKERS & ROOT CAUSES (STRIKT IMPLEMENTIEREN), 2. GAMEPLAY, UI & SYSTEM OVERHAULS, 3. SPECIFIC ITEM REWORKS, Assistant, Assistant, Assistant, Assistant, Assistant (+99 more)
+Cohesion: 0.29
+Nodes (7): 1. FIXED BLOCKERS & ROOT CAUSES (STRIKT IMPLEMENTIEREN), 2. GAMEPLAY, UI & SYSTEM OVERHAULS, 3. SPECIFIC ITEM REWORKS, MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT), User, User, User
 
 ### Community 156 - "2026-08-12_slash-command-graphify-2.md"
 Cohesion: 0.02
@@ -801,13 +1334,13 @@ Nodes (33): Gemini, Gemini, Gemini, Gemini, Gemini, Gemini, Gemini, Gemini (+25 
 Cohesion: 0.06
 Nodes (33): Gemini, Gemini, Gemini, Gemini, Gemini, Gemini, Gemini, Gemini (+25 more)
 
-### Community 179 - "Patch Notes — Lemonade"
-Cohesion: 0.06
-Nodes (31): 10. August 2026, 11. August 2026, 1. August 2026, 24. Juli 2026, 26. Juli 2026, 28. Juli 2026, 4. August 2026, 5. August 2026 (+23 more)
+### Community 179 - "User"
+Cohesion: 0.29
+Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
 
-### Community 180 - "Neue Ideen"
-Cohesion: 0.07
-Nodes (27): 2. Zerstörbare Umgebungen & Deckung, 3. "The Lemonade Flood" (Bosskampf-Mechanik), 4. Geheimräume (Der klassische Roguelite-Faktor), 5. Hit-Stop & PSX "Juice", 6. Meta-Progression (Was passiert nach dem Tod?), 7. Kritische Treffer (Crit-Feedback), 8. Dash-Schaden (Damage Numbers), Assistant (+19 more)
+### Community 180 - "User"
+Cohesion: 0.29
+Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
 
 ### Community 181 - "Neue Ideen"
 Cohesion: 0.07
@@ -905,25 +1438,25 @@ Nodes (11): Gemini, Gemini, Gemini, Gemini, Gemini, Git Commits mit Claude und G
 Cohesion: 0.17
 Nodes (11): Gemini, Gemini, Gemini, Gemini, Gemini, User, User, User (+3 more)
 
-### Community 205 - "Balancing-Stellschrauben"
-Cohesion: 0.17
-Nodes (12): 1. Giselle (Die Sniper-Anomalie), 2. Der Schalter-Puzzle-Kampf (Switch Arena), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Blutzoll (Sacrifice Room / Risk-Reward) (+4 more)
+### Community 205 - "1. `04_Chat_Prompts/` — die Chat-Archiv-Dateien"
+Cohesion: 0.33
+Nodes (6): 1. `04_Chat_Prompts/` — die Chat-Archiv-Dateien, Format für eine neu angelegte Chat-Datei, Frontmatter-Schema, KI-Quellen — woran man sie erkennt, Thema-Kategorien (nicht abschließend, bei Bedarf erweitern), Was tun, wenn Chats fehlen oder ungetaggt sind?
 
-### Community 206 - "Neue Ideen"
-Cohesion: 0.17
-Nodes (12): 2. Zerstörbare Umgebungen & Deckung, 3. "The Lemonade Flood" (Bosskampf-Mechanik), 4. Geheimräume (Der klassische Roguelite-Faktor), 5. Hit-Stop & PSX "Juice", 6. Meta-Progression (Was passiert nach dem Tod?), 7. Kritische Treffer (Crit-Feedback), 8. Dash-Schaden (Damage Numbers), Neue Ideen (+4 more)
+### Community 206 - "Godot-Projekt-Setup und Szenen-Optimierung"
+Cohesion: 0.33
+Nodes (5): Assistant, Assistant, Godot-Projekt-Setup und Szenen-Optimierung, User, User
 
 ### Community 207 - "Balancing-Stellschrauben"
 Cohesion: 0.17
 Nodes (12): 1. Giselle (Die Sniper-Anomalie), 2. Der Schalter-Puzzle-Kampf (Switch Arena), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Blutzoll (Sacrifice Room / Risk-Reward) (+4 more)
 
-### Community 208 - "Balancing-Stellschrauben"
-Cohesion: 0.17
-Nodes (12): 1. Giselle (Die Sniper-Anomalie), 2. Der Schalter-Puzzle-Kampf (Switch Arena), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Blutzoll (Sacrifice Room / Risk-Reward) (+4 more)
+### Community 208 - "Assistant"
+Cohesion: 0.33
+Nodes (6): Assistant, 🏆 Bossräume, ⚔️ Kampfräume (Combat), 🎁 Schatzkammern (Treasure), 🚀 Startraum, 🌉 Verbindungsgänge & Brücken (Corridors)
 
-### Community 209 - "Neue Ideen"
-Cohesion: 0.17
-Nodes (12): 2. Zerstörbare Umgebungen & Deckung, 3. "The Lemonade Flood" (Bosskampf-Mechanik), 4. Geheimräume (Der klassische Roguelite-Faktor), 5. Hit-Stop & PSX "Juice", 6. Meta-Progression (Was passiert nach dem Tod?), 7. Kritische Treffer (Crit-Feedback), 8. Dash-Schaden (Damage Numbers), Neue Ideen (+4 more)
+### Community 209 - "Update cumulative cost tracker"
+Cohesion: 0.33
+Nodes (6): Assistant, Assistant, Assistant, Assistant, Update cumulative cost tracker, User
 
 ### Community 210 - "Gegner bleiben an Kanten stecken"
 Cohesion: 0.20
@@ -1093,37 +1626,37 @@ Nodes (6): Assistant, Assistant, Assistant, Assistant, Md, User
 Cohesion: 0.29
 Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
 
-### Community 252 - "User"
-Cohesion: 0.29
-Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
+### Community 252 - "Balancing-Stellschrauben"
+Cohesion: 0.33
+Nodes (6): 1. Giselle (Die Sniper-Anomalie), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Threat-Budget vs. AoE im Lategame, Balancing-Stellschrauben
 
-### Community 253 - "User"
-Cohesion: 0.29
-Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
+### Community 253 - "🤷 User: *er schaut nun von sich aus nach links nicht…*"
+Cohesion: 0.33
+Nodes (6): 🤖 Assistant: *Beide Änderungen gemacht: `model_yaw_offset_deg…*, 🤖 Assistant: *Fixe die Blickrichtung (0° und 180° waren…*, ✏️  Edit `scout_dummy.tscn`, 👀 Read `scout_dummy.tscn`, 💭 Thinking, 🤷 User: *er schaut nun von sich aus nach links nicht…*
 
-### Community 254 - "MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT)"
-Cohesion: 0.29
-Nodes (7): 1. FIXED BLOCKERS & ROOT CAUSES (STRIKT IMPLEMENTIEREN), 2. GAMEPLAY, UI & SYSTEM OVERHAULS, 3. SPECIFIC ITEM REWORKS, MASTER GAME DEVELOPMENT PROMPT (GODOT 4.X GDSCRIPT), User, User, User
+### Community 254 - "💭 Thinking"
+Cohesion: 0.33
+Nodes (6): ✏️  Edit `combat_giselle.gd`, ✏️  Edit `combat_giselle.gd`, 🔎 Grep `_uzi_esp|_sniper_esp_box|esp_marker` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\characters\combat_giselle.gd`, 👀 Read `combat_giselle.gd`, 👀 Read `combat_giselle.gd`, 💭 Thinking
 
 ### Community 255 - "User"
 Cohesion: 0.29
 Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
 
-### Community 256 - "User"
-Cohesion: 0.29
-Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
+### Community 256 - "💭 Thinking"
+Cohesion: 0.33
+Nodes (6): ✏️  Edit `settings_manager.gd`, ✏️  Edit `tutorial_content.gd`, 👀 Read `settings_manager.gd`, TaskUpdate, TaskUpdate, 💭 Thinking
 
-### Community 257 - "User"
-Cohesion: 0.29
-Nodes (7): 1. Temporäre Editor-Dateien (Crash-Backups), 2. Fantasy-Gegner aus dem Dungeon Kit, 3. Ungenutzte Requisiten & Props, 4. Veraltete Level-Experimente, 5. Web-Export Icons, 6. Externe Tool-Outputs & Artefakte, User
+### Community 257 - "Wo sind die Patchnotes bei Obsidian"
+Cohesion: 0.33
+Nodes (5): Assistant, Assistant, User, User, Wo sind die Patchnotes bei Obsidian
 
 ### Community 258 - "Slow"
-Cohesion: 0.29
-Nodes (7): Riesige Kaugummiblase, Kaugummi unter dem Schuh, Gefrierbeutel voll Eis, Anbruch der Nacht, USB-Mini-Ventilator, Frost-Orb, Slow
+Cohesion: 0.33
+Nodes (6): Riesige Kaugummiblase, Kaugummi unter dem Schuh, Gefrierbeutel voll Eis, USB-Mini-Ventilator, Frost-Orb, Slow
 
 ### Community 259 - "Stun"
 Cohesion: 0.33
-Nodes (6): Verwerfungslinie, Papas Starthilfekabel, Donnergrollen, Schockbolzen, Mamas Stoeckelschuhe, Stun
+Nodes (6): Verwerfungslinie, Papas Starthilfekabel, Lockdown, Donnergrollen, Schockbolzen, Stun
 
 ### Community 260 - "MOC — Status-Effekte nach Klasse"
 Cohesion: 0.29
@@ -1197,25 +1730,25 @@ Nodes (6): 1. Giselle (Die Sniper-Anomalie), 2. Differenzierung von Säure (Acid
 Cohesion: 0.33
 Nodes (5): Assistant, Assistant, Schau Dir Den Letzten Commit An Und Den, User, User
 
-### Community 278 - "Update cumulative cost tracker"
+### Community 278 - "Die 3 Säulen der Dokumentation"
 Cohesion: 0.33
-Nodes (6): Assistant, Assistant, Assistant, Assistant, Update cumulative cost tracker, User
+Nodes (6): 1. Die "Werkstatt" (Rohe Arbeitsdaten), 2. Das "Tagebuch" (Technische Meilensteine), 3. Das "Schaufenster" (Spieler- / Öffentlichkeits-Fokus), Assistant, Der perfekte Tagesablauf (Zusammenfassung), Die 3 Säulen der Dokumentation
 
 ### Community 279 - "Update cumulative cost tracker"
 Cohesion: 0.33
 Nodes (6): Assistant, Assistant, Assistant, Assistant, Update cumulative cost tracker, User
 
-### Community 280 - "Balancing-Stellschrauben"
-Cohesion: 0.33
-Nodes (6): 1. Giselle (Die Sniper-Anomalie), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Threat-Budget vs. AoE im Lategame, Balancing-Stellschrauben
+### Community 280 - "2026-08-12_user-raw-bitte-berprfe-und-repariere-das-ganze.md"
+Cohesion: 0.15
+Nodes (12): 1. Giselle (Die Sniper-Anomalie), 2. Der Schalter-Puzzle-Kampf (Switch Arena), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Blutzoll (Sacrifice Room / Risk-Reward) (+4 more)
 
-### Community 281 - "2026-08-12_user-raw-bitte-berprfe-und-repariere-das-ganze.md"
-Cohesion: 0.25
-Nodes (7): 2. Der Schalter-Puzzle-Kampf (Switch Arena), 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 5. Blutzoll (Sacrifice Room / Risk-Reward), Raum-Design Ideen, Raum-Ideen & Balancing (Entwurf), Raum-Ideen & Balancing (Entwurf)
+### Community 281 - "🤖 Assistant: *All four match the old values from the doc…*"
+Cohesion: 0.40
+Nodes (5): 🤖 Assistant: *All four match the old values from the doc…*, ✏️  Edit `es_acid_sprinkler.tres`, ✏️  Edit `es_divebomber.tres`, ✏️  Edit `es_mortar_bot.tres`, ✏️  Edit `es_shield_drone.tres`
 
-### Community 282 - "Balancing-Stellschrauben"
-Cohesion: 0.33
-Nodes (6): 1. Giselle (Die Sniper-Anomalie), 2. Differenzierung: Feuer (Burn) vs. Säure (Acid), 3. Colossus & Knockback-Resistenz, 4. Item-Synergie Wahrscheinlichkeiten (84 Items), 5. Threat-Budget vs. AoE im Lategame, Balancing-Stellschrauben
+### Community 282 - "💭 Thinking"
+Cohesion: 0.40
+Nodes (5): 💻 Bash, 👀 Read `char_1.tres`, 👀 Read `char_2.tres`, 👀 Read `character_data.gd`, 💭 Thinking
 
 ### Community 283 - "{{name}}"
 Cohesion: 0.29
@@ -1445,25 +1978,25 @@ Nodes (5): For /graphify query, Slash Command Graphify, Usage, User, User
 Cohesion: 0.40
 Nodes (5): Giselle – Ranged / Precision, Karina – Melee / Assassin, Ningning – Brawler / Melee, User, Winter – Energy / Crowd Control
 
-### Community 340 - "User"
+### Community 340 - "💭 Thinking"
 Cohesion: 0.40
-Nodes (5): Giselle – Ranged / Precision, Karina – Melee / Assassin, Ningning – Brawler / Melee, User, Winter – Energy / Crowd Control
+Nodes (5): 👀 Read `es_acid_sprinkler.tres`, 👀 Read `es_divebomber.tres`, 👀 Read `es_mortar_bot.tres`, 👀 Read `es_shield_drone.tres`, 💭 Thinking
 
-### Community 341 - "User"
+### Community 341 - "Assistant"
 Cohesion: 0.40
-Nodes (5): Giselle – Ranged / Precision, Karina – Melee / Assassin, Ningning – Brawler / Melee, User, Winter – Energy / Crowd Control
+Nodes (5): 1. Dateien ins Projekt ziehen, 2. Das Animations-Skelett "übersetzen" (Bone Map), 3. Deinen Charakter vorbereiten, 4. Animation abspielen!, Assistant
 
-### Community 342 - "09_Ideen.md"
-Cohesion: 0.50
-Nodes (3): 1. Die "Swarm"-Gegner (Stark reduzierte Masse), 2. Die "Support/Utility"-Gegner (Etwas teurer), 3. Die "Heavy/Elite"-Gegner (Spürbar teurer)
+### Community 342 - "Assistant"
+Cohesion: 0.40
+Nodes (5): 1. Eine neue Szene für den Effekt erstellen, 2. Das Partikelsystem hinzufügen, 3. Den Effekt einstellen (Der spaßige Teil!), 4. Den Effekt im Code auslösen, Assistant
 
 ### Community 343 - "User"
 Cohesion: 0.40
 Nodes (5): Giselle – Ranged / Precision, Karina – Melee / Assassin, Ningning – Brawler / Melee, User, Winter – Energy / Crowd Control
 
-### Community 344 - "User"
+### Community 344 - "Assistant"
 Cohesion: 0.40
-Nodes (5): Giselle – Ranged / Precision, Karina – Melee / Assassin, Ningning – Brawler / Melee, User, Winter – Energy / Crowd Control
+Nodes (5): 1. Ein separates, privates Repository erstellen (Empfohlen), 2. Das gesamte aktuelle Repository auf "Privat" stellen, 3. Dateien verschlüsseln (Für Fortgeschrittene), 4. Cloud-Speicher für diese speziellen Dateien nutzen, Assistant
 
 ### Community 345 - "User"
 Cohesion: 0.40
@@ -1529,9 +2062,9 @@ Nodes (4): 2026-07-22 — fix settings tabs, Erwaehnte Entitaeten, Metadaten, �
 Cohesion: 0.40
 Nodes (4): 2026-07-22 — Add NavMesh pathfinding and fix physics bugs, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
-### Community 361 - "2026-07-22 — feat(ui): add settings menu with sensitivity, volume, fullscreen and rebindable keybinds"
-Cohesion: 0.40
-Nodes (4): 2026-07-22 — feat(ui): add settings menu with sensitivity, volume, fullscreen and rebindable keybinds, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
+### Community 361 - "_MOC_DevLogs.md"
+Cohesion: 0.20
+Nodes (8): 2026-07-22 — feat(ui): add settings menu with sensitivity, volume, fullscreen and rebindable keybinds, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify), 2026-07 (55), 2026-08 (33), MOC — Alle DevLogs (88 Commits), 🧠 Semantische Verbindungen (Graphify)
 
 ### Community 362 - "2026-08-10 — Obsidian-Vault ins Repo aufnehmen"
 Cohesion: 0.40
@@ -1613,9 +2146,9 @@ Nodes (9): Effekt, Erwaehnt in DevLogs, Karinas Reflexe, Metadaten, Quelle, Reag
 Cohesion: 0.40
 Nodes (4): 2026-07-25 — fix(level-generation): dynamisches Spawning/Tür-System für Grid-Level repariert, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
-### Community 382 - "_MOC_DevLogs.md"
-Cohesion: 0.20
-Nodes (8): 2026-07-25 — feat(level-gen): threat-budget enemy mix, lava hazards, elevation, minimap overlay, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify), 2026-07 (55), 2026-08 (33), MOC — Alle DevLogs (88 Commits), 🧠 Semantische Verbindungen (Graphify)
+### Community 382 - "2026-07-25 — feat(level-gen): threat-budget enemy mix, lava hazards, elevation, minimap overlay"
+Cohesion: 0.40
+Nodes (4): 2026-07-25 — feat(level-gen): threat-budget enemy mix, lava hazards, elevation, minimap overlay, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
 ### Community 383 - "2026-07-25 — feat(minimap): add player direction arrow"
 Cohesion: 0.40
@@ -1993,13 +2526,13 @@ Nodes (4): 2026-08-12 — ﻿feat: combat mechanics, weighted item drops, and UI
 Cohesion: 0.40
 Nodes (4): 2026-08-12 — chore: add obsidian workspaces and OS temp files to gitignore, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
-### Community 477 - "Valorant-ähnliche Bewegungsmechanik in Godot"
-Cohesion: 0.50
-Nodes (3): User, User, Valorant-ähnliche Bewegungsmechanik in Godot
+### Community 477 - "User"
+Cohesion: 0.40
+Nodes (5): Giselle – Ranged / Precision, Karina – Melee / Assassin, Ningning – Brawler / Melee, User, Winter – Energy / Crowd Control
 
-### Community 478 - "Spielearchitektur: ECS und Modifier-System"
-Cohesion: 0.50
-Nodes (3): Gemini, Spielearchitektur: ECS und Modifier-System, User
+### Community 478 - "2026-08-14_patchnotes-skript-weiterentwicklung-und-doku-guide-feedback.md"
+Cohesion: 0.15
+Nodes (8): User, User, Valorant-ähnliche Bewegungsmechanik in Godot, Godot scanline shader correction, User, Gemini, Spielearchitektur: ECS und Modifier-System, User
 
 ### Community 479 - "KI-Verfolgung mit NavigationAgent3D verbessern"
 Cohesion: 0.50
@@ -2134,28 +2667,32 @@ Cohesion: 0.50
 Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
 
 ### Community 512 - "User"
-Cohesion: 0.50
-Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
+Cohesion: 0.40
+Nodes (5): Giselle – Ranged / Precision, Karina – Melee / Assassin, Ningning – Brawler / Melee, User, Winter – Energy / Crowd Control
 
 ### Community 513 - "User"
-Cohesion: 0.50
-Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
+Cohesion: 0.40
+Nodes (5): Giselle – Ranged / Precision, Karina – Melee / Assassin, Ningning – Brawler / Melee, User, Winter – Energy / Crowd Control
 
 ### Community 514 - "User"
 Cohesion: 0.50
 Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
 
-### Community 515 - "User"
-Cohesion: 0.50
-Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
+### Community 515 - "Assistant"
+Cohesion: 0.40
+Nodes (5): 1. UI & Menüs (Tutorial & Hauptmenü), 2. Charaktere & Combat, 3. VFX Refactoring (Performance & Struktur), 4. Spielsysteme, Gegner & Räume, Assistant
 
-### Community 516 - "User"
-Cohesion: 0.50
-Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
+### Community 516 - "🤷 User: *Fehler bei (190, 25): Cannot infer the type…*"
+Cohesion: 0.40
+Nodes (5): 👀 Read `animation_manager.gd`, 👀 Read `animation_manager.gd`, 💭 Thinking, 💭 Thinking, 🤷 User: *Fehler bei (190, 25): Cannot infer the type…*
 
 ### Community 517 - "{{id}}"
 Cohesion: 0.40
 Nodes (4): {{id}}, Layout-Notizen, Quelle, 🧠 Semantische Verbindungen (Graphify)
+
+### Community 519 - "Assistant"
+Cohesion: 0.40
+Nodes (5): 1. Antigravity-Chats exportieren fehlt (Abschnitt 1), 2. Die neue Patchnotes-Logik ist nicht aktuell (Abschnitt 3), 3. Veralteter Skript-Name (Abschnitt 3 & 8), 4. Ein Skript für den Antigravity-Export in der Tabelle (Abschnitt 8), Assistant
 
 ### Community 532 - "Assistant"
 Cohesion: 0.67
@@ -2173,37 +2710,437 @@ Nodes (3): Assistant, Brauchst du sie wirklich noch?, Konkret in deinem Vault:
 Cohesion: 0.67
 Nodes (3): Einstieg ins Wiki:, Was jede Seite jetzt hat:, Whiplash Wiki — Umbau abgeschlossen
 
+### Community 539 - "tag_chat_prompts.py"
+Cohesion: 0.60
+Nodes (4): detect_ki_art(), main(), tag_chat_prompts.py — einmalig ausführbar (oder erneut, wenn neue Chat-Prompt-…, update_frontmatter()
+
+### Community 540 - "2026-08-14 — fix: BinbunVFX-Asset-Packs an ihren erwarteten Pfad verschieben"
+Cohesion: 0.50
+Nodes (3): 2026-08-14 — fix: BinbunVFX-Asset-Packs an ihren erwarteten Pfad verschieben, Erwaehnte Entitaeten, Metadaten
+
+### Community 541 - "2026-08-14 — fix import texture"
+Cohesion: 0.50
+Nodes (3): 2026-08-14 — fix import texture, Erwaehnte Entitaeten, Metadaten
+
+### Community 542 - "2026-08-14 — feat: Umfangreiches Update - Gameplay, UI, Level-Generation und VFX"
+Cohesion: 0.50
+Nodes (3): 2026-08-14 — feat: Umfangreiches Update - Gameplay, UI, Level-Generation und VFX, Erwaehnte Entitaeten, Metadaten
+
+### Community 543 - "Greeting"
+Cohesion: 0.50
+Nodes (3): Assistant, Greeting, User
+
+### Community 544 - "item_manager.gd"
+Cohesion: 0.14
+Nodes (14): Eingabe-Actions selbst registriert, Erwaehnt in DevLogs, `_inventory_counts`: O(1) statt linearer Suche, item_manager.gd, Ladung als Dictionary pro Item-ID, nicht pro Slot, Q/E-Slots: zwei unabhaengige aktive Items, `reset_run()` vs. `clear_inventory()`, `silent`-Flag bei `add_item()` (+6 more)
+
+### Community 545 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 💻 Bash, 🔎 Grep `Combat` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\characters\char_winter.tscn`, 👀 Read `char_winter.gd`, 💭 Thinking
+
 ### Community 546 - "2026-07-22 — feat(ui): add settings menu with sensitivity, volume, fullscreen and rebindable keybinds"
 Cohesion: 0.40
 Nodes (4): 2026-07-22 — feat(ui): add settings menu with sensitivity, volume, fullscreen and rebindable keybinds, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
+
+### Community 547 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 💻 Bash, 👀 Read `enemy_query.gd`, 👀 Read `health.gd`, 💭 Thinking
+
+### Community 548 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): ✏️  Edit `combat_winter.gd`, 🔎 Grep `_clear_laser_esp` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\characters\combat_winter.gd`, 🔎 Grep `func _clear_laser_esp"` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\characters\combat_winter.gd`, 💭 Thinking
+
+### Community 549 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 📂 Glob `**/party_setup*.gd`, 📂 Glob `resources/characters/*.tres`, 🔎 Grep `get_node\("Combat"\)|\$Combat|combat\.setup|Combat"\)" ` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\player_base.gd`, 💭 Thinking
 
 ### Community 550 - "2026-08-13 — Update VFX for Ningning, fix Winter animation retargeting, and add Winter muzzle flash"
 Cohesion: 0.40
 Nodes (4): 2026-08-13 — Update VFX for Ningning, fix Winter animation retargeting, and add Winter muzzle flash, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
-### Community 551 - "Raum-Design Ideen"
-Cohesion: 0.40
-Nodes (5): 2. Der Schalter-Puzzle-Kampf (Switch Arena), 3. Der riskante Gitterrost (Abyss Maze), 4. Die Brücke der Verzweiflung (Chokepoint), 5. Blutzoll (Sacrifice Room / Risk-Reward), Raum-Design Ideen
+### Community 551 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 📂 Glob `**/player_stats.gd`, 🔎 Grep `func add_modifier|func remove_source|func clear_all|_modifiers"` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\core\player_stats.gd`, 🔎 Grep `func add_modifier|func remove_source|func clear_all|var _modifiers|source_id` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\player_stats.gd`, 💭 Thinking
+
+### Community 552 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 📂 Glob `**/room_instance.gd`, 🔎 Grep `Minimap|minimap|Icon|icon_texture|TextureRect|stretch_mode|floor_material|floor_mesh|MeshInstance3D.*floor` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd`, 🔎 Grep `Minimap|minimap|Icon|icon_texture|TextureRect|stretch_mode` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\level\room_instance.gd`, 💭 Thinking
+
+### Community 553 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 📂 Glob `scripts/characters/combat_winter.gd`, 📂 Glob `scripts/combat_base.gd`, 👀 Read `combat_base.gd`, 💭 Thinking
+
+### Community 554 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 🔎 Grep `minimap_color|grid_texture|room_color|icon` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts`, 👀 Read `char_karina.gd`, 👀 Read `custom_enemy_base.gd`, 💭 Thinking
+
+### Community 555 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 🔎 Grep `static func build_all|func load_external|const ID_|static func _item_|^func " ` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_catalog.gd`, 🔎 Grep `static func build_all|return \[|result.append|^\treturn result|var result" ` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_catalog.gd`, 👀 Read `item_catalog.gd`, 💭 Thinking
+
+### Community 556 - "Greeting"
+Cohesion: 0.50
+Nodes (3): Assistant, Greeting, User
+
+### Community 557 - "Assistant"
+Cohesion: 0.50
+Nodes (4): 1. Das Plasma-Laser-Problem, 2. Das Blut-Splash-Problem, Assistant, Wie wir das lösen können
+
+### Community 558 - "Assistant"
+Cohesion: 0.50
+Nodes (4): 1. Du nimmst deine Fehler einfach mit, 2. Der Portierungs-Aufwand ist enorm, 3. KI und komplexe Spiele, Assistant
+
+### Community 559 - "Persönliche Daten im Projekt prüfen"
+Cohesion: 0.50
+Nodes (3): Assistant, Persönliche Daten im Projekt prüfen, User
+
+### Community 560 - "User"
+Cohesion: 0.50
+Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
+
+### Community 561 - "User"
+Cohesion: 0.50
+Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
+
+### Community 562 - "User"
+Cohesion: 0.50
+Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
+
+### Community 563 - "User"
+Cohesion: 0.50
+Nodes (4): 1. Gameplay & Inventar-Mechaniken, 2. Leveldesign, Gegner & Raum-Layouts, 3. Wiki & Obsidian Dokumentation, User
+
+### Community 564 - "✅ Erledigt"
+Cohesion: 0.50
+Nodes (4): 1. 🗑️ Teleporter-Pads entfernt — [`debug_teleporter.gd`](file:///c:/Users/thvnh/Documents/GitHub/whiplash/scripts/debug_teleporter.gd), 2. 🔧 ADMIN-Panel im Pause-Menü — [`pause_menu.gd`](file:///c:/Users/thvnh/Documents/GitHub/whiplash/scripts/pause_menu.gd), 3. 🧑‍🎮 Character-Screen zeigt aktuell gespielten Char — [`main_menu.gd`](file:///c:/Users/thvnh/Documents/GitHub/whiplash/scripts/main_menu.gd), ✅ Erledigt
+
+### Community 565 - "Prompt für Karina-Item-Fix formulieren"
+Cohesion: 0.50
+Nodes (3): Assistant, Prompt für Karina-Item-Fix formulieren, User
+
+### Community 566 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 👀 Read `animation_manager.gd`, 👀 Read `dummy.tscn`, 👀 Read `scout_dummy.tscn`, 💭 Thinking
+
+### Community 567 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 👀 Read `check_anims.gd`, 👀 Read `parse_anims.py`, 👀 Read `print_anims.gd`, 💭 Thinking
+
+### Community 568 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): 👀 Read `check_fbx.gd`, 👀 Read `dump_tree.gd`, 👀 Read `test.gd`, 💭 Thinking
+
+### Community 569 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): ✏️  Edit `acid_sprinkler.gd`, ✏️  Edit `mortar_bot.gd`, TaskUpdate, 💭 Thinking
+
+### Community 570 - "💭 Thinking"
+Cohesion: 0.50
+Nodes (4): ✏️  Edit `tutorial_content.gd`, 🔎 Grep `data.description` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\tutorial_content.gd`, 👀 Read `tutorial_content.gd`, 💭 Thinking
+
+### Community 571 - "leaderboard_manager.gd"
+Cohesion: 0.18
+Nodes (11): Defensives Signal-Binding, `details_max` muss vor dem Download gesetzt sein, Erwaehnt in DevLogs, Fehlerpfad bei nicht auffindbarem Board, leaderboard_manager.gd, Manipulationssicherheit, Nutzung: `win_screen.gd`, Ohne Steam (+3 more)
+
+### Community 572 - "resolve_claude_ki_art.py"
+Cohesion: 0.67
+Nodes (3): main(), resolve_claude_ki_art.py — einmalig ausführbar. Loest ki_art: "wird…, update_file()
+
+### Community 573 - "01.08.2026"
+Cohesion: 0.67
+Nodes (3): 01.08.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 574 - "04.08.2026"
+Cohesion: 0.67
+Nodes (3): 04.08.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 575 - "10.08.2026"
+Cohesion: 0.67
+Nodes (3): 10.08.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 576 - "11.08.2026"
+Cohesion: 0.67
+Nodes (3): 11.08.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 577 - "12.08.2026"
+Cohesion: 0.67
+Nodes (3): 12.08.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 578 - "14.08.2026"
+Cohesion: 0.67
+Nodes (3): 14.08.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 579 - "22.07.2026"
+Cohesion: 0.67
+Nodes (3): 22.07.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 580 - "23.07.2026"
+Cohesion: 0.67
+Nodes (3): 23.07.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 581 - "room_commit_guard.gd"
+Cohesion: 0.18
+Nodes (11): Der Exploit: Wand-Hug am `EntryTrigger` vorbei, Die Loesung: zweite, unabhaengige Stufe mit zwei Ausloesern, Erwaehnt in DevLogs, Robustheit ueber `has_method()`/`get()` statt direkter Feldzugriffe, room_commit_guard.gd, Verwandt, Warum als eigenstaendiger Autoload statt in `room_instance.gd`, Warum `_commit()` `_has_entered` direkt per `set()` setzt (+3 more)
+
+### Community 582 - "treasure_manager.gd"
+Cohesion: 0.18
+Nodes (11): Bekannter, behobener Fehler: verfrühte Auswertung in `_on_node_added`, Diagnose-Bausteine, Drei Sockel-Varianten aus einem Pfad, Erkennung: SceneTree.node_added statt Generator-Hook, Erwaehnt in DevLogs, Item-Auswahl: deterministisch, gewichtet, pool-basiert, Run-Reset ueber Seed-Vergleich statt expliziten Reset-Aufruf, Sockelposition: warum der Bodenstrahl nicht von ganz oben startet (+3 more)
+
+### Community 583 - "27.07.2026"
+Cohesion: 0.67
+Nodes (3): 27.07.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 584 - "28.07.2026"
+Cohesion: 0.67
+Nodes (3): 28.07.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 585 - "🤖 Assistant: *Now for the Divebomber — currently `VISUAL_SCALE…*"
+Cohesion: 0.67
+Nodes (3): ❓ Asking questions..., 🤖 Assistant: *Now for the Divebomber — currently `VISUAL_SCALE…*, ✏️  Edit `dive_bomber.gd`
+
+### Community 586 - "🤖 Assistant: *Found the crash.*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Found the crash.*, 📂 Glob `**/*ivebomber*`, 📂 Glob `scripts/characters/combat_giselle.gd`
+
+### Community 587 - "🤖 Assistant: *Now `acid_sprinkler.gd` — detection range…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now `acid_sprinkler.gd` — detection range…*, ✏️  Edit `acid_sprinkler.gd`, 👀 Read `acid_sprinkler.gd`
+
+### Community 588 - "🤖 Assistant: *Now `combat_giselle.gd` — fire rate, dynamic…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now `combat_giselle.gd` — fire rate, dynamic…*, ✏️  Edit `combat_giselle.gd`, 👀 Read `combat_giselle.gd`
+
+### Community 589 - "🤖 Assistant: *Now I have everything needed — node paths…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now I have everything needed — node paths…*, 💻 Bash, ✍️  Write `party_manager_test_base.gd`
+
+### Community 590 - "game_juice.gd"
+Cohesion: 0.22
+Nodes (9): Erwaehnt in DevLogs, game_juice.gd, `hit_stop_enabled`, Hit-Stop ueber `Engine.time_scale`, Pause- und Restart-Interaktion, Shake-Weiterleitung, Verwandt, Verwendung im Projekt (+1 more)
+
+### Community 591 - "🤖 Assistant: *Now `player_base.gd` for the default over…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now `player_base.gd` for the default over…*, ✏️  Edit `player_base.gd`, 👀 Read `player_base.gd`
+
+### Community 592 - "🤖 Assistant: *Now update `_update_laser_esp()` to use …*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now update `_update_laser_esp()` to use …*, ✏️  Edit `combat_winter.gd`, 👀 Read `combat_winter.gd`
+
+### Community 593 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 💻 Bash, 👀 Read `rd_combat_07.tres`, 💭 Thinking
+
+### Community 594 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 💻 Bash, 👀 Read `rd_combat_wide_01.tres`, 💭 Thinking
+
+### Community 595 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): ✏️  Edit `combat_winter.gd`, 👀 Read `combat_winter.gd`, 💭 Thinking
+
+### Community 596 - "game_stats.gd"
+Cohesion: 0.22
+Nodes (9): Erwaehnt in DevLogs, game_stats.gd, `has_live_run` wird bewusst NICHT persistiert, `_items_discovered` als Dictionary statt Array/Set, Keine Verbindung zu LeaderboardManager, `_process()` laeuft immer, nicht nur waehrend eines Runs, Report-API statt direkter Feldzugriffe, Verwandt (+1 more)
+
+### Community 597 - "loot_manager.gd"
+Cohesion: 0.22
+Nodes (9): Deterministischer Pro-Raum-RNG statt globalem RNG, Doppel-Drop-Sperre, Drop-Position: Marker bevorzugt, Spieler als Fallback — NICHT Raummitte, Dropchance: Basis + Glueck + Combo, gedeckelt, Erwaehnt in DevLogs, loot_manager.gd, `spawn_random_drop()` — Sonderfall Verfluchter Gluecksduerfel, Verwandt (+1 more)
+
+### Community 598 - "enemy_density.gd"
+Cohesion: 0.25
+Nodes (8): Determinismus, enemy_density.gd, Erwaehnt in DevLogs, Gueltigkeits-Checks pro Kandidat, Timing, Verwandt, Warum als Autoload statt als Aenderung an room_instance.gd, Zwei Deckel, nur einer war das Budget
+
+### Community 599 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 📂 Glob `scripts/**/homing_bolt.gd`, 👀 Read `homing_bolt.gd`, 💭 Thinking
+
+### Community 600 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `_apply_plastic_halo` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_behaviours.gd`, 🔎 Grep `func _apply_plastic_halo" -A 20` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_behaviours.gd`, 💭 Thinking
+
+### Community 601 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `_build_ceiling\(\)|_build_wall_caps\(\)|func _ready\(\)` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd`, 👀 Read `room_instance.gd`, 💭 Thinking
+
+### Community 602 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `class_name CharacterData|player_scene|character_name` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts`, 👀 Read `party_setup.gd`, 💭 Thinking
+
+### Community 603 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `class_name.*[Dd]ive|Divebomber|DiveBomber` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts`, 👀 Read `combat_giselle.gd`, 💭 Thinking
+
+### Community 604 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `CollisionShape3D|CapsuleShape3D|class_name EnemyAI` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies\enemy_ai.gd`, 👀 Read `pickup.gd`, 💭 Thinking
+
+### Community 605 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `func _on_item_added" -A 10` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_description_hud.gd`, 🔎 Grep `_on_item_added` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_description_hud.gd`, 💭 Thinking
+
+### Community 606 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `func _on_player_hit_enemy" -A 60` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_behaviours.gd`, 👀 Read `item_behaviours.gd`, 💭 Thinking
+
+### Community 607 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `func set_target|_lock_model|model.*rotat|mesh.*rotat` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\player_base.gd`, 👀 Read `loot_manager.gd`, 💭 Thinking
+
+### Community 608 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `WallNorth|WallSouth|surface_material_override|WALL_MATERIAL|_build_walls|wall_material` in `C:\Users\thvnh\Documents\GitHub\whiplash\scenes\level_generation\room_instance.gd`, 👀 Read `enemy_esp_box.gd`, 💭 Thinking
+
+### Community 609 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 👀 Read `char_3.tres`, 👀 Read `char_4.tres`, 💭 Thinking
+
+### Community 610 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 👀 Read `combat_karina.gd`, 👀 Read `mortar_bot.gd`, 💭 Thinking
+
+### Community 611 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 👀 Read `item_manager.gd`, 👀 Read `treasure_manager.gd`, 💭 Thinking
+
+### Community 612 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 💭 Thinking, ✍️  Write `.gitkeep`, ✍️  Write `.gutconfig.json`
+
+### Community 613 - "Assistant"
+Cohesion: 0.67
+Nodes (3): 1. Dem LLM deinen gesamten Code geben (Der "Export"), 2. Den Bug richtig beschreiben, Assistant
+
+### Community 614 - "Assistant"
+Cohesion: 0.67
+Nodes (3): Assistant, Fazit, Was bedeutet das genau?
+
+### Community 615 - "Assistant"
+Cohesion: 0.67
+Nodes (3): Assistant, So behebst du den Fehler:, Wie es danach weitergeht:
+
+### Community 616 - "🤖 Assistant: *Now let's add the helper functions (`_find_skeleton…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now let's add the helper functions (`_find_skeleton…*, ✏️  Edit `animation_manager.gd`, 👀 Read `animation_manager.gd`
+
+### Community 617 - "🤖 Assistant: *Now let's fix the facing-direction bug —…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now let's fix the facing-direction bug —…*, ✏️  Edit `dummy.tscn`, ✏️  Edit `scout_dummy.tscn`
+
+### Community 618 - "🤖 Assistant: *Now the sniper ESP functions and its flash…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now the sniper ESP functions and its flash…*, ✏️  Edit `combat_giselle.gd`, 👀 Read `combat_giselle.gd`
+
+### Community 619 - "🤖 Assistant: *Now the sniper hit-flash call further down…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Now the sniper hit-flash call further down…*, ✏️  Edit `combat_giselle.gd`, 👀 Read `combat_giselle.gd`
+
+### Community 620 - "🤖 Assistant: *This is a multi-part task, let me track it…*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *This is a multi-part task, let me track it…*, TaskCreate, ToolSearch
+
+### Community 621 - "🤖 Assistant: *Winter is done.*"
+Cohesion: 0.67
+Nodes (3): 🤖 Assistant: *Winter is done.*, ✏️  Edit `combat_giselle.gd`, TaskUpdate
+
+### Community 622 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): ✏️  Edit `CLAUDE.md`, TaskUpdate, 💭 Thinking
+
+### Community 623 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): ✏️  Edit `combat_winter.gd`, 👀 Read `combat_winter.gd`, 💭 Thinking
+
+### Community 624 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): ✏️  Edit `combat_winter.gd`, 👀 Read `combat_winter.gd`, 💭 Thinking
+
+### Community 625 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): ✏️  Edit `combat_winter.gd`, 👀 Read `combat_winter.gd`, 💭 Thinking
+
+### Community 626 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): ✏️  Edit `level_generator.gd`, 👀 Read `level_generator.gd`, 💭 Thinking
+
+### Community 627 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `"dash"|dash_action|is_action.*dash` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\combat_base.gd`, 🔎 Grep `dash` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\combat_base.gd`, 💭 Thinking
+
+### Community 628 - "💭 Thinking: *I'm confirming the structure: NingNing's…*"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `func _perform_primary|func _perform_secondary|func _poll_primary_input|func _poll_secondary_input` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\characters\combat_ningning.gd`, 👀 Read `combat_ningning.gd`, 💭 Thinking: *I'm confirming the structure: NingNing's…*
+
+### Community 629 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `MINIMAP_ZOOM_DEFAULT|MINIMAP_ZOOM_MIN|MINIMAP_ZOOM_MAX` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\settings_manager.gd`, 🔎 Grep `minimap_zoom` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\settings_manager.gd`, 💭 Thinking
+
+### Community 630 - "💭 Thinking: *Karina doesn…*"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `Tutorial|tutorial` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts`, 👀 Read `tutorial_content.gd`, 💭 Thinking: *Karina doesn…*
+
+### Community 631 - "💭 Thinking: *I'm checking whether max_health is declared…*"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `var fire_interval|var .*interval|var .*cooldown|var .*_rate` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies\dive_bomber.gd`, 🔎 Grep `var .*interval|var .*cooldown|var .*_rate|var .*_time"` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies\shield_drone.gd`, 💭 Thinking: *I'm checking whether max_health is declared…*
+
+### Community 632 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 🔎 Grep `WASD|Steuerung|Bewege dich|Springe|Zielen mit|Interagiere` in `C:\Users\thvnh\Documents\GitHub\whiplash`, 👀 Read `spawn_tutorial_hologram.gd`, 💭 Thinking
+
+### Community 633 - "💭 Thinking"
+Cohesion: 0.67
+Nodes (3): 👀 Read `hud.tscn`, TaskUpdate, 💭 Thinking
+
+### Community 634 - "Assistant"
+Cohesion: 0.67
+Nodes (3): 1. Chat-Prompts (`04_Chat_Prompts`), 2. DevLogs (`03_DevLogs` & `PATCHNOTES.md`), Assistant
+
+### Community 635 - "Assistant"
+Cohesion: 0.67
+Nodes (3): 1. Speicherort der Chats, 2. Wie man sie exportiert / als Markdown speichert, Assistant
+
+### Community 644 - "MOC — Tech-Architektur"
+Cohesion: 0.25
+Nodes (8): Combat & Feedback, Gegner, Items & Belohnungen, Level & Räume, MOC — Tech-Architektur, Plattform & Tools, Player & Party, Run-Lifecycle & Progression
+
+### Community 653 - "run_restart.gd"
+Cohesion: 0.29
+Nodes (7): Ablauf von `restart()`, Aufrufer, Der Bug, der den Autoload ausgeloest hat, Erwaehnt in DevLogs, run_restart.gd, Verwandt, Warum ein eigenes Autoload
+
+### Community 664 - "stage_manager.gd"
+Cohesion: 0.29
+Nodes (7): Ablauf von `advance_stage()` / `_do_advance()`, Erwaehnt in DevLogs, `final_stage` als Speedrun-Deckel, Signale und Autoload-Registrierung, stage_manager.gd, Verwandt, Was den Wechsel ueberlebt und was nicht
+
+### Community 683 - "vfx_manager.gd"
+Cohesion: 0.29
+Nodes (7): `_aim()` und der Gimbal-Sonderfall, Erwaehnt in DevLogs, Verwandt, Verwendung im Projekt, vfx_manager.gd, Warum zentral statt als Kind-Node, Zweifarbiges Einfaerben (`spawn_dual_tinted`)
+
+### Community 684 - "13.08.2026"
+Cohesion: 0.67
+Nodes (3): 13.08.2026, Wichtigste Änderungen, Zusammenfassung
+
+### Community 687 - "25.07.2026"
+Cohesion: 0.67
+Nodes (3): 25.07.2026, Wichtigste Änderungen, Zusammenfassung
 
 ## Knowledge Gaps
-- **4465 isolated node(s):** `Effekt`, `Status-Effekte`, `Reagiert auf (ohne selbst auszuloesen)`, `Synergien`, `Erwaehnt in DevLogs` (+4460 more)
+- **5716 isolated node(s):** `Die kurze Version`, `Frontmatter-Schema`, `Thema-Kategorien (nicht abschließend, bei Bedarf erweitern)`, `KI-Quellen — woran man sie erkennt`, `Was tun, wenn Chats fehlen oder ungetaggt sind?` (+5711 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **142 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **279 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `LLM Wiki` connect `LLM Wiki` to `User`, `User`, `User`, `LLM Wiki`, `User`, `User`, `User`?**
+- **Why does `📋 Session `31bea21d`: Balanciere Gegner-Kosten für Spielmechanik — Model: `claude-sonnet-5`` connect `📋 Session `31bea21d`: Balanciere Gegner-Kosten für Spielmechanik — Model: `claude-sonnet-5`` to `🤷 User: *diver sind zu groß und zu tief nicht weit…*`, `🤷 User: *Ich brauche bei unserem Godot 4 (GDScript…*`, `🤷 User: *Ich habe noch ein paar weitere Anpassungen…*`, `🤷 User: *egner, weil die Ratio nicht mehr stimmt.*`, `🤷 User: *also ich will das es dunkler ist.*`, `🤷 User: *Wir müssen in unserem Godot 4 (GDScript)…*`, `🤷 User: *im raum mit dem kreuz fallen gegner manchmal…*`, `🤷 User: *Ich brauche Hilfe bei ein paar visuellen…*`, `🤷 User: *die icons der special room fehlen*`, `🤷 User: *[Request interrupted by user]*`?**
+  _High betweenness centrality (0.005) - this node is a cross-community bridge._
+- **Why does `🤷 User: *Ich brauche bei unserem Godot 4 (GDScript…*` connect `🤷 User: *Ich brauche bei unserem Godot 4 (GDScript…*` to `🤖 Assistant: *Good. Now let's verify `item_manager.gd`…*`, `🤖 Assistant: *Good, that's correct.*`, `🤖 Assistant: *I've gathered enough context on every part…*`, `🤖 Assistant: *Let me verify the most complex edits by re…*`, `🤖 Assistant: *Let's do a final check of the `level_generator…*`, `🤖 Assistant: *Now `item_behaviours.gd` — the constants…*`, `📋 Session `31bea21d`: Balanciere Gegner-Kosten für Spielmechanik — Model: `claude-sonnet-5``, `🤖 Assistant: *Now let's check the actual floor node in…*`, `🤖 Assistant: *Now `level_generator.gd` — room scale and…*`, `🤖 Assistant: *Now `mortar_bot.gd` — scale, detection range…*`, `🤖 Assistant: *Now `room_instance.gd` — the floor texture…*`, `🤖 Assistant: *Now the item catalog entry for Karina's passive…*`, `🤖 Assistant: *Now the stealth touch-radius check (`_tick_stealth…*`, `🤖 Assistant: *Now the `_tick_acid_aura()` hit loop (LMB…*`, `🤖 Assistant: *Now the two `EnemyQuery.enemies_within(.…*`, `🤖 Assistant: *Now `treasure_pedestal.gd` — wire the swap…*`, `🤖 Assistant: *This looks correct.*`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `🤖 Assistant: *Now `acid_sprinkler.gd` — detection range…*`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `💭 Thinking`, `🤖 Assistant: *All edits are in.*`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
-- **Why does `Update cumulative cost tracker` connect `Update cumulative cost tracker` to `2026-08-12_slash-command-graphify.md`?**
+- **Why does `Update cumulative cost tracker` connect `Update cumulative cost tracker` to `User`, `User`, `2026-08-12_slash-command-graphify.md`, `User`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
-- **Why does `LLM Wiki` connect `LLM Wiki` to `User`, `User`, `LLM Wiki`, `User`?**
-  _High betweenness centrality (0.003) - this node is a cross-community bridge._
-- **What connects `Effekt`, `Status-Effekte`, `Reagiert auf (ohne selbst auszuloesen)` to the rest of the system?**
-  _4465 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `generate_vault.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.08348457350272233 - nodes in this community are weakly interconnected._
-- **Should `KayKit : Dungeon Asset Pack (1.1) License` be split into smaller, more focused modules?**
-  _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._
+- **What connects `Die kurze Version`, `Frontmatter-Schema`, `Thema-Kategorien (nicht abschließend, bei Bedarf erweitern)` to the rest of the system?**
+  _5716 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `LLM Wiki` be split into smaller, more focused modules?**
   _Cohesion score 0.008547008547008548 - nodes in this community are weakly interconnected._
+- **Should `LLM Wiki` be split into smaller, more focused modules?**
+  _Cohesion score 0.01092896174863388 - nodes in this community are weakly interconnected._
+- **Should `Update cumulative cost tracker` be split into smaller, more focused modules?**
+  _Cohesion score 0.012121212121212121 - nodes in this community are weakly interconnected._

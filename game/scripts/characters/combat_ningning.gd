@@ -54,7 +54,8 @@ func setup(owner_player: CharacterBody3D) -> void:
 
 
 func _on_haymaker_hit(_target: Node) -> void:
-	Juice.impact(0.5, Juice.DURATION_HEAVY)
+	# War 0.5 - Rueckmeldung "Screenshake bei Attacks generell zu stark", gesenkt.
+	Juice.impact(0.3, Juice.DURATION_HEAVY)
 
 
 ## Windup VOR der Hitbox-Aktivierung (Telegraphing) - der einzige Unterschied

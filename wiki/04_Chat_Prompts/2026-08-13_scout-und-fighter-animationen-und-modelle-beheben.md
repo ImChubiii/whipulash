@@ -14,7 +14,7 @@ ki_art: "claude cli"
 
 **`2026-08-13`** `00:05:37`
 
-das ist das aktuelle problem: die scouts haben eine andere textur und auch animationen, aber sie sind trotzdem gerade in t pose und haben keine animation. kannst du mir helfen? das ist der chat ich hab neue assets für gegner hinzugefügt, kannst du bitte mal die assets von fighter und stinger austauschen gegen diese hier "C:\Users\thvnh\Documents\GitHub\whiplash\KayKit_Skeletons_1.1_FREE"
+das ist das aktuelle problem: die scouts haben eine andere textur und auch animationen, aber sie sind trotzdem gerade in t pose und haben keine animation. kannst du mir helfen? das ist der chat ich hab neue asset für gegner hinzugefügt, kannst du bitte mal die asset von fighter und stinger austauschen gegen diese hier "C:\Users\thvnh\Documents\GitHub\whiplash\KayKit_Skeletons_1.1_FREE"
 1:18
 
 Ich habe die 3D-Modelle für Fighter und Stinger wie gewünscht gegen die neuen aus dem Ordner KayKit_Skeletons_1.1_FREE/characters/gltf/ ausgetauscht!
@@ -42,7 +42,7 @@ Ich habe das Skript jetzt abgesichert: Wenn ein Charakter (wie der Tank) kein Sk
 Du kannst das Spiel jetzt wieder starten! Fighter und Stinger sollten ihre neuen Modelle haben und das Spiel sollte nicht mehr abstürzen.
 
 1:23
-die scouts sind sehr klein, haben keine animaton, wahrscheinlich ist es bei fighter auch so sein und bitte die dorp items wie heal coins und bomben größer machen und das sie auf dem boden landen statt in der luft
+die scouts sind sehr klein, haben keine animaton, wahrscheinlich ist es bei fighter auch so sein und bitte die dorp item wie heal coins und bomben größer machen und das sie auf dem boden landen statt in der luft
 1:26
 
 Alles erledigt!
@@ -4942,7 +4942,7 @@ The file C:\Users\thvnh\Documents\GitHub\whiplash\scenes\scout_dummy.tscn has be
 
 `00:40:49`
 
-danke das klappt sehr gut. kannst du für fighter und coloss die gleichen assets aber andere variante benutzen? und die größe richtig machen
+danke das klappt sehr gut. kannst du für fighter und coloss die gleichen asset aber andere variante benutzen? und die größe richtig machen
 
 ### 💭 Thinking
 

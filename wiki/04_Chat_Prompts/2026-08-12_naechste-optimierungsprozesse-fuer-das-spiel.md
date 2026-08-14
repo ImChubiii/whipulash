@@ -225,7 +225,7 @@ bitte den nächsten prompt machen:
 manche räume sind ja nicht 1x1 groß sondern vllt 2x1 und das icon des gridlayout scaled dadurch mit und wikt verzerrt oder bei manchen räumen ist die farbe nicht ganz füllend 
 vernetzung bei karina funktioniert manchmal nicht, hitbox das man gehittet wird sollte besser sein also bei rmb
 
-wenn man 2 aktive items in dem slot hat sollte man das 3. auf dem tresen aufheben können aber dafür wird das item im q button zurück gelegt.
+wenn man 2 aktive item in dem slot hat sollte man das 3. auf dem tresen aufheben können aber dafür wird das item im q button zurück gelegt.
 
 aber wenn man nur 1 item hat dann soll das 2. item natürlich in e slot gepackt werden
 
@@ -241,7 +241,7 @@ vernetzung bei karina funktioniert manchmal nicht, hitbox das man gehittet wird 
 
 
 
-wenn man 2 aktive items in dem slot hat sollte man das 3. auf dem tresen aufheben können aber dafür wird das item im q button zurück gelegt.
+wenn man 2 aktive item in dem slot hat sollte man das 3. auf dem tresen aufheben können aber dafür wird das item im q button zurück gelegt.
 
 
 
@@ -346,7 +346,7 @@ Das Threat-Budget des Raumes soll mit seiner Zellen-Größe (Room Size / Footpri
 
 esp sollte bei giselle und winter beide ability stattfinden, esp größe sollte mit der größe des gegners scalen und sollte sichtbarer sein. giselles uzi sollte bisschen langssamer schießen (nur bisschen)
 
-drop items wie coins heal und bomben sollten höhere wahrscheinlichkeit haben zu erscheinen und viel grölßer sein
+drop item wie coins heal und bomben sollten höhere wahrscheinlichkeit haben zu erscheinen und viel grölßer sein
 
 texturen sind zwar gut aber irgendwie scalen die mit der roomsize also wenn es ein 1x2 raum gibt gibts keine 2 texturen sondern eine textur die 1x´2 groß ist
 
@@ -383,7 +383,7 @@ Wie behebe ich dieses Stretching bei den Meshes? Muss ich dafür das UV-Scaling 
 
 neuer prompt
 
-lieber layout grid direkt rausnehmen und stattdessen alle räume die nicht besucht/gecleared wurden sollten bisschen grauer dargestellt werden auf der map. special rooms wie treasure room sollten auf der map ein krone icon haben. und boss sollte ein totenkopf icon haben.
+lieber layout grid direkt rausnehmen und stattdessen alle räume die nicht besucht/gecleared wurden sollten bisschen grauer dargestellt werden auf der map. special room wie treasure room sollten auf der map ein krone icon haben. und boss sollte ein totenkopf icon haben.
 
 ## Assistant
 
@@ -692,7 +692,7 @@ Name
 [__pycache__](https://github.com/ImChubiii/whipulash/tree/main/__pycache__)
 [feat: character-specific combat kits for all 4 heroes + bugfixes](https://github.com/ImChubiii/whipulash/commit/5177896be898faf4cdc19b20e609243b9ffc3153)
 yesterday
-[assets](https://github.com/ImChubiii/whipulash/tree/main/assets)
+[asset](https://github.com/ImChubiii/whipulash/tree/main/assets)
 [feat: combat mechanics, weighted item drops and UI tweaks](https://github.com/ImChubiii/whipulash/commit/e21923346cd27839b75c19c66a5808c3090c9045)
 7 hours ago
 [credits](https://github.com/ImChubiii/whipulash/tree/main/credits)
@@ -1474,12 +1474,12 @@ Free Essential Animation pack - monogon
 1 Hit
 1 Death
 Licensing : Creative Commons Zero v1.0 Universal (CC0)
-By making a donation you support the creation of more assets ❤️
+By making a donation you support the creation of more asset ❤️
 You can use it for any kind of project that you have (commercial or not) : game, movies, sceneries, 3D printing etc... My name (Max Parata) in your credits would be highly appreciated ;)
 UNFOLD TO SEE MORE
 Join the Discord to see more
 -- About me --
-I'm [Max Parata](https://twitter.com/Mask974), a voxel artist, 3D artist and game developer. I'm also a member of the TORTOR collective, an awesome group of artist that make free assets just like me. Come visit our page to see all the good stuff we have :
+I'm [Max Parata](https://twitter.com/Mask974), a voxel artist, 3D artist and game developer. I'm also a member of the TORTOR collective, an awesome group of artist that make free asset just like me. Come visit our page to see all the good stuff we have :
 -- Support me in Bitcoin --
 1DVUbWuCUNyVJ72mN6WemefA2EhXQHtwrn
 -- You might also like --
@@ -1499,7 +1499,7 @@ About the bones orientation, Does it cause any problem on skinned meshes? i know
 Thanks for that, Max!
 [Reply](https://itch.io/post/7636172/reply)[Report](https://maxparata.itch.io/cc0-animations#)
 [itch.io](https://itch.io/)·[View all by monogon](https://maxparata.itch.io/)·Report·Embed·Updated Sep 22, 2023
-[Game assets](https://itch.io/game-assets) › [Free](https://itch.io/game-assets/free)
+[Game asset](https://itch.io/game-assets) › [Free](https://itch.io/game-assets/free)
 
 ## Assistant
 
@@ -1595,7 +1595,7 @@ Du kannst das Spiel jetzt einfach starten! Giselle sollte nicht mehr starr in de
 
 ## User
 
-also die chaarcter haben noch starre posen aber das liegt daran das sie kein skelett haben. kannst du bei den enemies wie tank scout und fighter das anwenden?
+also die chaarcter haben noch starre posen aber das liegt daran das sie kein skelett haben. kannst du bei den enemy wie tank scout und fighter das anwenden?
 
 ## Assistant
 
@@ -1622,7 +1622,7 @@ Ich habe den Fehler behoben! `enemy_ai.gd` sollte jetzt fehlerfrei kompilieren. 
 
 ## User
 
-ich hab neue assets für gegner hinzugefügt, kannst du bitte mal die assets von fighter und stinger austauschen gegen diese hier "C:\Users\thvnh\Documents\GitHub\whiplash\KayKit_Skeletons_1.1_FREE"
+ich hab neue asset für gegner hinzugefügt, kannst du bitte mal die asset von fighter und stinger austauschen gegen diese hier "C:\Users\thvnh\Documents\GitHub\whiplash\KayKit_Skeletons_1.1_FREE"
 
 ## Assistant
 
@@ -1657,7 +1657,7 @@ Du kannst das Spiel jetzt wieder starten! Fighter und Stinger sollten ihre neuen
 
 ## User
 
-die scouts sind sehr klein, haben keine animaton, wahrscheinlich ist es bei fighter auch so sein und bitte die dorp items wie heal coins und bomben größer machen und das sie auf dem boden landen statt in der luft
+die scouts sind sehr klein, haben keine animaton, wahrscheinlich ist es bei fighter auch so sein und bitte die dorp item wie heal coins und bomben größer machen und das sie auf dem boden landen statt in der luft
 
 ## Assistant
 

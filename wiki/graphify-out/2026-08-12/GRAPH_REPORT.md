@@ -91,7 +91,7 @@
 - Roguelike-style room design variation
 - Spielmechaniken und UI-Anpassungen für Godot-Projekt
 - Stat-System als Grundlage für Loot-Mechaniken
-- Treasure room items und bomb-mechaniken
+- Treasure room item und bomb-mechaniken
 - Bomben-Physik und Item-Verhalten Debugging
 - Game balance adjustments and file setup
 - Godot-Projektdateien erstellen und exportieren
@@ -408,8 +408,8 @@
 - 2026-07-26 — Expand README with game details and controls
 - 2026-07-26 — feat: Stat-System, Loot-Drops, Bomben, Items und Game Juice
 - 2026-07-26 — feat: Dash-Schaden, FOV-Regler und Rampen-/Lava-Fixes
-- 2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes
-- 2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes
+- 2026-07-27 — feat: Treasure room item, HUD overhaul, balancing, multiple bug fixes
+- 2026-07-27 — feat: Treasure room item, HUD overhaul, balancing, multiple bug fixes
 - 2026-07-28 — refactor: reorganize project structure and normalize res:// paths
 - 2026-07-28 — feat(enemy): integrate 3D robot models and procedural combat animation
 - 2026-07-28 — Fix windowed position persistence on first run
@@ -423,8 +423,8 @@
 - 2026-07-28 — feat(items): aktive Items auf Q/E-Slots umgestellt
 - 2026-07-28 — add particles
 - 2026-08-01 — Fix Kamera-Drill zurückgesetzt, Motion-Blur-Feature verworfen
-- 2026-08-01 — fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm
-- 2026-08-01 — fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm
+- 2026-08-01 — fix(restart,doors,item,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm
+- 2026-08-01 — fix(restart,doors,item,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm
 - 2026-08-01 — fix tutorial scren
 - 2026-08-01 — Fix Kamera-Drill zurückgesetzt, Motion-Blur-Feature verworfen
 - 2026-08-01 — fix tutorial scren
@@ -451,14 +451,14 @@
 - 2026-08-10 — chore: Obsidian und Graphify-Cache ignorieren
 - 2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position
 - 2026-08-10 — Merge Warp Code und loese Konflikte
-- 2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes
+- 2026-08-10 — feat(vfx,ui,item,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes
 - 2026-08-10 — Merge Warp Code und loese Konflikte
 - 2026-08-10 — Obsidian-Vault ins Repo aufnehmen
 - 2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten
 - 2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt
 - 2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfung Commits<->Spielinhalt
 - 2026-08-10 — chore: Obsidian und Graphify-Cache ignorieren
-- 2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes
+- 2026-08-10 — feat(vfx,ui,item,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes
 - 2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten
 - 2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, Nanoswarm; fixe Lockdown-Treffer auf Telegraph-Position
 - 2026-08-11 — fix: finalize room clearance logic and polish enemy visuals
@@ -469,13 +469,13 @@
 - 2026-08-11 — fix: finalize room clearance logic and polish enemy visuals
 - 2026-08-11 — Update documentation and ignore aider files
 - 2026-08-11 — Update room and enemy documentation to reflect sandbox status and new co
-- 2026-08-12 — docs: correct sequential numbering for Schulhof items in blueprint
+- 2026-08-12 — docs: correct sequential numbering for Schulhof item in blueprint
 - 2026-08-12 — chore: remove .obsidian and graphify-out from gitignore to track settings
-- 2026-08-12 — docs: fix corrupted game design blueprint and append 26 new basis items
+- 2026-08-12 — docs: fix corrupted game design blueprint and append 26 new basis item
 - 2026-08-12 — ﻿feat: combat mechanics, weighted item drops and UI tweaks
 - 2026-08-12 — docs: add dash damage visual feedback concept to blueprint
 - 2026-08-12 — docs: add crit damage visual feedback concept to blueprint
-- 2026-08-12 — docs: fix encoding of newly added Schulhof items in blueprint
+- 2026-08-12 — docs: fix encoding of newly added Schulhof item in blueprint
 - 2026-08-12 — docs(wiki): overhaul of game design docs, item balance & graph view
 - 2026-08-12 — docs(wiki): overhaul of game design docs, item balance & graph view
 - 2026-08-12 — docs: fully restore 05_Gedanken contents and re-apply structure
@@ -616,7 +616,7 @@ Nodes (13): main(), Path, # TODO: .tscn-Root-Node-Properties der drei Dummy-Szen
 
 ### Community 5 - "Fighter"
 Cohesion: 0.24
-Nodes (12): Heavy enemies nicht pushbar machen, Log-Datei überprüfung, Character-spezifische Szenen und Abilities, Gegner-Scaling und Raumgröße anpassen, Level-Design und Gameplay-Verbesserungen, Speedrun ranking und gameplay verbesserungen, 3D-Roboter-Modelle in Godot 4 Gegner-Szenen integrieren, Lowpoly Robots Texture (+4 more)
+Nodes (12): Heavy enemy nicht pushbar machen, Log-Datei überprüfung, Character-spezifische Szenen und Abilities, Gegner-Scaling und Raumgröße anpassen, Level-Design und Gameplay-Verbesserungen, Speedrun ranking und gameplay verbesserungen, 3D-Roboter-Modelle in Godot 4 Gegner-Szenen integrieren, Lowpoly Robots Texture (+4 more)
 
 ### Community 6 - "LLM Wiki"
 Cohesion: 0.01
@@ -1674,13 +1674,13 @@ Nodes (4): 2026-07-26 — feat: Stat-System, Loot-Drops, Bomben, Items und Game 
 Cohesion: 0.50
 Nodes (3): 2026-07-26 — feat: Dash-Schaden, FOV-Regler und Rampen-/Lava-Fixes, Erwaehnte Entitaeten, Metadaten
 
-### Community 399 - "2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes"
+### Community 399 - "2026-07-27 — feat: Treasure room item, HUD overhaul, balancing, multiple bug fixes"
 Cohesion: 0.50
-Nodes (3): 2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes, Erwaehnte Entitaeten, Metadaten
+Nodes (3): 2026-07-27 — feat: Treasure room item, HUD overhaul, balancing, multiple bug fixes, Erwaehnte Entitaeten, Metadaten
 
-### Community 400 - "2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes"
+### Community 400 - "2026-07-27 — feat: Treasure room item, HUD overhaul, balancing, multiple bug fixes"
 Cohesion: 0.40
-Nodes (4): 2026-07-27 — feat: Treasure room items, HUD overhaul, balancing, multiple bug fixes, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
+Nodes (4): 2026-07-27 — feat: Treasure room item, HUD overhaul, balancing, multiple bug fixes, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
 ### Community 401 - "2026-07-28 — refactor: reorganize project structure and normalize res:// paths"
 Cohesion: 0.40
@@ -1734,13 +1734,13 @@ Nodes (4): 2026-07-28 — add particles, Erwaehnte Entitaeten, Metadaten, 🧠 S
 Cohesion: 0.50
 Nodes (3): 2026-08-01 — Fix Kamera-Drill zurückgesetzt, Motion-Blur-Feature verworfen, Erwaehnte Entitaeten, Metadaten
 
-### Community 414 - "2026-08-01 — fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm"
+### Community 414 - "2026-08-01 — fix(restart,doors,item,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm"
 Cohesion: 0.40
-Nodes (4): 2026-08-01 — fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
+Nodes (4): 2026-08-01 — fix(restart,doors,item,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
-### Community 415 - "2026-08-01 — fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm"
+### Community 415 - "2026-08-01 — fix(restart,doors,item,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm"
 Cohesion: 0.50
-Nodes (3): 2026-08-01 — fix(restart,doors,items,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm, Erwaehnte Entitaeten, Metadaten
+Nodes (3): 2026-08-01 — fix(restart,doors,item,rooms): Neustart-Kette, Tür-Interaktion, Item-Rarity, Lava-Timing, Bomben-VFX, Spawn-Hologramm, Erwaehnte Entitaeten, Metadaten
 
 ### Community 416 - "2026-08-01 — fix tutorial scren"
 Cohesion: 0.40
@@ -1846,9 +1846,9 @@ Nodes (4): 2026-08-10 — Verkleinere Hitboxen/Meshes bei Turret, Auge, Koeder, 
 Cohesion: 0.40
 Nodes (4): 2026-08-10 — Merge Warp Code und loese Konflikte, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
-### Community 442 - "2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes"
+### Community 442 - "2026-08-10 — feat(vfx,ui,item,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes"
 Cohesion: 0.40
-Nodes (4): 2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
+Nodes (4): 2026-08-10 — feat(vfx,ui,item,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
 ### Community 443 - "2026-08-10 — Merge Warp Code und loese Konflikte"
 Cohesion: 0.50
@@ -1874,9 +1874,9 @@ Nodes (4): 2026-08-10 — Wiki: vollstaendige DevLog-Liste + Freitext-Verknuepfu
 Cohesion: 0.40
 Nodes (4): 2026-08-10 — chore: Obsidian und Graphify-Cache ignorieren, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
-### Community 449 - "2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes"
+### Community 449 - "2026-08-10 — feat(vfx,ui,item,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes"
 Cohesion: 0.50
-Nodes (3): 2026-08-10 — feat(vfx,ui,items,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes, Erwaehnte Entitaeten, Metadaten
+Nodes (3): 2026-08-10 — feat(vfx,ui,item,levelgen): Ghost-Trail-System, Main-Menu-Rework, Item-Testraum & Bugfixes, Erwaehnte Entitaeten, Metadaten
 
 ### Community 450 - "2026-08-10 — Wiki: sechs neue Sandbox-Gegner, Item<->Item-Synergien, MOC-Gruppierungsseiten"
 Cohesion: 0.40
@@ -1918,9 +1918,9 @@ Nodes (4): 2026-08-11 — Update documentation and ignore aider files, Erwaehnte
 Cohesion: 0.40
 Nodes (4): 2026-08-11 — Update room and enemy documentation to reflect sandbox status and new co, Erwaehnte Entitaeten, Metadaten, 🧠 Semantische Verbindungen (Graphify)
 
-### Community 460 - "2026-08-12 — docs: correct sequential numbering for Schulhof items in blueprint"
+### Community 460 - "2026-08-12 — docs: correct sequential numbering for Schulhof item in blueprint"
 Cohesion: 0.50
-Nodes (3): 2026-08-12 — docs: correct sequential numbering for Schulhof items in blueprint, Erwaehnte Entitaeten, Metadaten
+Nodes (3): 2026-08-12 — docs: correct sequential numbering for Schulhof item in blueprint, Erwaehnte Entitaeten, Metadaten
 
 ### Community 461 - "2026-08-12 — chore: remove .obsidian and graphify-out from gitignore to track settings"
 Cohesion: 0.40
@@ -1928,7 +1928,7 @@ Nodes (4): 2026-08-12 — chore: remove .obsidian and graphify-out from gitignor
 
 ### Community 462 - "2026-08-12 — docs: fix corrupted game design blueprint and append 26 new basis items"
 Cohesion: 0.50
-Nodes (3): 2026-08-12 — docs: fix corrupted game design blueprint and append 26 new basis items, Erwaehnte Entitaeten, Metadaten
+Nodes (3): 2026-08-12 — docs: fix corrupted game design blueprint and append 26 new basis item, Erwaehnte Entitaeten, Metadaten
 
 ### Community 463 - "2026-08-12 — ﻿feat: combat mechanics, weighted item drops and UI tweaks"
 Cohesion: 0.50
@@ -1942,9 +1942,9 @@ Nodes (3): 2026-08-12 — docs: add dash damage visual feedback concept to bluep
 Cohesion: 0.50
 Nodes (3): 2026-08-12 — docs: add crit damage visual feedback concept to blueprint, Erwaehnte Entitaeten, Metadaten
 
-### Community 466 - "2026-08-12 — docs: fix encoding of newly added Schulhof items in blueprint"
+### Community 466 - "2026-08-12 — docs: fix encoding of newly added Schulhof item in blueprint"
 Cohesion: 0.50
-Nodes (3): 2026-08-12 — docs: fix encoding of newly added Schulhof items in blueprint, Erwaehnte Entitaeten, Metadaten
+Nodes (3): 2026-08-12 — docs: fix encoding of newly added Schulhof item in blueprint, Erwaehnte Entitaeten, Metadaten
 
 ### Community 467 - "2026-08-12 — docs(wiki): overhaul of game design docs, item balance & graph view"
 Cohesion: 0.40

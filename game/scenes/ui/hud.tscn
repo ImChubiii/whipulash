@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://bouy7cn5am2oe" path="res://scripts/ui/boss_health_bar.gd" id="11_4d46k"]
 [ext_resource type="Script" path="res://scripts/ui/low_hp_vignette.gd" id="12_lowhp"]
 [ext_resource type="Script" path="res://scripts/ui/plasma_darkness_overlay.gd" id="13_plasmadark"]
+[ext_resource type="Script" path="res://scripts/ui/damage_flash_vignette.gd" id="14_dmgflash"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mapframe"]
 bg_color = Color(0.06, 0.06, 0.09, 0.82)
@@ -396,6 +397,13 @@ offset_right = 40.0
 offset_bottom = 40.0
 mouse_filter = 2
 script = ExtResource("12_lowhp")
+
+[node name="DamageFlashVignette" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+script = ExtResource("14_dmgflash")
 
 [node name="PlasmaDarknessOverlay" type="Control" parent="."]
 anchors_preset = 0

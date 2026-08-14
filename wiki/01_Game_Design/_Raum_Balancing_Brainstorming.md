@@ -1,5 +1,5 @@
----
-tags: [design-brainstorming, rooms, balancing]
+﻿---
+tags: [design-brainstorming, room, balancing]
 ---
 
 # Raum-Ideen & Balancing (Entwurf)

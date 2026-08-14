@@ -126,7 +126,8 @@ class_name CombatBase
 ## leicht negativ), zaehlt trotzdem noch als Kandidat.
 @export var dash_entry_grace: float = 0.6
 
-@export var dash_hit_shake_strength: float = 0.25
+# War 0.25 - gleicher Grund wie hit_shake_strength oben, gesenkt.
+@export var dash_hit_shake_strength: float = 0.15
 ## Standardmaessig 0: ein Rueckstoss beim Durchqueren schiebt den Gegner
 ## unkontrolliert weg und macht das Nachsetzen unberechenbar.
 @export var dash_knockback_force: float = 0.0
@@ -204,7 +205,8 @@ var _dash_direction: Vector3 = Vector3.ZERO
 
 # Wie viel "Trauma" ein TATSAECHLICHER Treffer zur Kamera hinzufuegt
 # (summiert sich bei mehreren Treffern auf, gedeckelt bei 1.0 im Player).
-@export var hit_shake_strength: float = 0.4
+# War 0.4 - Rueckmeldung "Screenshake bei Attacks generell zu stark", gesenkt.
+@export var hit_shake_strength: float = 0.25
 
 # --- Combo-Tilt: dramatische Kamera-Neigung, waechst mit der Combo ---
 # --- "Bohrer"-Verhalten: bleibt in eine Richtung, solange derselbe ---
@@ -290,6 +292,17 @@ func _damage_multiplier() -> float:
 	return stats.get_damage_multiplier() if stats else 1.0
 
 
+## Umkreis, in dem ein Gegner Breakables/TNT als Auto-Target-Kandidaten
+## verdraengt (siehe enemy_query.gd::best_target_in_cone()'s group_name-
+## Parameter und dessen Aufrufer in combat_giselle.gd/combat_winter.gd) -
+## verhindert, dass Giselles Uzi/Winters Laser versehentlich Deko/Fasser statt
+## einer echten Bedrohung anvisieren, solange noch Gegner in der Naehe sind.
+@export var enemy_detection_radius: float = 15.0
+
+func _has_nearby_threat() -> bool:
+	return player != null and EnemyQuery.has_enemies_within(player.global_position, enemy_detection_radius)
+
+
 ## Dreht das Charaktermodell zum getroffenen/anvisierten Ziel - siehe
 ## player_base.gd::set_target(). Fuer Charaktere, deren Angriffe NICHT ueber
 ## die generische Hitbox-Signalkette laufen (Hitscan bei Giselle, Hitscan/
@@ -327,42 +340,48 @@ func setup(owner_player: CharacterBody3D) -> void:
 			ghost_trail.set_colors(data.attack_color, data.attack_color_secondary)
 
 func _on_hit_landed(target: Node) -> void:
-	_hit_lock_timer = hit_lock_duration
+	var is_prop: bool = target is BreakableProp
+
+	_hit_lock_timer = hit_lock_duration if not is_prop else 0.0
 
 	if player and player.has_method("shake_camera"):
-		player.shake_camera(hit_shake_strength)
+		var shake = hit_shake_strength if not is_prop else 0.0
+		if shake > 0.0:
+			player.shake_camera(shake)
 
 	# Target Lock: der getroffene Gegner wird zum anvisierten Ziel —
 	# Modell schaut zu ihm, Kamera wird sanft in seine Richtung gezogen,
 	# bis er stirbt oder ein anderer Gegner getroffen wird.
-	if player and player.has_method("set_target") and target is Node3D:
+	if player and player.has_method("set_target") and target is Node3D and not is_prop:
 		player.set_target(target)
 
 	# Bestehendes AUFWAERTS-Momentum sofort kappen (z.B. aus einem Sprung),
 	# damit man waehrend des Hit Locks nicht einfach weiter nach oben
 	# treibt. Abwaerts-Momentum (Fallen) bleibt unangetastet, das wird
 	# separat ueber hit_lock_gravity_multiplier gesteuert.
-	if player and player.velocity.y > 0.0:
+	if player and player.velocity.y > 0.0 and not is_prop:
 		player.velocity.y = 0.0
 
-	# Combo hochzaehlen und Verfalls-Timer zuruecksetzen
-	_combo_count += 1
-	_combo_timer = combo_window
-	combo_changed.emit(_combo_count)
-	GameStats.report_combo(_combo_count)
+	# Props zaehlen nicht in die Combo und triggern keinen Bohrer-Tilt
+	if not is_prop:
+		# Combo hochzaehlen und Verfalls-Timer zuruecksetzen
+		_combo_count += 1
+		_combo_timer = combo_window
+		combo_changed.emit(_combo_count)
+		GameStats.report_combo(_combo_count)
 
-	# "Bohrer"-Tilt: Richtung bleibt gleich, solange derselbe Gegner
-	# getroffen wird (dreht sich immer weiter rein) — wechselt das Ziel
-	# auf einen ANDEREN Gegner, flippt die Richtung einmal um.
-	if target != _last_hit_target:
-		_tilt_direction *= -1.0
-		_last_hit_target = target
+		# "Bohrer"-Tilt: Richtung bleibt gleich, solange derselbe Gegner
+		# getroffen wird (dreht sich immer weiter rein) — wechselt das Ziel
+		# auf einen ANDEREN Gegner, flippt die Richtung einmal um.
+		if target != _last_hit_target:
+			_tilt_direction *= -1.0
+			_last_hit_target = target
 
-	if _combo_count >= 2 and player and player.has_method("play_combo_tilt"):
-		var tilt: float = min(_combo_count * combo_tilt_per_hit, combo_tilt_max) * _tilt_direction
-		player.play_combo_tilt(tilt)
+		if _combo_count >= 2 and player and player.has_method("play_combo_tilt"):
+			var tilt: float = min(_combo_count * combo_tilt_per_hit, combo_tilt_max) * _tilt_direction
+			player.play_combo_tilt(tilt)
 
-	_tilt_reset_timer = combo_tilt_reset_delay
+		_tilt_reset_timer = combo_tilt_reset_delay
 
 func _process(delta: float) -> void:
 	# Solange der Player gestunnt ist (z.B. von einem schnellen,
@@ -862,6 +881,8 @@ func _spawn_dash_debug_volume() -> void:
 
 
 func _spawn_dash_damage_number(enemy: Node3D) -> void:
+	if enemy is BreakableProp:
+		return
 	var scene: PackedScene = _resolve_damage_number_scene()
 	if scene == null:
 		push_warning("CombatBase: Keine damage_number_scene gefunden - Dash-Schadenszahl wird nicht angezeigt.")

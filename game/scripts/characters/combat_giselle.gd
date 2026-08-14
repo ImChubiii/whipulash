@@ -159,7 +159,14 @@ func _perform_primary() -> void:
 	if result["hit"]:
 		VFX.spawn(HIT_VFX_SCENE, result["position"], -dir)
 		if player and player.has_method("shake_camera"):
-			player.shake_camera(0.18)
+			# War 0.12 - bei einem einzelnen Treffer (kein Combo-Stacking) war das
+			# durch die quadratische shake_amount-Kurve in player_base.gd
+			# (shake_amount = trauma * trauma) praktisch unsichtbar - Rueckmeldung
+			# "die anderen Charaktere haben keinen Screenshake beim Attacken".
+			# Wieder angehoben, damit ein einzelner Uzi-Treffer spuerbar ist; der
+			# neue max_trauma-Deckel (siehe player_base.gd) verhindert trotzdem,
+			# dass Dauerfeuer den Shake ausufern laesst.
+			player.shake_camera(0.22)
 		EspTarget.flash(target)
 
 	_uzi_ammo -= 1
@@ -183,7 +190,14 @@ func _resolve_uzi_target(origin: Vector3, look_dir: Vector3) -> Node3D:
 		if alive and in_range and in_cone:
 			return _uzi_locked_target
 
-	return EnemyQuery.best_target_in_cone(origin, look_dir, uzi_range, uzi_target_cone_deg)
+	var enemy_target: Node3D = EnemyQuery.best_target_in_cone(origin, look_dir, uzi_range, uzi_target_cone_deg)
+	# Breakables/TNT werden erst als Fallback-Ziel zugelassen, wenn KEIN
+	# Gegner im Kegel steht UND auch keiner in enemy_detection_radius lauert -
+	# siehe combat_base.gd::_has_nearby_threat(). Sonst koennte die Uzi eine
+	# staerker mittig stehende Deko einem Gegner am Kegelrand vorziehen.
+	if enemy_target != null or _has_nearby_threat():
+		return enemy_target
+	return EnemyQuery.best_target_in_cone(origin, look_dir, uzi_range, uzi_target_cone_deg, "breakables")
 
 
 ## _uzi_locked_target bleibt das Sticky-Targeting-Gedaechtnis fuer
@@ -337,7 +351,12 @@ func _resolve_sniper_esp_target(origin: Vector3, look_dir: Vector3) -> Node3D:
 		if alive and in_range and in_cone:
 			return _sniper_locked_target
 
-	return EnemyQuery.best_target_in_cone(origin, look_dir, sniper_range, aim_assist_angle_deg)
+	var enemy_target: Node3D = EnemyQuery.best_target_in_cone(origin, look_dir, sniper_range, aim_assist_angle_deg)
+	# Gleiche Nachrangigkeit wie _resolve_uzi_target() - siehe dortiger
+	# Kommentar.
+	if enemy_target != null or _has_nearby_threat():
+		return enemy_target
+	return EnemyQuery.best_target_in_cone(origin, look_dir, sniper_range, aim_assist_angle_deg, "breakables")
 
 
 ## _sniper_locked_target bleibt das Sticky-Targeting-Gedaechtnis fuer
@@ -403,7 +422,8 @@ func _perform_secondary() -> void:
 		# Kurzer Hit-Stop + kraeftige Kamera-Erschuetterung statt nur Shake -
 		# verkauft das Gewicht eines Treffers, der die meisten Gegner sofort
 		# toetet, deutlich staerker als reines Wackeln.
-		Juice.impact(0.6, Juice.DURATION_HEAVY)
+		# War 0.6 - Rueckmeldung "Screenshake bei Attacks generell zu stark", gesenkt.
+		Juice.impact(0.35, Juice.DURATION_HEAVY)
 
 	# Burst ist fertig (RMB feuert nur einmal pro Ladevorgang) - ESP-Box
 	# wieder einsammeln, statt sie bis zum naechsten Ladevorgang haengen zu

@@ -563,7 +563,7 @@ NODE _MOC_DevLogs.md [src=03_DevLogs/_MOC_DevLogs.md loc=L1 community=_MOC_DevLo
 
 NODE 3D-Roboter-Modelle in Godot 4 Gegner-Szenen integrieren [src=04_Chat_Prompts/2026-07-27_3d-roboter-modelle-in-godot-4-gegner-szenen-integrieren.md loc= community=Fighter]
 
-NODE Heavy enemies nicht pushbar machen [src=04_Chat_Prompts/2026-07-23_heavy-enemies-nicht-pushbar-machen.md loc= community=Fighter]
+NODE Heavy enemy nicht pushbar machen [src=04_Chat_Prompts/2026-07-23_heavy-enemies-nicht-pushbar-machen.md loc= community=Fighter]
 
 NODE Gegner-Scaling und Raumgröße anpassen [src=04_Chat_Prompts/2026-07-25_gegner-scaling-und-raumgroesse-anpassen.md loc= community=Fighter]
 
@@ -633,7 +633,7 @@ EDGE Speedrun ranking und gameplay verbesserungen --references [EXTRACTED]--> Co
 
 EDGE 3D-Roboter-Modelle in Godot 4 Gegner-Szenen integrieren --references [EXTRACTED]--> Colossus
 
-EDGE Heavy enemies nicht pushbar machen --references [EXTRACTED]--> Fighter
+EDGE Heavy enemy nicht pushbar machen --references [EXTRACTED]--> Fighter
 
 EDGE Gegner-Scaling und Raumgröße anpassen --references [EXTRACTED]--> Fighter
 
@@ -1799,7 +1799,7 @@ func _perform_utility() -> void:
 ## nur feuern, wenn tatsaechlich etwas ausgeloest wurde.
 func _do_ability_q() -> void:
 	var items: Node = _items()
-	if items == null or not items.is_active_slot_ready(0):
+	if item == null or not items.is_active_slot_ready(0):
 		return
 	ability_q_used.emit()
 	cooldown_started.emit(Slot.ABILITY_Q, 0.0)
@@ -1808,7 +1808,7 @@ func _do_ability_q() -> void:
 # --- E = aktiver Item-Slot 1 ------------------------------------------
 func _do_ability_e() -> void:
 	var items: Node = _items()
-	if items == null or not items.is_active_slot_ready(1):
+	if item == null or not items.is_active_slot_ready(1):
 		return
 	ability_e_used.emit()
 	cooldown_started.emit(Slot.ABILITY_E, 0.0)
@@ -2165,11 +2165,11 @@ func get_utility_cooldown_percent() -> float:
 ## alten zeitbasierten Cooldowns, siehe AbilitySlot.update_cooldown().
 func get_ability_q_cooldown_percent() -> float:
 	var items: Node = _items()
-	return items.get_active_charge_percent(0) if items else 0.0
+	return items.get_active_charge_percent(0) if item else 0.0
 
 func get_ability_e_cooldown_percent() -> float:
 	var items: Node = _items()
-	return items.get_active_charge_percent(1) if items else 0.0
+	return items.get_active_charge_percent(1) if item else 0.0
 
 # Sammel-Getter fuers HUD: gibt fuer Slot 0..4 den Prozentwert zurueck.
 func get_cooldown_percent(slot: int) -> float:
@@ -2834,7 +2834,7 @@ func _dissipate() -> void:
 > 
 </details>
 
-> Found the crash. `HomingBolt._strike()` calls the `_on_strike` callback unconditionally — but the callback is a closure bound to the Combat node (Winter's plasma bolts). Switching characters frees that node mid-flight, and the bolt still calls into it when it reaches the target. Let me check the Giselle Uzi particle issue and the Divebomber next while I have context loaded.
+> Found the crash. `HomingBolt._strike()` calls the `_on_strike` callback unconditionally — but the callback is a closure bound to the Combat node (Winter's plasma bolts). Switching character frees that node mid-flight, and the bolt still calls into it when it reaches the target. Let me check the Giselle Uzi particle issue and the Divebomber next while I have context loaded.
 
 #### 📂 Glob `scripts/characters/combat_giselle.gd`
 
@@ -3552,7 +3552,7 @@ Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.
 
 > All four fixes are in and the vault/graph are refreshed:
 > 
-> 1. **Crash fix** (`scripts/vfx/homing_bolt.gd`) — `_strike()` now checks `_on_strike.is_valid()` before calling. Winter's Plasma bolts hold a callback closure bound to the Combat node; switching characters mid-flight (e.g. Winter → Karina with LMB held) frees that node while a bolt is still traveling, and the unguarded call crashed the game on impact.
+> 1. **Crash fix** (`scripts/vfx/homing_bolt.gd`) — `_strike()` now checks `_on_strike.is_valid()` before calling. Winter's Plasma bolts hold a callback closure bound to the Combat node; switching character mid-flight (e.g. Winter → Karina with LMB held) frees that node while a bolt is still traveling, and the unguarded call crashed the game on impact.
 > 2. **Giselle Uzi camera particles** (`scripts/characters/combat_giselle.gd`) — muzzle VFX was spawning exactly at the camera's position, so its 75° spread rendered right at the lens. Added `MUZZLE_FORWARD_OFFSET = 0.6` and offset the spawn point along the aim direction.
 > 3. **Divebomber size**: `VISUAL_SCALE` 4.5 → 3.0
 > 4. **Divebomber hover height**: `hover_height` 11.0 → 16.0 (dive-in depth is unchanged — it still dives to the player, just starts higher)
@@ -3629,7 +3629,7 @@ README.md
 __pycache__
 _project_export.txt
 add_tags.py
-assets
+asset
 commit_message.txt
 credits
 export_presets.cfg
@@ -5163,7 +5163,7 @@ $ cd "C:\Users\thvnh\Documents\GitHub\whiplash" && grep -n "static func get_or_c
 > 
 </details>
 
-> Now I have everything needed — node paths, the character-data resources, `Health`'s API, and confirmation the codebase already spawns characters standalone (sandbox rooms do the same). Writing the test infrastructure.
+> Now I have everything needed — node paths, the character-data resources, `Health`'s API, and confirmation the codebase already spawns character standalone (sandbox room do the same). Writing the test infrastructure.
 
 #### 💻 Bash
 
@@ -6357,7 +6357,7 @@ var _last_known_health: float = -1.0
 ```
 InputValidationError: Read was called with input that could not be parsed as JSON.
 You sent (first 131 of 131 bytes): {"file_path": "C:\\Users\\thvnh\\Documents\\GitHub\\whiplash\\scripts\\characters\\combat_giselle.gd", "offset": 330, "limit": 60}}
-Common causes: unescaped backslashes in file paths (use / or \\), unescaped control characters, or truncated output. Retry with valid JSON.
+Common causes: unescaped backslashes in file paths (use / or \\), unescaped control character, or truncated output. Retry with valid JSON.
 ```
 
 #### 👀 Read `combat_giselle.gd`
@@ -13655,7 +13655,7 @@ func _collect_ceiling_rids(room: RoomInstance) -> Array[RID]:
 ## Kochloeffel findet.
 func _pick_item(room: RoomInstance) -> ItemData:
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null:
+	if item == null:
 		push_warning("[Treasure] Autoload 'Items' nicht gefunden — kein Sockel moeglich. Autoload-Reihenfolge pruefen: 'Items' muss VOR 'Treasure' stehen.")
 		return null
 
@@ -13690,7 +13690,7 @@ func _pick_item(room: RoomInstance) -> ItemData:
 		return null
 
 	var rng: RandomNumberGenerator = _make_rng(room)
-	return _weighted_pick(pool, items, rng)
+	return _weighted_pick(pool, item, rng)
 
 
 ## Gewichtete Auswahl statt Gleichverteilung: Grundgewicht 1.0 pro Item, plus
@@ -13806,7 +13806,7 @@ func debug_spawn_at_player(item_id: String = "") -> void:
 		return
 
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null:
+	if item == null:
 		push_warning("[Treasure] Autoload 'Items' fehlt.")
 		return
 
@@ -14323,7 +14323,7 @@ func take() -> bool:
 		return false
 
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null:
+	if item == null:
 		return false
 	if not items.add_item(item_data):
 		return false
@@ -15361,7 +15361,7 @@ static func build_all() -> Array[ItemData]:
 	)
 	items.append(gym_bag)
 
-	return items
+	return item
 
 
 ## Optionaler Zusatz-Ladepfad fuer spaetere .tres-Items. Fehlt der Ordner,
@@ -16206,7 +16206,7 @@ The file C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_catalog.gd 
 +## unsichtbar.
 +func _grant_passive_lifesteal() -> void:
 +	var items: Node = get_node_or_null("/root/Items")
-+	if items == null:
++	if item == null:
 +		return
 +	items.add_item(ItemCatalog.build_karina_passive_lifesteal(), true)
 ```
@@ -16391,7 +16391,7 @@ The file C:\Users\thvnh\Documents\GitHub\whiplash\scripts\items\item_manager.gd 
 
 ```diff
 @@ -5,9 +5,17 @@ 	var items: Node = get_node_or_null("/root/Items")
- 	if items == null:
+ 	if item == null:
  		return false
 -	if not items.add_item(item_data):
 +
@@ -17151,7 +17151,7 @@ func take() -> bool:
 		return false
 
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null:
+	if item == null:
 		return false
 
 	# pickup_active_item() statt add_item(): sind beide Aktiv-Slots (Q/E)
@@ -17588,7 +17588,7 @@ func _roll_drops(room: RoomInstance) -> void:
 ## Gesamt-Dropchance aus Grundwert, Glueck-Stat und aktueller Combo.
 func _get_drop_chance() -> float:
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null:
+	if item == null:
 		return BASE_DROP_CHANCE
 
 	var luck: float = items.get_luck()
@@ -18291,7 +18291,7 @@ func _get_magnet_range() -> float:
 
 func _get_stats() -> PlayerStats:
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null:
+	if item == null:
 		return null
 	var stats = items.stats
 	if stats is PlayerStats:
@@ -18326,7 +18326,7 @@ func _collect(player: Node3D) -> void:
 			if items:
 				items.add_bombs(bomb_amount)
 		Kind.ITEM:
-			if items and item_data:
+			if item and item_data:
 				if not items.add_item(item_data):
 					# Maximale Stapelzahl erreicht — Sockel bleibt stehen.
 					_collected = false
@@ -18386,7 +18386,7 @@ func _reroll_consumable() -> void:
 ## bereits maximal gestapelte Items aus.
 func _reroll_item() -> void:
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null:
+	if item == null:
 		return
 
 	var choices: Array[ItemData] = []
@@ -20460,7 +20460,7 @@ Code graph updated. For doc/paper/image changes run /graphify --update in your A
 Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.
 ```
 
-### 🤖 Assistant: *All the unambiguous items are done — ESP…*
+### 🤖 Assistant: *All the unambiguous item are done — ESP…*
 
 `20:42:50`
 
@@ -20470,7 +20470,7 @@ Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.
 > 
 </details>
 
-> All the unambiguous items are done — ESP scaling/brightness/coverage, Uzi fire rate, loot rate + pickup size, wall UV tiling, the character-facing fix, and `spawn_weight` normalization. Before I touch the minimap, I want to check the intended architecture, since "remove the grid, replace with color + icons" can mean two structurally different things.
+> All the unambiguous item are done — ESP scaling/brightness/coverage, Uzi fire rate, loot rate + pickup size, wall UV tiling, the character-facing fix, and `spawn_weight` normalization. Before I touch the minimap, I want to check the intended architecture, since "remove the grid, replace with color + icons" can mean two structurally different things.
 
 #### ❓ Asking questions...
 
@@ -20885,7 +20885,7 @@ Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.
 > 
 > ## ESP (Giselle & Winter)
 > - **Coverage**: Winter's Plasma (primary, LMB) now gets an ESP box too — previously only his Laser (secondary) had one. It's per-target and short-lived (matches the bolt's one-shot lifecycle, with a fallback timer in case a target dies mid-flight and the strike callback never fires). Giselle's Uzi + Sniper already had it.
-> - **Dynamic sizing**: `EnemyEspBox.build_for(enemy, color)` now walks the enemy's actual `CollisionShape3D` tree (handles both the capsule-based `EnemyAI` enemies and the box-based `CustomEnemyBase` ones), computes a padded bounding box, and stores it so callers can center the box vertically (`size.y * 0.5`) instead of guessing a fixed height — a Colossus gets a visibly bigger box than a Fighter now.
+> - **Dynamic sizing**: `EnemyEspBox.build_for(enemy, color)` now walks the enemy's actual `CollisionShape3D` tree (handles both the capsule-based `EnemyAI` enemy and the box-based `CustomEnemyBase` ones), computes a padded bounding box, and stores it so callers can center the box vertically (`size.y * 0.5`) instead of guessing a fixed height — a Colossus gets a visibly bigger box than a Fighter now.
 > - **Brightness**: switched from alpha-blended to additive blending + `no_depth_test`, energy roughly doubled — it now glows through geometry rather than just sitting on top of it.
 > 
 > ## Character facing
@@ -20898,7 +20898,7 @@ Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.
 > Extended last session's floor fix to **walls** too, but the existing `world_space_uv` shader mode only handled horizontal surfaces (`world_position.xz`) — applying it to walls unchanged would've made textures ignore height entirely. Extended `psx.gdshader` with normal-based axis selection (XZ for floor/ceiling, ZY/XY for walls depending on orientation) — a cheap, correct-for-this-project stand-in for full triplanar mapping, since every surface here is an axis-aligned box face with one clear normal.
 > 
 > ## Minimap grid → dots + color + icons
-> Per your choice: `minimap_rooms.gd` keeps its 2D overlay panel but no longer draws room rectangles or connecting passages — just one circle per room center. Color communicates state (full type color once `cleared`, dimmed toward grey while `hostile && !cleared`, matching the level generator's existing `hostile`/`cleared` cell fields). Treasure/boss rooms get procedurally-drawn crown/skull icons (vector shapes, not font glyphs — the fallback font doesn't reliably cover crown/skull Unicode blocks).
+> Per your choice: `minimap_rooms.gd` keeps its 2D overlay panel but no longer draws room rectangles or connecting passages — just one circle per room center. Color communicates state (full type color once `cleared`, dimmed toward grey while `hostile && !cleared`, matching the level generator's existing `hostile`/`cleared` cell fields). Treasure/boss room get procedurally-drawn crown/skull icons (vector shapes, not font glyphs — the fallback font doesn't reliably cover crown/skull Unicode blocks).
 > 
 > ## Room pool balance
 > All 9 `.tres` files with non-1.0 `spawn_weight` (0.4–1.2 range) set to exactly `1.0`; the rest were already 1.0.
@@ -20961,7 +20961,7 @@ minimap grayout und icons sind garnicht vorhanden
 
 [Request interrupted by user]
 
-die minimap ist zwar von der logik richtig aber es sollte kein layoutgrid sein sondern DIREKT IN DER MINIMAP SEIN also die minimap selber zeigt welche räume cleared uncleared und special rooms sind
+die minimap ist zwar von der logik richtig aber es sollte kein layoutgrid sein sondern DIREKT IN DER MINIMAP SEIN also die minimap selber zeigt welche räume cleared uncleared und special room sind
 
 ### 💭 Thinking
 
@@ -22243,8 +22243,8 @@ Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.
 > 
 > **Implemented directly in the 3D minimap** (`room_instance.gd`), reusing the exact mechanism your door-state indicators already use — flat unshaded meshes on `MINIMAP_ONLY_LAYER`, positioned above the room, invisible to the main camera and invisible to the ceiling too (the ceiling faces *downward* on purpose and gets backface-culled from a top-down view, which is why the door markers already worked this way):
 > 
-> - **Grayout**: a semi-transparent dark plate spans the room's actual footprint, built only for rooms with a combat gate (`_requires_clear`). It self-destructs the moment the room's own `room_cleared` signal fires, letting the real (correctly-tiled) floor color show through unobstructed — no second color source to keep in sync.
-> - **Icons**: `LevelGenerator` now calls `room.set_room_type(cell.room_type)` right after instancing. Treasure rooms get a gold star (procedurally built via `SurfaceTool`, a stand-in for a crown — the map camera is strictly orthogonal top-down, so a fine-jagged crown outline would be indistinguishable from a star at minimap scale anyway), boss rooms get a dark circle with two bright "eyes" as a simplified skull.
+> - **Grayout**: a semi-transparent dark plate spans the room's actual footprint, built only for room with a combat gate (`_requires_clear`). It self-destructs the moment the room's own `room_cleared` signal fires, letting the real (correctly-tiled) floor color show through unobstructed — no second color source to keep in sync.
+> - **Icons**: `LevelGenerator` now calls `room.set_room_type(cell.room_type)` right after instancing. Treasure room get a gold star (procedurally built via `SurfaceTool`, a stand-in for a crown — the map camera is strictly orthogonal top-down, so a fine-jagged crown outline would be indistinguishable from a star at minimap scale anyway), boss room get a dark circle with two bright "eyes" as a simplified skull.
 > 
 > One loose end: `minimap_rooms.gd` still exists on disk but is never instantiated anymore — I left it rather than delete it, since `minimap.gd` still has a `preload()` reference to it that I'd need to remove first too. Functionally it's fully inert now; say the word if you want it deleted properly.
 > 
@@ -22557,11 +22557,11 @@ Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.
 > - **Darker**: `room_state_overlay_color` went from `(0.08, 0.08, 0.09, 0.72)` to `(0.04, 0.04, 0.045, 0.9)` — darker tint, higher opacity.
 > - **Bright while present**: reused the room's existing dwell-check tracking (`_inside_entry_trigger`, the same var driving the `room_entered` signal) — the dimming plate now hides itself while you're physically standing in the room (even mid-fight, before it's cleared) and reappears if you leave without finishing it off. Clearing the room still removes it permanently.
 
-## 🤷 User: *die icons der special rooms fehlen*
+## 🤷 User: *die icons der special room fehlen*
 
 `21:06:09`
 
-die icons der special rooms fehlen
+die icons der special room fehlen
 
 ### 💭 Thinking
 
@@ -23359,7 +23359,7 @@ func take() -> bool:
 		return false
 
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null:
+	if item == null:
 		return false
 
 	# pickup_active_item() statt add_item(): sind beide Aktiv-Slots (Q/E)
@@ -24439,7 +24439,7 @@ Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.
 
 > ## 1. Enemies falling and not dying ("Raum mit dem Kreuz") — fixed, root cause confirmed
 > 
-> Found it in `pit_floor.gd`. Pits are built with two pieces: a solid catch-floor way down at the bottom of the shaft (`_build_void_shaft()`'s `"Bottom"` collider — originally meant only as a visual backdrop) and a thin **2-unit-tall** instant-kill `Area3D` positioned 24 units above it. If a falling body has enough vertical velocity in a single physics step — a knockback with a downward component, or just a bigger physics delta from a frame hitch when a combat room dumps a pile of enemies at once — it can tunnel straight through that thin trigger without `body_entered` ever firing, then land alive on the solid floor below: invisible, unreachable, and still counted as "alive," which is exactly what locks the room.
+> Found it in `pit_floor.gd`. Pits are built with two pieces: a solid catch-floor way down at the bottom of the shaft (`_build_void_shaft()`'s `"Bottom"` collider — originally meant only as a visual backdrop) and a thin **2-unit-tall** instant-kill `Area3D` positioned 24 units above it. If a falling body has enough vertical velocity in a single physics step — a knockback with a downward component, or just a bigger physics delta from a frame hitch when a combat room dumps a pile of enemy at once — it can tunnel straight through that thin trigger without `body_entered` ever firing, then land alive on the solid floor below: invisible, unreachable, and still counted as "alive," which is exactly what locks the room.
 > 
 > Fixed by widening the kill zone to span almost the entire shaft (from where it used to start down to just above the solid floor) instead of a 2-unit slice. Tunneling past it now would require crossing ~30+ units in one physics step, which isn't realistically going to happen.
 > 

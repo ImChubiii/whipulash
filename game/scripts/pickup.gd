@@ -119,19 +119,59 @@ func _ready() -> void:
 
 	if kind == Kind.ITEM:
 		_build_prompt()
-		
-	call_deferred("_drop_to_floor")
 
-func _drop_to_floor() -> void:
+	call_deferred("_scatter_and_drop")
+
+
+## Min/max horizontale Wurfdistanz beim Spawnen - Varianz statt fester Distanz
+## ist der Punkt (Rueckmeldung "Drop-Physik soll sich natuerlicher und mit
+## mehr Velocity-Varianz verteilen").
+const _SCATTER_MIN_DISTANCE: float = 0.9
+const _SCATTER_MAX_DISTANCE: float = 2.4
+## Absichtlich UNTER arm_delay (0.35s) - Magnet/Einsammeln in
+## _physics_process() greifen erst nach arm_delay, so kann keine der beiden
+## Bewegungen mitten in der Streuung mit dieser Tween-Position um
+## global_position konkurrieren.
+const _SCATTER_DURATION: float = 0.3
+
+
+## Wirft das Pickup mit zufaelliger Richtung/Distanz nach aussen und laesst es
+## dort landen, statt wie vorher ohne jede seitliche Streuung exakt an der
+## Spawn-Position zu Boden zu fallen (nur ein einzelner Boden-Raycast, keine
+## Bewegung) - mehrere gleichzeitige Drops (z.B. Raum-Clear mit mehreren
+## Items, die alle nahe der Spieler-Position spawnen, siehe
+## loot_manager.gd::_pick_position()) stapelten sich dadurch sichtbar
+## uebereinander. Gleiche Tween-Idee wie VFX.spawn_ground_fragments() (siehe
+## dortiger Kopfkommentar) - Pickup bleibt bewusst Area3D statt RigidBody3D,
+## der Bob/Spin/Magnet-Code in _physics_process() bleibt unangetastet, das
+## hier ist nur der einmalige Spawn-Moment.
+func _scatter_and_drop() -> void:
 	if not is_inside_tree():
 		return
+	var angle: float = randf() * TAU
+	var distance: float = randf_range(_SCATTER_MIN_DISTANCE, _SCATTER_MAX_DISTANCE)
+	var flat_offset: Vector3 = Vector3(cos(angle), 0.0, sin(angle)) * distance
+	var landing_pos: Vector3 = _project_to_ground(global_position + flat_offset)
+
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "global_position", landing_pos, _SCATTER_DURATION) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await tween.finished
+	_base_y = global_position.y
+
+
+## Senkrechte Boden-Projektion einer beliebigen Position - extrahiert aus dem
+## vorherigen _drop_to_floor() (das nur die eigene global_position projizierte),
+## damit _scatter_and_drop() dieselbe Raycast-Logik auch fuer den seitlich
+## versetzten Ziel-/Landepunkt wiederverwenden kann.
+func _project_to_ground(pos: Vector3) -> Vector3:
 	var space_state = get_world_3d().direct_space_state
-	var query = PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.5, global_position + Vector3.DOWN * 50.0)
+	var query = PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 0.5, pos + Vector3.DOWN * 50.0)
 	query.collision_mask = 1 # Environment mask
 	var result = space_state.intersect_ray(query)
 	if result:
-		global_position.y = result.position.y
-		_base_y = global_position.y
+		return Vector3(pos.x, result.position.y, pos.z)
+	return pos
 
 
 ## Bequemer Konstruktor fuer den LootManager.

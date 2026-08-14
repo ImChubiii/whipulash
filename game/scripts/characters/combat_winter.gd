@@ -190,7 +190,10 @@ func _on_plasma_strike(target: Node3D, origin: Vector3, dmg: float) -> void:
 
 	var spark: Node3D = VFX.spawn(PROJECTILE_HIT_VFX_SCENE if PROJECTILE_HIT_VFX_SCENE else HIT_VFX_SCENE, target.global_position + Vector3.UP, Vector3.UP)
 	if player and player.has_method("shake_camera"):
-		player.shake_camera(0.15)
+		# War 0.18 - Rueckmeldung "Winter-Screenshake extrem schwach". Weiter
+		# angehoben auf Giselle-Uzi-Niveau (0.22) fuer Paritaet zwischen den
+		# beiden Hitscan/Projektil-Fernkaempferinnen.
+		player.shake_camera(0.22)
 	_lock_model_to(target)
 
 
@@ -269,8 +272,18 @@ func _update_laser(delta: float) -> void:
 			# besser zu einem Dauerstrahl als ein einmaliger Ausschlag und
 			# macht spuerbar, dass der Strahl laufend Schaden macht statt
 			# nur huebsch auszusehen (Rueckmeldung "sieht schwach aus").
+			# War 0.05 - Rueckmeldung "Winter-Screenshake extrem schwach": bei
+			# trauma_decay=1.8 klang ein 0.05-Paket in ~0.028s KOMPLETT ab, noch
+			# bevor der naechste Tick (alle laser_tick_interval=0.05s) ueberhaupt
+			# kam - der Strahl produzierte dadurch nie ein spuerbares Dauer-
+			# Rattern, nur voneinander isolierte, fast unsichtbare Mini-Zuckungen.
+			# Auf 0.13 angehoben: klingt jetzt in ~0.072s ab, also LAENGER als
+			# das Tick-Intervall - aufeinanderfolgende Ticks ueberlappen sich
+			# jetzt tatsaechlich zu einem durchgehenden Rattern, waehrend der
+			# max_trauma-Deckel in player_base.gd verhindert, dass ein lange
+			# gehaltener Strahl trotzdem in Dauer-Maximalschuettelei kippt.
 			if player and player.has_method("shake_camera"):
-				player.shake_camera(0.06)
+				player.shake_camera(0.13)
 			EspTarget.flash(target)
 
 	if _laser_beam.is_empty():
@@ -310,7 +323,14 @@ func _resolve_laser_target(origin: Vector3, look_dir: Vector3) -> Node3D:
 		if alive and in_range and in_cone:
 			return _laser_locked_target
 
-	return EnemyQuery.best_target_in_cone(origin, look_dir, laser_range, laser_target_cone_deg)
+	var enemy_target: Node3D = EnemyQuery.best_target_in_cone(origin, look_dir, laser_range, laser_target_cone_deg)
+	# Breakables/TNT werden erst als Fallback-Ziel zugelassen, wenn KEIN
+	# Gegner im Kegel steht UND auch keiner in enemy_detection_radius lauert -
+	# siehe combat_base.gd::_has_nearby_threat(). Verhindert, dass der Laser
+	# eine staerker mittig stehende Deko einem Gegner am Kegelrand vorzieht.
+	if enemy_target != null or _has_nearby_threat():
+		return enemy_target
+	return EnemyQuery.best_target_in_cone(origin, look_dir, laser_range, laser_target_cone_deg, "breakables")
 
 
 ## _laser_locked_target bleibt weiterhin das Sticky-Targeting-Gedaechtnis

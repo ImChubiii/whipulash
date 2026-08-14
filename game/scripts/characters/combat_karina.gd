@@ -265,6 +265,21 @@ func _tick_acid_aura(delta: float) -> void:
 		_aura_pulse_tween.tween_property(_aura_visual, "scale", Vector3.ONE, 0.15) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
+	# Bisher hatte Karinas Primary (Acid Rush Mode) ueberhaupt kein Kamera-
+	# Feedback bei tatsaechlichen Treffern - anders als bei den anderen drei
+	# Charakteren. Leichtes Dauer-Rattern wie bei Winters Laser-Tick, nicht
+	# ein einzelner starker Ausschlag, da die Aura bei acid_tick_interval=0.1
+	# mehrfach pro Sekunde trifft.
+	# War 0.04 - durch player_base.gd's quadratische shake_amount-Kurve
+	# (trauma * trauma) faktisch unsichtbar UND deutlich unter der Zeit, die
+	# ein Trauma-Paket dieser Groesse zum Abklingen braucht (Rueckmeldung
+	# "Karina hat immer noch keinen Screenshake"). Angehoben auf 0.1 - klingt
+	# mit trauma_decay=1.8 in ~0.055s ab, bleibt also weiterhin klar UNTER
+	# dem 0.1s-Tick-Intervall (kein Aufschaukeln ueber mehrere Ticks), ist
+	# dabei aber quadratisch ~6x staerker wahrnehmbar pro einzelnem Tick.
+	if hit_anyone and player and player.has_method("shake_camera"):
+		player.shake_camera(0.1)
+
 
 ## BUGFIX "Cooldown-Ring spinnt": der geerbte primary_cooldown (0.4s, fuer
 ## normale Angriffe gedacht) blieb ungenutzt/unveraendert, waehrend
@@ -495,8 +510,9 @@ func _detonate() -> void:
 
 	_marked_enemy_ids.clear()
 
+	# War 0.6 - Rueckmeldung "Screenshake bei Attacks generell zu stark", gesenkt.
 	if had_marks and player and player.has_method("shake_camera"):
-		player.shake_camera(0.6)
+		player.shake_camera(0.35)
 
 
 func _spawn_mark_vfx(enemy: Node3D) -> void:

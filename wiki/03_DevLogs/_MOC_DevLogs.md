@@ -1,5 +1,5 @@
 ---
-tags: [moc, devlogs]
+tags: [moc, devlog]
 ---
 
 # MOC — Alle DevLogs (88 Commits)

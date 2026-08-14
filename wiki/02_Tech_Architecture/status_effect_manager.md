@@ -1,6 +1,6 @@
 ---
 script_path: scripts/status_effects/status_effect_manager.gd
-tags: [architecture, status-effects]
+tags: [architecture, status-effect]
 ---
 
 # status_effect_manager.gd

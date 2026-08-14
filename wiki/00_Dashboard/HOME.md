@@ -148,8 +148,12 @@ Status-Effekte werden durch Items ausgelöst und wirken auf Gegner.
 | [[_MOC_Status_Effects\|Status-Effekte]] | 10 Effekte: DoT, CC, Buffs und Debuffs |
 | [[lemonade\|Hazards]] | Umgebungsgefahren: Limonade, Abgruende |
 | [[_MOC_Assets\|Assets]] | 3D Modelle, Texturen und Umgebungs-Bausteine |
-| [[_MOC_DevLogs\|Patch Notes]] | Entwicklungs-History als spielerfreundliche Updates |
-| [[01_Dokumentations_Guide\|Doku-Guide]] | Erklärt jede Datei-Art im Vault: woher sie kommt, wie sie gepflegt wird |
+| [[_MOC_Tech_Architecture\|Tech-Architektur]] | Warum-Dokumentation der Autoloads und Kernsysteme |
+| [[PATCHNOTES|Patch Notes]] | Entwicklungs-History als spielerfreundliche Updates |
+| [[_MOC_DevLogs|DevLogs]] | Automatisch generierte Commit-History |
+| [[01_Dokumentations_Guide|Doku-Guide]] | Erklärt jede Datei-Art im Vault: woher sie kommt, wie sie gepflegt wird |
+| [[02_Workflow_Tools|Workflow-Tools]] | Wie Claude, Antigravity, Godot und Obsidian im KI-Workflow zusammenspielen |
+| [[01_Bug_Notizen|Gedanken]] | Persoenliche Notizen: Bugs, Ideen, Todos, Analysen |
 
 ---
 

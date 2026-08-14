@@ -126,6 +126,8 @@ func _on_body_entered(body: Node3D) -> void:
 
 	_already_hit.append(body)
 
+	var is_prop: bool = body is BreakableProp
+
 	var final_damage: float = damage
 	var is_crit: bool = false
 	if _is_player_attack() and Items.stats != null:
@@ -172,11 +174,14 @@ func _on_body_entered(body: Node3D) -> void:
 				body.velocity += impulse
 				_debug("  -> Knockback %.1f (Fallback: direkt auf velocity) auf '%s' angewendet" % [knockback_force, body.name])
 
-	_spawn_damage_number(body, final_damage, is_crit)
+	if not is_prop:
+		_spawn_damage_number(body, final_damage, is_crit)
 
 
 func _on_hit_landed_vfx(target: Node) -> void:
 	if impact_vfx == null or not (target is Node3D):
+		return
+	if target is BreakableProp:
 		return
 
 	var target_3d: Node3D = target as Node3D

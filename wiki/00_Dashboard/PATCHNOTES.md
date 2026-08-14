@@ -1,5 +1,5 @@
 ---
-tags: [patch-notes, devlogs]
+tags: [patch-notes, devlog]
 ---
 
 # Patch Notes — Lemonade
@@ -54,6 +54,9 @@ Die drei Standard-Gegnertypen (Fighter, Colossus, Stinger) liefen bisher alle au
 > - [[2026-08-13_tutorial-prompt-formulieren]]
 > - [[2026-08-13_weitere-anpassungen-ui-aenderungen-und-bugfixes]]
 > - [[2026-08-13_wo-sind-die-patchnotes-bei-obsidian]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-08-13_5da0d91_feat_kaykit-skeleton-reskin_fuer_fightercolossusst]]
+> - [[2026-08-13_bf2b451_update_vfx_for_ningning_fix_winter_animation_retar]]
 
 ---
 
@@ -120,6 +123,25 @@ Ein Tag mit zwei sehr unterschiedlichen Schwerpunkten. Auf der Gameplay-Seite ka
 > - [[2026-08-12_user-raw-uggestions-unless-specifically-asked-uggestions-unless]]
 > - [[2026-08-12_user-raw-where-are-the-forks-where-are]]
 > - [[2026-08-12_was-fehlt-mir-in-meinem-spiel-skip-to]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-08-12_0201145_docs_correct_sequential_numbering_for_schulhof_ite]]
+> - [[2026-08-12_0484ccd_featfix_umfangreiches_gameplay-_ui-_balancing-over]]
+> - [[2026-08-12_3bce52a_chore_remove_obsidian_and_graphify-out_from_gitign]]
+> - [[2026-08-12_45f01d1_docs_fix_corrupted_game_design_blueprint_and_appen]]
+> - [[2026-08-12_5f8cd6d_feat_combat_mechanics_weighted_item_drops_and_ui_t]]
+> - [[2026-08-12_7e2352c_docs_add_dash_damage_visual_feedback_concept_to_bl]]
+> - [[2026-08-12_892303c_docs_add_crit_damage_visual_feedback_concept_to_bl]]
+> - [[2026-08-12_a929cc8_docs_fix_encoding_of_newly_added_schulhof_items_in]]
+> - [[2026-08-12_acbe958_docswiki_overhaul_of_game_design_docs_item_balance]]
+> - [[2026-08-12_c19780a_docswiki_overhaul_of_game_design_docs_item_balance]]
+> - [[2026-08-12_d92384f_docs_fully_restore_05_gedanken_contents_and_re-app]]
+> - [[2026-08-12_e219233_feat_combat_mechanics_weighted_item_drops_and_ui_t]]
+> - [[2026-08-12_e458c87_docs_add_concrete_godot_implementation_hints_for_c]]
+> - [[2026-08-12_ea4bcd0_chore_encrypt_personal_notes_and_prompts]]
+> - [[2026-08-12_ed60512_docs_restore_and_track_04_chat_prompts_and_05_geda]]
+> - [[2026-08-12_ef1f5c2_docs_adjust_item_table_formatting_for_item_db_comp]]
+> - [[2026-08-12_f23c551_feat_combat_mechanics_weighted_item_drops_and_ui_t]]
+> - [[2026-08-12_fb88478_chore_add_obsidian_workspaces_and_os_temp_files_to]]
 
 ---
 
@@ -143,6 +165,15 @@ Alle vier Charaktere bekamen ihre endgültig ausformulierten Kampf-Kits statt Pl
 > - [[2026-08-11_gegner-und-spawn-raten-bersicht]]
 > - [[2026-08-11_greeting]]
 > - [[2026-08-11_implement-various-game-improvements-and-bug-fixes]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-08-11_0680bbe_fix_finalize_room_clearance_logic_and_polish_enemy]]
+> - [[2026-08-11_0bd63e1_feat_character-specific_combat_kits_for_all_4_hero]]
+> - [[2026-08-11_4879445_update_documentation_and_ignore_aider_files]]
+> - [[2026-08-11_5177896_feat_character-specific_combat_kits_for_all_4_hero]]
+> - [[2026-08-11_69742bf_update_room_and_enemy_documentation_to_reflect_san]]
+> - [[2026-08-11_bf671c8_fix_finalize_room_clearance_logic_and_polish_enemy]]
+> - [[2026-08-11_e142e9f_update_documentation_and_ignore_aider_files]]
+> - [[2026-08-11_ea0fce8_update_room_and_enemy_documentation_to_reflect_san]]
 
 ---
 
@@ -167,6 +198,23 @@ Ein großer Feature- und Aufräum-Tag. Jeder Charakter bekam einen zweifarbigen 
 > - [[2026-08-10_valorant-fhigkeiten-technische-implementierung]]
 > - [[2026-08-10_vault-und-graphify-spielentwicklung-verstehen]]
 > - [[2026-08-10_warp-worktree-vs-haupt-repository-wahl]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-08-10_02e6496_merge_branch_main_of_httpsgithubcomimchubiiiwhipul]]
+> - [[2026-08-10_068148f_merge_branch_main_of_httpsgithubcomimchubiiiwhipul]]
+> - [[2026-08-10_43a0d80_chore_obsidian_und_graphify-cache_ignorieren]]
+> - [[2026-08-10_43a32e9_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_]]
+> - [[2026-08-10_467caba_merge_warp_code_und_loese_konflikte]]
+> - [[2026-08-10_4b3999e_featvfxuiitemslevelgen_ghost-trail-system_main-men]]
+> - [[2026-08-10_59d71ec_merge_warp_code_und_loese_konflikte]]
+> - [[2026-08-10_5a37c20_obsidian-vault_ins_repo_aufnehmen]]
+> - [[2026-08-10_5d04371_wiki_sechs_neue_sandbox-gegner_item-item-synergien]]
+> - [[2026-08-10_72accca_wiki_vollstaendige_devlog-liste_freitext-verknuepf]]
+> - [[2026-08-10_741d3f0_wiki_vollstaendige_devlog-liste_freitext-verknuepf]]
+> - [[2026-08-10_90e61b8_chore_obsidian_und_graphify-cache_ignorieren]]
+> - [[2026-08-10_baeb020_featvfxuiitemslevelgen_ghost-trail-system_main-men]]
+> - [[2026-08-10_bcd3e81_wiki_sechs_neue_sandbox-gegner_item-item-synergien]]
+> - [[2026-08-10_be0f304_obsidian-vault_ins_repo_aufnehmen]]
+> - [[2026-08-10_f4f2185_verkleinere_hitboxenmeshes_bei_turret_auge_koeder_]]
 
 ---
 
@@ -200,6 +248,15 @@ Der bisher größte Einzel-Patch: 47 neue Items (davon 33 mächtige "Ultimate"-G
 > - [[2026-08-05_git-commits-mit-claude-und-github-cli]]
 > - [[2026-08-05_implement-godot-game-fixes-and-features-overview-the]]
 > - [[2026-08-05_spiel-feature-umsetzung-statusbericht]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-08-05_11da57c_featcore_massive_gameplay-_und_system-erweiterung_]]
+> - [[2026-08-05_603fc49_feat_massive_gameplay-erweiterung_47_neue_items_ma]]
+> - [[2026-08-05_8187415_merge_pull_request_2_from_imchubiiimetate-pinnacle]]
+> - [[2026-08-05_a84aef5_merge_pull_request_2_from_imchubiiimetate-pinnacle]]
+> - [[2026-08-05_b9765f6_merge_pull_request_1_from_imchubiiimetate-pinnacle]]
+> - [[2026-08-05_dabbb5d_featcore_massive_gameplay-_und_system-erweiterung_]]
+> - [[2026-08-05_e5b4cf6_feat_massive_gameplay-erweiterung_47_neue_items_ma]]
+> - [[2026-08-05_fe47020_merge_pull_request_1_from_imchubiiimetate-pinnacle]]
 
 ---
 
@@ -251,6 +308,17 @@ Umsetzung der Design-Dokument-Phasen 3 bis 5 in einem Zug: sieben Status-Effekte
 > - [[2026-08-04_valorant-abilities-game-adaptation]]
 > - [[2026-08-04_valorant-agenten-fhigkeiten-bersicht]]
 > - [[2026-08-04_valorant-fhigkeiten-fr-spielekonzepte]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-08-04_199136e_featdebug_ui_combat_teleporter-system_boss-hp-mult]]
+> - [[2026-08-04_5d63fe2_featitemscombatlevelgenui_ouija-board_item-reworks]]
+> - [[2026-08-04_678339b_featdebug_ui_combat_teleporter-system_boss-hp-mult]]
+> - [[2026-08-04_7940cf9_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef]]
+> - [[2026-08-04_7e551ae_add_run_management_exportbat_and_remove_legacy_exp]]
+> - [[2026-08-04_9e59d70_add_run_management_exportbat_and_remove_legacy_exp]]
+> - [[2026-08-04_c28ab95_featitems_ai_ui_levelgen_party-revive_item-reworks]]
+> - [[2026-08-04_c63b397_featitems_ai_ui_levelgen_party-revive_item-reworks]]
+> - [[2026-08-04_e9b2b1f_featitemscombatlevelgenui_ouija-board_item-reworks]]
+> - [[2026-08-04_ec5e457_featitemsstatuslevelgenrooms_phase_3-5_-_status-ef]]
 
 ---
 
@@ -292,6 +360,13 @@ Der Neustart-Button und die [R]-Taste taten bis heute schlicht nichts — Ursach
 > - [[2026-08-01_spieleanleitung-als-pdf-bersicht]]
 > - [[2026-08-01_tastenzuweisung-fr-item-use-und-dash]]
 > - [[2026-08-01_tutorial-screen-design-simplification]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-08-01_336b15e_fix_kamera-drill_zurueckgesetzt_motion-blur-featur]]
+> - [[2026-08-01_3bbac00_fixrestartdoorsitemsrooms_neustart-kette_tuer-inte]]
+> - [[2026-08-01_5d2ca05_fixrestartdoorsitemsrooms_neustart-kette_tuer-inte]]
+> - [[2026-08-01_93c1622_fix_tutorial_scren]]
+> - [[2026-08-01_c555d99_fix_kamera-drill_zurueckgesetzt_motion-blur-featur]]
+> - [[2026-08-01_e50066f_fix_tutorial_scren]]
 
 ---
 
@@ -300,7 +375,7 @@ Der Neustart-Button und die [R]-Taste taten bis heute schlicht nichts — Ursach
 **Fokus:** Q/E-Item-Slots, 3D-Gegnermodelle, Projektstruktur-Aufräumen
 
 ### Zusammenfassung
-Die bisher leeren Charakter-Fähigkeiten auf Q/E wurden durch zwei unabhängige aktive Item-Slots ersetzt — das erste aufgesammelte aktive Item geht auf Q, das zweite auf E, Ladung wird pro Item statt pro Slot gespeichert, damit ein Tausch im Pausemenü nie Fortschritt verliert. Gegner bekamen echte animierte Lowpoly-Robotermodelle statt Platzhaltergeometrie, inklusive eines prozeduralen Angriffs-Schwungs per Bone-Manipulation. Der gesamte Projektbaum wurde zudem von einer flachen in eine geordnete Ordnerstruktur (`scripts/{core,enemies,hazards,level,ui}`, `scenes/`, `assets/`) migriert, samt Anpassung aller `res://`-Pfade.
+Die bisher leeren Charakter-Fähigkeiten auf Q/E wurden durch zwei unabhängige aktive Item-Slots ersetzt — das erste aufgesammelte aktive Item geht auf Q, das zweite auf E, Ladung wird pro Item statt pro Slot gespeichert, damit ein Tausch im Pausemenü nie Fortschritt verliert. Gegner bekamen echte animierte Lowpoly-Robotermodelle statt Platzhaltergeometrie, inklusive eines prozeduralen Angriffs-Schwungs per Bone-Manipulation. Der gesamte Projektbaum wurde zudem von einer flachen in eine geordnete Ordnerstruktur (`scripts/{core,enemy,hazards,level,ui}`, `scenes/`, `assets/`) migriert, samt Anpassung aller `res://`-Pfade.
 
 ### Wichtigste Änderungen
 - Aktive Items auf zwei unabhängige Q/E-Slots umgestellt, Ladung pro Item statt pro Slot
@@ -315,6 +390,19 @@ Die bisher leeren Charakter-Fähigkeiten auf Q/E wurden durch zwei unabhängige 
 > - [[2026-07-28_melee-items-mit-godot-effekten]]
 > - [[2026-07-28_null-instance-rotation-error-in-player-base]]
 > - [[2026-07-28_projekt-startet-nicht]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-07-28_0743a3e_refactor_reorganize_project_structure_and_normaliz]]
+> - [[2026-07-28_17b4f89_featenemy_integrate_3d_robot_models_and_procedural]]
+> - [[2026-07-28_1f5b78d_fix_windowed_position_persistence_on_first_run]]
+> - [[2026-07-28_2642172_featitems_aktive_items_auf_qe-slots_umgestellt]]
+> - [[2026-07-28_499c162_refactor_reorganize_project_structure_and_normaliz]]
+> - [[2026-07-28_976bf0c_hud_fix]]
+> - [[2026-07-28_ae734fd_fix_windowed_position_persistence_on_first_run]]
+> - [[2026-07-28_b6f176f_add_particles]]
+> - [[2026-07-28_c2ad883_hud_fix]]
+> - [[2026-07-28_cdefce2_featenemy_integrate_3d_robot_models_and_procedural]]
+> - [[2026-07-28_ea34fe3_featitems_aktive_items_auf_qe-slots_umgestellt]]
+> - [[2026-07-28_f8773ab_add_particles]]
 
 ---
 
@@ -338,6 +426,9 @@ Der Item-Katalog stand seit Tagen komplett fertig da (Effekte, Stat-Integration)
 > - [[2026-07-27_godot-3d-modelle-und-animationen-importieren]]
 > - [[2026-07-27_projektanweisung-fr-godot-entwickler]]
 > - [[2026-07-27_treasure-room-items-und-bomb-mechaniken]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-07-27_0c0e515_feat_treasure_room_items_hud_overhaul_balancing_mu]]
+> - [[2026-07-27_f88829f_feat_treasure_room_items_hud_overhaul_balancing_mu]]
 
 ---
 
@@ -375,6 +466,20 @@ Ein inhaltlich sehr dichter Tag. Ein neues Stat-System (Schaden, Tempo, Angriffs
 > - [[2026-07-26_spielmechanik-und-level-design-verbesserungen]]
 > - [[2026-07-26_stat-system-als-grundlage-fuer-loot-mechaniken]]
 > - [[2026-07-26_verifikationslauf-und-offene-dungeon-skalierungen]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-07-26_0144b33_expand_readme_with_game_details_and_controls]]
+> - [[2026-07-26_058b54e_featsettings_minimap_modulare_settings-gruppen_min]]
+> - [[2026-07-26_161c399_feat_stat-system_loot-drops_bomben_items_und_game_]]
+> - [[2026-07-26_1b638b9_add_commit_export_batch_and_generated_log]]
+> - [[2026-07-26_2ddf360_fixlevelgenaicamera_tueren_raumgeometrie_gegnerver]]
+> - [[2026-07-26_4a6c9c9_add_commit_export_batch_and_generated_log]]
+> - [[2026-07-26_61765de_feat_combat-tuning_hud-overhaul_anti-baiting_sieg-]]
+> - [[2026-07-26_843fa45_feat_dash-schaden_fov-regler_und_rampen-lava-fixes]]
+> - [[2026-07-26_95fdcfd_add_whiplash_game_export_files]]
+> - [[2026-07-26_a9c7565_add_whiplash_game_export_files]]
+> - [[2026-07-26_b73510d_expand_readme_with_game_details_and_controls]]
+> - [[2026-07-26_ec9ce70_feat_stat-system_loot-drops_bomben_items_und_game_]]
+> - [[2026-07-26_fc23274_feat_dash-schaden_fov-regler_und_rampen-lava-fixes]]
 
 ---
 
@@ -397,6 +502,14 @@ Der Gegner-Spawn wechselte von festen Min/Max-Zahlen auf ein Threat-Budget-Syste
 > - [[2026-07-25_gegner-scaling-und-raumgroesse-anpassen]]
 > - [[2026-07-25_godot-level-generator-room-instantiation]]
 > - [[2026-07-25_level-design-und-gameplay-verbesserungen]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-07-25_170eb45_featlevel-gen_threat-budget_enemy_mix_lava_hazards]]
+> - [[2026-07-25_44c639b_fixlevel-generation_dynamisches_spawningtuer-syste]]
+> - [[2026-07-25_66b3f05_featlevel-gen_threat-budget_enemy_mix_lava_hazards]]
+> - [[2026-07-25_70c307e_featminimap_add_player_direction_arrow]]
+> - [[2026-07-25_905d144_feat_level-generation-polish_minimap-overhaul_haza]]
+> - [[2026-07-25_aea81f1_fixlevel-generation_dynamisches_spawningtuer-syste]]
+> - [[2026-07-25_f8455e0_merge_branch_main_of_httpsgithubcomimchubiiiwhipul]]
 
 ---
 
@@ -416,6 +529,11 @@ Der bisher generische `Player` wurde durch vier eigenständige Charakterszenen (
 > - [[2026-07-24_character-spezifische-szenen-und-abilities]]
 > - [[2026-07-24_roguelike-style-room-design-variation]]
 > - [[2026-07-24_spielmechaniken-und-ui-anpassungen-fuer-godot-projekt]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-07-24_0f73f4c_feat_minimap-kalibrierung_hud-overlay-fixes_knockb]]
+> - [[2026-07-24_772c314_feat_minimap-kalibrierung_hud-overlay-fixes_knockb]]
+> - [[2026-07-24_b39a97d_refactorplayer_split_player_system_into_per-charac]]
+> - [[2026-07-24_d86f02e_refactorplayer_split_player_system_into_per-charac]]
 
 ---
 
@@ -443,6 +561,17 @@ Das HUD bekam sein bis heute grundlegendes Gerüst: eine 4-Personen-Party mit HP
 > - [[2026-07-23_lemonade-als-gridmap-asset-mit-effekten]]
 > - [[2026-07-23_log-datei-ueberpruefung]]
 > - [[2026-07-23_pause-menu-bugs-in-level-02]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-07-23_0887d72_feathud_add_full_party_hud_with_abilities_minimap_]]
+> - [[2026-07-23_15c8712_feathud_add_full_party_hud_with_abilities_minimap_]]
+> - [[2026-07-23_606156f_add_map]]
+> - [[2026-07-23_9305498_fix_reassign_area3d_script_to_correct_parent_node]]
+> - [[2026-07-23_b0d96b3_add_map]]
+> - [[2026-07-23_d76e823_refactor_settings_menu_with_tabs_accessibility]]
+> - [[2026-07-23_d7e8cf7_fix_reassign_area3d_script_to_correct_parent_node]]
+> - [[2026-07-23_d9bde60_updated_export]]
+> - [[2026-07-23_de06b3d_updated_export]]
+> - [[2026-07-23_f874fed_refactor_settings_menu_with_tabs_accessibility]]
 
 ---
 
@@ -463,6 +592,15 @@ Gegner bekamen echtes NavigationAgent3D-Pathfinding mit intelligentem Abstiegs-V
 > - [[2026-07-22_menu-blur-hintergrund-problem]]
 > - [[2026-07-22_naechste-ziele-definieren]]
 > - [[2026-07-22_settings-struktur-mit-separatem-keybinds-tab]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-07-22_0bbeb99_fix_settings_tabs]]
+> - [[2026-07-22_3b06fb5_fix_settings_tabs]]
+> - [[2026-07-22_802fffe_add_navmesh_pathfinding_and_fix_physics_bugs]]
+> - [[2026-07-22_9e71cfc_featui_add_settings_menu_with_sensitivity_volume_f]]
+> - [[2026-07-22_b53088c_featui_add_settings_menu_with_sensitivity_volume_f]]
+> - [[2026-07-22_d744e07_add_navmesh_pathfinding_and_fix_physics_bugs]]
+> - [[2026-07-22_d9052ed_gridmap_asset_hinzugefuegt]]
+> - [[2026-07-22_fd0eb9f_gridmap_asset_hinzugefuegt]]
 
 ---
 
@@ -484,6 +622,18 @@ Ein kritischer Bug ließ Gegner einfrieren: die Berechnung der Fußposition zäh
 > - [[2026-07-21_godot-mit-github-verbinden-drei-wege]]
 > - [[2026-07-21_ki-verfolgung-mit-navigationagent3d-verbessern]]
 > - [[2026-07-21_lava-auftrieb-und-tauchtiefe-regulieren]]
+> [!INFO]- Verlinkungen (DevLogs)
+> - [[2026-07-21_0d3ad30_fix_enemy_movement_freeze_and_enhance_ledge_detect]]
+> - [[2026-07-21_2135fc5_fix_enemy_movement_freeze_and_enhance_ledge_detect]]
+> - [[2026-07-21_25431a4_bereinigung]]
+> - [[2026-07-21_3b6606e_d]]
+> - [[2026-07-21_47222b1_initial_cleanup]]
+> - [[2026-07-21_4d89da8_test]]
+> - [[2026-07-21_4f3425d_fix_player_launching_out_of_buoyancy_zones]]
+> - [[2026-07-21_9b46c89_test]]
+> - [[2026-07-21_aa290a7_bereinigung]]
+> - [[2026-07-21_b403b2c_fix_player_launching_out_of_buoyancy_zones]]
+> - [[2026-07-21_d66210d_initial_commit]]
 
 ---
 

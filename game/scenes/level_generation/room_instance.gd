@@ -260,6 +260,12 @@ var ceiling_texture: Texture2D = null
 ## Vergroessert (Rueckmeldung "Requisiten allgemein mehr ausspreizen").
 @export var wall_prop_spacing: float = 5.5
 
+## --- TNT-Faesser (explosive Breakables, siehe tnt_barrel.gd) ------------
+## Chance PRO RAUM, ueberhaupt Faesser zu platzieren - nicht pro Kandidaten-
+## punkt, sonst waeren TNT-Faesser in praktisch jedem Raum vertreten.
+@export_range(0.0, 1.0) var tnt_spawn_chance: float = 0.35
+@export var max_tnt_per_room: int = 1
+
 ## --- Rampen / Hoehenunterschiede --------------------------------------
 ## Dicke des Rampen-Keils UNTER seiner Lauf-Flaeche. Frueher fest 1.0 -
 ## darunter klaffte bis zu "rise" Meter Leere. Ein Gegner, der auf der Rampe
@@ -557,6 +563,12 @@ func _ready() -> void:
 		_build_wall_decor()
 		_build_banners()
 		_build_candles()
+		_build_tnt_barrels()
+	# Bewusst AUSSERHALB von "if build_props": das hier sind von Hand in der
+	# jeweiligen room_*.tscn platzierte Struktur-Objekte (Pillar1..4 etc.),
+	# keine Laufzeit-Prozedur-Deko - existieren unabhaengig davon, ob
+	# build_props fuer diesen Raum aktiv ist.
+	_convert_pillar_decor()
 
 
 func _exit_tree() -> void:
@@ -929,6 +941,20 @@ func _collect_prop_candidates() -> Array[Vector3]:
 const PROP_IMPORT_SCALE: float = 1.0
 
 
+## EINZIGER Aufrufpunkt, durch den JEDE KayKit-Boden-Requisite laeuft
+## (Haufen-Cluster, Tische, Tisch-Beikram, Kerzen - siehe die vier Aufrufer
+## unten) - deshalb hier zentral in eine BreakableProp-Huelle gewrappt statt
+## an jeder einzelnen Aufrufstelle separat (Rueckmeldung "ALLE Dinge auf dem
+## Boden sollen zu Breakables werden, nicht nur die Wand-Sachen"). Gleiche
+## Huellen-Technik wie _wrap_wall_prop_as_breakable() fuer die Wandrequisiten,
+## nur OHNE Umparenten (der rohe Prop wird noch VOR dem ersten add_child()
+## gewrappt, ist also nie selbst im Baum haengend gewesen).
+##
+## Rueckgabewert bleibt bewusst als "Node3D" typisiert, nicht "BreakableProp":
+## alle vier Aufrufer setzen anschliessend nur position/rotation.y und lesen
+## _prop_local_aabb()/scale - BreakableProp ist selbst ein Node3D (StaticBody3D)
+## mit dem Requisiten-Mesh als Kind bei IDENTITY-Transform, diese Aufrufe
+## funktionieren unveraendert weiter.
 func _instance_random_prop(container: Node3D, pool: PackedStringArray = FLOOR_PROP_FILES) -> Node3D:
 	if pool.is_empty():
 		return null
@@ -938,10 +964,13 @@ func _instance_random_prop(container: Node3D, pool: PackedStringArray = FLOOR_PR
 	var prop: Node3D = scene.instantiate() as Node3D
 	if prop == null:
 		return null
-	container.add_child(prop)
 	prop.scale *= PROP_IMPORT_SCALE
 	_psxify_prop_materials(prop)
-	return prop
+
+	var color: Color = BreakableProp.sample_main_color(prop)
+	var breakable: BreakableProp = BreakableProp.create(prop, color)
+	container.add_child(breakable)
+	return breakable
 
 
 # ============================================================================
@@ -987,6 +1016,32 @@ func _build_tables() -> void:
 		table.rotation.y = randf() * TAU
 		_ground_prop(table, pos.y, local_aabb)
 		_table_positions.append(table.position)
+
+
+## "TNT-Modelle sollen als zerstoerbare Objekte random auf der Map und an
+## den Raendern verteilt werden" - nutzt denselben Wand-Kandidatenpool wie
+## _build_tables() (bereits Tuer-/Pfeiler-/Spawnpunkt-Abstand beruecksichtigt,
+## deckt "an den Raendern" ab), platziert aber TntBarrel statt reiner Deko.
+func _build_tnt_barrels() -> void:
+	if randf() > tnt_spawn_chance:
+		return
+	var candidates: Array[Vector3] = _collect_prop_candidates()
+	if candidates.is_empty():
+		return
+	candidates.shuffle()
+
+	var container: Node3D = _props_container()
+	var placed: int = 0
+	for pos: Vector3 in candidates:
+		if placed >= max_tnt_per_room:
+			break
+		var barrel := TntBarrel.new()
+		container.add_child(barrel)
+		var local_aabb: AABB = _prop_local_aabb(barrel)
+		barrel.position = pos
+		barrel.rotation.y = randf() * TAU
+		_ground_prop(barrel, pos.y, local_aabb)
+		placed += 1
 
 
 ## Plate/Bottle liegen MEISTENS neben Tischen (nicht Pflicht, siehe
@@ -1100,6 +1155,20 @@ func _place_wall_prop(container: Node3D, entry: Dictionary, file_name: String) -
 	return prop
 
 
+## Ersetzt "prop" (bereits unter container mit gesetztem position/rotation.y)
+## durch eine BreakableProp-Huelle an genau derselben lokalen Transform - die
+## rohe Requisite wird als Kind der Huelle neu eingehaengt (siehe
+## BreakableProp._ready(), das ihren Transform auf IDENTITY zuruecksetzt,
+## damit die Position nicht doppelt angewendet wird).
+func _wrap_wall_prop_as_breakable(container: Node3D, prop: Node3D) -> void:
+	var color: Color = BreakableProp.sample_main_color(prop)
+	var local_transform: Transform3D = prop.transform
+	container.remove_child(prop)
+	var breakable: BreakableProp = BreakableProp.create(prop, color)
+	container.add_child(breakable)
+	breakable.transform = local_transform
+
+
 ## Nur ein Teil der Wandpunkte wird ueberhaupt belegt - sonst wirkt jede
 ## Wand komplett zugestellt statt gezielt dekoriert.
 const WALL_PROP_FILL_CHANCE: float = 0.55
@@ -1119,7 +1188,48 @@ func _build_wall_decor() -> void:
 		if randi() % 3 == 0:
 			_place_torch(container, entry)
 		else:
-			_place_wall_prop(container, entry, WALL_PROP_FILES[randi() % WALL_PROP_FILES.size()])
+			var prop: Node3D = _place_wall_prop(container, entry, WALL_PROP_FILES[randi() % WALL_PROP_FILES.size()])
+			# Fackeln/Kerzen bleiben bewusst reine Deko (siehe _place_torch) -
+			# nur die "inerten" Wandobjekte (Schwert+Schild, Regale) werden
+			# zerbrechbar, ein brennendes Objekt, das Muenzen droppt, liest
+			# sich seltsam.
+			if prop != null:
+				_wrap_wall_prop_as_breakable(container, prop)
+
+
+# ============================================================================
+# HAND-PLATZIERTE SAEULEN ("Pillar*") - zerbrechbar machen.
+# ============================================================================
+## 19 der 39 room_*.tscn-Dateien haben von Hand platzierte Deckungs-Saeulen
+## ("Pillar1".."PillarN"), uneinheitlich entweder direkt als Geschwister von
+## Floor/Wall* (12 Raeume) ODER unter einem "Pillars"-Container-Node (8
+## Raeume) - kein gemeinsamer Vorfahre, kein Gruppen-Tag, keine Namens-
+## konvention ausser dem "Pillar"-Praefix selbst. Statt jede .tscn einzeln
+## von Hand zu bearbeiten, scannt dieser Schritt zur Laufzeit nach diesem
+## Praefix und haengt BreakableProp per wrap_existing() direkt an die
+## bestehenden Nodes (siehe dortiger Kopfkommentar - kein neuer Wrapper-Node,
+## keine Transform-Neuberechnung noetig).
+##
+## "Pillar1" in room_combat_01.tscn traegt bereits destructible_prop.gd (nur
+## per schwerem Ramm-Treffer zerstoerbar) - wrap_existing()'s eigener
+## get_script()-Check ueberspringt ihn automatisch, unveraendertes Verhalten.
+##
+## Bewusst NUR "Pillar*" - Platform*/Dais/Bridge*/WallCross*/SecretVault sind
+## begehbare/strukturelle Geometrie (Treppen, Bossraum-Buehne, geheime
+## Raumwand), keine reine Deckungs-Deko, und bleiben unangetastet.
+func _convert_pillar_decor() -> void:
+	for child: Node in get_children():
+		_maybe_convert_pillar(child)
+		if child.name == "Pillars":
+			for grandchild: Node in child.get_children():
+				_maybe_convert_pillar(grandchild)
+
+
+func _maybe_convert_pillar(node: Node) -> void:
+	if not (node is StaticBody3D) or not node.name.begins_with("Pillar"):
+		return
+	var color: Color = BreakableProp.sample_main_color(node as Node3D)
+	BreakableProp.wrap_existing(node as StaticBody3D, color)
 
 
 # ============================================================================

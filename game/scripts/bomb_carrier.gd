@@ -52,9 +52,9 @@ const BOMB_ACTION: String = "bomb"
 ## Wie weit vor dem Spieler eine abgelegte Bombe landet.
 @export var place_distance: float = 1.2
 ## Wurfkraft nach vorne.
-@export var throw_force: float = 26.0
+@export var throw_force: float = 85.0
 ## Zusaetzlicher Bogen nach oben, damit der Wurf nicht am Boden entlangschrammt.
-@export var throw_arc: float = 9.0
+@export var throw_arc: float = 10.0
 ## Zuendschnur — bewusst hier und nicht in bomb.gd, damit Items sie spaeter
 ## verlaengern koennen, ohne die Bombe selbst zu kennen.
 @export var fuse_time: float = 2.0
@@ -75,6 +75,7 @@ var _fuse_remaining: float = 0.0
 var _held_visual: Node3D = null
 var _aim_preview: Node3D = null
 var _aim_dots: Array[MeshInstance3D] = []
+var _blink_accumulator: float = 0.0
 
 
 func _ready() -> void:
@@ -99,6 +100,7 @@ func _process(delta: float) -> void:
 	_fuse_remaining -= delta
 	fuse_ticked.emit(_fuse_remaining)
 	_update_aim_preview()
+	_update_blink(delta)
 
 	if _fuse_remaining <= 0.0:
 		# In der Hand hochgegangen. Die Bombe wird trotzdem gespawnt, damit
@@ -124,6 +126,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _equipped and event.is_action_pressed("attack_primary"):
 		_throw()
 		get_viewport().set_input_as_handled()
+		return
+		
+	if _equipped and event.is_action_pressed("attack_secondary"):
+		_place()
+		get_viewport().set_input_as_handled()
 
 
 # ============================================================================
@@ -136,6 +143,7 @@ func _equip() -> void:
 
 	_equipped = true
 	_fuse_remaining = fuse_time
+	_blink_accumulator = 0.0
 	_set_combat_enabled(false)
 	_build_held_visual()
 	_build_aim_preview()
@@ -174,6 +182,7 @@ func _release_bomb(impulse: Vector3) -> Bomb:
 	# Die Restlaufzeit aus der Hand wird uebernommen — sonst waere Halten
 	# risikofrei.
 	bomb.set("_fuse_remaining", maxf(_fuse_remaining, 0.05))
+	bomb.set("_blink_accumulator", _blink_accumulator)
 
 	var forward: Vector3 = _get_forward()
 	# Etwas hoeher als frueher (0.9 statt 0.4): der Wurf startet damit auf
@@ -215,17 +224,17 @@ func _build_held_visual() -> void:
 	_clear_held_visual()
 
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.22
-	sphere.height = 0.44
-	sphere.radial_segments = 8
-	sphere.rings = 5
+	sphere.radius = 0.55
+	sphere.height = 1.10
+	sphere.radial_segments = 10
+	sphere.rings = 6
 
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.albedo_color = Color(0.16, 0.16, 0.20)
 	material.emission_enabled = true
-	material.emission = Color(0.95, 0.3, 0.15)
-	material.emission_energy_multiplier = 1.5
+	material.emission = Color(1.0, 0.35, 0.15)
+	material.emission_energy_multiplier = 1.0
 
 	var instance := MeshInstance3D.new()
 	instance.mesh = sphere
@@ -242,6 +251,22 @@ func _clear_held_visual() -> void:
 	if _held_visual and is_instance_valid(_held_visual):
 		_held_visual.queue_free()
 	_held_visual = null
+
+
+func _update_blink(delta: float) -> void:
+	if _held_visual == null:
+		return
+	var mesh_node: MeshInstance3D = _held_visual.get_child(0) as MeshInstance3D
+	if mesh_node == null or not (mesh_node.material_override is StandardMaterial3D):
+		return
+
+	var progress: float = 1.0 - clampf(_fuse_remaining / maxf(fuse_time, 0.01), 0.0, 1.0)
+	var frequency: float = lerpf(3.0, 18.0, progress)
+	_blink_accumulator += delta * frequency
+
+	var pulse: float = (sin(_blink_accumulator * TAU) * 0.5 + 0.5)
+	var material: StandardMaterial3D = mesh_node.material_override
+	material.emission_energy_multiplier = pulse * lerpf(2.0, 6.0, progress)
 
 
 # ============================================================================

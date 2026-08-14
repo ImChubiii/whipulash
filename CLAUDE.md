@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 The repo root splits into two independent trees:
 
 - **`game/`** — the actual Godot project (`project.godot`, `scenes/`, `scripts/`, `resources/`, `assets/`, ...). Everything in "Commands" and "Architecture" below is relative to `game/`, not the repo root.
-- **`wiki/`** — the Obsidian vault (`00_Dashboard/`, `01_Game_Design/`, ..., `98_Scripts/`), see "Knowledge base / wiki tooling" below. `wiki/.obsidian/` is the vault marker — Obsidian only ever sees this subtree.
+- **`wiki/`** — the Obsidian vault directory containing the markdown files (`00_Dashboard/`, `01_Game_Design/`, ..., `98_Scripts/`). The vault settings are versioned in **both** the root `.obsidian/` and `wiki/.obsidian/`. You can open either the repository root (`whiplash/`) or the `wiki/` subdirectory as your vault in Obsidian (the root vault has configured filters in `.obsidian/app.json` to automatically ignore `game/`, `.git/`, `.godot/`, and `graphify-out/` folders).
 
 `CLAUDE.md`, `AGENTS.md`, `README.md` stay at the repo root (outside both `game/` and `wiki/`).
 

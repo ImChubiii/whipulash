@@ -223,7 +223,7 @@ Bitte gib mir den aktualisierten Code für das korrigierte Model-Tilt und das ne
 
 ## User
 
-beim benutzen der abilities wird motion blur deckkraft hoch gemacht, das soll so nicht sein außer bei karina. kannst du die secondary rmb von ningning noch größer machen und 3d mäßig also 2 assets die dann in 90 grad sind so wenn du checkst
+beim benutzen der abilities wird motion blur deckkraft hoch gemacht, das soll so nicht sein außer bei karina. kannst du die secondary rmb von ningning noch größer machen und 3d mäßig also 2 asset die dann in 90 grad sind so wenn du checkst
 
 ## Assistant
 
@@ -234,7 +234,7 @@ Hier ist der nächste Prompt für dich. Den Teil mit dem "3D-mäßig in 90 Grad"
 ```text
 I have two issues with the current abilities that need to be fixed:
 
-1. **Motion Blur Logic**: Currently, using any ability increases the motion blur intensity/opacity. This is incorrect. The motion blur effect should ONLY trigger when the character "Karina" uses her ability. For all other characters, the motion blur should remain unchanged. Please update the logic to check the character type before applying the blur.
+1. **Motion Blur Logic**: Currently, using any ability increases the motion blur intensity/opacity. This is incorrect. The motion blur effect should ONLY trigger when the character "Karina" uses her ability. For all other character, the motion blur should remain unchanged. Please update the logic to check the character type before applying the blur.
 
 2. **Ningning's Secondary Ability (RMB)**: I need to update the visual for Ningning's right-mouse-button ability. 
    - First, make the overall scale/size of the projectile or effect larger.
@@ -368,7 +368,7 @@ Please make the following adjustments to Ningning's secondary ability (RMB):
 
 **Important Question regarding Global Axis Inversion:**
 I have noticed a persistent issue in my project: everything seems to be inverted. When I import character models, they face the wrong way. When I code something to move "forward", it actually moves "backward" in the game world. 
-Why is this happening, and how can I fix this globally once and for all? Is there a specific export setting from my 3D software (like Blender) I should use, or a wrapper-node setup I need to apply to all my characters so that the engine's "forward" aligns with the models' "forward"?
+Why is this happening, and how can I fix this globally once and for all? Is there a specific export setting from my 3D software (like Blender) I should use, or a wrapper-node setup I need to apply to all my character so that the engine's "forward" aligns with the models' "forward"?
 ```
 
 ### Option 2: Deutscher Prompt

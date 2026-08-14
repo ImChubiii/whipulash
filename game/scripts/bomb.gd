@@ -87,6 +87,10 @@ signal exploded(position: Vector3)
 ## deren Optik nicht zu ihrer echten Reichweite passt, fuehlt sich wie ein
 ## Zufallstreffer an.
 @export var explosion_radius: float = 14.0
+## Der tatsaechliche Schadensradius. Unabhaengig von der Visualisierung,
+## da der Spieler den Radius groesser haben wollte, ohne dass die Explosion 
+## noch groesser aussieht.
+@export var damage_radius: float = 22.0
 
 ## Anteil des Explosionsradius, in dem der SPIELER Schaden nimmt. Siehe
 ## Begruendung im Kopf der Datei.
@@ -111,7 +115,7 @@ signal exploded(position: Vector3)
 
 ## --- Flug- und Rollverhalten -----------------------------------------
 ## Daempfung, solange die Bombe fliegt. Nahe 0 = echte Wurfparabel.
-@export var flight_damp: float = 0.12
+@export var flight_damp: float = 0.0
 ## Daempfung am Boden. Hoch, damit die Bombe nach kurzem Rollen liegt.
 @export var ground_damp: float = 3.0
 ## Notbremse: nach so vielen Sekunden endet der Flugmodus auf jeden Fall.
@@ -119,7 +123,7 @@ signal exploded(position: Vector3)
 ## Boden-Raycast nie ausloest, dauerhaft ungedaempft.
 @export var max_flight_time: float = 2.5
 ## Wie weit unter dem Bombenmittelpunkt nach Boden gesucht wird.
-@export var ground_probe_length: float = 0.45
+@export var ground_probe_length: float = 0.65
 
 ## --- Abprall / Kollisionsverhalten (NEU) -------------------------------
 ## physics_material_override.bounce. Ohne Wert hier bleibt es bei Godots
@@ -220,15 +224,15 @@ func _build_physics_material() -> void:
 func _build_collision() -> void:
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
-	sphere.radius = 0.32
+	sphere.radius = 0.55
 	shape.shape = sphere
 	add_child(shape)
 
 
 func _build_visual() -> void:
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.32
-	sphere.height = 0.64
+	sphere.radius = 0.55
+	sphere.height = 1.10
 	sphere.radial_segments = 10
 	sphere.rings = 6
 
@@ -236,8 +240,8 @@ func _build_visual() -> void:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.albedo_color = Color(0.16, 0.16, 0.20)
 	material.emission_enabled = true
-	material.emission = Color(0.9, 0.25, 0.15)
-	material.emission_energy_multiplier = 0.0
+	material.emission = Color(1.0, 0.35, 0.15)
+	material.emission_energy_multiplier = 1.0
 
 	_mesh = MeshInstance3D.new()
 	_mesh.mesh = sphere
@@ -339,7 +343,7 @@ func _update_blink(delta: float) -> void:
 
 	var pulse: float = (sin(_blink_accumulator * TAU) * 0.5 + 0.5)
 	var material: StandardMaterial3D = _mesh.material_override
-	material.emission_energy_multiplier = pulse * lerpf(1.0, 3.5, progress)
+	material.emission_energy_multiplier = pulse * lerpf(2.0, 6.0, progress)
 
 
 ## Uebersetzt die Eigenbewegung ueberlappender Charaktere in einen Impuls
@@ -394,7 +398,7 @@ func explode() -> void:
 	_exploded = true
 
 	var origin: Vector3 = global_position
-	_debug("Explosion bei %s (Radius %.1f)." % [origin, explosion_radius])
+	_debug("Explosion bei %s (Schadens-Radius %.1f, Visual %.1f)." % [origin, damage_radius, explosion_radius])
 
 	_damage_targets(origin)
 	_chain_other_bombs(origin)
@@ -410,16 +414,22 @@ func explode() -> void:
 
 
 func _damage_targets(origin: Vector3) -> void:
-	# Gegner — voller Radius.
+	# Gegner — voller Schaden-Radius.
 	for node: Node in get_tree().get_nodes_in_group("enemies"):
 		if not (node is Node3D) or not is_instance_valid(node):
 			continue
-		_damage_one(node as Node3D, origin, damage, explosion_radius)
+		_damage_one(node as Node3D, origin, damage, damage_radius)
+
+	# Props — voller Schaden-Radius.
+	for node: Node in get_tree().get_nodes_in_group("breakables"):
+		if not (node is Node3D) or not is_instance_valid(node):
+			continue
+		_damage_one(node as Node3D, origin, damage, damage_radius)
 
 	# Spieler — nur der Kern der Explosion.
 	if not damages_player:
 		return
-	var self_radius: float = explosion_radius * self_damage_radius_factor
+	var self_radius: float = damage_radius * self_damage_radius_factor
 	for node: Node in get_tree().get_nodes_in_group("player"):
 		if not (node is Node3D) or not is_instance_valid(node):
 			continue
@@ -501,8 +511,8 @@ func _spawn_flash(origin: Vector3) -> void:
 
 func _spawn_fireball(parent: Node, origin: Vector3) -> void:
 	var sphere := SphereMesh.new()
-	sphere.radius = explosion_radius * 0.5
-	sphere.height = explosion_radius
+	sphere.radius = explosion_radius * 0.8
+	sphere.height = explosion_radius * 1.2
 	sphere.radial_segments = 12
 	sphere.rings = 8
 
@@ -535,8 +545,8 @@ func _spawn_fireball(parent: Node, origin: Vector3) -> void:
 
 func _spawn_core(parent: Node, origin: Vector3) -> void:
 	var sphere := SphereMesh.new()
-	sphere.radius = explosion_radius * 0.22
-	sphere.height = explosion_radius * 0.44
+	sphere.radius = explosion_radius * 0.35
+	sphere.height = explosion_radius * 0.65
 	sphere.radial_segments = 10
 	sphere.rings = 6
 

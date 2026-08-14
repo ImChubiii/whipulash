@@ -1,5 +1,5 @@
 ---
-tags: [moc, rooms]
+tags: [moc, room]
 ---
 
 # MOC — Raeume nach Typ

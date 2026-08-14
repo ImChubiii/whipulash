@@ -1,5 +1,5 @@
 ---
-tags: [moc, characters]
+tags: [moc, character]
 ---
 
 # MOC — Charaktere

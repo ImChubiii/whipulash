@@ -1,5 +1,5 @@
 ---
-tags: [moc, items]
+tags: [moc, item]
 ---
 
 # MOC — Items nach Gruppierung
@@ -229,6 +229,11 @@ sortierbare Gesamttabelle.
 - [[pocket_calculator|Taschenrechner]]
 - [[paintbox|Tuschkasten]]
 
+
+## Item Konzepte & Datenbank
+
+- [[_Konzepte/01_Item_Konzept_Datenbank|Item Konzept Datenbank]]
+- [[_Konzepte/02_Item_Konzepte_V2|Item Konzepte V2 (inkl. Archiv)]]
 
 ## Nach Kind (Aktiv/Passiv)
 

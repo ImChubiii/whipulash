@@ -12,7 +12,7 @@ ki_art: "antigravity"
 
 bitte ein prompt formulieren:
 
-bitte mach ein tutorial den man abschließen msus, das tutorial sollte auch beim main menü sein und als teleporter sein im ersten level. das tutorial soll wiefolgt sein: erstmal nur ningning ohne andere character, die geht dann vom corridor in den ersten raum wo gegner sind und dann in den nächsten raum. nächster raum ist dann ein treasure room wo man giselle freischaltet, dadnn wieder fight room mit giselle, dann treasure room wo man karina freischaltet dann fight dann winter damit man jeden character kennenlernt, und dann zuletzt nach dem fight ein treasure room mit items und dann fight, dann ein treasure room wo man in die erste ebene kommt. die fighträume sind so 
+bitte mach ein tutorial den man abschließen msus, das tutorial sollte auch beim main menü sein und als teleporter sein im ersten level. das tutorial soll wiefolgt sein: erstmal nur ningning ohne andere character, die geht dann vom corridor in den ersten raum wo gegner sind und dann in den nächsten raum. nächster raum ist dann ein treasure room wo man giselle freischaltet, dadnn wieder fight room mit giselle, dann treasure room wo man karina freischaltet dann fight dann winter damit man jeden character kennenlernt, und dann zuletzt nach dem fight ein treasure room mit item und dann fight, dann ein treasure room wo man in die erste ebene kommt. die fighträume sind so 
 
 1. fight room sind nur fighter und scouts
 2. sind mörser und säure mörser und diver 
@@ -163,13 +163,13 @@ Bitte passe das bestehende Level-Generation-Skript so an, dass man ihm eine Art 
 
 ## User
 
-erstelle ein prompt bitte items wie bomben coins und heal sind zu weit im boden also 1/3 des models ist im boden 
+erstelle ein prompt bitte item wie bomben coins und heal sind zu weit im boden also 1/3 des models ist im boden 
 
 character description soll untger der minimap sein und auch dranhängen dynamisch nicht fester punkt, falls spieler andere minimap size haben
 
 räume können in verschiedene richtung gehen aber imemr konsekutiv also nach einander. das heißt das treasure room 2 türewn hat zb weil es erstmal von fightroom in den nächsten geht, 
 
-treasure rooms sollten auch grau angezeigt werden bis man darein geht (das gilt immer nicht nur für tutorial)
+treasure room sollten auch grau angezeigt werden bis man darein geht (das gilt immer nicht nur für tutorial)
 
 treasure room und boss room icons fehlen auf der map
 

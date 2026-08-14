@@ -11,7 +11,10 @@ Level-Generator-Gegner ([[fighter]]/[[stinger]]/[[colossus]], per
 `scene.instantiate()`) UND die sechs [[custom_enemy_base]]-Prototypen (per
 `ClassName.new()`, da sie keine `.tscn` haben) — frei und beliebig oft ueber
 Interact-Bodenplatten gespawnt werden kann. Kein Teil des normalen Spiels;
-Zugang ausschliesslich ueber das vierte Teleport-Pad in `debug_teleporter.gd`.
+Zugang ueber den "Sandbox"-Button im Admin-Panel des Pause-Menues
+(`pause_menu.gd`, `_build_admin_panel()` → `EnemySandboxRoom.teleport_player_in()`).
+Die urspruenglichen physischen Teleporter-Pads (`[[debug_teleporter]]`) wurden
+entfernt; das Script bleibt nur noch als leeres Autoload registriert.
 
 **Das ist Stand jetzt der EINZIGE Ort, an dem die sechs neuen Gegnertypen
 ueberhaupt spawnen** — sie stecken in keiner `resources/enemies/es_*.tres`-

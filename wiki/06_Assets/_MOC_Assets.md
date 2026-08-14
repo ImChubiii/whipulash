@@ -1,5 +1,5 @@
----
-tags: [moc, assets]
+﻿---
+tags: [moc, asset]
 ---
 
 # Assets — Übersicht

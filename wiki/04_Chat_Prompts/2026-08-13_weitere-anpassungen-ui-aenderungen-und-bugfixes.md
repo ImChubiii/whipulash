@@ -1169,9 +1169,9 @@ func _spawn_muzzle_vfx(pos: Vector3, dir: Vector3, scale_mul: float = 1.0) -> vo
 
 > I'm realizing Winter has two distinct ESP subsystems—a plasma primary system that handles multiple ESP boxes per bolt (up to 2 simultaneously for different targets), which might actually be what the user is concerned about rather than a bug. The thought cuts off mid-sentence about whether they want a single unified ESP instead.
 > 
-> The laser secondary system is single-target with its own ESP markers that should clean up properly when the locked target dies, since it calls `_clear_laser_esp()` when switching targets. But there's a potential edge case where the system might return the same dead enemy object immediately after death, preventing proper cleanup. So the issue is that Health.is_alive() returns false when hp drops to zero, but queue_free() doesn't immediately fire the Health.died signal—it defers the actual cleanup to end of frame. The CLAUDE.md notes that custom enemies need to explicitly call _cleanup_effects() since queue_free() alone won't trigger Health.died. This means the two enemy systems (EnemyAI vs CustomEnemyBase) handle death differently, which could explain why the ESP indicators aren't being cleared properly. Looking at the reported bugs, the first one about multiple ESP indicators on the same enemy when hit repeatedly suggests Winter's Plasma primary is creating new ESP instances each shot instead of reusing or properly managing the existing one. on the same target when primary_cooldown allows firing before old boxes clear. That's the core issue with Winter's rapid fire creating stacked ESP boxes.
+> The laser secondary system is single-target with its own ESP markers that should clean up properly when the locked target dies, since it calls `_clear_laser_esp()` when switching targets. But there's a potential edge case where the system might return the same dead enemy object immediately after death, preventing proper cleanup. So the issue is that Health.is_alive() returns false when hp drops to zero, but queue_free() doesn't immediately fire the Health.died signal—it defers the actual cleanup to end of frame. The CLAUDE.md notes that custom enemy need to explicitly call _cleanup_effects() since queue_free() alone won't trigger Health.died. This means the two enemy systems (EnemyAI vs CustomEnemyBase) handle death differently, which could explain why the ESP indicators aren't being cleared properly. Looking at the reported bugs, the first one about multiple ESP indicators on the same enemy when hit repeatedly suggests Winter's Plasma primary is creating new ESP instances each shot instead of reusing or properly managing the existing one. on the same target when primary_cooldown allows firing before old boxes clear. That's the core issue with Winter's rapid fire creating stacked ESP boxes.
 > 
-> Giselle's Uzi likely has the same problem in her combat script, so I should check that _update_uzi_esp() function for identical behavior. There's also the edge case where ESP boxes don't disappear when enemies die — the plasma bolt's ESP box has a 100ms lifetime timer after the bolt itself expires, but if the enemy gets freed before that timer completes, the is_instance_valid check fails mid-flight when trying to update the box position.
+> Giselle's Uzi likely has the same problem in her combat script, so I should check that _update_uzi_esp() function for identical behavior. There's also the edge case where ESP boxes don't disappear when enemy die — the plasma bolt's ESP box has a 100ms lifetime timer after the bolt itself expires, but if the enemy gets freed before that timer completes, the is_instance_valid check fails mid-flight when trying to update the box position.
 > 
 > The real ask though is a complete redesign: the user wants exactly one active ESP indicator at any given time throughout the game, which would eliminate these stacking and cleanup issues entirely.…
 </details>
@@ -1719,19 +1719,19 @@ func _spawn_muzzle_vfx(pos: Vector3, dir: Vector3, scale_mul: float = 1.0) -> vo
 > 
 > The core issue is that each weapon subsystem—Uzi ESP, Sniper ESP, Plasma-per-bolt ESP, and Laser ESP—operates in isolation with no awareness of what the other systems are doing. When multiple weapons or rapid shots target the same enemy, you naturally get multiple overlapping indicators, which matches Bug 1 perfectly. Winter's dual-weapon setup (laser on RMB and plasma on LMB usable simultaneously) makes this even worse since both can create ESP boxes on the same target at once.
 > 
-> For Bug 2 about ESP not disappearing when enemies die, the death handling relies on continuous checks during active attacks—the target resolution functions only run while the player is holding down the attack button and cooldowns allow, so if you're not actively attacking when an enemy dies, the ESP box might linger until the timeout expires. bug is that the ESP box doesn't disappear immediately when the enemy dies—it only gets re-validated on the next shot, so during reload it can linger for up to a second showing a dead target. The sniper's ESP seems better handled since it updates every frame while charging and clears the box right away if the target dies or no new target is found in the cone.
+> For Bug 2 about ESP not disappearing when enemy die, the death handling relies on continuous checks during active attacks—the target resolution functions only run while the player is holding down the attack button and cooldowns allow, so if you're not actively attacking when an enemy dies, the ESP box might linger until the timeout expires. bug is that the ESP box doesn't disappear immediately when the enemy dies—it only gets re-validated on the next shot, so during reload it can linger for up to a second showing a dead target. The sniper's ESP seems better handled since it updates every frame while charging and clears the box right away if the target dies or no new target is found in the cone.
 > 
-> Winter's laser is actually the most robust of all since the ESP updates every single frame while the RMB is held, so if the locked target dies it immediately searches for a new one and clears the box if nothing's found. The plasma bolts are different though—the ESP box spawns once per shot and lives independently tied to the bolt's homing behavior, so if the enemy dies mid-flight before impact, the homing bolt likely still flies to the last known position or the target reference becomes invalid. The strike callback checks if the target is still valid before applying damage, but the ESP box gets freed regardless, and if the bolt never actually hits (target destroyed, bolt despawns), the safety timer eventually cleans up the box after a few seconds—explaining why the boxes don't always disappear immediately when enemies die. The user's asking for a redesign though, not just a patch.
+> Winter's laser is actually the most robust of all since the ESP updates every single frame while the RMB is held, so if the locked target dies it immediately searches for a new one and clears the box if nothing's found. The plasma bolts are different though—the ESP box spawns once per shot and lives independently tied to the bolt's homing behavior, so if the enemy dies mid-flight before impact, the homing bolt likely still flies to the last known position or the target reference becomes invalid. The strike callback checks if the target is still valid before applying damage, but the ESP box gets freed regardless, and if the bolt never actually hits (target destroyed, bolt despawns), the safety timer eventually cleans up the box after a few seconds—explaining why the boxes don't always disappear immediately when enemy die. The user's asking for a redesign though, not just a patch.
 > 
 > They want a single global ESP indicator that jumps to whichever enemy is currently aimed at or being shot, and since they're asking me to show which scripts need changes and provide the actual code, they're expecting me to implement this rather than just theorize about it. Let me map out the implementation plan: I need to locate the tutorial text script, find where the minimap zoom default is set to change it from the current value to 1.60, and identify the HUD cooldown scaling code that needs adjustment.
 > 
 > For the enemy scale adjustments, I'll need to check the custom enemy base class exports and look at the mortar bot and acid sprinkler scripts to see where their scale values are defined. The ESP rework is the most complex piece—I'm thinking of creating a shared singleton or static helper class similar to the existing EnemyQuery system that can manage a single global ESP target that updates based on what's being aimed at or shot. wins" logic means whichever weapon fires or updates last that frame claims the indicator, which naturally prioritizes the player's current active aim since they're actively controlling one weapon at a time.
 > 
-> I also need to redirect the flash calls so they only trigger when that specific target is currently being displayed by the ESP box. Now I'm setting up the new autoload singleton that will manage a single ESP indicator box and label in the world, independent of how many weapons or characters are trying to target simultaneously.
+> I also need to redirect the flash calls so they only trigger when that specific target is currently being displayed by the ESP box. Now I'm setting up the new autoload singleton that will manage a single ESP indicator box and label in the world, independent of how many weapons or character are trying to target simultaneously.
 > 
 > Defining the core properties and the acquire method... Continuing the _process loop to reposition every frame. I'm realizing this should be an autoload singleton so callers just invoke `acquire()` and `flash()` without manual cleanup—the global _process handles death checks automatically each frame, which elegantly solves the target-death bug. But I need to figure out how ESP releases when the player stops aiming, since the current local systems explicitly clear on input release. Plasma fires intermittently every 0.4 seconds with one acquire call per shot, while Laser continuously acquires every frame (~60 times per second), so Laser's frequent targeting calls would override Plasma's target immediately after each shot—which makes sense since Laser represents continuous aiming while Plasma is just momentary bursts. Since there's only ever one targeting box and marker instance, the duplicate ESP bug is completely resolved structurally.
 > 
-> Bug 2 (indicator not disappearing on death) is fixed by the global death-check running every frame regardless of which weapon triggered it. Winter's plasma can target up to 2 enemies simultaneously, but under the new singular design only the primary target (nearest enemy, which _lock_model_to also uses) gets the indicator—fully matching the request to simplify to one indicator. Now I need to route the flash() calls from plasma strikes, laser ticks, uzi hits, and sniper hits through EspTarget.flash() but only if that target is still current, since Plasma previously created per-bolt boxes that now need consolidating.
+> Bug 2 (indicator not disappearing on death) is fixed by the global death-check running every frame regardless of which weapon triggered it. Winter's plasma can target up to 2 enemy simultaneously, but under the new singular design only the primary target (nearest enemy, which _lock_model_to also uses) gets the indicator—fully matching the request to simplify to one indicator. Now I need to route the flash() calls from plasma strikes, laser ticks, uzi hits, and sniper hits through EspTarget.flash() but only if that target is still current, since Plasma previously created per-bolt boxes that now need consolidating.
 > 
 > The key is calling EspTarget.acquire() only for the primary target (targets[0]) when firing each bolt, not all targets, so there's exactly one ESP indicator that matches what the model-lock is tracking. Then on strike callbacks, flash() gets routed through EspTarget.flash(target), which safely no-ops for non-primary targets since it checks if target equals the current global target.
 > 
@@ -4614,9 +4614,9 @@ const DECLOAK_EXPLOSION_DAMAGE: float = 140.0
 <details>
 <summary>Thinking...</summary>
 
-> So Karina's abilities are locked in: her primary attack is Acid Rush Mode, a stance she can hold or toggle that surrounds her with an acidic aura dealing damage to nearby enemies, while her secondary ability is Phantom Execute, which grants temporary invisibility and marks enemies she touches during stealth, then detonates them when she breaks cover. This aligns with the existing character description mentioning her close-range acid combat and brief stealth mechanics.
+> So Karina's abilities are locked in: her primary attack is Acid Rush Mode, a stance she can hold or toggle that surrounds her with an acidic aura dealing damage to nearby enemy, while her secondary ability is Phantom Execute, which grants temporary invisibility and marks enemy she touches during stealth, then detonates them when she breaks cover. This aligns with the existing character description mentioning her close-range acid combat and brief stealth mechanics.
 > 
-> Now I'm drafting detailed ability descriptions with explicit key bindings for the player. Starting with Ningning's description to include her basic combo attacks, charged heavy attack with knockback, and her dash ability using Shift—making sure to emphasize that dashing lets her cross obstacles and gaps, which was the specific request, while also noting that the dash mechanic pierces through enemies and deals damage in the process. Rounding out the character descriptions with Giselle's ranged combat mechanics and starting on Karina's melee approach. I'm debating whether to repeat the Shift-dash mechanic across all four character descriptions or consolidate it to avoid redundancy. Since players might only check whichever character they've unlocked, including it in each entry ensures they see the reminder regardless. I'll keep it in all four but emphasize it more in NingNing's description since that's the first one they encounter. I'm settling on a consistent approach: adding the same short dash mechanic note to all four character descriptions for uniformity. Now I need to verify the code structure uses the right description variables for each character—Ningning gets its explicit constant while the others pull from a description lookup function based on character ID. Let me double-check Karina's description text to ensure everything aligns. Continuing with the remaining edits: reducing visual scales for the mortar bot and acid sprinkler enemies, rewriting the four character descriptions in the tutorial content, creating a new ESP target singleton script, registering it as an autoload, and then…
+> Now I'm drafting detailed ability descriptions with explicit key bindings for the player. Starting with Ningning's description to include her basic combo attacks, charged heavy attack with knockback, and her dash ability using Shift—making sure to emphasize that dashing lets her cross obstacles and gaps, which was the specific request, while also noting that the dash mechanic pierces through enemy and deals damage in the process. Rounding out the character descriptions with Giselle's ranged combat mechanics and starting on Karina's melee approach. I'm debating whether to repeat the Shift-dash mechanic across all four character descriptions or consolidate it to avoid redundancy. Since players might only check whichever character they've unlocked, including it in each entry ensures they see the reminder regardless. I'll keep it in all four but emphasize it more in NingNing's description since that's the first one they encounter. I'm settling on a consistent approach: adding the same short dash mechanic note to all four character descriptions for uniformity. Now I need to verify the code structure uses the right description variables for each character—Ningning gets its explicit constant while the others pull from a description lookup function based on character ID. Let me double-check Karina's description text to ensure everything aligns. Continuing with the remaining edits: reducing visual scales for the mortar bot and acid sprinkler enemy, rewriting the four character descriptions in the tutorial content, creating a new ESP target singleton script, registering it as an autoload, and then…
 </details>
 
 > This is a multi-part task, let me track it properly and start applying the changes.
@@ -7276,7 +7276,7 @@ description steht im vordergrund wenn pause menu da ist nicht wie die anderen sa
 <details>
 <summary>Thinking...</summary>
 
-> The user wants me to restructure the tutorial descriptions so each character (Ningning, Giselle, Karina, Winter) gets its own separate container, similar to how "Allgemeine Mechanik: Dash" is displayed as its own block, rather than cramming all the LMB/RMB information into a single paragraph per character. So the user wants each attack type (LMB and RMB) displayed as separate lines or blocks within each character's container, rather than merging them into one paragraph — and "wie für dash auch" confirms that Dash should get its own dedicated container just like the characters do. The structure should be: one Dash container, then four character containers, with LMB and RMB info broken into distinct visual blocks within each character's panel.
+> The user wants me to restructure the tutorial descriptions so each character (Ningning, Giselle, Karina, Winter) gets its own separate container, similar to how "Allgemeine Mechanik: Dash" is displayed as its own block, rather than cramming all the LMB/RMB information into a single paragraph per character. So the user wants each attack type (LMB and RMB) displayed as separate lines or blocks within each character's container, rather than merging them into one paragraph — and "wie für dash auch" confirms that Dash should get its own dedicated container just like the character do. The structure should be: one Dash container, then four character containers, with LMB and RMB info broken into distinct visual blocks within each character's panel.
 > 
 > I'm looking at how the tutorial system currently works — the add_entry function takes a single description string and puts it all in one Label. To split LMB and RMB into separate blocks, I'd need to either change the function signature to accept multiple description lines or restructure how TutorialContent provides the data so it's organized by ability type rather than flattened into one string.
 > 
@@ -8550,7 +8550,7 @@ scripts\ui\tutorial_character_intro.gd:123:func add_entry(title: String, descrip
 > 
 > **[scenes/level_generation/level_generator.gd](scenes/level_generation/level_generator.gd)** — `_setup_tutorial_ui()` now adds the Dash entry first, and uses a new `_find_overlay_layer()` helper (same "pause_menu" group lookup pattern as `reset_overlay.gd`) to parent `TutorialCharacterIntro` into the *same* CanvasLayer as HUD/PauseMenu/DeathScreen/WinScreen instead of directly under `current_scene`. That puts it under PauseMenu's normal `z_index` ordering, so it now hides behind the pause menu exactly like the rest of the HUD.
 > 
-> Please reload in the editor and check: 5 separate cards (Dash + 4 characters as unlocked), and the panel should now sit behind the pause menu when you open it.
+> Please reload in the editor and check: 5 separate cards (Dash + 4 character as unlocked), and the panel should now sit behind the pause menu when you open it.
 
 ## 🤷 User: *die description überlappen sich, bitte so…*
 
@@ -8733,7 +8733,7 @@ func _unhandled_input(event: InputEvent) -> void:
 # ============================================================================
 func _equip() -> void:
 	var items: Node = get_node_or_null("/root/Items")
-	if items == null or not items.consume_bomb():
+	if item == null or not items.consume_bomb():
 		return
 
 	_equipped = true
@@ -9910,7 +9910,7 @@ func _build_card(title: String, description_lines: Array[String]) -> PanelContai
 
 `21:13:33`
 
-bitte die tutorial räume auch bisschen schwerer machen also nicht wirklich neue enemies hinzufügen oder andere arten in die räume hinzufügen sondern einfach die anzahl der jeweiligen verdoppeln
+bitte die tutorial räume auch bisschen schwerer machen also nicht wirklich neue enemy hinzufügen oder andere arten in die räume hinzufügen sondern einfach die anzahl der jeweiligen verdoppeln
 
 ### 🤖 Assistant: *You've hit your session limit · resets 11…*
 
@@ -9924,7 +9924,7 @@ bitte die tutorial räume auch bisschen schwerer machen also nicht wirklich neue
 
 mein spiel ist schon gut aber ich will das die allgemeine beschreibung und character description NUR bei tutorial verfügbar ist. NICHT wen ich in der richitgen ebene bin. das bedeutet auch wenn ich im tutorial bin und das geschafft habe wechsel ich ja ins richtige level und da soll es NICHT mehr vorkommen. NUR im tutorial, keine andere level
 
-bitte die tutorial räume auch bisschen schwerer machen also nicht wirklich neue enemies hinzufügen oder andere arten in die räume hinzufügen sondern einfach die anzahl der jeweiligen verdoppeln
+bitte die tutorial räume auch bisschen schwerer machen also nicht wirklich neue enemy hinzufügen oder andere arten in die räume hinzufügen sondern einfach die anzahl der jeweiligen verdoppeln
 
 ### 🤖 Assistant: *You've hit your session limit · resets 11…*
 
@@ -9945,7 +9945,7 @@ Erneut versuchen
 <details>
 <summary>Thinking...</summary>
 
-> There are two requests to handle: restricting the tutorial description UI so it only shows during the tutorial stage and never reappears once the player moves to real levels, and doubling the enemy counts in the tutorial rooms by increasing the existing entries in `fixed_enemies_for()` rather than adding new enemy types. I'll start with the second task by reviewing the tutorial content file.
+> There are two requests to handle: restricting the tutorial description UI so it only shows during the tutorial stage and never reappears once the player moves to real levels, and doubling the enemy counts in the tutorial room by increasing the existing entries in `fixed_enemies_for()` rather than adding new enemy types. I'll start with the second task by reviewing the tutorial content file.
 </details>
 
 #### 👀 Read `tutorial_content.gd`
@@ -10226,7 +10226,7 @@ EDGE Tutorial Screen Design Simplification --contains [EXTRACTED]--> Gemini at=0
 ```
 InputValidationError: Read was called with input that could not be parsed as JSON.
 You sent (first 140 of 140 bytes): {"file_path": "C:\\Users\\thvnh\\Documents\\GitHub\\whiplash\\scenes\\level_generation\\level_generator.gd", "offset": 200, 320, "limit": 1}
-Common causes: unescaped backslashes in file paths (use / or \\), unescaped control characters, or truncated output. Retry with valid JSON.
+Common causes: unescaped backslashes in file paths (use / or \\), unescaped control character, or truncated output. Retry with valid JSON.
 ```
 
 ### 💭 Thinking: *That call didn't go through correctly, so…*
@@ -10838,21 +10838,21 @@ func _teardown_tutorial_ui() -> void:
 
 > This all checks out. Summary of both fixes:
 > 
-> ## 1. Tutorial rooms harder (double enemy counts)
-> [scripts/tutorial_content.gd](scripts/tutorial_content.gd) — `fixed_enemies_for()`: every enemy type's count doubled per room (e.g. Fight1: 1 Fighter/2 Scout → 2 Fighter/4 Scout), no new types or rooms added, exactly as asked.
+> ## 1. Tutorial room harder (double enemy counts)
+> [scripts/tutorial_content.gd](scripts/tutorial_content.gd) — `fixed_enemies_for()`: every enemy type's count doubled per room (e.g. Fight1: 1 Fighter/2 Scout → 2 Fighter/4 Scout), no new types or room added, exactly as asked.
 > 
 > ## 2. Tutorial description UI leaking into real levels
 > Found the actual bug: `generate_new_stage()` already had cleanup code freeing `_tutorial_ui`, but that function is only used when starting a brand-new *non-tutorial* run. The tutorial→floor-1 transition (and every floor after) goes through `stage_manager.gd`'s `advance_stage()` → `generate_stage()`, which never had that cleanup — so the description cards silently survived into the real run forever.
 > 
 > Fixed in [scenes/level_generation/level_generator.gd](scenes/level_generation/level_generator.gd) by factoring the cleanup into a shared `_teardown_tutorial_ui()` helper and calling it from all three stage-entry points (`generate_new_stage()`, `generate_stage()`, and `generate_next_stage_same_pattern()` for safety). Since `_setup_tutorial_ui()` is only ever called from `generate_tutorial_stage()`, the cards now exist exclusively during the tutorial and get torn down the moment any real stage generates — including right when the tutorial's boss room advances you to Floor 1.
 > 
-> Please reload and verify: tutorial rooms should feel noticeably busier, and the description cards should vanish for good once you leave the tutorial.
+> Please reload and verify: tutorial room should feel noticeably busier, and the description cards should vanish for good once you leave the tutorial.
 
-## 🤷 User: *das gilt auch für die anderen rooms wie wenn…*
+## 🤷 User: *das gilt auch für die anderen room wie wenn…*
 
 `21:41:11`
 
-das gilt auch für die anderen rooms wie wenn ich von tutorial direkt in vfx, sandbox,hub, items, boss oder tresor teleportiere. und kannst du die enemies global mehr hp geben? also das gilt jetzt für jeden gegner, mach die bitte 30% mehr hp und deren attackspeed auch 10% schneller. vergiss das nicht in obsidian vault zu aktualisieren
+das gilt auch für die anderen room wie wenn ich von tutorial direkt in vfx, sandbox,hub, item, boss oder tresor teleportiere. und kannst du die enemy global mehr hp geben? also das gilt jetzt für jeden gegner, mach die bitte 30% mehr hp und deren attackspeed auch 10% schneller. vergiss das nicht in obsidian vault zu aktualisieren
 
 ### 💭 Thinking: *The user also wants the same cleanup applied…*
 
@@ -10861,9 +10861,9 @@ das gilt auch für die anderen rooms wie wenn ich von tutorial direkt in vfx, sa
 <details>
 <summary>Thinking...</summary>
 
-> The user also wants the same cleanup applied when teleporting from the tutorial into other debug rooms like VFX, sandbox, hub, items, boss, or treasure — likely handled through the debug teleporter script.
+> The user also wants the same cleanup applied when teleporting from the tutorial into other debug room like VFX, sandbox, hub, item, boss, or treasure — likely handled through the debug teleporter script.
 > 
-> Some of these (VfxTestRoom, EnemySandboxRoom, HubRoom, ItemTestRoom) might trigger a full scene change, which would naturally clear the tutorial UI without needing a fix. But boss and treasure rooms are probably just teleport pads within the same level scene, meaning the tutorial UI wouldn't get cleared automatically there. I need to check debug_teleporter.gd to see exactly how these teleports work.
+> Some of these (VfxTestRoom, EnemySandboxRoom, HubRoom, ItemTestRoom) might trigger a full scene change, which would naturally clear the tutorial UI without needing a fix. But boss and treasure room are probably just teleport pads within the same level scene, meaning the tutorial UI wouldn't get cleared automatically there. I need to check debug_teleporter.gd to see exactly how these teleports work.
 </details>
 
 #### 👀 Read `debug_teleporter.gd`
@@ -11042,13 +11042,13 @@ func _find_level_generator() -> LevelGenerator:
 > 
 > I'll add the teardown call at the top of `_admin_teleport_to_room_type()`, since it's shared by both Boss and Tresor teleports, calling it unconditionally since it should be harmless when not in tutorial mode.
 > 
-> I should also add it to `_admin_pocket()` before the pocket teleport happens, and confirm `_admin_teleport_to_start()` is already covered since it routes through the shared function. Re-reading the user's request, they explicitly confirmed this should apply to all six destinations—vfx, sandbox, hub, items, boss, and tresor—whenever teleporting from tutorial via the admin panel, so the tutorial UI should disappear in every one of these cases.
+> I should also add it to `_admin_pocket()` before the pocket teleport happens, and confirm `_admin_teleport_to_start()` is already covered since it routes through the shared function. Re-reading the user's request, they explicitly confirmed this should apply to all six destinations—vfx, sandbox, hub, item, boss, and tresor—whenever teleporting from tutorial via the admin panel, so the tutorial UI should disappear in every one of these cases.
 > 
 > The simplest fix is to find the single chokepoint that fires for all admin teleports rather than patching each button individually. Looking at the wiring, there are really two entry points: `_admin_move_player_to_room()` for the room-type path and `_admin_pocket()` for the pocket-dimension path, so I'll add the teardown call to both of those rather than every button handler.
 > 
 > I'm planning a small helper function, `_teardown_tutorial_ui_if_active()`, in pause_menu.gd that locates the level generator and tears down the tutorial UI if it's currently active.
 > 
-> Now for the second request: giving all enemies globally 30% more HP and 10% faster attack speed. The right place for this is the `EnemyDensity` autoload, since it already handles per-stage HP/damage scaling and both enemy systems (EnemyAI-based and CustomEnemyBase-based) presumably consult it, so adding a base multiplier there should apply uniformly across every enemy type.
+> Now for the second request: giving all enemy globally 30% more HP and 10% faster attack speed. The right place for this is the `EnemyDensity` autoload, since it already handles per-stage HP/damage scaling and both enemy systems (EnemyAI-based and CustomEnemyBase-based) presumably consult it, so adding a base multiplier there should apply uniformly across every enemy type.
 > 
 > I need to read enemy_density.gd to see exactly how scaling is structured before applying a 1.3x HP multiplier and figuring out how to represent "10% faster" attacks — likely by reducing attack interval/cooldown by roughly 1/1.1, or boosting an existing attack speed multiplier if one exists.
 </details>
@@ -11680,11 +11680,11 @@ func get_health_percent() -> float:
 <details>
 <summary>Thinking...</summary>
 
-> I'm noting that Health.max_health is set per-component with no global HP multiplier for enemies, and incoming_damage_multiplier is specifically for the player's incoming damage (set by PlayerStats, likely for items reducing damage taken), not for scaling damage dealt.
+> I'm noting that Health.max_health is set per-component with no global HP multiplier for enemy, and incoming_damage_multiplier is specifically for the player's incoming damage (set by PlayerStats, likely for item reducing damage taken), not for scaling damage dealt.
 > 
-> Since there's no existing global scaling hook, I'm thinking the cleanest approach for "30% more HP, 10% faster attack speed" is to find each enemy's baseline stats and apply the multiplier directly. Values are set in multiple places: EnemyAI-driven enemies (Fighter/Stinger/Colossus) likely pull HP and attack cooldown from the es_*.tres EnemySpawnEntry resources, while the six CustomEnemyBase enemies (mortar_bot, acid_sprinkler, magnet_core, dive_bomber, shield_drone, plasma_beam_bot) set max_health and fire intervals as plain script variables in their _configure() methods. Since the user wants this applied globally without touching individual balance values directly, I need a strategy that scales all of these consistently.
+> Since there's no existing global scaling hook, I'm thinking the cleanest approach for "30% more HP, 10% faster attack speed" is to find each enemy's baseline stats and apply the multiplier directly. Values are set in multiple places: EnemyAI-driven enemy (Fighter/Stinger/Colossus) likely pull HP and attack cooldown from the es_*.tres EnemySpawnEntry resources, while the six CustomEnemyBase enemy (mortar_bot, acid_sprinkler, magnet_core, dive_bomber, shield_drone, plasma_beam_bot) set max_health and fire intervals as plain script variables in their _configure() methods. Since the user wants this applied globally without touching individual balance values directly, I need a strategy that scales all of these consistently.
 > 
-> Editing dozens of scattered numbers across resources and scripts would be error-prone and hard to maintain, especially for future enemies, so a shared multiplier applied at a common code path is better. For HP, the shared Health component used by both enemies and players is the natural hook, but since CLAUDE.md notes both share the same damage-taking interface, I'd need to gate any change by group membership (the "enemies" group) so the player's health isn't affected too.
+> Editing dozens of scattered numbers across resources and scripts would be error-prone and hard to maintain, especially for future enemy, so a shared multiplier applied at a common code path is better. For HP, the shared Health component used by both enemy and players is the natural hook, but since CLAUDE.md notes both share the same damage-taking interface, I'd need to gate any change by group membership (the "enemies" group) so the player's health isn't affected too.
 > 
 > I'm thinking a clean approach is checking in Health's ready function whether the parent belongs to the "enemies" group and multiplying max_health accordingly — a single control point that applies uniformly to every enemy type without touching individual balance values, satisfying the requirement that the buff applies to every enemy now and giving an easy single place to tune later.
 > 
@@ -11845,9 +11845,9 @@ scenes\enemies\dummy.tscn
 <details>
 <summary>Thinking...</summary>
 
-> I notice there's no fighter.tscn, stinger.tscn, or colossus.tscn in the enemies folder—only the six CustomEnemyBase enemies plus dummy.tscn have scene files. This lines up with CLAUDE.md mentioning these use an imported robot mesh, so they're likely instantiated purely through GDScript rather than a dedicated scene file.
+> I notice there's no fighter.tscn, stinger.tscn, or colossus.tscn in the enemy folder—only the six CustomEnemyBase enemy plus dummy.tscn have scene files. This lines up with CLAUDE.md mentioning these use an imported robot mesh, so they're likely instantiated purely through GDScript rather than a dedicated scene file.
 > 
-> Actually, tracing through tutorial_content.gd, I see the "Fighter" factory just preloads dummy.tscn as a placeholder stand-in, and similarly Stinger uses a scout dummy scene—so these tutorial references aren't the real enemies at all, just dummy substitutes for teaching purposes. That's a tangent though, not relevant to the HP/attack-speed scaling work. The actual Fighter/Stinger/Colossus enemies must spawn through the level generator's threat-budget system via enemy_table entries, so I should search the project for those scene paths directly.
+> Actually, tracing through tutorial_content.gd, I see the "Fighter" factory just preloads dummy.tscn as a placeholder stand-in, and similarly Stinger uses a scout dummy scene—so these tutorial references aren't the real enemy at all, just dummy substitutes for teaching purposes. That's a tangent though, not relevant to the HP/attack-speed scaling work. The actual Fighter/Stinger/Colossus enemy must spawn through the level generator's threat-budget system via enemy_table entries, so I should search the project for those scene paths directly.
 </details>
 
 #### 📂 Glob `**/*fighter*.tscn`
@@ -12093,7 +12093,7 @@ radius = 2.775
 <details>
 <summary>Thinking...</summary>
 
-> Now I have the concrete stats: Fighter has 100 health and 1.8s attack cooldown, Stinger has 25 health and 1.4s cooldown, Colossus has 400 health and 1.5s cooldown. Next I need to check the six CustomEnemyBase enemies for their equivalent values.
+> Now I have the concrete stats: Fighter has 100 health and 1.8s attack cooldown, Stinger has 25 health and 1.4s cooldown, Colossus has 400 health and 1.5s cooldown. Next I need to check the six CustomEnemyBase enemy for their equivalent values.
 > 
 > Mortar Bot has 90 health and a 3.6s fire interval, Acid Sprinkler has 70 health and a 2.6s fire interval — I still need to check Dive Bomber, Shield Drone, Plasma Beam Bot, and Magnet Core.
 > 
@@ -12101,11 +12101,11 @@ radius = 2.775
 > 
 > Touching the shared script default is too risky since it could leak into the player's health. Instead, I should set Fighter's dummy scene to explicitly override max_health to 130 (a 1.3x scale), leaving the shared default untouched.
 > 
-> Given the codebase lacks one central hook point, the safest and most future-proof approach is to apply the multiplier at runtime based on group membership — in Health._ready(), checking if the parent is in the "enemies" group and scaling max_health by 1.3 before setting current_health. Since all enemies already join that group per CLAUDE.md, this cleanly scopes the boost to enemies only, including future ones, without touching the player.
+> Given the codebase lacks one central hook point, the safest and most future-proof approach is to apply the multiplier at runtime based on group membership — in Health._ready(), checking if the parent is in the "enemies" group and scaling max_health by 1.3 before setting current_health. Since all enemy already join that group per CLAUDE.md, this cleanly scopes the boost to enemy only, including future ones, without touching the player.
 > 
-> For attack speed, there's no single shared timer component, but EnemyAI-based enemies (Fighter, Stinger, Colossus) share one script with an attack_cooldown export, so scaling it by 1/1.1 once in enemy_ai.gd's _ready() covers all three uniformly and any future EnemyAI-based enemy too — just one line change rather than editing each scene.
+> For attack speed, there's no single shared timer component, but EnemyAI-based enemy (Fighter, Stinger, Colossus) share one script with an attack_cooldown export, so scaling it by 1/1.1 once in enemy_ai.gd's _ready() covers all three uniformly and any future EnemyAI-based enemy too — just one line change rather than editing each scene.
 > 
-> Now I need to check whether the six CustomEnemyBase enemies have an equivalent shared lifecycle method where I could apply a similar generic scaling to their fire intervals, or whether each one declares its own independent fire_interval property.
+> Now I need to check whether the six CustomEnemyBase enemy have an equivalent shared lifecycle method where I could apply a similar generic scaling to their fire intervals, or whether each one declares its own independent fire_interval property.
 </details>
 
 #### 🔎 Grep `var fire_interval|var attack_interval|var shoot_interval|var beam_interval|func _configure|max_health =` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies`
@@ -12136,7 +12136,7 @@ scripts\enemies\magnet_core.gd:46:	max_health = 160.0
 > 
 > Actually, the group-based Health._ready() approach already covers HP uniformly for both EnemyAI and CustomEnemyBase families since Health.gd is the shared component regardless of which system constructs it, so I don't need to touch max_health individually at all.
 > 
-> For attack speed though, there's no common field across both systems—EnemyAI uses attack_cooldown while CustomEnemyBase enemies use fire_interval, but I've only confirmed that for mortar_bot and acid_sprinkler. I need to check dive_bomber, shield_drone, plasma_beam_bot, and magnet_core to see if they use the same naming or something different like a continuous beam mechanic.
+> For attack speed though, there's no common field across both systems—EnemyAI uses attack_cooldown while CustomEnemyBase enemy use fire_interval, but I've only confirmed that for mortar_bot and acid_sprinkler. I need to check dive_bomber, shield_drone, plasma_beam_bot, and magnet_core to see if they use the same naming or something different like a continuous beam mechanic.
 </details>
 
 #### 🔎 Grep `var fire_interval|var .*interval|var .*cooldown|var .*_rate` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies\dive_bomber.gd`
@@ -12387,7 +12387,7 @@ func _cleanup_effects() -> void:
 > 
 > Actually, editing three separate .tscn files by hand for attack_cooldown is risky given the earlier comment mistake, so it's much cleaner to apply the 1.1x speed multiplier programmatically in enemy_ai.gd's _ready() function instead — dividing attack_cooldown by 1.1 there automatically scales Fighter, Stinger, and Colossus uniformly with a single safe code edit rather than three fragile scene edits.
 > 
-> For the CustomEnemyBase family though, each subclass uses its own differently-named timing variable with no shared field in the base class, so I'm considering using GDScript's dynamic property check (`"fire_interval" in self`) to conditionally adjust whichever interval variable each subclass actually has.  But since different enemies like plasma_beam_bot or magnet_core might use entirely different property names, and this codebase clearly favors explicit, well-commented code over clever generic mechanisms, I'm leaning toward a safer, more idiomatic approach instead.
+> For the CustomEnemyBase family though, each subclass uses its own differently-named timing variable with no shared field in the base class, so I'm considering using GDScript's dynamic property check (`"fire_interval" in self`) to conditionally adjust whichever interval variable each subclass actually has.  But since different enemy like plasma_beam_bot or magnet_core might use entirely different property names, and this codebase clearly favors explicit, well-commented code over clever generic mechanisms, I'm leaning toward a safer, more idiomatic approach instead.
 > 
 > For the CustomEnemyBase family, I'll explicitly multiply each subclass's own timing variable directly within its own `_configure()`, mirroring how `max_health` is already set there—individual, clearly-commented edits across the roughly five relevant files (mortar_bot, acid_sprinkler, dive_bomber, plasma_beam_bot, magnet_core), skipping shield_drone since it has no attack.
 > 
@@ -12592,7 +12592,7 @@ func _on_died() -> void:
 
 > Confirmed the shockwave only applies knockback with no direct damage call, so MagnetCore is purely a control-effect enemy without a real damage timer. That means it makes sense to exclude it from attack speed scaling, though it should still get other relevant buffs.
 > 
-> Now I'm mapping out which enemies need attack-speed scaling: Fighter/Stinger/Colossus share `attack_cooldown` in enemy_ai.gd, MortarBot and AcidSprinkler scale via their `fire_interval` since both deal real damage, and PlasmaBeamBot scales via `cooldown_time` since it deals burn damage on its beam cycle. I still need to verify DiveBomber's `dash_interval` actually ties to damage output before including it, and I'm noting ShieldDrone should be skipped.
+> Now I'm mapping out which enemy need attack-speed scaling: Fighter/Stinger/Colossus share `attack_cooldown` in enemy_ai.gd, MortarBot and AcidSprinkler scale via their `fire_interval` since both deal real damage, and PlasmaBeamBot scales via `cooldown_time` since it deals burn damage on its beam cycle. I still need to verify DiveBomber's `dash_interval` actually ties to damage output before including it, and I'm noting ShieldDrone should be skipped.
 > 
 > MagnetCore is another candidate to skip — its PULL_TICK_INTERVAL is a constant, not a scalable var, and it doesn't deal direct damage, so I'll leave it out but flag the reasoning. Let me go check dive_bomber.gd to confirm how its dash ties into damage.
 </details>
@@ -12638,9 +12638,9 @@ func _on_died() -> void:
 <details>
 <summary>Thinking...</summary>
 
-> Confirmed that dash_interval is DiveBomber's attack cadence dealing damage, so I'll scale it too. Now I'm adding a generic HP multiplier for enemies in health.gd, applying a 1.3x boost to max_health when the parent node belongs to the "enemies" group, then setting current_health accordingly.
+> Confirmed that dash_interval is DiveBomber's attack cadence dealing damage, so I'll scale it too. Now I'm adding a generic HP multiplier for enemy in health.gd, applying a 1.3x boost to max_health when the parent node belongs to the "enemies" group, then setting current_health accordingly.
 > 
-> But I need to check node ordering carefully — since Health is typically a child node, its `_ready()` fires before the parent enemy's `_ready()`. If `add_to_group("enemies")` is called inside the enemy's own `_ready()`, that group membership wouldn't exist yet when Health checks for it. I need to verify whether enemies actually call `add_to_group` in `_enter_tree()` instead, which fires top-down and would avoid this hazard — so I should check enemy_ai.gd and custom_enemy_base.gd for where that call happens.
+> But I need to check node ordering carefully — since Health is typically a child node, its `_ready()` fires before the parent enemy's `_ready()`. If `add_to_group("enemies")` is called inside the enemy's own `_ready()`, that group membership wouldn't exist yet when Health checks for it. I need to verify whether enemy actually call `add_to_group` in `_enter_tree()` instead, which fires top-down and would avoid this hazard — so I should check enemy_ai.gd and custom_enemy_base.gd for where that call happens.
 </details>
 
 #### 🔎 Grep `add_to_group\("enemies"\)` in `C:\Users\thvnh\Documents\GitHub\whiplash\scripts`
@@ -12704,9 +12704,9 @@ func _ready() -> void:
 
 > I'm confirming that add_to_group("enemies") runs in CustomEnemyBase's own _ready(), and since Health is a child node, its _ready() would fire before the parent's—so I need to check whether Health is already present in the scene tree from the start, like with Fighter/Stinger/Colossus.
 > 
-> For code-built enemies like mortar_bot, Health is likely instantiated dynamically inside _build_health(), which runs after _configure() but still within the same _ready() call per the documented lifecycle order. That means add_to_group("enemies") at the top of _ready() executes before Health even exists, so I need to figure out exactly when Health's own _ready() fires relative to that—since nodes added via add_child() at runtime have their own timing quirks for when _ready() actually triggers.
+> For code-built enemy like mortar_bot, Health is likely instantiated dynamically inside _build_health(), which runs after _configure() but still within the same _ready() call per the documented lifecycle order. That means add_to_group("enemies") at the top of _ready() executes before Health even exists, so I need to figure out exactly when Health's own _ready() fires relative to that—since nodes added via add_child() at runtime have their own timing quirks for when _ready() actually triggers.
 > 
-> Since the enemy's _ready() is still mid-execution when it calls add_child(health), and add_to_group("enemies") already ran earlier in that same _ready(), group membership is already set on the parent by the time Health's _ready() checks get_parent().is_in_group("enemies") — so that check should correctly return true for CustomEnemyBase enemies. Now I need to verify the same holds for EnemyAI-family enemies like Fighter, Stinger, and Colossus, where Health already exists as a sibling node in the scene tree rather than being created dynamically.
+> Since the enemy's _ready() is still mid-execution when it calls add_child(health), and add_to_group("enemies") already ran earlier in that same _ready(), group membership is already set on the parent by the time Health's _ready() checks get_parent().is_in_group("enemies") — so that check should correctly return true for CustomEnemyBase enemies. Now I need to verify the same holds for EnemyAI-family enemy like Fighter, Stinger, and Colossus, where Health already exists as a sibling node in the scene tree rather than being created dynamically.
 </details>
 
 #### 👀 Read `enemy_ai.gd`
@@ -12868,7 +12868,7 @@ func _ready() -> void:
 <details>
 <summary>Thinking...</summary>
 
-> I should also check whether `set_max_health()` gets called dynamically elsewhere for enemies, like rage or berserk effects that reset max_health after `_ready()` — if so, that could bypass my multiplier since it's only applied once at initialization.
+> I should also check whether `set_max_health()` gets called dynamically elsewhere for enemy, like rage or berserk effects that reset max_health after `_ready()` — if so, that could bypass my multiplier since it's only applied once at initialization.
 > 
 > The shield status effect boosts max HP by 25% relative to the current max_health value, which already includes my enemy multiplier since it reads the post-`_ready()` value — so that's fine, no conflict there since it's a relative change, not a hardcoded absolute.
 > 
@@ -13211,7 +13211,7 @@ The file C:\Users\thvnh\Documents\GitHub\whiplash\scripts\enemies\plasma_beam_bo
 
 > ShieldDrone and MagnetCore are intentionally left without direct-damage attack timers, so I'll add brief one-liner comments in their scripts noting this is deliberate, just for traceability for future maintainers.
 > 
-> Actually, since neither has a meaningful attack variable to attach a comment to, I'll skip it — the task's "attack speed" scope only applies to enemies that actually attack, so leaving them untouched is the right call.
+> Actually, since neither has a meaningful attack variable to attach a comment to, I'll skip it — the task's "attack speed" scope only applies to enemy that actually attack, so leaving them untouched is the right call.
 > 
 > Now moving to the next part of the request: fixing the tutorial-UI leak for the ADMIN teleport panel in pause_menu.gd, covering the pocket dimension and room-type teleports. I need to read through the full admin panel section to figure out where to place the teardown calls.
 </details>
@@ -13620,7 +13620,7 @@ func _ready() -> void:
 > 
 > **1. Tutorial UI also leaking via debug/admin teleports** — [scripts/pause_menu.gd](scripts/pause_menu.gd): added `_teardown_tutorial_ui_if_present()`, called from both admin-teleport chokepoints (`_admin_teleport_to_room_type()` — covers Start/Tresor/Boss, and `_admin_pocket()` — covers Items/Sandbox/Hub/VFX). Those teleports never go through `generate_stage()`, so the earlier level-progression fix didn't cover them.
 > 
-> **2. Tutorial rooms harder** — [scripts/tutorial_content.gd](scripts/tutorial_content.gd): doubled every enemy type's count in each fixed tutorial room (no new types).
+> **2. Tutorial room harder** — [scripts/tutorial_content.gd](scripts/tutorial_content.gd): doubled every enemy type's count in each fixed tutorial room (no new types).
 > 
 > **3. Global enemy buffs (+30% HP, +10% attack speed)**:
 > - **HP**: [scripts/health.gd](scripts/health.gd) — single multiplier in `Health._ready()`, gated by `parent is EnemyAI or parent is CustomEnemyBase` (checked by *class type*, not group membership — I found that `is_in_group("enemies")` wouldn't be reliable yet at that point for the EnemyAI family, since Godot fires `_ready()` bottom-up and their Health node is a pre-existing scene child that readies *before* the parent adds itself to the group). This covers every current and future enemy in one place, and doesn't touch the player.
@@ -13631,4 +13631,4 @@ func _ready() -> void:
 > 
 > **4. Vault/graph updated** — ran `python generate_vault.py` (regenerated item/enemy/room/character notes) and `graphify update .` (AST-only refresh, no API cost) as instructed.
 > 
-> Please reload and check: tutorial UI should now vanish under every teleport path, tutorial fights should feel noticeably busier, and enemies everywhere should feel tankier and a bit more aggressive.
+> Please reload and check: tutorial UI should now vanish under every teleport path, tutorial fights should feel noticeably busier, and enemy everywhere should feel tankier and a bit more aggressive.

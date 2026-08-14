@@ -15,7 +15,7 @@ tags: [asset, asset/enemy]
 
 ## Gegner-Texturen
 
-![[lowpoly_robots_0.png]]
+
 *Textur-Atlas für Lowpoly-Roboter*
 
 ## Technische Details

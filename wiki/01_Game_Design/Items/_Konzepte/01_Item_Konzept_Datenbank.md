@@ -1,8 +1,10 @@
----
-tags: [design-brainstorming, items]
+﻿---
+tags: [design-brainstorming, item]
 ---
 
 # Item-Konzept-Datenbank
+
+> ⚠️ **Historisches Brainstorming-Dokument.** Der aktuelle, verbindliche Stand aller Items lebt in `item_catalog.gd` und den generierten Einzelnotizen unter [[_MOC_Items|_MOC_Items]]. Diese Tabelle kann von der Live-Balance abweichen — bei Widerspruch gilt der Catalog.
 
 | Bestandteil | Bedeutung | Wertebereich | Beschreibung |
 | ----------- | --------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |

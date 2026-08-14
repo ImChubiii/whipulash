@@ -328,6 +328,17 @@ func _disconnect_target_death() -> void:
 @export var trauma_decay: float = 1.8
 @export var max_shake_offset: float = 0.6
 @export var max_shake_roll_degrees: float = 5.0
+## Deckel fuer _trauma, BEWUSST unter 1.0: ohne diesen Deckel klettert Trauma
+## bei einer langen Combo (schnelle Angriffsrate, jeder Treffer addiert
+## erneut per shake_camera()) bis zum harten Anschlag 1.0 und BLEIBT dort
+## haengen, solange schneller getroffen als abgeklungen wird (Zugewinn pro
+## Treffer > trauma_decay * Zeit-zwischen-Treffern) - Rueckmeldung "wenn man
+## lange genug den Gegner schlaegt macht der Screenshake zu viel Shake".
+## shake_amount = _trauma * _trauma laeuft am Anschlag ohnehin am
+## Empfindlichsten (steilster Teil der Quadrat-Kurve) - dieser Deckel kappt
+## genau diese Spitze, waehrend einzelne, seltene Treffer (weit unter dem
+## Deckel) unveraendert bleiben.
+@export_range(0.0, 1.0) var max_trauma: float = 0.6
 var _trauma: float = 0.0
 
 # --- Combo-Tilt ---
@@ -356,6 +367,11 @@ var _tilt_tween: Tween
 @export var dash_drill_degrees: float = 9.0
 @export var dash_drill_ramp_up_time: float = 0.07
 @export var dash_drill_ramp_down_time: float = 0.30
+## Kamera-Ruckler, der zusammen mit dem Roll ausgeloest wird, sobald der
+## Bohrer-Effekt tatsaechlich einen seitlichen Dash bekommt (Rueckmeldung
+## "Drill-Screenshake fehlt komplett") - bislang war play_dash_drill_effect()
+## ein reiner camera.rotation.z-Roll ohne jede Trauma-Beteiligung.
+@export var dash_drill_shake_strength: float = 0.15
 
 @export var dash_fov_boost: float = 25.0
 @export var dash_fov_ramp_up_time: float = 0.08
@@ -611,7 +627,7 @@ func _process(delta: float) -> void:
 func shake_camera(amount: float) -> void:
 	if not SettingsManager.screen_shake_enabled:
 		return
-	_trauma = clamp(_trauma + amount, 0.0, 1.0)
+	_trauma = clamp(_trauma + amount, 0.0, max_trauma)
 
 func play_combo_tilt(target_degrees: float) -> void:
 	if _tilt_tween and _tilt_tween.is_valid():
@@ -718,6 +734,12 @@ func play_dash_drill_effect() -> void:
 		_dash_roll_tween.kill()
 
 	var target: float = -signf(strafe) * dash_drill_degrees
+	# play_dash_drill_effect() laeuft genau einmal PRO Dash-Ausloesung (siehe
+	# combat_base.gd::_perform_utility(), das hier bei jedem Dash-Tastendruck
+	# einmal reinruft, nicht pro Frame) - ein einzelner shake_camera()-Aufruf
+	# hier deckt sich also exakt mit "einmal beim Einsetzen des Rolls", nicht
+	# mit jedem gehaltenen Frame.
+	shake_camera(dash_drill_shake_strength)
 
 	_dash_roll_tween = create_tween()
 	_dash_roll_tween.tween_property(self, "_dash_roll_degrees", target, dash_drill_ramp_up_time)\

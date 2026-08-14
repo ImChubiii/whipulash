@@ -441,43 +441,13 @@ func _turn_toward(target_pos: Vector3, delta: float, turn_speed: float = 1.5) ->
 ## (statt wie eine reine VFX-Partikelwolke in der Luft zu verblassen) - fuer
 ## Turret-Gegner (Moerser-Bot/Saeure-Sprinkler), deren "Kanone" beim Tod
 ## sichtbar als Schrott am Einsatzort zurueckbleiben soll.
+## Duenner Wrapper um VFX.spawn_ground_fragments() (siehe dortiger
+## Kopfkommentar) - der eigentliche Bau/Tween-Code lebt jetzt zentral im
+## VFX-Autoload, damit auch Nicht-CustomEnemyBase-Nodes (z.B. breakable_
+## prop.gd) dieselbe Debris-Optik ohne Codeduplizierung bekommen. Verhalten
+## fuer bestehende Aufrufer (mortar_bot.gd) unveraendert.
 func _spawn_ground_fragments(colors: Array[Color], count: int = 6) -> void:
-	var tree: SceneTree = get_tree()
-	var origin: Vector3 = global_position + Vector3.UP * 1.0
-
-	for i: int in range(count):
-		var frag := MeshInstance3D.new()
-		var box := BoxMesh.new()
-		var size: float = randf_range(0.25, 0.5)
-		box.size = Vector3(size, size * randf_range(0.6, 1.0), size)
-		frag.mesh = box
-		frag.material_override = _make_unshaded_material(colors[i % colors.size()], 0.4)
-		# Gruppe statt freihaengendem Node: stage_manager.gd raeumt
-		# "floor_debris" beim Etagenwechsel mit auf (wie pickups/hazard/
-		# projectiles) - ohne das wuerden sich Bruchstuecke ueber eine ganze
-		# Run-Dauer unbegrenzt unter current_scene ansammeln, weil sie
-		# absichtlich nie von selbst queue_free()en.
-		frag.add_to_group("floor_debris")
-		tree.current_scene.add_child(frag)
-		frag.global_position = origin
-		frag.rotation = Vector3(randf() * TAU, randf() * TAU, randf() * TAU)
-
-		var angle: float = randf() * TAU
-		var horiz: float = randf_range(1.0, 2.8)
-		var landing_xz: Vector3 = origin + Vector3(cos(angle) * horiz, 0.0, sin(angle) * horiz)
-		# _project_to_ground() statt eines geratenen Y-Werts, damit die
-		# Bruchstuecke auch auf leicht geneigtem/unebenem Boden sauber
-		# aufliegen statt in der Luft zu haengen oder im Boden zu versinken.
-		var target: Vector3 = _project_to_ground(landing_xz) + Vector3.UP * (size * 0.5)
-		var spin: Vector3 = frag.rotation + Vector3(
-			randf_range(2.0, 6.0), randf_range(2.0, 6.0), randf_range(2.0, 6.0)
-		)
-
-		var tween: Tween = frag.create_tween()
-		tween.set_parallel(true)
-		tween.tween_property(frag, "global_position", target, 0.6) \
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tween.tween_property(frag, "rotation", spin, 0.6)
+	VFX.spawn_ground_fragments(colors, global_position + Vector3.UP * 1.0, count, self)
 
 
 const _GROUND_RAYCAST_MASK: int = 1
