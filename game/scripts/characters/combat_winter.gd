@@ -18,7 +18,7 @@ class_name CombatWinter
 
 const HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_blood_hit.tscn")
 const MUZZLE_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_muzzle_flash_winter.tscn")
-const PROJECTILE_VFX_SCENE: PackedScene = preload("res://test vfx/MagicProjectilesVFX/assets/BinbunVFX/magic_projectiles/effects/mprojectile_basic/Magic Projectile Basic 3.tscn")
+const PROJECTILE_VFX_SCENE: PackedScene = preload("res://assets/BinbunVFX/magic_projectiles/effects/mprojectile_basic/Magic Projectile Basic 3.tscn")
 const PROJECTILE_HIT_VFX_SCENE: PackedScene = preload("res://scenes/vfx/animated_impact_004.tscn")
 const MUZZLE_FORWARD_OFFSET: float = 0.8
 

@@ -1,8 +1,9 @@
 extends Node
 
 # ============================================================================
-# VfxTestRoom — Admin/Debug: ein Raum mit JEDEM VFX aus "res://test vfx/"
-# nacheinander aufgereiht.
+# VfxTestRoom — Admin/Debug: ein Raum mit JEDEM VFX aus den Asset-Packs
+# "res://assets/BinbunVFX/" und "res://assets/BinbunVFX_Vol2/" nacheinander
+# aufgereiht.
 # ============================================================================
 
 const ROOM_OFFSET: Vector3 = Vector3(1200.0, 800.0, 0.0)
@@ -101,7 +102,8 @@ func _ensure_built() -> void:
 
 	_vfx_scenes.clear()
 	_vfx_names.clear()
-	_scan_for_vfx("res://test vfx")
+	_scan_for_vfx("res://assets/BinbunVFX")
+	_scan_for_vfx("res://assets/BinbunVFX_Vol2")
 
 	var columns: int = maxi(int(ceil(sqrt(float(_vfx_scenes.size())))), 1)
 	var rows: int = int(ceil(float(_vfx_scenes.size()) / float(columns)))
