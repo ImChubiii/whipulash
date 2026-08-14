@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dq8jkeeag6vov"
-path.s3tc="res://.godot/imported/placeholder.png-c81bfebdcd57a9e6469357e80c1d3834.s3tc.ctex"
+path.s3tc="res://.godot/imported/placeholder.png-9e00fca5c4edce55e96bdf551b87abbb.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://test vfx/MagicProjectilesVFX/assets/BinbunVFX/shared/texture/placeholder.png"
-dest_files=["res://.godot/imported/placeholder.png-c81bfebdcd57a9e6469357e80c1d3834.s3tc.ctex"]
+source_file="res://assets/BinbunVFX/shared/texture/placeholder.png"
+dest_files=["res://.godot/imported/placeholder.png-9e00fca5c4edce55e96bdf551b87abbb.s3tc.ctex"]
 
 [params]
 
